@@ -70,7 +70,7 @@ const ProviderCard: React.FC<ProviderProps> = ({
               
               <div>
                 {verified && (
-                  <div className="flex items-center text-green-600 mb-1">
+                  <div className="flex items-center text-brand-green mb-1">
                     <ShieldCheck className="h-4 w-4 mr-1" /> 
                     <span className="text-xs font-medium">Verificeret</span>
                   </div>
@@ -113,8 +113,8 @@ const ProviderCard: React.FC<ProviderProps> = ({
           </div>
           
           {/* Features */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 md:flex-1">
-            <p className="text-xs text-gray-500 uppercase font-semibold mb-2">Inkluderet</p>
+          <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-l-brand-green border-t border-r border-b border-gray-100 md:flex-1">
+            <p className="text-xs text-brand-dark uppercase font-semibold mb-2">Inkluderet</p>
             <div className="space-y-2">
               {features.map((feature, index) => (
                 <div key={index} className="flex items-center text-sm">
@@ -127,7 +127,7 @@ const ProviderCard: React.FC<ProviderProps> = ({
           
           {/* Price and action */}
           <div className="flex flex-col items-end">
-            <div className="bg-gray-50 px-4 py-3 rounded-lg border border-gray-100 mb-4 w-full">
+            <div className="bg-gradient-to-br from-brand-dark/5 to-gray-50 px-4 py-3 rounded-lg border border-gray-100 mb-4 w-full">
               <div className="flex items-center justify-between mb-1">
                 <p className="text-sm text-gray-500">Din estimerede pris</p>
                 <TooltipProvider>
@@ -162,9 +162,9 @@ const ProviderCard: React.FC<ProviderProps> = ({
       </div>
       
       {intro && (
-        <div className="px-6 py-2 bg-yellow-50 border-t border-yellow-100 flex items-center">
-          <Star className="h-4 w-4 text-yellow-600 mr-2" />
-          <span className="text-sm text-yellow-800 font-medium">Introtilbud - Rabatteret pris i første periode</span>
+        <div className="px-6 py-2 bg-brand-dark bg-opacity-5 border-t border-brand-green/20 flex items-center">
+          <Star className="h-4 w-4 text-brand-green mr-2" />
+          <span className="text-sm text-brand-dark font-medium">Introtilbud - Rabatteret pris i første periode</span>
         </div>
       )}
     </div>

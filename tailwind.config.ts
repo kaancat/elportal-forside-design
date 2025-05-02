@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,12 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Brand colors
+				brand: {
+					green: '#84db41',
+					dark: '#001a12',
+				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -89,7 +95,10 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out'
-			}
+			},
+			backgroundImage: {
+				'hero-windmills': "url('/public/lovable-uploads/e68808e9-f324-4925-93ed-3433c3de4cd9.png')",
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

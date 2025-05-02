@@ -1,20 +1,16 @@
-
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
 const HeroSection = () => {
-  return (
-    <section className="relative h-[600px] overflow-hidden">
+  return <section className="relative h-[600px] overflow-hidden">
       {/* Background overlay with windmill image */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: "url('/lovable-uploads/e68808e9-f324-4925-93ed-3433c3de4cd9.png')" }}
-      >
+      <div className="absolute inset-0 bg-cover bg-center" style={{
+      backgroundImage: "url('/lovable-uploads/e68808e9-f324-4925-93ed-3433c3de4cd9.png')"
+    }}>
         <div className="absolute inset-0 bg-brand-dark bg-opacity-70"></div>
       </div>
       
-      <div className="container mx-auto px-4 h-full flex items-center relative z-10">
+      <div className="container mx-auto px-4 h-full flex items-center relative z-10 bg-brand-dark">
         <div className="md:w-1/2 text-white">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
             Elpriser - Find og <span className="text-brand-green">sammenlign</span> elpriser
@@ -43,8 +39,6 @@ const HeroSection = () => {
           </Button>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default HeroSection;

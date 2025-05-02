@@ -1,19 +1,12 @@
-
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
 const Navigation = () => {
-  return (
-    <header className="sticky top-0 z-50 w-full bg-white shadow-md">
-      <div className="container mx-auto px-4 flex items-center justify-between h-16">
+  return <header className="sticky top-0 z-50 w-full bg-white shadow-md">
+      <div className="container mx-auto px-4 flex items-center justify-between h-16 bg-brand-dark">
         <div className="flex items-center">
           <a href="/" className="flex items-center">
-            <img 
-              src="/lovable-uploads/97984f7d-d542-490c-9e04-5a0744d1b6a2.png" 
-              alt="ElPortal.dk Logo" 
-              className="h-8 sm:h-10"
-            />
+            <img src="/lovable-uploads/97984f7d-d542-490c-9e04-5a0744d1b6a2.png" alt="ElPortal.dk Logo" className="h-8 sm:h-10" />
           </a>
         </div>
         
@@ -37,8 +30,6 @@ const Navigation = () => {
           </Button>
         </div>
       </div>
-    </header>
-  );
+    </header>;
 };
-
 export default Navigation;

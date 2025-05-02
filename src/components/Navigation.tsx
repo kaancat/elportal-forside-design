@@ -2,6 +2,7 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+
 const Navigation = () => {
   return <header className="sticky top-0 z-50 w-full bg-white shadow-md">
       <div className="container mx-auto px-4 flex items-center justify-between h-16 bg-brand-dark">
@@ -12,11 +13,11 @@ const Navigation = () => {
         </div>
         
         <nav className="hidden md:flex items-center space-x-8">
-          <a href="/elpriser" className="text-brand-green hover:text-white font-medium">Elpriser</a>
-          <a href="/elselskaber" className="text-brand-green hover:text-white font-medium">Elselskaber</a>
-          <a href="/ladeboks" className="text-brand-green hover:text-white font-medium">Ladeboks</a>
+          <a href="/elpriser" className="text-white hover:text-brand-green font-medium">Elpriser</a>
+          <a href="/elselskaber" className="text-white hover:text-brand-green font-medium">Elselskaber</a>
+          <a href="/ladeboks" className="text-white hover:text-brand-green font-medium">Ladeboks</a>
           <div className="relative group">
-            <a href="/bliv-klogere" className="text-brand-green hover:text-white font-medium flex items-center">
+            <a href="/bliv-klogere" className="text-white hover:text-brand-green font-medium flex items-center">
               Bliv klogere på
               <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
@@ -33,4 +34,5 @@ const Navigation = () => {
       </div>
     </header>;
 };
+
 export default Navigation;

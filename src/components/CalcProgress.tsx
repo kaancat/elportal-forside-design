@@ -4,11 +4,7 @@ import { Check } from 'lucide-react';
 
 const steps = [
   { id: 'welcome', label: 'Velkommen' },
-  { id: 'method', label: 'Metode' },
-  { id: 'moving', label: 'Flytning' },
-  { id: 'persons', label: 'Personer' },
-  { id: 'cars', label: 'Biler' },
-  { id: 'company', label: 'Elselskab' },
+  { id: 'info', label: 'Dit forbrug' },
   { id: 'result', label: 'Resultat' },
 ];
 

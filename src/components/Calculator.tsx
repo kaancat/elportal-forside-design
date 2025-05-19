@@ -18,7 +18,7 @@ const Calculator = () => {
               </h2>
               <p className="text-3xl font-bold mb-6">Prøv vores beregner</p>
               <p className="text-gray-600 mb-6">
-                Få estimerede og tilpassede priser på elaftaler, som tager udgangspunkt i dit forbrug.
+                Få estimerede priser på elaftaler baseret på dit forbrug - enkelt og hurtigt.
               </p>
             </div>
             
@@ -28,16 +28,7 @@ const Calculator = () => {
                   <Check className="h-5 w-5 text-brand-green" />
                 </div>
                 <div>
-                  <p className="font-medium">Beregn dit forbrug</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start">
-                <div className="mr-3 mt-1">
-                  <Check className="h-5 w-5 text-brand-green" />
-                </div>
-                <div>
-                  <p className="font-medium">Sammenlign elselskaber</p>
+                  <p className="font-medium">Hurtigt overblik over elpriser</p>
                 </div>
               </div>
               

@@ -1,6 +1,5 @@
 
-import React, { useState } from 'react';
-import { Filter, ArrowDown, ArrowUp } from 'lucide-react';
+import React from 'react';
 import ProviderCard from './ProviderCard';
 
 const providers = [
@@ -10,15 +9,12 @@ const providers = [
     name: "AURA POWER - Intro",
     priceKwh: 2.15,
     priceMonth: 716,
-    badges: ["0 kr. i abonnement resten af året"],
     trustpilotScore: 4.5,
     intro: true,
     verified: true,
-    features: [
-      "Fremragende kundeservice",
-      "4.7 stjerner på Trustpilot",
-      "Kvartals- eller månedsregning"
-    ]
+    variablePrice: true,
+    noBinding: true,
+    freeSetup: true
   },
   {
     id: 2,
@@ -26,15 +22,12 @@ const providers = [
     name: "El til børspris + 4 øre/kWh",
     priceKwh: 2.16,
     priceMonth: 720,
-    badges: ["Slip for acontoregninger"],
     trustpilotScore: 4.3,
     intro: false,
     verified: true,
-    features: [
-      "El til børspris + 4 øre/kWh",
-      "Strøm fra danske solceller",
-      "Månedlig betaling"
-    ]
+    variablePrice: true,
+    noBinding: false,
+    freeSetup: true
   },
   {
     id: 3,
@@ -42,15 +35,12 @@ const providers = [
     name: "DCC Energi Flex - Intro",
     priceKwh: 2.20,
     priceMonth: 734,
-    badges: ["6 måneders gratis abonnement", "4.7 stjerner på Trustpilot"],
     trustpilotScore: 4.7,
     intro: true,
     verified: true,
-    features: [
-      "Gratis oprettelse",
-      "Eksisteret siden 2012",
-      "Månedlig betaling"
-    ]
+    variablePrice: false,
+    noBinding: true,
+    freeSetup: true
   },
   {
     id: 4,
@@ -58,42 +48,18 @@ const providers = [
     name: "NemEl",
     priceKwh: 2.20,
     priceMonth: 734,
-    badges: ["Eksisteret siden 2012", "4 stjerner på Trustpilot"],
     trustpilotScore: 4.0,
     intro: false,
     verified: true,
-    features: [
-      "Gratis oprettelse",
-      "Eksisteret siden 2012",
-      "Månedlig betaling"
-    ]
+    variablePrice: true,
+    noBinding: true,
+    freeSetup: false
   }
 ];
 
 const ProviderList = () => {
-  const [sortCriteria, setSortCriteria] = useState<'price' | 'rating'>('price');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-
-  const toggleSort = (criteria: 'price' | 'rating') => {
-    if (sortCriteria === criteria) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortCriteria(criteria);
-      setSortDirection('asc');
-    }
-  };
-
-  const sortedProviders = [...providers].sort((a, b) => {
-    if (sortCriteria === 'price') {
-      return sortDirection === 'asc' 
-        ? a.priceKwh - b.priceKwh 
-        : b.priceKwh - a.priceKwh;
-    } else {
-      return sortDirection === 'asc' 
-        ? (a.trustpilotScore || 0) - (b.trustpilotScore || 0)
-        : (b.trustpilotScore || 0) - (a.trustpilotScore || 0);
-    }
-  });
+  // Sort providers by price (lowest first)
+  const sortedProviders = [...providers].sort((a, b) => a.priceKwh - b.priceKwh);
 
   return (
     <section className="py-12 bg-gray-50">
@@ -103,40 +69,24 @@ const ProviderList = () => {
           <p className="text-center text-gray-600 mb-8">
             Find den bedste elpris for dig baseret på dit forbrug
           </p>
-          
-          <div className="flex justify-end mb-4">
-            <div className="inline-flex items-center bg-white rounded-lg border border-gray-200 px-4 py-2 text-sm">
-              <Filter className="h-4 w-4 mr-2 text-gray-500" />
-              <span className="mr-2 text-gray-700">Sorter efter:</span>
-              <button 
-                onClick={() => toggleSort('price')}
-                className={`mx-1 px-2 py-1 rounded ${sortCriteria === 'price' ? 'bg-brand-green bg-opacity-10 text-brand-green' : 'text-gray-600'}`}
-              >
-                Pris 
-                {sortCriteria === 'price' && (
-                  sortDirection === 'asc' ? 
-                    <ArrowUp className="inline h-3 w-3 ml-1" /> : 
-                    <ArrowDown className="inline h-3 w-3 ml-1" />
-                )}
-              </button>
-              <button 
-                onClick={() => toggleSort('rating')}
-                className={`mx-1 px-2 py-1 rounded ${sortCriteria === 'rating' ? 'bg-brand-green bg-opacity-10 text-brand-green' : 'text-gray-600'}`}
-              >
-                Vurdering
-                {sortCriteria === 'rating' && (
-                  sortDirection === 'asc' ? 
-                    <ArrowUp className="inline h-3 w-3 ml-1" /> : 
-                    <ArrowDown className="inline h-3 w-3 ml-1" />
-                )}
-              </button>
-            </div>
-          </div>
         </div>
         
         <div className="space-y-4">
           {sortedProviders.map(provider => (
-            <ProviderCard key={provider.id} {...provider} />
+            <ProviderCard 
+              key={provider.id} 
+              logo={provider.logo}
+              name={provider.name}
+              priceKwh={provider.priceKwh}
+              priceMonth={provider.priceMonth}
+              trustpilotScore={provider.trustpilotScore}
+              intro={provider.intro}
+              verified={provider.verified}
+              features={[]}
+              variablePrice={provider.variablePrice}
+              noBinding={provider.noBinding}
+              freeSetup={provider.freeSetup}
+            />
           ))}
         </div>
       </div>

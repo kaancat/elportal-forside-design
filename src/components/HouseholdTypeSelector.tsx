@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Pencil, Building, House, Home, Mountain } from 'lucide-react';
 
@@ -73,13 +74,17 @@ const HouseholdTypeSelector: React.FC<HouseholdTypeSelectorProps> = ({
     }
   };
 
-  // Determine if current consumption matches any preset (for auto-selection)
+  // Determine which type should appear active
   const getActiveType = () => {
-    if (selectedType) return selectedType;
+    // If a type is explicitly selected, use that
+    if (selectedType) {
+      return selectedType;
+    }
     
-    // Check if current consumption matches any preset
-    const matchingType = householdTypes.find(type => type.kWh === currentConsumption);
-    return matchingType?.id || 'custom';
+    // If no type is selected but consumption matches a preset exactly, 
+    // we can optionally auto-highlight that preset (but this might be confusing)
+    // For now, let's not auto-select to avoid confusion
+    return null;
   };
 
   const activeType = getActiveType();

@@ -1,5 +1,5 @@
 Product Requirements Document: Elportal.dk
-Version: 1.0
+Version: 1.1
 Date: 2024-06-05
 CTO: (Din AI Assistent)
 Project Lead: (Dit Navn)
@@ -12,7 +12,7 @@ At blive Danmarks mest troværdige og brugervenlige platform for information og 
 Kortsigtet (MVP - indenfor 2-3 måneder):
 Lancere en funktionel prissammenligningsplatform, der viser Vindstød og udvalgte konkurrenter.
 Sikre at Vindstød altid fremstår som det primære og mest attraktive valg.
-Implementere en enkel og intuitiv brugerflade for valg af region (Vest/Øst) og årligt forbrug.
+Implementere en enkel og intuitiv brugerflade for valg af årligt forbrug.
 Muliggøre manuel administration af produktdata for prissammenligningen.
 Opnå de første kundehenvisninger til Vindstød.
 Mellemlangt sigt (3-9 måneder):
@@ -36,7 +36,7 @@ Fremtidige content creators/skribenter
 Flow 1: Prissammenligning (MVP)
 Bruger lander på forsiden (som er prissammenligningssiden).
 Bruger ser Vindstøds produkt(er) øverst, efterfulgt af udvalgte konkurrenter.
-Bruger kan (valgfrit) justere "Bopæl (Vest/Øst)" og "Forventet årligt kWh-forbrug" via simple UI-elementer.
+Bruger kan (valgfrit) justere "Forventet årligt kWh-forbrug" via simple UI-elementer.
 Produktlisten (kWh-pris, estimeret månedspris) opdateres dynamisk baseret på brugerens valg.
 Hvert produkt viser: Logo, Navn, 3 faste "Inkluderet"-punkter (Pris variabel, Ingen binding, Gratis oprettelse) med ja/nej-indikator.
 Bruger klikker på "Se nærmere" på et produkt (typisk Vindstød).
@@ -51,10 +51,9 @@ Feature ID	Feature Name	Description	Priority	Phase	Notes
 MVP - Prissammenligning					
 FE-001	Forside = Prissammenligning	Ingen unødvendige landingssider før sammenligningen.	Must-have	MVP	
 FE-002	Produktliste Visning	Viser produkter (logo, navn, "Inkluderet"-punkter, kWh-pris, est. månedspris, "Se nærmere"-knap). Vindstød altid øverst.	Must-have	MVP	Design i tråd med CEO's feedback.
-FE-003	Region Vælger (Vest/Øst)	Simple knapper for brugeren til at vælge region. Påvirker kWh-pris.	Must-have	MVP	
 FE-004	Forbrugs Slider	Slider til at justere forventet årligt kWh-forbrug. Påvirker est. månedspris.	Must-have	MVP	
-FE-005	Dynamisk Prisopdatering	kWh-pris og est. månedspris opdateres real-time i UI baseret på FE-003 & FE-004.	Must-have	MVP	
-BE-001	Produkt Data Model	Backend-struktur til at gemme produktdata (inkl. Vest/Øst priser, "Inkluderet"-booleans etc. jf. seneste prompt).	Must-have	MVP	
+FE-005	Dynamisk Prisopdatering	kWh-pris og est. månedspris opdateres real-time i UI baseret på FE-004.	Must-have	MVP	
+BE-001	Produkt Data Model	Backend-struktur til at gemme produktdata (inkl. en enkelt kWh-pris, "Inkluderet"-booleans etc. jf. seneste beslutning).	Must-have	MVP	
 BE-002	Manuel Data Administration	Mekanisme for Mondaybrew til at opdatere produktdata (Admin UI eller JSON/CSV-fil).	Must-have	MVP	
 BE-003	API Endpoint for Produkter	Leverer produktdata til frontend, korrekt sorteret (Vindstød først).	Must-have	MVP	
 DSGN-001	Grundlæggende Visuel Identitet	Anvendelse af brandfarver (#84db41, #001a12) og logoer. Simpelt, rent design.	Must-have	MVP	Brand guide følger.
@@ -78,13 +77,13 @@ Skalerbarhed (for content): Løsningen med headless CMS skal kunne håndtere et 
 Brugervenlighed (Content Management): Det skal være nemt for ikke-tekniske brugere at oprette og redigere blogindlæg i det valgte CMS.
 3. Implementation Plan (High-Level)
 Fase 0: Forberedelse & Setup (Denne uge)
-Opgave 0.1: Færdiggørelse og godkendelse af dette PRD.
+Opgave 0.1: Færdiggørelse og godkendelse af denne PRD.
 Opgave 0.2: Opsætning af GitHub repo. Upload PRD.
-Opgave 0.3: Mondaybrew indhenter endelige produktdata for Vindstød og de udvalgte konkurrenter (inkl. alle felter fra BE-001, især Vest/Øst priser og de 3 "Inkluderet"-booleans).
+Opgave 0.3: Mondaybrew indhenter endelige produktdata for Vindstød og de udvalgte konkurrenter (inkl. alle felter fra BE-001, især kWh-pris og de 3 "Inkluderet"-booleans).
 Opgave 0.4: Udarbejdelse af simpel brand guide (logoer, farver #84db41, #001a12, skrifttyper).
 Fase 1: MVP Udvikling - Prissammenligning (Estimeret 4-6 uger med Loveable)
 Sprint 1.1: Backend Setup & Datamanagement
-Implementer BE-001 (Produkt Data Model).
+Implementer BE-001 (Produkt Data Model - simplificeret).
 Implementer BE-002 (Manuel Data Administration - start med JSON/CSV, admin UI kan være v2).
 Implementer BE-003 (API Endpoint for Produkter).
 Mondaybrew indtaster initial produktdata.
@@ -93,7 +92,6 @@ Implementer FE-001 (Forside = Prissammenligning).
 Implementer FE-002 (Produktliste Visning - basis struktur).
 Implementer DSGN-001 (Grundlæggende Visuel Identitet - farver, skrifttyper).
 Sprint 1.3: Frontend Interaktivitet & Dynamik
-Implementer FE-003 (Region Vælger).
 Implementer FE-004 (Forbrugs Slider).
 Implementer FE-005 (Dynamisk Prisopdatering).
 Sprint 1.4: Færdiggørelse, Test & Basis SEO/Tracking

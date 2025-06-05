@@ -7,7 +7,7 @@ export const useProducts = () => {
     queryKey: ['products'],
     queryFn: ProductService.getAllProducts,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 };
 
@@ -16,7 +16,7 @@ export const useVindstoedProducts = () => {
     queryKey: ['products', 'vindstoed'],
     queryFn: ProductService.getVindstoedProducts,
     staleTime: 5 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 };
 
@@ -25,6 +25,6 @@ export const useCompetitorProducts = () => {
     queryKey: ['products', 'competitors'],
     queryFn: ProductService.getCompetitorProducts,
     staleTime: 5 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 };

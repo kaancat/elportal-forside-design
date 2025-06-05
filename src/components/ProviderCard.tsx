@@ -10,8 +10,18 @@ interface ProviderCardProps {
 }
 
 const ProviderCard: React.FC<ProviderCardProps> = ({ product }) => {
+  console.log('ProviderCard render - product:', product);
+
+  // Add safety checks
+  if (!product) {
+    console.error('ProviderCard: product is undefined');
+    return null;
+  }
+
   const handleSignupClick = () => {
-    window.open(product.signupLink, '_blank', 'noopener,noreferrer');
+    if (product.signupLink) {
+      window.open(product.signupLink, '_blank', 'noopener,noreferrer');
+    }
   };
 
   return (
@@ -23,9 +33,13 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product }) => {
             <div className="flex items-center space-x-4">
               <div className="flex-shrink-0 w-24 h-24 flex items-center justify-center p-2 bg-white rounded-lg border border-gray-100">
                 <img 
-                  src={product.supplierLogoURL} 
-                  alt={`${product.supplierName} logo`} 
+                  src={product.supplierLogoURL || '/placeholder.svg'} 
+                  alt={`${product.supplierName || 'Ukendt'} logo`} 
                   className="max-w-full max-h-full object-contain" 
+                  onError={(e) => {
+                    console.warn('Logo failed to load:', product.supplierLogoURL);
+                    e.currentTarget.src = '/placeholder.svg';
+                  }}
                 />
               </div>
               
@@ -36,8 +50,8 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product }) => {
                   </Badge>
                 )}
                 
-                <h3 className="font-bold text-lg text-brand-dark">{product.productName}</h3>
-                <p className="text-sm text-gray-600">{product.supplierName}</p>
+                <h3 className="font-bold text-lg text-brand-dark">{product.productName || 'Ukendt produkt'}</h3>
+                <p className="text-sm text-gray-600">{product.supplierName || 'Ukendt leverandør'}</p>
               </div>
             </div>
           </div>
@@ -80,10 +94,10 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product }) => {
             <div className="bg-gradient-to-br from-brand-dark/5 to-gray-50 px-4 py-3 rounded-lg border border-gray-100 mb-4 w-full">
               <div className="text-right">
                 <div className="text-2xl font-bold text-brand-dark">
-                  {product.displayPrice_kWh.toFixed(2)} kr/kWh
+                  {(product.displayPrice_kWh || 0).toFixed(2)} kr/kWh
                 </div>
                 <div className="text-sm text-gray-600">
-                  Månedligt gebyr: {product.displayMonthlyFee} kr
+                  Månedligt gebyr: {product.displayMonthlyFee || 0} kr
                 </div>
               </div>
             </div>
@@ -91,6 +105,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product }) => {
             <Button 
               onClick={handleSignupClick}
               className="bg-brand-green hover:bg-brand-green/90 text-white rounded-md w-full"
+              disabled={!product.signupLink}
             >
               Se nærmere <ExternalLink className="ml-1 h-4 w-4" />
             </Button>

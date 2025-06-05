@@ -1,65 +1,48 @@
 
 import React from 'react';
 import ProviderCard from './ProviderCard';
-
-const providers = [
-  {
-    id: 1,
-    logo: "https://placehold.co/200x100/FFFFFF/84db41?text=AURA",
-    name: "AURA POWER - Intro",
-    priceKwh: 2.15,
-    priceMonth: 716,
-    trustpilotScore: 4.5,
-    intro: true,
-    verified: true,
-    variablePrice: true,
-    noBinding: true,
-    freeSetup: true
-  },
-  {
-    id: 2,
-    logo: "https://placehold.co/200x100/FFFFFF/2a7d8c?text=gasel",
-    name: "El til børspris + 4 øre/kWh",
-    priceKwh: 2.16,
-    priceMonth: 720,
-    trustpilotScore: 4.3,
-    intro: false,
-    verified: true,
-    variablePrice: true,
-    noBinding: false,
-    freeSetup: true
-  },
-  {
-    id: 3,
-    logo: "https://placehold.co/200x100/FFFFFF/0035a9?text=DCC",
-    name: "DCC Energi Flex - Intro",
-    priceKwh: 2.20,
-    priceMonth: 734,
-    trustpilotScore: 4.7,
-    intro: true,
-    verified: true,
-    variablePrice: false,
-    noBinding: true,
-    freeSetup: true
-  },
-  {
-    id: 4,
-    logo: "https://placehold.co/200x100/FFFFFF/333333?text=modstrøm",
-    name: "NemEl",
-    priceKwh: 2.20,
-    priceMonth: 734,
-    trustpilotScore: 4.0,
-    intro: false,
-    verified: true,
-    variablePrice: true,
-    noBinding: true,
-    freeSetup: false
-  }
-];
+import { useProducts } from '@/hooks/useProducts';
 
 const ProviderList = () => {
-  // Sort providers by price (lowest first)
-  const sortedProviders = [...providers].sort((a, b) => a.priceKwh - b.priceKwh);
+  const { data: productsResponse, isLoading, error } = useProducts();
+
+  if (isLoading) {
+    return (
+      <section className="py-12 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-center mb-2">Sammenlign eludbydere</h2>
+            <p className="text-center text-gray-600 mb-8">
+              Find den bedste elpris for dig baseret på dit forbrug
+            </p>
+          </div>
+          <div className="space-y-4">
+            <div className="text-center">Indlæser elpriser...</div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="py-12 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-center mb-2">Sammenlign eludbydere</h2>
+            <p className="text-center text-gray-600 mb-8">
+              Find den bedste elpris for dig baseret på dit forbrug
+            </p>
+          </div>
+          <div className="space-y-4">
+            <div className="text-center text-red-500">Der opstod en fejl ved indlæsning af elpriser.</div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const products = productsResponse?.products || [];
 
   return (
     <section className="py-12 bg-gray-50">
@@ -72,20 +55,10 @@ const ProviderList = () => {
         </div>
         
         <div className="space-y-4">
-          {sortedProviders.map(provider => (
+          {products.map(product => (
             <ProviderCard 
-              key={provider.id} 
-              logo={provider.logo}
-              name={provider.name}
-              priceKwh={provider.priceKwh}
-              priceMonth={provider.priceMonth}
-              trustpilotScore={provider.trustpilotScore}
-              intro={provider.intro}
-              verified={provider.verified}
-              features={[]}
-              variablePrice={provider.variablePrice}
-              noBinding={provider.noBinding}
-              freeSetup={provider.freeSetup}
+              key={product.id} 
+              product={product}
             />
           ))}
         </div>

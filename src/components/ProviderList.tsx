@@ -1,14 +1,17 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import ProviderCard from './ProviderCard';
 import { useProducts } from '@/hooks/useProducts';
+import { Slider } from '@/components/ui/slider';
 
 const ProviderList = () => {
   const { data: productsResponse, isLoading, error } = useProducts();
+  const [annualConsumption, setAnnualConsumption] = useState([4000]);
 
   console.log('ProviderList render - isLoading:', isLoading);
   console.log('ProviderList render - error:', error);
   console.log('ProviderList render - productsResponse:', productsResponse);
+  console.log('ProviderList render - annualConsumption:', annualConsumption[0]);
 
   if (isLoading) {
     return (
@@ -82,6 +85,27 @@ const ProviderList = () => {
           </p>
         </div>
         
+        {/* Consumption Slider */}
+        <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="max-w-md mx-auto">
+            <label className="block text-sm font-medium text-brand-dark mb-4">
+              Forventet årligt kWh-forbrug: <span className="font-bold text-brand-green">{annualConsumption[0].toLocaleString()} kWh</span>
+            </label>
+            <Slider
+              value={annualConsumption}
+              onValueChange={setAnnualConsumption}
+              min={500}
+              max={10000}
+              step={100}
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs text-gray-500 mt-2">
+              <span>500 kWh</span>
+              <span>10.000 kWh</span>
+            </div>
+          </div>
+        </div>
+        
         <div className="space-y-4">
           {products.map(product => {
             console.log('Rendering product:', product);
@@ -93,6 +117,7 @@ const ProviderList = () => {
               <ProviderCard 
                 key={product.id} 
                 product={product}
+                annualConsumption={annualConsumption[0]}
               />
             );
           })}

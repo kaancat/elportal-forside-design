@@ -1,17 +1,34 @@
-
 import React, { useState } from 'react';
 import ProviderCard from './ProviderCard';
+import HouseholdTypeSelector, { HouseholdType } from './HouseholdTypeSelector';
 import { useProducts } from '@/hooks/useProducts';
 import { Slider } from '@/components/ui/slider';
 
 const ProviderList = () => {
   const { data: productsResponse, isLoading, error } = useProducts();
   const [annualConsumption, setAnnualConsumption] = useState([4000]);
+  const [selectedHouseholdType, setSelectedHouseholdType] = useState<string | null>('small-house'); // Default to small house (4000 kWh)
 
   console.log('ProviderList render - isLoading:', isLoading);
   console.log('ProviderList render - error:', error);
   console.log('ProviderList render - productsResponse:', productsResponse);
   console.log('ProviderList render - annualConsumption:', annualConsumption[0]);
+
+  const handleHouseholdTypeSelect = (type: HouseholdType | null) => {
+    if (type) {
+      setAnnualConsumption([type.kWh]);
+      setSelectedHouseholdType(type.id);
+    } else {
+      // Custom/manual selection
+      setSelectedHouseholdType(null);
+    }
+  };
+
+  const handleSliderChange = (value: number[]) => {
+    setAnnualConsumption(value);
+    // If user manually adjusts slider, deselect any preset type
+    setSelectedHouseholdType(null);
+  };
 
   if (isLoading) {
     return (
@@ -85,6 +102,15 @@ const ProviderList = () => {
           </p>
         </div>
         
+        {/* Household Type Selector */}
+        <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <HouseholdTypeSelector
+            selectedType={selectedHouseholdType}
+            onTypeSelect={handleHouseholdTypeSelect}
+            currentConsumption={annualConsumption[0]}
+          />
+        </div>
+        
         {/* Consumption Slider */}
         <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="max-w-md mx-auto">
@@ -93,7 +119,7 @@ const ProviderList = () => {
             </label>
             <Slider
               value={annualConsumption}
-              onValueChange={setAnnualConsumption}
+              onValueChange={handleSliderChange}
               min={500}
               max={10000}
               step={100}

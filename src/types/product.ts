@@ -4,8 +4,7 @@ export interface ElectricityProduct {
   supplierName: string;
   productName: string;
   isVindstoedProduct: boolean;
-  displayPrice_kWh_Vest: number;
-  displayPrice_kWh_Oest: number;
+  displayPrice_kWh: number;
   displayMonthlyFee: number;
   signupLink: string;
   supplierLogoURL: string;

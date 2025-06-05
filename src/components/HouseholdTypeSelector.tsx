@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Pencil, Building, House, Home, Cabin } from 'lucide-react';
+import { Pencil, Building, House, Home, Mountain } from 'lucide-react';
 
 interface HouseholdType {
   id: string;
@@ -55,7 +54,7 @@ const householdTypes: HouseholdType[] = [
   {
     id: 'summer-house',
     label: 'Sommerhus',
-    icon: <Cabin className="h-6 w-6" />,
+    icon: <Mountain className="h-6 w-6" />,
     kWh: 2000,
     description: 'Feriebolig'
   }

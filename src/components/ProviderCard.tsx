@@ -7,10 +7,12 @@ import { ElectricityProduct } from '@/types/product';
 
 interface ProviderCardProps {
   product: ElectricityProduct;
+  annualConsumption: number;
 }
 
-const ProviderCard: React.FC<ProviderCardProps> = ({ product }) => {
+const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption }) => {
   console.log('ProviderCard render - product:', product);
+  console.log('ProviderCard render - annualConsumption:', annualConsumption);
 
   // Add safety checks
   if (!product) {
@@ -23,6 +25,11 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product }) => {
       window.open(product.signupLink, '_blank', 'noopener,noreferrer');
     }
   };
+
+  // Calculate estimated monthly price
+  const estimatedMonthlyPrice = ((product.displayPrice_kWh || 0) * annualConsumption / 12) + (product.displayMonthlyFee || 0);
+  
+  console.log('Calculated monthly price:', estimatedMonthlyPrice, 'for consumption:', annualConsumption);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
@@ -93,10 +100,13 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product }) => {
           <div className="flex flex-col items-end lg:min-w-[200px]">
             <div className="bg-gradient-to-br from-brand-dark/5 to-gray-50 px-4 py-3 rounded-lg border border-gray-100 mb-4 w-full">
               <div className="text-right">
-                <div className="text-2xl font-bold text-brand-dark">
-                  {(product.displayPrice_kWh || 0).toFixed(2)} kr/kWh
+                <div className="text-2xl font-bold text-brand-green">
+                  {estimatedMonthlyPrice.toFixed(0)} kr/mnd
                 </div>
                 <div className="text-sm text-gray-600">
+                  {(product.displayPrice_kWh || 0).toFixed(2)} kr/kWh
+                </div>
+                <div className="text-xs text-gray-500">
                   Månedligt gebyr: {product.displayMonthlyFee || 0} kr
                 </div>
               </div>

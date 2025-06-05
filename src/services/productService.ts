@@ -37,7 +37,7 @@ export class ProductService {
     // Simulate API call delay for realistic behavior
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    const sortedProducts = this.sortProducts([...productsData.products]);
+    const sortedProducts = ProductService.sortProducts([...productsData.products]);
     
     return {
       products: sortedProducts,

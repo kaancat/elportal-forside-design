@@ -19,15 +19,19 @@ const ProviderList = () => {
       setAnnualConsumption([type.kWh]);
       setSelectedHouseholdType(type.id);
     } else {
-      // Custom/manual selection
-      setSelectedHouseholdType(null);
+      // Custom/manual selection - "Indtast selv" was clicked
+      setSelectedHouseholdType('custom');
+      // Keep current slider value or set to default if needed
+      if (annualConsumption[0] === 0) {
+        setAnnualConsumption([4000]);
+      }
     }
   };
 
   const handleSliderChange = (value: number[]) => {
     setAnnualConsumption(value);
-    // If user manually adjusts slider, deselect any preset type
-    setSelectedHouseholdType(null);
+    // If user manually adjusts slider, switch to custom mode
+    setSelectedHouseholdType('custom');
   };
 
   if (isLoading) {

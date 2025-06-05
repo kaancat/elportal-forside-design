@@ -19,7 +19,7 @@ interface HouseholdTypeSelectorProps {
 const householdTypes: HouseholdType[] = [
   {
     id: 'custom',
-    label: 'Indtast selv',
+    label: 'Juster selv',
     icon: <Pencil className="h-6 w-6" />,
     kWh: 4000,
     description: 'Dit forbrug'

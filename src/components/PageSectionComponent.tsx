@@ -8,10 +8,13 @@ interface PageSectionComponentProps {
   section: PageSection
 }
 
-const PageSectionComponent: React.FC<PageSectionComponentProps> = ({ section }) => {
+const PageSectionComponent: React.FC<PageSectionComponentProps> = (props) => {
+  console.log('Props received by PageSectionComponent:', props)
+  
+  const { section } = props
   const { title, content, image, imagePosition } = section
 
-  // Debug logging for image data
+  console.log('Extracted section data:', { title, content, image, imagePosition })
   console.log('PageSection image data:', image)
   
   const imageElement = image && (
@@ -47,6 +50,7 @@ const PageSectionComponent: React.FC<PageSectionComponentProps> = ({ section }) 
   )
 
   if (!image || imagePosition === 'none') {
+    console.log('Rendering section without image')
     return (
       <section className="mb-12">
         {contentElement}
@@ -54,6 +58,7 @@ const PageSectionComponent: React.FC<PageSectionComponentProps> = ({ section }) 
     )
   }
 
+  console.log('Rendering section with image, position:', imagePosition)
   return (
     <section className="mb-12">
       <div className={`flex gap-8 items-start ${

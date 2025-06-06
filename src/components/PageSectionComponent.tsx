@@ -15,7 +15,7 @@ const PageSectionComponent: React.FC<PageSectionComponentProps> = ({ section }) 
   console.log('PageSection image data:', image)
   
   const imageElement = image && (
-    <div className="flex-shrink-0">
+    <div className="flex-shrink-0 w-full md:w-auto md:max-w-md">
       {(() => {
         const imageUrl = urlFor(image).width(400).height(300).url()
         console.log('Generated image URL:', imageUrl)
@@ -23,7 +23,7 @@ const PageSectionComponent: React.FC<PageSectionComponentProps> = ({ section }) 
           <img
             src={imageUrl}
             alt={image.alt || ''}
-            className="rounded-lg shadow-md"
+            className="w-full h-auto rounded-lg shadow-md"
             onError={(e) => {
               console.error('Image failed to load:', imageUrl)
               console.error('Image error event:', e)
@@ -38,7 +38,7 @@ const PageSectionComponent: React.FC<PageSectionComponentProps> = ({ section }) 
   )
 
   const contentElement = (
-    <div className="flex-1">
+    <div className="flex-1 min-w-0">
       {title && (
         <h2 className="text-2xl font-bold text-brand-dark mb-4">{title}</h2>
       )}
@@ -57,8 +57,10 @@ const PageSectionComponent: React.FC<PageSectionComponentProps> = ({ section }) 
   return (
     <section className="mb-12">
       <div className={`flex gap-8 items-start ${
-        imagePosition === 'left' ? 'flex-row' : 'flex-row-reverse'
-      } ${imagePosition === 'right' ? 'md:flex-row-reverse' : 'md:flex-row'} flex-col md:flex-row`}>
+        imagePosition === 'left' 
+          ? 'flex-col md:flex-row' 
+          : 'flex-col md:flex-row-reverse'
+      }`}>
         {imageElement}
         {contentElement}
       </div>

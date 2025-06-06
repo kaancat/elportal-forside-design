@@ -38,6 +38,10 @@ export class SanityService {
           example2_title,
           example2_kwh_price,
           example2_subscription
+        },
+        _type == "videoSection" => {
+          title,
+          videoUrl
         }
       }
     }`

@@ -1,19 +1,20 @@
 
 import React from 'react'
-import { PageSection, FAQItem, PriceExampleTable } from '@/types/sanity'
+import { PageSection, FAQItem, PriceExampleTable, VideoSection } from '@/types/sanity'
 import PageSectionComponent from './PageSectionComponent'
 import FAQItemComponent from './FAQItemComponent'
 import PriceExampleTableComponent from './PriceExampleTableComponent'
+import VideoSectionComponent from './VideoSectionComponent'
 
 interface ContentBlocksProps {
-  blocks: Array<PageSection | FAQItem | PriceExampleTable>
+  blocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection>
 }
 
 const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
   console.log('ContentBlocks component received blocks:', blocks)
 
   // Group consecutive FAQ items together
-  const groupedBlocks: Array<PageSection | FAQItem[] | PriceExampleTable> = []
+  const groupedBlocks: Array<PageSection | FAQItem[] | PriceExampleTable | VideoSection> = []
   let currentFAQGroup: FAQItem[] = []
 
   blocks.forEach((block, index) => {
@@ -58,6 +59,10 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
           // This is a price example table
           console.log('Passing priceExampleTable to PriceExampleTableComponent:', block)
           return <PriceExampleTableComponent key={block._key} block={block as PriceExampleTable} />
+        } else if (block._type === 'videoSection') {
+          // This is a video section
+          console.log('Passing videoSection to VideoSectionComponent:', block)
+          return <VideoSectionComponent key={block._key} block={block as VideoSection} />
         } else {
           // This is a page section
           console.log('Passing section to PageSectionComponent:', block)

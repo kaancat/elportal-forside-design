@@ -1,4 +1,3 @@
-
 export interface SanityImage {
   _type: 'image'
   asset: {
@@ -60,13 +59,20 @@ export interface PriceExampleTable {
   example2_subscription: number
 }
 
+export interface VideoSection {
+  _type: 'videoSection'
+  _key: string
+  title?: string
+  videoUrl: string
+}
+
 export interface HomePage {
   _id: string
   _type: 'homePage'
   title: string
   seoMetaTitle: string
   seoMetaDescription: string
-  contentBlocks: Array<PageSection | FAQItem | PriceExampleTable>
+  contentBlocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection>
 }
 
 export interface BlogPost {

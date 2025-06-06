@@ -47,13 +47,26 @@ export interface FAQItem {
   answer: BlockContent[]
 }
 
+export interface PriceExampleTable {
+  _type: 'priceExampleTable'
+  _key: string
+  title: string
+  leadingText: string
+  example1_title: string
+  example1_kwh_price: number
+  example1_subscription: number
+  example2_title: string
+  example2_kwh_price: number
+  example2_subscription: number
+}
+
 export interface HomePage {
   _id: string
   _type: 'homePage'
   title: string
   seoMetaTitle: string
   seoMetaDescription: string
-  contentBlocks: Array<PageSection | FAQItem>
+  contentBlocks: Array<PageSection | FAQItem | PriceExampleTable>
 }
 
 export interface BlogPost {

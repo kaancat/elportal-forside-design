@@ -11,13 +11,29 @@ interface PageSectionComponentProps {
 const PageSectionComponent: React.FC<PageSectionComponentProps> = ({ section }) => {
   const { title, content, image, imagePosition } = section
 
+  // Debug logging for image data
+  console.log('PageSection image data:', image)
+  
   const imageElement = image && (
     <div className="flex-shrink-0">
-      <img
-        src={urlFor(image).width(400).height(300).url()}
-        alt={image.alt || ''}
-        className="rounded-lg shadow-md"
-      />
+      {(() => {
+        const imageUrl = urlFor(image).width(400).height(300).url()
+        console.log('Generated image URL:', imageUrl)
+        return (
+          <img
+            src={imageUrl}
+            alt={image.alt || ''}
+            className="rounded-lg shadow-md"
+            onError={(e) => {
+              console.error('Image failed to load:', imageUrl)
+              console.error('Image error event:', e)
+            }}
+            onLoad={() => {
+              console.log('Image loaded successfully:', imageUrl)
+            }}
+          />
+        )
+      })()}
     </div>
   )
 

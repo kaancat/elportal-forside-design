@@ -9,11 +9,15 @@ interface ContentBlocksProps {
 }
 
 const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
+  console.log('ContentBlocks component received blocks:', blocks)
+
   // Group consecutive FAQ items together
   const groupedBlocks: Array<PageSection | FAQItem[]> = []
   let currentFAQGroup: FAQItem[] = []
 
-  blocks.forEach((block) => {
+  blocks.forEach((block, index) => {
+    console.log(`Processing block ${index}:`, block)
+    
     if (block._type === 'faqItem') {
       currentFAQGroup.push(block as FAQItem)
     } else {
@@ -30,9 +34,13 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
     groupedBlocks.push([...currentFAQGroup])
   }
 
+  console.log('Grouped blocks for rendering:', groupedBlocks)
+
   return (
     <div className="container mx-auto px-4 py-8">
       {groupedBlocks.map((block, index) => {
+        console.log(`Rendering grouped block ${index}:`, block)
+        
         if (Array.isArray(block)) {
           // This is a group of FAQ items
           return (
@@ -47,6 +55,7 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
           )
         } else {
           // This is a page section
+          console.log('Passing section to PageSectionComponent:', block)
           return <PageSectionComponent key={block._key} section={block} />
         }
       })}

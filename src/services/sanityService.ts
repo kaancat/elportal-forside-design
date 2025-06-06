@@ -28,6 +28,16 @@ export class SanityService {
         _type == "faqItem" => {
           question,
           answer
+        },
+        _type == "priceExampleTable" => {
+          title,
+          leadingText,
+          example1_title,
+          example1_kwh_price,
+          example1_subscription,
+          example2_title,
+          example2_kwh_price,
+          example2_subscription
         }
       }
     }`

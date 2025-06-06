@@ -1,18 +1,19 @@
 
 import React from 'react'
-import { PageSection, FAQItem } from '@/types/sanity'
+import { PageSection, FAQItem, PriceExampleTable } from '@/types/sanity'
 import PageSectionComponent from './PageSectionComponent'
 import FAQItemComponent from './FAQItemComponent'
+import PriceExampleTableComponent from './PriceExampleTableComponent'
 
 interface ContentBlocksProps {
-  blocks: Array<PageSection | FAQItem>
+  blocks: Array<PageSection | FAQItem | PriceExampleTable>
 }
 
 const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
   console.log('ContentBlocks component received blocks:', blocks)
 
   // Group consecutive FAQ items together
-  const groupedBlocks: Array<PageSection | FAQItem[]> = []
+  const groupedBlocks: Array<PageSection | FAQItem[] | PriceExampleTable> = []
   let currentFAQGroup: FAQItem[] = []
 
   blocks.forEach((block, index) => {
@@ -25,7 +26,7 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         groupedBlocks.push([...currentFAQGroup])
         currentFAQGroup = []
       }
-      groupedBlocks.push(block as PageSection)
+      groupedBlocks.push(block)
     }
   })
 
@@ -53,10 +54,14 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
               </div>
             </section>
           )
+        } else if (block._type === 'priceExampleTable') {
+          // This is a price example table
+          console.log('Passing priceExampleTable to PriceExampleTableComponent:', block)
+          return <PriceExampleTableComponent key={block._key} block={block as PriceExampleTable} />
         } else {
           // This is a page section
           console.log('Passing section to PageSectionComponent:', block)
-          return <PageSectionComponent key={block._key} section={block} />
+          return <PageSectionComponent key={block._key} section={block as PageSection} />
         }
       })}
     </div>

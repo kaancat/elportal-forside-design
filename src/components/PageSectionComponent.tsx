@@ -16,17 +16,24 @@ const PageSectionComponent: React.FC<PageSectionComponentProps> = (props) => {
 
   console.log('Extracted section data:', { title, content, image, imagePosition })
   console.log('PageSection image data:', image)
-  
-  const imageElement = image && (
-    <div className="flex-shrink-0 w-full md:w-auto md:max-w-md">
+
+  // Don't render anything if there's no section
+  if (!section) return null
+
+  // Determine if there's an image to show
+  const hasImage = !!image?.asset
+  console.log('Has image:', hasImage)
+
+  const imageElement = hasImage && (
+    <div className="w-full md:w-1/2 lg:w-1/3 flex-shrink-0">
       {(() => {
-        const imageUrl = urlFor(image).width(400).height(300).url()
+        const imageUrl = urlFor(image).width(500).height(400).auto('format').url()
         console.log('Generated image URL:', imageUrl)
         return (
           <img
             src={imageUrl}
             alt={image.alt || ''}
-            className="w-full h-auto rounded-lg shadow-md"
+            className="rounded-lg shadow-lg w-full h-auto"
             onError={(e) => {
               console.error('Image failed to load:', imageUrl)
               console.error('Image error event:', e)
@@ -40,34 +47,31 @@ const PageSectionComponent: React.FC<PageSectionComponentProps> = (props) => {
     </div>
   )
 
-  const contentElement = (
-    <div className="flex-1 min-w-0">
+  const textElement = (
+    <div className={`w-full ${hasImage ? 'md:w-1/2 lg:w-2/3' : 'md:w-full'}`}>
       {title && (
-        <h2 className="text-2xl font-bold text-brand-dark mb-4">{title}</h2>
+        <h2 className="text-3xl font-bold text-brand-dark mb-6">{title}</h2>
       )}
-      <BlockContent content={content} />
+      {content && (
+        <div className="prose prose-lg max-w-none">
+          <BlockContent content={content} />
+        </div>
+      )}
     </div>
   )
 
-  if (!image || imagePosition === 'none') {
-    console.log('Rendering section without image')
-    return (
-      <section className="mb-12">
-        {contentElement}
-      </section>
-    )
-  }
+  console.log('Rendering section with image position:', imagePosition)
 
-  console.log('Rendering section with image, position:', imagePosition)
   return (
-    <section className="mb-12">
-      <div className={`flex gap-8 items-start ${
-        imagePosition === 'left' 
-          ? 'flex-col md:flex-row' 
-          : 'flex-col md:flex-row-reverse'
+    <section className="container mx-auto px-4 py-16">
+      <div className={`flex flex-col md:flex-row items-center justify-center gap-8 ${
+        imagePosition === 'right' ? 'md:flex-row-reverse' : ''
       }`}>
+        {/* Text Content */}
+        {textElement}
+        
+        {/* Image Content (only if it exists) */}
         {imageElement}
-        {contentElement}
       </div>
     </section>
   )

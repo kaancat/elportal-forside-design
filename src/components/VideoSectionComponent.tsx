@@ -2,7 +2,6 @@
 import React, { useState } from 'react'
 import ReactPlayer from 'react-player'
 import { Play } from 'lucide-react'
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { urlFor } from '@/lib/sanity'
 import { VideoSection } from '@/types/sanity'
 
@@ -12,14 +11,14 @@ interface VideoSectionComponentProps {
 
 const VideoSectionComponent: React.FC<VideoSectionComponentProps> = ({ block }) => {
   console.log('VideoSectionComponent received block:', block)
-  const [isOpen, setIsOpen] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(false)
 
   if (!block?.videoUrl) {
     console.warn('VideoSectionComponent: No videoUrl provided')
     return null
   }
 
-  // If there's a custom thumbnail, use the lightbox approach
+  // If there's a custom thumbnail, use the in-place playback approach
   if (block.customThumbnail) {
     const thumbnailUrl = urlFor(block.customThumbnail).width(800).height(450).url()
 
@@ -32,14 +31,18 @@ const VideoSectionComponent: React.FC<VideoSectionComponentProps> = ({ block }) 
             </h2>
           )}
           
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-              <div className="relative cursor-pointer group">
-                <div className="relative w-full rounded-lg overflow-hidden shadow-lg">
+          <div className="relative w-full" style={{ paddingTop: '56.25%' /* 16:9 aspect ratio */ }}>
+            <div className="absolute inset-0 rounded-lg overflow-hidden shadow-lg">
+              {!isPlaying ? (
+                // Thumbnail View
+                <div 
+                  className="relative cursor-pointer group w-full h-full"
+                  onClick={() => setIsPlaying(true)}
+                >
                   <img
                     src={thumbnailUrl}
                     alt={block.customThumbnail.alt || 'Video thumbnail'}
-                    className="w-full h-auto aspect-video object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                   {/* Dark overlay on hover */}
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300" />
@@ -51,32 +54,27 @@ const VideoSectionComponent: React.FC<VideoSectionComponentProps> = ({ block }) 
                     </div>
                   </div>
                 </div>
-              </div>
-            </DialogTrigger>
-            
-            <DialogContent className="max-w-5xl w-full p-0 bg-black border-0">
-              <div className="relative w-full" style={{ paddingTop: '56.25%' /* 16:9 aspect ratio */ }}>
-                <div className="absolute inset-0">
-                  <ReactPlayer
-                    url={block.videoUrl}
-                    width="100%"
-                    height="100%"
-                    controls
-                    playing={true}
-                    light={false}
-                    config={{
-                      youtube: {
-                        playerVars: { showinfo: 1, autoplay: 1 }
-                      },
-                      vimeo: {
-                        playerOptions: { color: '84db41', autoplay: true }
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+              ) : (
+                // Player View
+                <ReactPlayer
+                  url={block.videoUrl}
+                  width="100%"
+                  height="100%"
+                  controls
+                  playing={true}
+                  light={false}
+                  config={{
+                    youtube: {
+                      playerVars: { showinfo: 1, autoplay: 1 }
+                    },
+                    vimeo: {
+                      playerOptions: { color: '84db41', autoplay: true }
+                    }
+                  }}
+                />
+              )}
+            </div>
+          </div>
         </div>
       </section>
     )

@@ -64,6 +64,7 @@ export interface VideoSection {
   _key: string
   title?: string
   videoUrl: string
+  customThumbnail?: SanityImage
 }
 
 export interface HomePage {

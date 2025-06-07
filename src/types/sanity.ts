@@ -67,13 +67,20 @@ export interface VideoSection {
   customThumbnail?: SanityImage
 }
 
+export interface FaqGroup {
+  _type: 'faqGroup'
+  _key: string
+  title: string
+  faqItems: FAQItem[]
+}
+
 export interface HomePage {
   _id: string
   _type: 'homePage'
   title: string
   seoMetaTitle: string
   seoMetaDescription: string
-  contentBlocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection>
+  contentBlocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup>
 }
 
 export interface BlogPost {

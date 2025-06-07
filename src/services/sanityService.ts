@@ -1,3 +1,4 @@
+
 import { client } from '@/lib/sanity'
 import { HomePage, BlogPost } from '@/types/sanity'
 
@@ -27,6 +28,14 @@ export class SanityService {
         _type == "faqItem" => {
           question,
           answer
+        },
+        _type == "faqGroup" => {
+          title,
+          faqItems[]{
+            _key,
+            question,
+            answer
+          }
         },
         _type == "priceExampleTable" => {
           title,

@@ -1,4 +1,3 @@
-
 import { client } from '@/lib/sanity'
 import { HomePage, BlogPost } from '@/types/sanity'
 
@@ -41,7 +40,13 @@ export class SanityService {
         },
         _type == "videoSection" => {
           title,
-          videoUrl
+          videoUrl,
+          customThumbnail{
+            asset,
+            alt,
+            hotspot,
+            crop
+          }
         }
       }
     }`

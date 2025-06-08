@@ -175,7 +175,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
           {/* LEFT SIDE: Stats + Date Controls */}
           <div className="w-full flex-1 min-w-0">
             {/* STATISTICS */}
-            <div className="grid grid-cols-3 gap-x-4 gap-y-6 mb-6">
+            <div className="grid grid-cols-3 gap-x-2 sm:gap-x-4 md:gap-x-2 gap-y-6 mb-6">
                 {stats && (
                     <>
                         <div>

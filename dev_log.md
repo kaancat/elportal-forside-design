@@ -145,3 +145,22 @@ Goal: Fix data processing logic to correctly parse API data and render the chart
 - **Improved Reliability**: Better handling of edge cases and empty data scenarios
 
 NOTE: The chart should now correctly parse API data and render with proper visual scaling, resolving any rendering issues with the renewable energy forecast display 
+
+---
+
+## [2024-12-28] – Area Chart Stacking Order Fix
+Goal: Fix visual stacking order in RenewableEnergyForecast to ensure all energy types are properly visible
+
+- **Fixed Area Component Order**: Reversed the order of the three `<Area>` components in the AreaChart
+  - **New Order**: OffshoreWind → OnshoreWind → Solar (was Solar → OnshoreWind → OffshoreWind)
+  - **Reasoning**: In stacked area charts, components rendered later appear on top, potentially hiding earlier ones
+  - **Visual Impact**: All three energy types (Solar, Onshore Wind, Offshore Wind) are now properly visible
+  - **Color Layering**: Ensures proper color composition reflects true renewable energy forecast data
+
+## Technical Implementation
+- **Stacking Logic**: Recharts renders Area components in the order they appear in JSX
+- **Visibility Fix**: By placing wind components first and Solar last, all layers are now visible
+- **Data Integrity**: Chart now accurately represents the composition of renewable energy sources
+- **User Experience**: Users can clearly see the contribution of each energy type at any given hour
+
+NOTE: The renewable energy forecast chart now displays all three energy categories with proper visual stacking, ensuring complete data visibility and accurate representation of the energy mix 

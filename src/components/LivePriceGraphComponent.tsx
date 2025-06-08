@@ -72,96 +72,87 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   const chartHeight = 300;
 
   return (
-    <section className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">{block.title}</h2>
-        {block.subtitle && <p className="text-gray-600 mb-6">{block.subtitle}</p>}
-        
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          {/* Legend */}
-          <div className="flex items-center gap-6 mb-6 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-green-500 rounded"></div>
-              <span>Spotpris</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-gray-400 rounded"></div>
-              <span>Afgifter & Moms</span>
-            </div>
+    <div className="p-4 md:p-6 bg-white rounded-lg shadow-lg">
+      <h3 className="text-2xl font-bold text-gray-800">{block.title}</h3>
+      {block.subtitle && <p className="text-gray-600 mb-4">{block.subtitle}</p>}
+      
+      <div style={{ width: '100%', height: 400 }}>
+        {/* Legend */}
+        <div className="flex items-center gap-6 mb-4 text-sm">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-green-500 rounded"></div>
+            <span>Spotpris</span>
           </div>
-
-          {/* Chart Container */}
-          <div className="relative">
-            {/* Y-axis labels */}
-            <div className="absolute left-0 top-4 bottom-12 flex flex-col justify-between text-xs text-gray-500">
-              <span>{maxPrice.toFixed(2)} kr</span>
-              <span>{(maxPrice * 0.75).toFixed(2)} kr</span>
-              <span>{(maxPrice * 0.5).toFixed(2)} kr</span>
-              <span>{(maxPrice * 0.25).toFixed(2)} kr</span>
-              <span>0.00 kr</span>
-            </div>
-
-            {/* Chart Area */}
-            <div className="ml-16 mr-4">
-              <div className="flex items-end justify-between gap-1" style={{ height: `${chartHeight}px` }}>
-                {chartData.map((item, index) => {
-                  const spotPriceHeight = (item.spotPrice / maxPrice) * chartHeight;
-                  const feesHeight = (item.fees / maxPrice) * chartHeight;
-                  
-                  return (
-                    <div
-                      key={index}
-                      className="relative flex-1 flex flex-col justify-end cursor-pointer transition-opacity hover:opacity-80"
-                      onMouseEnter={() => setHoveredIndex(index)}
-                      onMouseLeave={() => setHoveredIndex(null)}
-                    >
-                      {/* Tooltip */}
-                      {hoveredIndex === index && (
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-10">
-                          <div className="bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-sm whitespace-nowrap">
-                            <p className="font-bold text-gray-800 mb-1">{`Kl. ${item.hour}:00`}</p>
-                            <p className="text-green-600">{`Spotpris: ${item.spotPrice.toFixed(2)} kr.`}</p>
-                            <p className="text-gray-600">{`Afgifter & Moms: ${item.fees.toFixed(2)} kr.`}</p>
-                            <hr className="my-1 border-gray-200" />
-                            <p className="font-bold text-gray-900">{`Total: ${item.total.toFixed(2)} kr./kWh`}</p>
-                            {/* Tooltip arrow */}
-                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-white"></div>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Fees bar (top) */}
-                      <div 
-                        className="w-full bg-gray-400 rounded-t"
-                        style={{ height: `${feesHeight}px` }}
-                      ></div>
-                      
-                      {/* Spot price bar (bottom) */}
-                      <div 
-                        className="w-full bg-green-500"
-                        style={{ height: `${spotPriceHeight}px` }}
-                      ></div>
-                      
-                      {/* Hour label */}
-                      <div className="text-xs text-gray-600 text-center mt-2">
-                        {item.hour}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* X-axis label */}
-            <div className="text-center text-sm text-gray-600 mt-4">Timer (24-timers format)</div>
-          </div>
-
-          <div className="mt-4 text-sm text-gray-500 text-center">
-            Priser for {block.apiRegion === 'DK1' ? 'Vest-Danmark' : 'Øst-Danmark'}
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-gray-400 rounded"></div>
+            <span>Afgifter & Moms</span>
           </div>
         </div>
+
+        {/* Chart Container */}
+        <div className="relative">
+          {/* Y-axis labels */}
+          <div className="absolute left-0 top-4 bottom-12 flex flex-col justify-between text-xs text-gray-500">
+            <span>{maxPrice.toFixed(2)} kr</span>
+            <span>{(maxPrice * 0.75).toFixed(2)} kr</span>
+            <span>{(maxPrice * 0.5).toFixed(2)} kr</span>
+            <span>{(maxPrice * 0.25).toFixed(2)} kr</span>
+            <span>0.00 kr</span>
+          </div>
+
+          {/* Chart Area */}
+          <div className="ml-16 mr-4">
+            <div className="flex items-end justify-between gap-1" style={{ height: `${chartHeight}px` }}>
+              {chartData.map((item, index) => {
+                const spotPriceHeight = (item.spotPrice / maxPrice) * chartHeight;
+                const feesHeight = (item.fees / maxPrice) * chartHeight;
+                
+                return (
+                  <div
+                    key={index}
+                    className="relative flex-1 flex flex-col justify-end cursor-pointer transition-opacity hover:opacity-80"
+                    onMouseEnter={() => setHoveredIndex(index)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                  >
+                    {/* Tooltip */}
+                    {hoveredIndex === index && (
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-10">
+                        <div className="p-2 bg-white border border-gray-300 rounded-md shadow-md">
+                          <p className="font-bold">{`Kl. ${item.hour}:00`}</p>
+                          <p className="text-green-600">{`Spotpris: ${item.spotPrice.toFixed(2)} kr.`}</p>
+                          <p className="text-gray-600">{`Afgifter & Moms: ${item.fees.toFixed(2)} kr.`}</p>
+                          <p className="text-gray-900 font-bold">{`Total: ${item.total.toFixed(2)} kr./kWh`}</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Fees bar (top) */}
+                    <div 
+                      className="w-full bg-gray-400 rounded-t"
+                      style={{ height: `${feesHeight}px` }}
+                    ></div>
+                    
+                    {/* Spot price bar (bottom) */}
+                    <div 
+                      className="w-full bg-green-500"
+                      style={{ height: `${spotPriceHeight}px` }}
+                    ></div>
+                    
+                    {/* Hour label */}
+                    <div className="text-xs text-gray-600 text-center mt-2">
+                      {item.hour}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* X-axis label */}
+          <div className="text-center text-sm text-gray-600 mt-4">Timer (24-timers format)</div>
+        </div>
       </div>
-    </section>
+    </div>
   );
 };
 

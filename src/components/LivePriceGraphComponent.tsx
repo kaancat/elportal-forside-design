@@ -88,6 +88,12 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
     setSelectedDate(newDate);
   };
 
+  const setDateToTomorrow = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    setSelectedDate(tomorrow);
+  };
+
   const calculatedData = useMemo(() => {
     return data.map(d => {
       const spotPrice = d.SpotPriceKWh;
@@ -175,9 +181,11 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                         />
                     </PopoverContent>
                 </Popover>
-                <Button variant="ghost" size="icon" onClick={() => handleDateChange(1)} disabled={isTomorrow}>
-                    <ChevronRight size={18}/>
-                </Button>
+                {!isTomorrow && (
+                    <Button variant="ghost" size="sm" onClick={setDateToTomorrow}>
+                        i morgen
+                    </Button>
+                )}
             </div>
             <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 text-sm">
@@ -238,8 +246,8 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
             <div className="flex justify-between text-gray-500 mt-2">
                 {calculatedData.map(({ hour, total }) => (
                     <div key={hour} className="flex-1 text-center px-0.5">
-                        <div className="text-[10px] font-medium leading-none">{total.toFixed(2)} kr.</div>
-                        <div className="text-[9px] leading-none mt-0.5">kl. {String(hour).padStart(2, '0')}</div>
+                        <div className="text-xs font-medium leading-none">{total.toFixed(2)} kr.</div>
+                        <div className="text-xs leading-none mt-0.5">kl. {String(hour).padStart(2, '0')}</div>
                     </div>
                 ))}
             </div>

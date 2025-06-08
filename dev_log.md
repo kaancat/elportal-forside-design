@@ -300,4 +300,36 @@ Goal: Fix data aggregation logic to properly sum DK1 and DK2 forecasts for "Hele
 
 NOTE: The data aggregation fix ensures that "Hele Danmark" view accurately represents the sum of renewable energy forecasts from both DK1 and DK2 regions, providing users with correct total production values for comprehensive energy planning
 
-NOTE: The renewable energy forecast component now offers a significantly enhanced user experience with comprehensive tooltips, responsive design, and flexible viewing options for Denmark's renewable energy landscape 
+---
+
+## [2024-12-28] – Conditional Rendering for Sanity Content Fields
+Goal: Improve component robustness by making title and leadingText fields conditionally rendered from Sanity block prop
+
+- **Enhanced Content Rendering**: Updated JSX to properly handle optional Sanity content fields
+  - **Title Conditional Rendering**: Changed from `{block.title}` to `{block.title && (...)}` pattern
+  - **Consistent Pattern**: Both title and leadingText now use the same conditional rendering approach
+  - **Defensive Programming**: Prevents rendering empty elements when Sanity fields are undefined
+
+- **TypeScript Interface Updates**:
+  - **Title Property**: Changed from `title: string` to `title?: string` (optional)
+  - **Type Safety**: Matches actual Sanity content structure where fields may be optional
+  - **Consistency**: All content fields (title, leadingText, explanation) are now optional
+
+- **Code Structure Improvements**:
+  - **Clear Comments**: Added descriptive comments for each conditional rendering section
+  - **Readable Formatting**: Multi-line JSX structure for better code readability
+  - **Maintainable Pattern**: Consistent conditional rendering pattern across all Sanity fields
+
+## Technical Benefits
+- **Robust Error Handling**: Component gracefully handles missing Sanity content
+- **Flexible Content Management**: Sanity editors can leave fields empty without breaking the UI
+- **Clean Rendering**: No empty HTML elements when content is not provided
+- **Type Safety**: TypeScript accurately reflects optional nature of Sanity fields
+
+## User Experience Impact
+- **Flexible Layout**: Component adapts based on available content from Sanity
+- **No Broken UI**: Missing content doesn't create visual gaps or errors
+- **Content Editor Friendly**: Sanity CMS users have flexibility in content creation
+- **Professional Display**: Only shows content when it's actually provided
+
+NOTE: The RenewableEnergyForecast component now properly handles optional Sanity content fields with defensive rendering patterns, ensuring a robust and flexible content management experience

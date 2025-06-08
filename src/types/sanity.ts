@@ -96,13 +96,20 @@ export interface LivePriceGraph {
   apiRegion: 'DK1' | 'DK2'
 }
 
+export interface RealPriceComparisonTable {
+  _type: 'realPriceComparisonTable'
+  _key: string
+  title: string
+  leadingText?: string
+}
+
 export interface HomePage {
   _id: string
   _type: 'homePage'
   title: string
   seoMetaTitle: string
   seoMetaDescription: string
-  contentBlocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph>
+  contentBlocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph | RealPriceComparisonTable>
 }
 
 export interface BlogPost {

@@ -65,7 +65,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
 
       return (
         <div className="p-3 bg-white border border-gray-300 rounded-lg shadow-lg text-sm">
-          <p className="font-bold text-gray-800 mb-2">{`Kl. ${label}`}</p>
+          <p className="font-bold text-gray-800 mb-2">{`Kl. ${label}:00`}</p>
           <p className="text-green-600">{`Spotpris: ${spotPrice.toFixed(2)} kr.`}</p>
           <p className="text-orange-500">{`Afgifter & Moms: ${fees.toFixed(2)} kr.`}</p>
           <hr className="my-1 border-gray-200" />
@@ -83,7 +83,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   const chartData = data.map(d => ({
     name: new Date(d.HourDK).getHours().toString().padStart(2, '0'),
     'Spotpris': d.SpotPriceKWh,
-    'Afgifter & Moms': d.TotalPriceKWh - d.SpotPriceKWh,
+    'Afgifter & Moms': d.TotalPriceKWh > d.SpotPriceKWh ? d.TotalPriceKWh - d.SpotPriceKWh : 0,
   }));
 
   return (
@@ -96,10 +96,9 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
           <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-            <YAxis tick={{ fontSize: 12 }} unit=" kr" tickFormatter={(value) => value.toFixed(2)} />
+            <YAxis tick={{ fontSize: 12 }} unit=" kr" tickFormatter={(value) => value.toFixed(2)} allowDecimals={true} />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(236, 253, 245, 0.5)' }} />
             <Legend wrapperStyle={{ fontSize: '14px', paddingTop: '20px' }} />
-            {/* The magic is the `stackId="a"` which tells recharts to stack these bars */}
             <Bar dataKey="Spotpris" stackId="a" fill="#22c55e" />
             <Bar dataKey="Afgifter & Moms" stackId="a" fill="#f97316" />
           </BarChart>

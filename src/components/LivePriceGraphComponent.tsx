@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 interface LivePriceGraphProps {
   block: {
@@ -33,6 +32,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   const [data, setData] = useState<PriceData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -56,53 +56,102 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
     fetchData();
   }, [block.apiRegion]);
 
-  // Enhanced Tooltip for stacked chart
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const spotPrice = payload.find((p: any) => p.dataKey === 'Spotpris')?.value || 0;
-      const fees = payload.find((p: any) => p.dataKey === 'Afgifter & Moms')?.value || 0;
-      const total = spotPrice + fees;
-
-      return (
-        <div className="p-3 bg-white border border-gray-300 rounded-lg shadow-lg text-sm">
-          <p className="font-bold text-gray-800 mb-2">{`Kl. ${label}:00`}</p>
-          <p className="text-green-600">{`Spotpris: ${spotPrice.toFixed(2)} kr.`}</p>
-          <p className="text-orange-500">{`Afgifter & Moms: ${fees.toFixed(2)} kr.`}</p>
-          <hr className="my-1 border-gray-200" />
-          <p className="font-bold text-gray-900">{`Total: ${total.toFixed(2)} kr./kWh`}</p>
-        </div>
-      );
-    }
-    return null;
-  };
-
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} />;
   
-  // Prepare data for the stacked chart
+  // Prepare data for the chart
   const chartData = data.map(d => ({
-    name: new Date(d.HourDK).getHours().toString().padStart(2, '0'),
-    'Spotpris': d.SpotPriceKWh,
-    'Afgifter & Moms': d.TotalPriceKWh > d.SpotPriceKWh ? d.TotalPriceKWh - d.SpotPriceKWh : 0,
+    hour: new Date(d.HourDK).getHours().toString().padStart(2, '0'),
+    spotPrice: d.SpotPriceKWh,
+    fees: d.TotalPriceKWh > d.SpotPriceKWh ? d.TotalPriceKWh - d.SpotPriceKWh : 0,
+    total: d.TotalPriceKWh,
   }));
+
+  // Find max total price for scaling
+  const maxPrice = Math.max(...chartData.map(d => d.total));
+  const chartHeight = 300; // Fixed height for the chart area
 
   return (
     <div className="p-4 md:p-6 bg-white rounded-lg shadow-lg">
       <h3 className="text-2xl font-bold text-gray-800">{block.title}</h3>
       {block.subtitle && <p className="text-gray-600 mb-4">{block.subtitle}</p>}
       
-      <div style={{ width: '100%', height: 400 }}>
-        <ResponsiveContainer>
-          <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-            <YAxis tick={{ fontSize: 12 }} unit=" kr" tickFormatter={(value) => value.toFixed(2)} allowDecimals={true} />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(236, 253, 245, 0.5)' }} />
-            <Legend wrapperStyle={{ fontSize: '14px', paddingTop: '20px' }} />
-            <Bar dataKey="Spotpris" stackId="a" fill="#22c55e" />
-            <Bar dataKey="Afgifter & Moms" stackId="a" fill="#f97316" />
-          </BarChart>
-        </ResponsiveContainer>
+      {/* Legend */}
+      <div className="flex items-center gap-6 mb-4 text-sm">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-green-500 rounded"></div>
+          <span>Spotpris</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-gray-400 rounded"></div>
+          <span>Afgifter & Moms</span>
+        </div>
+      </div>
+
+      {/* Chart Container */}
+      <div className="relative bg-gray-50 rounded-lg p-4">
+        {/* Y-axis labels */}
+        <div className="absolute left-0 top-4 bottom-4 flex flex-col justify-between text-xs text-gray-500">
+          <span>{maxPrice.toFixed(2)} kr</span>
+          <span>{(maxPrice * 0.75).toFixed(2)} kr</span>
+          <span>{(maxPrice * 0.5).toFixed(2)} kr</span>
+          <span>{(maxPrice * 0.25).toFixed(2)} kr</span>
+          <span>0.00 kr</span>
+        </div>
+
+        {/* Chart Area */}
+        <div className="ml-16 mr-4">
+          <div className="flex items-end justify-between gap-1" style={{ height: `${chartHeight}px` }}>
+            {chartData.map((item, index) => {
+              const spotPriceHeight = (item.spotPrice / maxPrice) * chartHeight;
+              const feesHeight = (item.fees / maxPrice) * chartHeight;
+              
+              return (
+                <div
+                  key={index}
+                  className="relative flex-1 flex flex-col justify-end cursor-pointer transition-opacity hover:opacity-80"
+                  onMouseEnter={() => setHoveredIndex(index)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                >
+                  {/* Tooltip */}
+                  {hoveredIndex === index && (
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-10">
+                      <div className="bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-sm whitespace-nowrap">
+                        <p className="font-bold text-gray-800 mb-1">{`Kl. ${item.hour}:00`}</p>
+                        <p className="text-green-600">{`Spotpris: ${item.spotPrice.toFixed(2)} kr.`}</p>
+                        <p className="text-gray-600">{`Afgifter & Moms: ${item.fees.toFixed(2)} kr.`}</p>
+                        <hr className="my-1 border-gray-200" />
+                        <p className="font-bold text-gray-900">{`Total: ${item.total.toFixed(2)} kr./kWh`}</p>
+                        {/* Tooltip arrow */}
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-white"></div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Fees bar (top) */}
+                  <div 
+                    className="w-full bg-gray-400 rounded-t"
+                    style={{ height: `${feesHeight}px` }}
+                  ></div>
+                  
+                  {/* Spot price bar (bottom) */}
+                  <div 
+                    className="w-full bg-green-500"
+                    style={{ height: `${spotPriceHeight}px` }}
+                  ></div>
+                  
+                  {/* Hour label */}
+                  <div className="text-xs text-gray-600 text-center mt-2">
+                    {item.hour}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* X-axis label */}
+        <div className="text-center text-sm text-gray-600 mt-2">Timer (24-timers format)</div>
       </div>
     </div>
   );

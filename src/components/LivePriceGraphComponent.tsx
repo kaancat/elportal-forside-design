@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Settings2, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Settings2, CalendarDays } from 'lucide-react';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
 interface PriceData {
@@ -26,6 +28,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentRegion, setCurrentRegion] = useState<'DK1' | 'DK2'>(block.apiRegion);
 
@@ -79,17 +82,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
     setFees(prev => ({ ...prev, [feeKey]: { ...prev[feeKey], enabled: !prev[feeKey].enabled } }));
   };
 
-  const handleDateChange = (daysToAdd: number) => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(selectedDate.getDate() + daysToAdd);
-    setSelectedDate(newDate);
-  };
-  
-  const setDateToTomorrow = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    setSelectedDate(tomorrow);
-  };
+
 
   const calculatedData = useMemo(() => {
     return data.map(d => {
@@ -118,7 +111,6 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   }, [calculatedData]);
 
   const isToday = formatDate(selectedDate) === formatDate(new Date());
-  const isTomorrow = formatDate(selectedDate) === formatDate((() => { const d = new Date(); d.setDate(d.getDate() + 1); return d; })());
 
   return (
     <div className="p-4 md:p-8 my-12 bg-white rounded-xl shadow-lg border border-gray-100">
@@ -148,12 +140,32 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
         {/* CONTROLS SECTION */}
         <div className="flex flex-wrap justify-between items-center gap-4 mb-6 border-t border-b border-gray-200 py-4">
             <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={() => handleDateChange(-1)}><ChevronLeft/></Button>
-                <Button variant="ghost" className="flex items-center gap-2" onClick={() => setSelectedDate(new Date())}>
-                    <CalendarDays size={18}/> {isToday ? 'I dag' : selectedDate.toLocaleDateString('da-DK')}
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => handleDateChange(1)} disabled={isTomorrow}><ChevronRight/></Button>
-                {!isTomorrow && <Button variant="ghost" size="sm" onClick={setDateToTomorrow}>i morgen</Button>}
+                <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                    <PopoverTrigger asChild>
+                        <Button variant="ghost" className="flex items-center gap-2">
+                            <CalendarDays size={18}/> {isToday ? 'I dag' : selectedDate.toLocaleDateString('da-DK')}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={(date) => {
+                                if (date) {
+                                    setSelectedDate(date);
+                                    setIsCalendarOpen(false);
+                                }
+                            }}
+                            disabled={(date) => {
+                                const tomorrow = new Date();
+                                tomorrow.setDate(tomorrow.getDate() + 1);
+                                tomorrow.setHours(23, 59, 59, 999);
+                                return date > tomorrow;
+                            }}
+                            initialFocus
+                        />
+                    </PopoverContent>
+                </Popover>
             </div>
             <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 text-sm">

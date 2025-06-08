@@ -1,3 +1,4 @@
+
 export interface SanityImage {
   _type: 'image'
   asset: {
@@ -74,13 +75,27 @@ export interface FaqGroup {
   faqItems: FAQItem[]
 }
 
+export interface RichTextSection {
+  _type: 'richTextSection'
+  _key: string
+  content: BlockContent[]
+}
+
+export interface CallToActionSection {
+  _type: 'callToActionSection'
+  _key: string
+  title: string
+  buttonText: string
+  buttonUrl: string
+}
+
 export interface HomePage {
   _id: string
   _type: 'homePage'
   title: string
   seoMetaTitle: string
   seoMetaDescription: string
-  contentBlocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup>
+  contentBlocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection>
 }
 
 export interface BlogPost {

@@ -235,11 +235,11 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                 })}
             </div>
             {/* X-AXIS LABELS */}
-            <div className="flex justify-between text-xs text-gray-500">
+            <div className="grid grid-cols-12 lg:grid-cols-24 gap-1 text-xs text-gray-500 mt-2">
                 {calculatedData.map(({ hour, total }) => (
-                    <div key={hour} className="flex-1 text-center">
-                        <div>kl. {String(hour).padStart(2, '0')}</div>
-                        <div className="font-medium">{total.toFixed(2)} kr.</div>
+                    <div key={hour} className="text-center">
+                        <div className="text-xs leading-none mb-1">kl. {String(hour).padStart(2, '0')}</div>
+                        <div className="text-xs font-medium leading-none">{total.toFixed(2)} kr.</div>
                     </div>
                 ))}
             </div>

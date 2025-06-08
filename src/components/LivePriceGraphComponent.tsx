@@ -3,15 +3,18 @@ import { LivePriceGraph } from '@/types/sanity'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { Skeleton } from '@/components/ui/skeleton'
 
+// Definerer strukturen på de props, komponenten modtager
 interface LivePriceGraphComponentProps {
   block: LivePriceGraph
 }
 
+// Definerer strukturen på den data, vores graf forventer
 interface PriceData {
   hour: string
   price: number
 }
 
+// Definerer strukturen på det svar, vi forventer fra EnergiDataService API'et
 interface ApiResponse {
   records: Array<{
     HourDK: string
@@ -19,7 +22,6 @@ interface ApiResponse {
   }>
 }
 
-// Force build refresh - Updated to use limit and sort for most recent data
 const LivePriceGraphComponent: React.FC<LivePriceGraphComponentProps> = ({ block }) => {
   const [data, setData] = useState<PriceData[]>([])
   const [loading, setLoading] = useState(true)
@@ -27,61 +29,87 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphComponentProps> = ({ block
 
   useEffect(() => {
     const fetchPriceData = async () => {
-      try {
-        setLoading(true)
-        setError(null)
+      // Sørg for at nulstille status, hver gang vi henter data
+      setLoading(true)
+      setError(null)
 
-        // Construct API URL using limit and sort to get 24 most recent records
+      try {
+        // --- START PÅ DEN KORREKTE, SKUDSIKRE DATOLOGIK ---
+
+        // 1. Opret et dato-objekt for i dag
+        const yesterday = new Date()
+        // 2. Sæt datoen til i går. Dette håndterer alle edge-cases (f.eks. den 1. i måneden)
+        yesterday.setDate(yesterday.getDate() - 1)
+
+        // 3. Formatér datoen korrekt til YYYY-MM-DD
+        const year = yesterday.getFullYear()
+        const month = String(yesterday.getMonth() + 1).padStart(2, '0') // +1 fordi måneder er 0-indekseret
+        const day = String(yesterday.getDate()).padStart(2, '0')
+        const dateStringForAPI = `${year}-${month}-${day}`
+        
+        // --- SLUT PÅ DATOLOGIK ---
+
+        // Byg den endelige API URL med den korrekte dato
         const baseUrl = 'https://api.energidataservice.dk/dataset/Elspotpriser'
         const filter = encodeURIComponent(`{"PriceArea":["${block.apiRegion}"]}`)
-        const apiUrl = `${baseUrl}?limit=24&sort=HourDK%20desc&filter=${filter}`
-
-        console.log('Fetching electricity price data from:', apiUrl)
+        
+        // Brug den korrekt formaterede dato-streng
+        const apiUrl = `${baseUrl}?start=${dateStringForAPI}T00:00&end=${dateStringForAPI}T23:59&filter=${filter}`
 
         const response = await fetch(apiUrl)
+
+        // Tjek om API-kaldet var en succes (status 200-299)
         if (!response.ok) {
+          // Hvis ikke, kast en fejl med statuskoden, f.eks. "API request failed: 404"
           throw new Error(`API request failed: ${response.status}`)
         }
 
         const apiData: ApiResponse = await response.json()
-        console.log('Raw API response:', apiData)
 
-        // Transform data for chart
+        // Hvis der ikke er nogen 'records', er der ingen data for den dag.
+        if (!apiData.records || apiData.records.length === 0) {
+            throw new Error('No price data available for the selected day.')
+        }
+
+        // Transformér data til det format, vores graf skal bruge
         const transformedData: PriceData[] = apiData.records.map(record => {
-          // Extract hour from HourDK format (e.g., "2024-06-08T00:00:00")
           const hour = new Date(record.HourDK).getHours()
-          // Convert from DKK/MWh to kr/kWh
           const pricePerKwh = record.SpotPriceDKK / 1000
           
           return {
             hour: `${hour.toString().padStart(2, '0')}:00`,
-            price: Math.round(pricePerKwh * 100) / 100 // Round to 2 decimal places
+            price: Math.round(pricePerKwh * 100) / 100,
           }
         })
 
-        // Sort by hour to ensure correct order (ascending)
+        // Sorter for en sikkerheds skyld
         transformedData.sort((a, b) => parseInt(a.hour) - parseInt(b.hour))
 
-        console.log('Transformed price data:', transformedData)
         setData(transformedData)
+
       } catch (err) {
-        console.error('Error fetching price data:', err)
-        setError(err instanceof Error ? err.message : 'Failed to fetch price data')
+        // Håndter eventuelle fejl (både fra fetch og fra databehandling)
+        setError(err instanceof Error ? err.message : 'An unknown error occurred')
       } finally {
+        // Sæt loading til false, uanset om det lykkedes eller ej
         setLoading(false)
       }
     }
 
-    fetchPriceData()
+    // Kald funktionen, når komponenten indlæses, eller når regionen ændres
+    if (block.apiRegion) {
+        fetchPriceData()
+    }
   }, [block.apiRegion])
 
+  // Resten af komponenten (UI-delen) er den samme som før, den skal bare have data...
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
           <p className="font-medium">{`Kl. ${label}`}</p>
           <p className="text-brand-green">
-            {`${payload[0].value} kr/kWh`}
+            {`${payload[0].value.toFixed(2)} kr/kWh`}
           </p>
         </div>
       )
@@ -106,9 +134,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphComponentProps> = ({ block
       <section className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">{block.title}</h2>
-          {block.subtitle && (
-            <p className="text-gray-600 mb-6">{block.subtitle}</p>
-          )}
+          {block.subtitle && <p className="text-gray-600 mb-6">{block.subtitle}</p>}
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <p className="text-red-700">Kunne ikke hente prisdata: {error}</p>
           </div>
@@ -121,37 +147,19 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphComponentProps> = ({ block
     <section className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">{block.title}</h2>
-        {block.subtitle && (
-          <p className="text-gray-600 mb-6">{block.subtitle}</p>
-        )}
-        
+        {block.subtitle && <p className="text-gray-600 mb-6">{block.subtitle}</p>}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <ResponsiveContainer width="100%" height={400}>
             <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="hour" 
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis 
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-                label={{ value: 'kr/kWh', angle: -90, position: 'insideLeft' }}
-              />
+              <XAxis dataKey="hour" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis fontSize={12} tickLine={false} axisLine={false} label={{ value: 'kr/kWh', angle: -90, position: 'insideLeft' }} />
               <Tooltip content={<CustomTooltip />} />
-              <Bar 
-                dataKey="price" 
-                fill="#84db41"
-                radius={[2, 2, 0, 0]}
-              />
+              <Bar dataKey="price" fill="#84db41" radius={[2, 2, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-          
           <div className="mt-4 text-sm text-gray-500 text-center">
-            Seneste tilgængelige priser for {block.apiRegion === 'DK1' ? 'Vest-Danmark' : 'Øst-Danmark'}
+            Priser for {block.apiRegion === 'DK1' ? 'Vest-Danmark' : 'Øst-Danmark'} (i går)
           </div>
         </div>
       </div>

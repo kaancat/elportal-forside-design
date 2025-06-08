@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Settings2, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -27,6 +27,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   const [error, setError] = useState<string | null>(null);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [currentRegion, setCurrentRegion] = useState<'DK1' | 'DK2'>(block.apiRegion);
 
   const [fees, setFees] = useState({
     transport: { name: 'Netselskab', value: 0.12, enabled: true },
@@ -36,7 +37,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   });
 
   const popoverRef = useRef<HTMLDivElement>(null);
-  const [hoveredHour, setHoveredHour] = useState<PriceData | null>(null);
+  const [maxPrice, setMaxPrice] = useState(1);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,7 +45,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
       setError(null);
       const dateString = formatDate(selectedDate);
       try {
-        const response = await fetch(`/api/electricity-prices?region=${block.apiRegion}&date=${dateString}`);
+        const response = await fetch(`/api/electricity-prices?region=${currentRegion}&date=${dateString}`);
         if (!response.ok) throw new Error('Kunne ikke hente data.');
         const result = await response.json();
         
@@ -53,6 +54,8 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
           setData([]);
         } else {
           setData(result.records);
+          const max = Math.max(...result.records.map((r: PriceData) => r.TotalPriceKWh));
+          setMaxPrice(max > 0 ? max : 1.5); // Set a minimum max price to avoid tiny bars
         }
       } catch (err: any) {
         setError(err.message);
@@ -62,13 +65,11 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
       }
     };
     fetchData();
-  }, [block.apiRegion, selectedDate]);
+  }, [currentRegion, selectedDate]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
-        setIsPopoverOpen(false);
-      }
+      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) setIsPopoverOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -83,223 +84,127 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
     newDate.setDate(selectedDate.getDate() + daysToAdd);
     setSelectedDate(newDate);
   };
+  
+  const setDateToTomorrow = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    setSelectedDate(tomorrow);
+  };
+
+  const calculatedData = useMemo(() => {
+    return data.map(d => {
+      const spotPrice = d.SpotPriceKWh;
+      let feesOnChart = 0;
+      if (fees.transport.enabled) feesOnChart += fees.transport.value;
+      if (fees.system.enabled) feesOnChart += fees.system.value;
+      if (fees.elafgift.enabled) feesOnChart += fees.elafgift.value;
+      let totalWithFees = spotPrice + feesOnChart;
+      if (fees.moms.enabled) totalWithFees *= fees.moms.value;
+      return { hour: new Date(d.HourDK).getHours(), spotPrice, total: totalWithFees };
+    });
+  }, [data, fees]);
+
+  const stats = useMemo(() => {
+    if (calculatedData.length === 0) return null;
+    const prices = calculatedData.map(d => d.total);
+    const highest = Math.max(...prices);
+    const lowest = Math.min(...prices);
+    const average = prices.reduce((a, b) => a + b, 0) / prices.length;
+    return {
+      highest: { price: highest, hour: calculatedData.find(d => d.total === highest)?.hour },
+      lowest: { price: lowest, hour: calculatedData.find(d => d.total === lowest)?.hour },
+      average: { price: average }
+    };
+  }, [calculatedData]);
 
   const isToday = formatDate(selectedDate) === formatDate(new Date());
-
-  // Calculate statistics and processed data
-  const processedData = data.map(d => {
-    const spotPrice = d.SpotPriceKWh;
-    let feesAndTaxes = 0;
-    if (fees.transport.enabled) feesAndTaxes += fees.transport.value;
-    if (fees.system.enabled) feesAndTaxes += fees.system.value;
-    if (fees.elafgift.enabled) feesAndTaxes += fees.elafgift.value;
-    
-    let totalBeforeMoms = spotPrice + feesAndTaxes;
-    if (fees.moms.enabled) {
-      totalBeforeMoms *= fees.moms.value;
-    }
-    const totalPrice = totalBeforeMoms;
-    
-    return {
-      ...d,
-      spotPrice,
-      totalPrice,
-      hour: new Date(d.HourDK).getHours()
-    };
-  });
-
-  const maxPriceData = processedData.length > 0 ? processedData.reduce((max, current) => max.totalPrice > current.totalPrice ? max : current) : null;
-  const minPriceData = processedData.length > 0 ? processedData.reduce((min, current) => min.totalPrice < current.totalPrice ? min : current) : null;
-  const averagePrice = processedData.length > 0 ? processedData.reduce((sum, d) => sum + d.totalPrice, 0) / processedData.length : 0;
-  const maxPrice = Math.max(...processedData.map(d => d.totalPrice), 1);
+  const isTomorrow = formatDate(selectedDate) === formatDate((() => { const d = new Date(); d.setDate(d.getDate() + 1); return d; })());
 
   return (
-    <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 my-12">
-      {loading ? (
-        <div className="text-center py-24">Indlæser graf...</div>
-      ) : error ? (
-        <div className="text-center py-24 text-red-600">{error}</div>
-      ) : (
-        <>
-          {/* Top Statistics Section */}
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex gap-8">
-              <div>
-                <div className="text-sm text-gray-600">Højeste pris</div>
-                <div className="text-lg font-bold">{maxPriceData?.totalPrice.toFixed(2)} kr.</div>
-                <div className="text-xs text-gray-500 flex items-center gap-1">
-                  <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  Kl. {maxPriceData?.hour.toString().padStart(2, '0')}-{(maxPriceData?.hour + 1).toString().padStart(2, '0')}
-                </div>
-              </div>
-              <div>
-                <div className="text-sm text-gray-600">Laveste pris</div>
-                <div className="text-lg font-bold">{minPriceData?.totalPrice.toFixed(2)} kr.</div>
-                <div className="text-xs text-gray-500 flex items-center gap-1">
-                  <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  Kl. {minPriceData?.hour.toString().padStart(2, '0')}-{(minPriceData?.hour + 1).toString().padStart(2, '0')}
-                </div>
-              </div>
-              <div>
-                <div className="text-sm text-gray-600">Gennemsnit</div>
-                <div className="text-lg font-bold">{averagePrice.toFixed(2)} kr.</div>
-                <div className="text-xs text-gray-500 flex items-center gap-1">
-                  <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  {selectedDate.toLocaleDateString('da-DK')}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Date Controls Section */}
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-4">
-              <h2 className="text-xl font-bold flex items-center gap-2">
-                <CalendarDays size={20} />
-                {isToday ? "I dag" : "Dato"} - {selectedDate.toLocaleDateString('da-DK')}
-              </h2>
-              <Button variant="outline" size="sm" onClick={() => handleDateChange(1)} className="text-xs">
-                i morgen
-              </Button>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="text-sm text-green-600 font-medium">+ 18,96 kr. / md</div>
-              <div className="relative" ref={popoverRef}>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setIsPopoverOpen(!isPopoverOpen)} 
-                  className="flex items-center gap-1 text-green-600"
-                >
-                  <Settings2 size={14} />
-                  Afgifter
-                </Button>
-                {isPopoverOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white border rounded-lg shadow-xl z-10 p-4">
-                    <p className="font-bold mb-3 text-gray-700">Inkluder i prisen</p>
-                    <div className="space-y-3">
-                      {Object.keys(fees).map((key) => {
-                        const fee = fees[key as keyof typeof fees];
-                        return (
-                          <div key={key} className="flex items-center justify-between">
-                            <Label htmlFor={key} className="text-gray-600">{fee.name}</Label>
-                            <Switch 
-                              id={key} 
-                              checked={fee.enabled} 
-                              onCheckedChange={() => handleFeeToggle(key as keyof typeof fees)} 
-                            />
-                          </div>
-                        );
-                      })}
+    <div className="p-4 md:p-8 my-12 bg-white rounded-xl shadow-lg border border-gray-100">
+        {/* TOP STATS SECTION */}
+        <div className="grid grid-cols-3 gap-8 mb-6 text-center md:text-left">
+            {stats && (
+                <>
+                    <div>
+                        <p className="text-sm text-gray-500">Højeste pris</p>
+                        <p className="text-2xl font-bold text-gray-800">{stats.highest.price.toFixed(2)} kr.</p>
+                        <p className="text-xs text-gray-500">Kl. {String(stats.highest.hour).padStart(2, '0')}:00</p>
                     </div>
-                  </div>
-                )}
-              </div>
-              <div className="text-sm text-gray-600">{block.apiRegion}</div>
-            </div>
-          </div>
-
-          {/* Chart Section */}
-          <div className="relative bg-gray-50 rounded-lg p-4">
-            {hoveredHour && (
-              <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded z-10 whitespace-nowrap">
-                Kl. {new Date(hoveredHour.HourDK).getHours().toString().padStart(2, '0')}:00 - {hoveredHour.TotalPriceKWh.toFixed(2)} kr.
-              </div>
+                    <div>
+                        <p className="text-sm text-gray-500">Laveste pris</p>
+                        <p className="text-2xl font-bold text-gray-800">{stats.lowest.price.toFixed(2)} kr.</p>
+                        <p className="text-xs text-gray-500">Kl. {String(stats.lowest.hour).padStart(2, '0')}:00</p>
+                    </div>
+                    <div>
+                        <p className="text-sm text-gray-500">Gennemsnit</p>
+                        <p className="text-2xl font-bold text-gray-800">{stats.average.price.toFixed(2)} kr.</p>
+                        <p className="text-xs text-gray-500">{selectedDate.toLocaleDateString('da-DK', { day: 'numeric', month: 'long' })}</p>
+                    </div>
+                </>
             )}
-            
-            {/* Navigation Arrows */}
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => handleDateChange(-1)}
-              className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10"
-            >
-              <ChevronLeft size={20} />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => handleDateChange(1)}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10"
-            >
-              <ChevronRight size={20} />
-            </Button>
-
-            {/* Chart Area */}
-            <div className="flex justify-between items-end h-64 px-8" onMouseLeave={() => setHoveredHour(null)}>
-              {Array.from({ length: 24 }).map((_, index) => {
-                const hourData = processedData.find(d => d.hour === index);
-                
-                if (!hourData) {
-                  return (
-                    <div key={index} className="flex flex-col items-center flex-1">
-                      <div className="w-full h-64 mb-2"></div>
-                      <div className="text-xs text-gray-400 text-center">
-                        <div>kl. {index.toString().padStart(2, '0')}</div>
-                        <div>- kr.</div>
-                      </div>
-                    </div>
-                  );
-                }
-
-                const barHeight = Math.max((hourData.totalPrice / maxPrice) * 240, 2); // Use pixels, min 2px
-                const spotHeight = Math.max((hourData.spotPrice / maxPrice) * 240, 1); // Use pixels, min 1px
-                
-                return (
-                  <div 
-                    key={index} 
-                    className="flex flex-col items-center flex-1 group cursor-pointer"
-                    onMouseEnter={() => setHoveredHour(hourData)}
-                  >
-                    <div className="w-full flex flex-col justify-end h-64 mb-2">
-                      <div className="mx-auto w-6 flex flex-col justify-end" style={{ height: `${barHeight}px` }}>
-                        <div 
-                          className="relative bg-gray-300 group-hover:bg-gray-400 transition-colors w-full"
-                          style={{ height: `${barHeight}px` }}
-                        >
-                          <div 
-                            style={{ height: `${spotHeight}px` }} 
-                            className="absolute bottom-0 left-0 right-0 bg-green-500 group-hover:bg-green-600 transition-colors"
-                          />
+        </div>
+        
+        {/* CONTROLS SECTION */}
+        <div className="flex flex-wrap justify-between items-center gap-4 mb-6 border-t border-b border-gray-200 py-4">
+            <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" onClick={() => handleDateChange(-1)}><ChevronLeft/></Button>
+                <Button variant="ghost" className="flex items-center gap-2" onClick={() => setSelectedDate(new Date())}>
+                    <CalendarDays size={18}/> {isToday ? 'I dag' : selectedDate.toLocaleDateString('da-DK')}
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => handleDateChange(1)} disabled={isTomorrow}><ChevronRight/></Button>
+                {!isTomorrow && <Button variant="ghost" size="sm" onClick={setDateToTomorrow}>i morgen</Button>}
+            </div>
+            <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-sm">
+                    <button onClick={() => setCurrentRegion('DK1')} className={cn("px-3 py-1 rounded-full", currentRegion === 'DK1' ? 'bg-green-100 text-green-800 font-semibold' : 'text-gray-500')}>Vestdanmark</button>
+                    <button onClick={() => setCurrentRegion('DK2')} className={cn("px-3 py-1 rounded-full", currentRegion === 'DK2' ? 'bg-green-100 text-green-800 font-semibold' : 'text-gray-500')}>Østdanmark</button>
+                </div>
+                <div className="relative" ref={popoverRef}>
+                    <Button variant="outline" onClick={() => setIsPopoverOpen(!isPopoverOpen)} className="flex items-center gap-2">
+                        <Settings2 size={16} />Afgifter
+                    </Button>
+                    {isPopoverOpen && (
+                        <div className="absolute right-0 mt-2 w-64 bg-white border rounded-lg shadow-xl z-10 p-4">
+                            <p className="font-bold mb-3">Inkluder i prisen</p>
+                            <div className="space-y-3">
+                                {Object.keys(fees).map(key => (
+                                    <div key={key} className="flex items-center justify-between">
+                                        <Label htmlFor={key} className="text-gray-600">{fees[key as keyof typeof fees].name}</Label>
+                                        <Switch id={key} checked={fees[key as keyof typeof fees].enabled} onCheckedChange={() => handleFeeToggle(key as keyof typeof fees)} />
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                      </div>
-                    </div>
-                    <div className="text-xs text-gray-600 text-center">
-                      <div>kl. {index.toString().padStart(2, '0')}</div>
-                      <div>{hourData.totalPrice.toFixed(2)} kr.</div>
-                    </div>
-                  </div>
-                );
-              })}
+                    )}
+                </div>
             </div>
-          </div>
+        </div>
+      
+      {/* CHART AREA */}
+      {loading ? <div className="text-center h-72 flex items-center justify-center">Indlæser graf...</div> : error ? <div className="text-center h-72 flex items-center justify-center text-red-600">{error}</div> : (
+        <div className="h-72 w-full">
+            <div className="flex justify-between items-end h-full">
+                {calculatedData.map(({ hour, spotPrice, total }) => {
+                    const spotHeight = (spotPrice / maxPrice) * 100;
+                    const totalHeight = (total / maxPrice) * 100;
 
-          {/* Legend */}
-          <div className="flex justify-center items-center gap-6 mt-4 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-3 bg-gray-300 relative">
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent from-20% to-green-500 to-20%"></div>
-              </div>
-              <span>Afgifter</span>
+                    return (
+                        <div key={hour} className="flex-1 flex flex-col justify-end items-center group">
+                            <div style={{ height: `${totalHeight}%` }} className="w-3/4 relative bg-gray-200 rounded-t-md">
+                                <div style={{ height: `${(spotHeight / totalHeight) * 100}%` }} className="absolute bottom-0 left-0 right-0 bg-green-500 rounded-t-md" />
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-3 bg-transparent border border-dashed border-gray-400"></div>
-              <span>Lige nu</span>
+            {/* X-AXIS LABELS */}
+            <div className="flex justify-between mt-2 text-xs text-gray-500">
+                {calculatedData.map(({hour}) => (
+                    <div key={hour} className="flex-1 text-center">{String(hour).padStart(2, '0')}</div>
+                ))}
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-3 bg-green-500"></div>
-              <span>Lav pris</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-3 bg-yellow-500"></div>
-              <span>Mellem pris</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-3 bg-red-500"></div>
-              <span>Høj pris</span>
-            </div>
-          </div>
-        </>
+        </div>
       )}
     </div>
   );

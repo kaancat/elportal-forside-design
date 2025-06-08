@@ -18,13 +18,8 @@ export async function GET(request: Request) {
 
     // --- Date Logic ---
     const dateParam = searchParams.get('date'); // Expects YYYY-MM-DD
-    
-    // Vercel Edge functions can be tricky with timezones.
-    // This creates a date object that correctly represents the "day" regardless of where the server is.
     const baseDate = dateParam ? new Date(dateParam + 'T00:00:00Z') : new Date();
-
     const startDate = baseDate.toISOString().split('T')[0];
-    
     const tomorrow = new Date(baseDate);
     tomorrow.setUTCDate(baseDate.getUTCDate() + 1);
     const endDate = tomorrow.toISOString().split('T')[0];
@@ -42,8 +37,7 @@ export async function GET(request: Request) {
     const externalResponse = await fetch(apiUrl);
 
     if (!externalResponse.ok) {
-        // If data for a future date isn't available, return an empty set instead of an error.
-        if (externalResponse.status === 404) {
+        if (externalResponse.status === 404 || externalResponse.status === 400) {
             return Response.json({ records: [] }, { status: 200 });
         }
         return Response.json({ error: 'Failed to fetch data from EnergiDataService.' }, { status: externalResponse.status });
@@ -61,14 +55,11 @@ export async function GET(request: Request) {
 
     const finalData = { ...result, records: processedRecords };
     
-    return Response.json(finalData, { status: 200, headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate' } });
+    return Response.json(finalData, { status: 200, headers: { 'Cache-Control': 's-maxage=3600' } });
 
   } catch (error: any) {
     // 8. Handle unexpected internal errors.
     console.error('An unexpected error occurred in the API route:', error);
-    return Response.json(
-      { error: 'Internal Server Error', details: error.message },
-      { status: 500 }
-    );
+    return Response.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

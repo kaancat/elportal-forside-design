@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { Settings2, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from '@/components/ui/button';
+import { cn } from "@/lib/utils";
 
 interface PriceData {
   HourDK: string;
@@ -34,8 +34,10 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
     elafgift: { name: 'Elafgift', value: 0.76, enabled: true },
     moms: { name: 'Moms', value: 1.25, enabled: true },
   });
-  
+
   const popoverRef = useRef<HTMLDivElement>(null);
+  const [hoveredHour, setHoveredHour] = useState<PriceData | null>(null);
+  const [maxPrice, setMaxPrice] = useState(1);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,12 +46,17 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
       const dateString = formatDate(selectedDate);
       try {
         const response = await fetch(`/api/electricity-prices?region=${block.apiRegion}&date=${dateString}`);
-        if (!response.ok) throw new Error('Kunne ikke hente data for den valgte dato.');
+        if (!response.ok) throw new Error('Kunne ikke hente data.');
         const result = await response.json();
-        if (result.records.length === 0) {
-            setError('Priser for den valgte dato er endnu ikke tilgængelige.');
+        
+        if (!result.records || result.records.length === 0) {
+          setError('Priser for den valgte dato er endnu ikke tilgængelige.');
+          setData([]);
+        } else {
+          setData(result.records);
+          const max = Math.max(...result.records.map((r: PriceData) => r.TotalPriceKWh));
+          setMaxPrice(max > 0 ? max : 1);
         }
-        setData(result.records);
       } catch (err: any) {
         setError(err.message);
         setData([]);
@@ -79,46 +86,12 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
     newDate.setDate(selectedDate.getDate() + daysToAdd);
     setSelectedDate(newDate);
   };
-  
-  const chartData = data.map(d => {
-    const spotPrice = d.SpotPriceKWh;
-    
-    let feesOnChart = 0;
-    if (fees.transport.enabled) feesOnChart += fees.transport.value;
-    if (fees.system.enabled) feesOnChart += fees.system.value;
-    if (fees.elafgift.enabled) feesOnChart += fees.elafgift.value;
-    
-    let totalWithFees = spotPrice + feesOnChart;
-    if (fees.moms.enabled) {
-      totalWithFees *= fees.moms.value;
-    }
 
-    return {
-      name: new Date(d.HourDK).getHours().toString().padStart(2, '0'),
-      'Spotpris': spotPrice,
-      'Afgifter & Moms': totalWithFees - spotPrice,
-      'Total': totalWithFees,
-    };
-  });
-
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const total = payload[0].payload.Total;
-      return (
-        <div className="p-3 bg-white border rounded-lg shadow-lg text-sm">
-          <p className="font-bold mb-2">{`Kl. ${label}:00`}</p>
-          <p className="font-bold">{`Total: ${total.toFixed(2)} kr./kWh`}</p>
-        </div>
-      );
-    }
-    return null;
-  };
-  
   const isToday = formatDate(selectedDate) === formatDate(new Date());
 
   return (
     <div className="p-4 md:p-6 bg-gray-50 rounded-lg shadow-md my-8">
-      <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
+      <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
         <div>
           <h3 className="text-2xl font-bold text-gray-800">{block.title}</h3>
           {block.subtitle && <p className="text-gray-600">{block.subtitle}</p>}
@@ -153,18 +126,52 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
         </div>
       </div>
       
-      {loading ? <div className="text-center py-16">Indlæser graf...</div> : error ? <div className="text-center py-16 text-red-600">{error}</div> : (
-        <div style={{ width: '100%', height: 350 }}>
-          <ResponsiveContainer>
-            <BarChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 20 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 12 }} label={{ value: "Timer (24-timers format)", position: 'insideBottom', dy: 20 }} />
-              <YAxis tick={{ fontSize: 12 }} unit=" kr" tickFormatter={(value) => value.toFixed(2)} domain={[0, 'dataMax + 0.2']} />
-              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(236, 253, 245, 0.5)' }} />
-              <Bar dataKey="Spotpris" stackId="a" fill="#22c55e" name="Spotpris" />
-              <Bar dataKey="Afgifter & Moms" stackId="a" fill="#a1a1aa" name="Afgifter & Moms" />
-            </BarChart>
-          </ResponsiveContainer>
+      {loading ? <div className="text-center py-24">Indlæser graf...</div> : error ? <div className="text-center py-24 text-red-600">{error}</div> : (
+        <div className="relative">
+            {hoveredHour && (
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 p-2 bg-gray-800 text-white text-xs rounded-md shadow-lg z-10 whitespace-nowrap">
+                   Kl. {new Date(hoveredHour.HourDK).getHours().toString().padStart(2, '0')}:00 - Total: {hoveredHour.TotalPriceKWh.toFixed(2)} kr./kWh
+                </div>
+            )}
+            <div className="flex justify-between items-end h-64 border-b border-gray-200" onMouseLeave={() => setHoveredHour(null)}>
+                {Array.from({ length: 24 }).map((_, index) => {
+                    const hourData = data.find(d => new Date(d.HourDK).getHours() === index);
+                    
+                    if (!hourData) {
+                        return <div key={index} className="flex-1 h-full" />;
+                    }
+
+                    const spotPrice = hourData.SpotPriceKWh;
+                    let feesAndTaxes = 0;
+                    if (fees.transport.enabled) feesAndTaxes += fees.transport.value;
+                    if (fees.system.enabled) feesAndTaxes += fees.system.value;
+                    if (fees.elafgift.enabled) feesAndTaxes += fees.elafgift.value;
+                    
+                    let totalBeforeMoms = spotPrice + feesAndTaxes;
+                    if (fees.moms.enabled) {
+                      totalBeforeMoms *= fees.moms.value;
+                    }
+                    const totalFees = totalBeforeMoms - spotPrice;
+                    const totalPrice = spotPrice + totalFees;
+                    const spotHeight = (spotPrice / maxPrice) * 100;
+                    const totalHeight = (totalPrice / maxPrice) * 100;
+
+                    return (
+                        <div key={index} className="flex-1 flex flex-col justify-end items-center h-full relative group" onMouseEnter={() => setHoveredHour(hourData)}>
+                            <div className="w-3/4 h-full flex flex-col justify-end">
+                                <div style={{ height: `${totalHeight}%` }} className={cn("relative rounded-t-md transition-all duration-200", hoveredHour === hourData ? "bg-gray-400" : "bg-gray-300")}>
+                                    <div style={{ height: `${(spotHeight / totalHeight) * 100}%` }} className={cn("absolute bottom-0 left-0 right-0 rounded-t-md", hoveredHour === hourData ? "bg-green-500" : "bg-green-400")} />
+                                </div>
+                            </div>
+                            <span className="text-xs text-gray-500 mt-1">{index.toString().padStart(2, '0')}</span>
+                        </div>
+                    );
+                })}
+            </div>
+             <div className="flex justify-center items-center gap-4 mt-4 text-xs text-gray-600">
+                <div className="flex items-center gap-2"><div className="w-3 h-3 bg-green-400 rounded-sm"></div>Spotpris</div>
+                <div className="flex items-center gap-2"><div className="w-3 h-3 bg-gray-300 rounded-sm"></div>Afgifter & Moms</div>
+            </div>
         </div>
       )}
     </div>

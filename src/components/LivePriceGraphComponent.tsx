@@ -59,36 +59,16 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
       setLoading(true);
       setError(null);
       try {
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
+        // This is the only line that needs to be corrected
+        const response = await fetch(`/api/electricity-prices?region=${block.apiRegion}`);
         
-        const year = yesterday.getFullYear();
-        const month = String(yesterday.getMonth() + 1).padStart(2, '0');
-        const day = String(yesterday.getDate()).padStart(2, '0');
-        const dateStringForAPI = `${year}-${month}-${day}`;
-
-        const baseUrl = 'https://api.energidataservice.dk/dataset/Elspotpriser';
-        const filter = encodeURIComponent(`{"PriceArea":["${block.apiRegion}"]}`);
-        const apiUrl = `${baseUrl}?start=${dateStringForAPI}T00:00&end=${dateStringForAPI}T23:59&filter=${filter}`;
-
-        console.log('Final API URL to be fetched:', apiUrl);
-        
-        const response = await fetch(apiUrl);
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Kunne ikke hente data fra serveren.');
         }
         const result = await response.json();
-        
-        // Transform the data to match our interface
-        const transformedData = result.records.map((record: any) => ({
-          HourDK: record.HourDK,
-          SpotPriceKWh: record.SpotPriceDKK / 1000, // Convert from DKK/MWh to DKK/kWh
-          TotalPriceKWh: record.SpotPriceDKK / 1000 + 2.5, // Add estimated fees
-        }));
-        
-        setData(transformedData);
+        setData(result.records);
       } catch (err: any) {
-        console.error('Error fetching data:', err);
         setError(err.message || 'En ukendt fejl opstod.');
       } finally {
         setLoading(false);

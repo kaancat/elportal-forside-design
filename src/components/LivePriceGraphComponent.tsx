@@ -51,6 +51,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   const popoverRef = useRef<HTMLDivElement>(null);
   const chartAreaRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const chartWrapperRef = useRef<HTMLDivElement>(null);
   const [maxPrice, setMaxPrice] = useState(1);
   const [tooltipPosition, setTooltipPosition] = useState<{ left: number; top: number; opacity: number }>({ left: 0, top: 0, opacity: 0 });
 
@@ -264,7 +265,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
       
       {/* CHART AREA */}
       {loading ? <div className="text-center h-72 flex items-center justify-center">Indlæser graf...</div> : error ? <div className="text-center h-72 flex items-center justify-center text-red-600">{error}</div> : (
-        <div className="w-full relative">
+        <div ref={chartWrapperRef} className="w-full relative">
             <div ref={chartAreaRef} className="overflow-x-auto">
                 <div className="flex w-full min-w-[800px] pb-4">
                     {/* Y-Axis Labels & Gridlines */}
@@ -304,35 +305,33 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                                     key={hour} 
                                     className="flex-1 flex flex-col justify-start items-center group cursor-pointer relative pt-4"
                                     onMouseEnter={(event: React.MouseEvent<HTMLDivElement>) => {
-                                        // First, set the data for the tooltip content
                                         const system = fees.system.enabled ? fees.system.value : 0;
                                         const elafgift = fees.elafgift.enabled ? fees.elafgift.value : 0;
                                         const moms = fees.moms.enabled ? fees.moms.value : 1;
                                         setHoveredHourData({ hour, spotPrice, total, transport: 0, system, elafgift, moms });
 
-                                        // Now, calculate the position
-                                        if (!chartAreaRef.current) return;
+                                        if (!chartAreaRef.current || !chartWrapperRef.current) return;
 
-                                        const chartRect = chartAreaRef.current.getBoundingClientRect();
+                                        const chartWrapperRect = chartWrapperRef.current.getBoundingClientRect();
+                                        const chartScrollAreaRect = chartAreaRef.current.getBoundingClientRect();
                                         const barRect = event.currentTarget.getBoundingClientRect();
-                                        const tooltipWidth = tooltipRef.current?.offsetWidth || 192; // Default width as fallback
+                                        const tooltipWidth = tooltipRef.current?.offsetWidth || 192;
 
-                                        // Calculate the ideal centered position relative to the chart container
+                                        // --- Left Position Calculation (no change, still correct) ---
                                         const barCenter = barRect.left + barRect.width / 2;
-                                        const idealLeft = barCenter - chartRect.left - tooltipWidth / 2 + chartAreaRef.current.scrollLeft;
-
-                                        // Constrain the position to stay within the chart's bounds
+                                        const idealLeft = barCenter - chartScrollAreaRect.left - tooltipWidth / 2 + chartAreaRef.current.scrollLeft;
                                         const finalLeft = Math.max(
-                                            chartAreaRef.current.scrollLeft, // Don't go off the left edge
-                                            Math.min(
-                                                idealLeft,
-                                                chartAreaRef.current.scrollWidth - tooltipWidth // Don't go off the right edge
-                                            )
+                                            chartAreaRef.current.scrollLeft,
+                                            Math.min(idealLeft, chartAreaRef.current.scrollWidth - tooltipWidth)
                                         );
+
+                                        // --- Top Position Calculation (UPDATED) ---
+                                        // Calculate top relative to the non-scrolling wrapper
+                                        const finalTop = barRect.top - chartWrapperRect.top;
 
                                         setTooltipPosition({
                                             left: finalLeft,
-                                            top: event.currentTarget.offsetTop - 10, // Position 10px above the bar
+                                            top: finalTop, // Use the new robust top position
                                             opacity: 1
                                         });
                                     }}
@@ -384,49 +383,6 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                         })}
                     </div>
                 </div>
-                
-                {/* TOOLTIP */}
-                {hoveredHourData && (
-                    <div 
-                        ref={tooltipRef}
-                        className="absolute bg-gray-800 text-white p-3 rounded-lg shadow-lg z-20 min-w-48" 
-                        style={{
-                            left: `${tooltipPosition.left}px`,
-                            top: `${tooltipPosition.top}px`,
-                            opacity: tooltipPosition.opacity,
-                            transform: 'translateY(-100%)',
-                            transition: 'opacity 0.2s'
-                        }}
-                    >
-                        <div className="text-sm font-semibold mb-2">Kl. {String(hoveredHourData.hour).padStart(2, '0')}:00</div>
-                        <div className="flex flex-col gap-y-1 text-xs">
-                            <div className="flex justify-between">
-                                <span>Spotpris:</span>
-                                <span>{hoveredHourData.spotPrice.toFixed(2)} kr/kWh</span>
-                            </div>
-                            {hoveredHourData.system > 0 && (
-                                <div className="flex justify-between">
-                                    <span>Systemgebyr:</span>
-                                    <span>{hoveredHourData.system.toFixed(2)} kr/kWh</span>
-                                </div>
-                            )}
-                            {hoveredHourData.elafgift > 0 && (
-                                <div className="flex justify-between">
-                                    <span>Elafgift:</span>
-                                    <span>{hoveredHourData.elafgift.toFixed(2)} kr/kWh</span>
-                                </div>
-                            )}
-                            <div className="border-t border-gray-600 pt-1 mt-1">
-                                <div className="flex justify-between font-semibold">
-                                    <span>Total pris:</span>
-                                    <span>{hoveredHourData.total.toFixed(2)} kr/kWh</span>
-                                </div>
-                            </div>
-                        </div>
-                        {/* Tooltip Arrow */}
-                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
-                    </div>
-                )}
 
                 {/* UPDATED LEGEND */}
                 <div className="flex gap-x-6 gap-y-2 flex-wrap justify-center items-center mt-8 min-w-[800px]">
@@ -465,6 +421,50 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                     </div>
                 </div>
             </div>
+            
+            {/* TOOLTIP - Now outside the scrolling container */}
+            {hoveredHourData && (
+                <div 
+                    ref={tooltipRef}
+                    className="absolute bg-gray-800 text-white p-3 rounded-lg shadow-lg z-20 min-w-48" 
+                    style={{
+                        left: `${tooltipPosition.left}px`,
+                        top: `${tooltipPosition.top}px`,
+                        opacity: tooltipPosition.opacity,
+                        transform: 'translateY(calc(-100% - 10px))', // Position above the bar with a 10px gap
+                        transition: 'opacity 0.2s',
+                        pointerEvents: 'none' // Prevent the tooltip from capturing mouse events
+                    }}
+                >
+                    <div className="text-sm font-semibold mb-2">Kl. {String(hoveredHourData.hour).padStart(2, '0')}:00</div>
+                    <div className="flex flex-col gap-y-1 text-xs">
+                        <div className="flex justify-between">
+                            <span>Spotpris:</span>
+                            <span>{hoveredHourData.spotPrice.toFixed(2)} kr/kWh</span>
+                        </div>
+                        {hoveredHourData.system > 0 && (
+                            <div className="flex justify-between">
+                                <span>Systemgebyr:</span>
+                                <span>{hoveredHourData.system.toFixed(2)} kr/kWh</span>
+                            </div>
+                        )}
+                        {hoveredHourData.elafgift > 0 && (
+                            <div className="flex justify-between">
+                                <span>Elafgift:</span>
+                                <span>{hoveredHourData.elafgift.toFixed(2)} kr/kWh</span>
+                            </div>
+                        )}
+                        <div className="border-t border-gray-600 pt-1 mt-1">
+                            <div className="flex justify-between font-semibold">
+                                <span>Total pris:</span>
+                                <span>{hoveredHourData.total.toFixed(2)} kr/kWh</span>
+                            </div>
+                        </div>
+                    </div>
+                    {/* Tooltip Arrow */}
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                </div>
+            )}
         </div>
       )}
     </div>

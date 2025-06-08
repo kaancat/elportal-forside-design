@@ -169,9 +169,9 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
         <div className="flex flex-col md:flex-row justify-between items-start gap-8 md:gap-6 mb-6">
           
           {/* LEFT SIDE: Stats + Date Controls */}
-          <div className="flex-1 min-w-0">
+          <div className="w-full flex-1 min-w-0">
             {/* STATISTICS */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-6 mb-6">
                 {stats && (
                     <>
                         <div>

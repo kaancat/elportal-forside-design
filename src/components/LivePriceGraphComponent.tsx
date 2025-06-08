@@ -305,33 +305,37 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                                     key={hour} 
                                     className="flex-1 flex flex-col justify-start items-center group cursor-pointer relative pt-4"
                                     onMouseEnter={(event: React.MouseEvent<HTMLDivElement>) => {
+                                        // Set the data for the tooltip content (this part is unchanged)
                                         const system = fees.system.enabled ? fees.system.value : 0;
                                         const elafgift = fees.elafgift.enabled ? fees.elafgift.value : 0;
                                         const moms = fees.moms.enabled ? fees.moms.value : 1;
                                         setHoveredHourData({ hour, spotPrice, total, transport: 0, system, elafgift, moms });
 
-                                        if (!chartAreaRef.current || !chartWrapperRef.current) return;
+                                        // --- CORRECTED POSITIONING LOGIC ---
+                                        if (!chartWrapperRef.current || !tooltipRef.current) return;
 
-                                        const chartWrapperRect = chartWrapperRef.current.getBoundingClientRect();
-                                        const chartScrollAreaRect = chartAreaRef.current.getBoundingClientRect();
+                                        const wrapperRect = chartWrapperRef.current.getBoundingClientRect();
                                         const barRect = event.currentTarget.getBoundingClientRect();
-                                        const tooltipWidth = tooltipRef.current?.offsetWidth || 192;
+                                        const tooltipWidth = tooltipRef.current.offsetWidth;
 
-                                        // --- Left Position Calculation (no change, still correct) ---
-                                        const barCenter = barRect.left + barRect.width / 2;
-                                        const idealLeft = barCenter - chartScrollAreaRect.left - tooltipWidth / 2 + chartAreaRef.current.scrollLeft;
-                                        const finalLeft = Math.max(
-                                            chartAreaRef.current.scrollLeft,
-                                            Math.min(idealLeft, chartAreaRef.current.scrollWidth - tooltipWidth)
+                                        // 1. Calculate the bar's center relative to the static wrapper
+                                        const barCenterInWrapper = (barRect.left + barRect.width / 2) - wrapperRect.left;
+                                        
+                                        // 2. Calculate the ideal centered 'left' position for the tooltip
+                                        let finalLeft = barCenterInWrapper - (tooltipWidth / 2);
+
+                                        // 3. Clamp the 'left' position to ensure it stays within the wrapper's bounds
+                                        finalLeft = Math.max(
+                                            0, // Prevent it from going off the left edge
+                                            Math.min(finalLeft, wrapperRect.width - tooltipWidth) // Prevent it from going off the right edge
                                         );
 
-                                        // --- Top Position Calculation (UPDATED) ---
-                                        // Calculate top relative to the non-scrolling wrapper
-                                        const finalTop = barRect.top - chartWrapperRect.top;
+                                        // 4. Calculate the 'top' position relative to the wrapper
+                                        const finalTop = barRect.top - wrapperRect.top;
 
                                         setTooltipPosition({
                                             left: finalLeft,
-                                            top: finalTop, // Use the new robust top position
+                                            top: finalTop,
                                             opacity: 1
                                         });
                                     }}
@@ -431,9 +435,9 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                         left: `${tooltipPosition.left}px`,
                         top: `${tooltipPosition.top}px`,
                         opacity: tooltipPosition.opacity,
-                        transform: 'translateY(calc(-100% - 10px))', // Position above the bar with a 10px gap
-                        transition: 'opacity 0.2s',
-                        pointerEvents: 'none' // Prevent the tooltip from capturing mouse events
+                        transform: `translateY(calc(-100% - 10px))`, // Positions tooltip 10px above the bar
+                        transition: 'opacity 0.2s, top 0.1s, left 0.1s', // Smoother transition
+                        pointerEvents: 'none'
                     }}
                 >
                     <div className="text-sm font-semibold mb-2">Kl. {String(hoveredHourData.hour).padStart(2, '0')}:00</div>

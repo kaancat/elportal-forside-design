@@ -103,9 +103,9 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
     setSelectedDate(tomorrow);
   };
 
-  const getPriceCategory = (price: number, averagePrice: number): 'low' | 'medium' | 'high' => {
-    if (price < averagePrice * 0.90) return 'low';
-    if (price > averagePrice * 1.10) return 'high';
+  const getPriceCategory = (price: number, averagePrice: number, standardDeviation: number): 'low' | 'medium' | 'high' => {
+    if (price < averagePrice - (0.5 * standardDeviation)) return 'low';
+    if (price > averagePrice + (1.0 * standardDeviation)) return 'high';
     return 'medium';
   };
 
@@ -117,7 +117,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
       if (fees.elafgift.enabled) feesOnChart += fees.elafgift.value;
       let totalWithFees = spotPrice + feesOnChart;
       if (fees.moms.enabled) totalWithFees *= fees.moms.value;
-      return { hour: new Date(d.HourDK).getHours(), spotPrice, total: totalWithFees };
+      return { hour: new Date(d.HourDK).getHours(), spotPrice, total: totalWithFees, fees: feesOnChart * (fees.moms.enabled ? fees.moms.value : 1) };
     });
   }, [data, fees]);
 
@@ -127,10 +127,17 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
     const highest = Math.max(...prices);
     const lowest = Math.min(...prices);
     const average = prices.reduce((a, b) => a + b, 0) / prices.length;
+    
+    // Calculate standard deviation
+    const squaredDifferences = prices.map(price => Math.pow(price - average, 2));
+    const variance = squaredDifferences.reduce((a, b) => a + b, 0) / prices.length;
+    const standardDeviation = Math.sqrt(variance);
+    
     return {
       highest: { price: highest, hour: calculatedData.find(d => d.total === highest)?.hour },
       lowest: { price: lowest, hour: calculatedData.find(d => d.total === lowest)?.hour },
-      average: { price: average }
+      average: { price: average },
+      standardDeviation
     };
   }, [calculatedData]);
 
@@ -140,31 +147,42 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   return (
     <section className="container mx-auto px-4 py-16">
       <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-        {/* TOP STATS SECTION */}
-        <div className="grid grid-cols-3 gap-8 mb-6 text-center md:text-left">
-            {stats && (
-                <>
-                    <div>
-                        <p className="text-sm text-gray-500">Højeste pris</p>
-                        <p className="text-2xl font-bold text-gray-800">{stats.highest.price.toFixed(2)} kr.</p>
-                        <p className="text-xs text-gray-500">Kl. {String(stats.highest.hour).padStart(2, '0')}:00</p>
-                    </div>
-                    <div>
-                        <p className="text-sm text-gray-500">Laveste pris</p>
-                        <p className="text-2xl font-bold text-gray-800">{stats.lowest.price.toFixed(2)} kr.</p>
-                        <p className="text-xs text-gray-500">Kl. {String(stats.lowest.hour).padStart(2, '0')}:00</p>
-                    </div>
-                    <div>
-                        <p className="text-sm text-gray-500">Gennemsnit</p>
-                        <p className="text-2xl font-bold text-gray-800">{stats.average.price.toFixed(2)} kr.</p>
-                        <p className="text-xs text-gray-500">{selectedDate.toLocaleDateString('da-DK', { day: 'numeric', month: 'long' })}</p>
-                    </div>
-                </>
-            )}
-        </div>
         
-        {/* CONTROLS SECTION */}
-        <div className="flex flex-wrap justify-between items-center gap-4 mb-6 border-t border-b border-gray-200 py-4">
+        {/* SECTION HEADER */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{block.title}</h2>
+          {block.subtitle && <p className="text-gray-600">{block.subtitle}</p>}
+        </div>
+
+        {/* MAIN LAYOUT: LEFT (STATS + DATE CONTROLS) | RIGHT (REGION + FEES) */}
+        <div className="flex flex-wrap justify-between items-start gap-6 mb-6">
+          
+          {/* LEFT SIDE: Stats + Date Controls */}
+          <div className="flex-1 min-w-0">
+            {/* STATISTICS */}
+            <div className="grid grid-cols-3 gap-4 mb-6">
+                {stats && (
+                    <>
+                        <div>
+                            <p className="text-xs text-gray-500">Højeste pris</p>
+                            <p className="text-lg font-bold text-gray-800">{stats.highest.price.toFixed(2)} kr.</p>
+                            <p className="text-xs text-gray-500">Kl. {String(stats.highest.hour).padStart(2, '0')}:00</p>
+                        </div>
+                        <div>
+                            <p className="text-xs text-gray-500">Laveste pris</p>
+                            <p className="text-lg font-bold text-gray-800">{stats.lowest.price.toFixed(2)} kr.</p>
+                            <p className="text-xs text-gray-500">Kl. {String(stats.lowest.hour).padStart(2, '0')}:00</p>
+                        </div>
+                        <div>
+                            <p className="text-xs text-gray-500">Gennemsnit</p>
+                            <p className="text-lg font-bold text-gray-800">{stats.average.price.toFixed(2)} kr.</p>
+                            <p className="text-xs text-gray-500">{selectedDate.toLocaleDateString('da-DK', { day: 'numeric', month: 'long' })}</p>
+                        </div>
+                    </>
+                )}
+            </div>
+            
+            {/* DATE CONTROLS */}
             <div className="flex items-center gap-2">
                 <Button variant="ghost" size="icon" onClick={() => handleDateChange(-1)}>
                     <ChevronLeft size={18}/>
@@ -201,47 +219,52 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                     </Button>
                 )}
             </div>
-            <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 text-sm">
-                    <button onClick={() => setCurrentRegion('DK1')} className={cn("px-3 py-1 rounded-full", currentRegion === 'DK1' ? 'bg-green-100 text-green-800 font-semibold' : 'text-gray-500')}>Vestdanmark</button>
-                    <button onClick={() => setCurrentRegion('DK2')} className={cn("px-3 py-1 rounded-full", currentRegion === 'DK2' ? 'bg-green-100 text-green-800 font-semibold' : 'text-gray-500')}>Østdanmark</button>
-                </div>
-                <div className="relative" ref={popoverRef}>
-                    <Button variant="outline" onClick={() => setIsPopoverOpen(!isPopoverOpen)} className="flex items-center gap-2">
-                        <Settings2 size={16} />Afgifter
-                    </Button>
-                    {isPopoverOpen && (
-                        <div className="absolute right-0 mt-2 w-64 bg-white border rounded-lg shadow-xl z-10 p-4">
-                            <p className="font-bold mb-3">Inkluder i prisen</p>
-                            <div className="space-y-3">
-                                {Object.keys(fees).map(key => (
-                                    <div key={key} className="flex items-center justify-between">
-                                        <Label htmlFor={key} className="text-gray-600">{fees[key as keyof typeof fees].name}</Label>
-                                        <Switch id={key} checked={fees[key as keyof typeof fees].enabled} onCheckedChange={() => handleFeeToggle(key as keyof typeof fees)} />
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
+          </div>
+          
+          {/* RIGHT SIDE: Region + Fees */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-sm">
+                <button onClick={() => setCurrentRegion('DK1')} className={cn("px-3 py-1 rounded-full", currentRegion === 'DK1' ? 'bg-green-100 text-green-800 font-semibold' : 'text-gray-500')}>Vestdanmark</button>
+                <button onClick={() => setCurrentRegion('DK2')} className={cn("px-3 py-1 rounded-full", currentRegion === 'DK2' ? 'bg-green-100 text-green-800 font-semibold' : 'text-gray-500')}>Østdanmark</button>
             </div>
+            <div className="relative" ref={popoverRef}>
+                <Button variant="outline" onClick={() => setIsPopoverOpen(!isPopoverOpen)} className="flex items-center gap-2">
+                    <Settings2 size={16} />Afgifter
+                </Button>
+                {isPopoverOpen && (
+                    <div className="absolute right-0 mt-2 w-64 bg-white border rounded-lg shadow-xl z-10 p-4">
+                        <p className="font-bold mb-3">Inkluder i prisen</p>
+                        <div className="space-y-3">
+                            {Object.keys(fees).map(key => (
+                                <div key={key} className="flex items-center justify-between">
+                                    <Label htmlFor={key} className="text-gray-600">{fees[key as keyof typeof fees].name}</Label>
+                                    <Switch id={key} checked={fees[key as keyof typeof fees].enabled} onCheckedChange={() => handleFeeToggle(key as keyof typeof fees)} />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+          </div>
         </div>
       
       {/* CHART AREA */}
       {loading ? <div className="text-center h-72 flex items-center justify-center">Indlæser graf...</div> : error ? <div className="text-center h-72 flex items-center justify-center text-red-600">{error}</div> : (
         <div className="w-full relative">
             <div className="flex justify-between items-end h-72 w-full mb-4">
-                {calculatedData.map(({ hour, spotPrice, total }) => {
-                    const totalHeight = Math.max((total / maxPrice) * 280, 4); // Use pixels, min 4px
+                {calculatedData.map(({ hour, spotPrice, total, fees: feesAmount }) => {
+                    const totalHeight = Math.max((total / maxPrice) * 280, 4);
+                    const spotHeight = Math.max((spotPrice / maxPrice) * 280, 2);
+                    const feesHeight = totalHeight - spotHeight;
                     const currentHour = new Date().getHours();
                     const isCurrentHour = hour === currentHour && isToday;
-                    const priceCategory = stats ? getPriceCategory(total, stats.average.price) : 'medium';
+                    const priceCategory = stats ? getPriceCategory(total, stats.average.price, stats.standardDeviation) : 'medium';
                     
                     const getBarColor = (category: 'low' | 'medium' | 'high') => {
                         switch (category) {
-                            case 'low': return 'bg-green-500 group-hover:bg-green-600';
-                            case 'medium': return 'bg-yellow-400 group-hover:bg-yellow-500';
-                            case 'high': return 'bg-red-500 group-hover:bg-red-600';
+                            case 'low': return 'bg-green-500';
+                            case 'medium': return 'bg-yellow-400';
+                            case 'high': return 'bg-red-500';
                         }
                     };
 
@@ -257,7 +280,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                                     hour,
                                     spotPrice,
                                     total,
-                                    transport: 0, // No longer used, keeping for compatibility
+                                    transport: 0,
                                     system,
                                     elafgift,
                                     moms
@@ -271,11 +294,30 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                                     <div className="absolute inset-0 border-2 border-dashed border-blue-500 rounded-md -m-1 z-10"></div>
                                 )}
                                 <div className="relative flex flex-col justify-end w-full">
-                                    {/* Single colored bar based on price category */}
+                                    {/* Fees portion (solid color) */}
                                     <div 
-                                        style={{ height: `${totalHeight}px` }} 
+                                        style={{ height: `${feesHeight}px` }} 
                                         className={`${getBarColor(priceCategory)} transition-colors rounded-t-md`}
                                     />
+                                    {/* Spot price portion (striped pattern) */}
+                                    <div 
+                                        style={{ height: `${spotHeight}px` }} 
+                                        className={`${getBarColor(priceCategory)} transition-colors relative overflow-hidden`}
+                                    >
+                                        {/* Diagonal stripe pattern */}
+                                        <div 
+                                            className="absolute inset-0 opacity-50"
+                                            style={{
+                                                backgroundImage: `repeating-linear-gradient(
+                                                    45deg,
+                                                    transparent,
+                                                    transparent 3px,
+                                                    rgba(255,255,255,0.7) 3px,
+                                                    rgba(255,255,255,0.7) 6px
+                                                )`
+                                            }}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -331,7 +373,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                 ))}
             </div>
 
-            {/* LEGEND */}
+            {/* UPDATED LEGEND */}
             <div className="flex justify-center items-center gap-6 mt-6 pt-4 border-t border-gray-200">
                 <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-green-500 rounded"></div>
@@ -348,6 +390,23 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                 <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-dashed border-blue-500 rounded"></div>
                     <span className="text-sm text-gray-600">Lige nu</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-gray-400 rounded relative overflow-hidden">
+                        <div 
+                            className="absolute inset-0 opacity-70"
+                            style={{
+                                backgroundImage: `repeating-linear-gradient(
+                                    45deg,
+                                    transparent,
+                                    transparent 1px,
+                                    rgba(255,255,255,0.8) 1px,
+                                    rgba(255,255,255,0.8) 2px
+                                )`
+                            }}
+                        />
+                    </div>
+                    <span className="text-sm text-gray-600">Spotpris</span>
                 </div>
             </div>
         </div>

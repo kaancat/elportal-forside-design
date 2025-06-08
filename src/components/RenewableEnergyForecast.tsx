@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 // --- DATA TYPES ---
 interface ForecastRecord { HourUTC: string; ForecastType: 'Solar' | 'Onshore Wind' | 'Offshore Wind'; ForecastDayAhead: number; }
 interface ProcessedData { hour: string; Solar: number; 'Onshore Wind': number; 'Offshore Wind': number; Total: number; }
-interface RenewableEnergyForecastProps { block: { _type: 'renewableEnergyForecast'; title: string; leadingText?: string; explanation?: any[]; }; }
+interface RenewableEnergyForecastProps { block: { _type: 'renewableEnergyForecast'; title?: string; leadingText?: string; explanation?: any[]; }; }
 
 const formatDateForApi = (date: Date) => date.toISOString().split('T')[0];
 
@@ -104,8 +104,19 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
     <TooltipProvider>
       <section className="bg-white py-16 lg:py-24">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 text-center mb-4">{block.title}</h2>
-          {block.leadingText && <p className="text-lg text-gray-600 text-center mb-12 max-w-3xl mx-auto">{block.leadingText}</p>}
+          {/* Display the title from Sanity if it exists */}
+          {block.title && (
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 text-center mb-4">
+              {block.title}
+            </h2>
+          )}
+          
+          {/* Display the leadingText from Sanity if it exists */}
+          {block.leadingText && (
+            <p className="text-lg text-gray-600 text-center mb-12 max-w-3xl mx-auto">
+              {block.leadingText}
+            </p>
+          )}
           
           <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 p-4 bg-gray-50 rounded-lg border">
             {/* Date Controls */}

@@ -32,6 +32,16 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentRegion, setCurrentRegion] = useState<'DK1' | 'DK2'>(block.apiRegion);
 
+  const [hoveredHourData, setHoveredHourData] = useState<{
+    hour: number;
+    spotPrice: number;
+    total: number;
+    transport: number;
+    system: number;
+    elafgift: number;
+    moms: number;
+  } | null>(null);
+
   const [fees, setFees] = useState({
     transport: { name: 'Netselskab', value: 0.12, enabled: true },
     system: { name: 'Forsyningstilsynet', value: 0.06, enabled: true },
@@ -182,7 +192,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                     </PopoverContent>
                 </Popover>
                 {!isTomorrow && (
-                    <Button variant="ghost" size="sm" onClick={setDateToTomorrow}>
+                    <Button variant="outline" size="sm" onClick={setDateToTomorrow}>
                         i morgen
                     </Button>
                 )}
@@ -215,7 +225,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
       
       {/* CHART AREA */}
       {loading ? <div className="text-center h-72 flex items-center justify-center">Indlæser graf...</div> : error ? <div className="text-center h-72 flex items-center justify-center text-red-600">{error}</div> : (
-        <div className="w-full">
+        <div className="w-full relative">
             <div className="flex justify-between items-end h-72 w-full mb-4">
                 {calculatedData.map(({ hour, spotPrice, total }) => {
                     const spotHeight = Math.max((spotPrice / maxPrice) * 280, 2); // Use pixels, min 2px
@@ -223,7 +233,26 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                     const feesHeight = totalHeight - spotHeight;
 
                     return (
-                        <div key={hour} className="flex-1 flex flex-col justify-end items-center group">
+                        <div 
+                            key={hour} 
+                            className="flex-1 flex flex-col justify-end items-center group cursor-pointer"
+                            onMouseEnter={() => {
+                                const transport = fees.transport.enabled ? fees.transport.value : 0;
+                                const system = fees.system.enabled ? fees.system.value : 0;
+                                const elafgift = fees.elafgift.enabled ? fees.elafgift.value : 0;
+                                const moms = fees.moms.enabled ? fees.moms.value : 1;
+                                setHoveredHourData({
+                                    hour,
+                                    spotPrice,
+                                    total,
+                                    transport,
+                                    system,
+                                    elafgift,
+                                    moms
+                                });
+                            }}
+                            onMouseLeave={() => setHoveredHourData(null)}
+                        >
                             <div className="w-3/4 flex flex-col justify-end" style={{ height: '280px' }}>
                                 <div className="relative flex flex-col justify-end w-full">
                                     {/* Fees & Taxes (Gray) on top */}
@@ -242,6 +271,51 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                     );
                 })}
             </div>
+            
+            {/* TOOLTIP */}
+            {hoveredHourData && (
+                <div className="absolute bg-gray-800 text-white p-3 rounded-lg shadow-lg z-20 min-w-48" 
+                     style={{
+                         left: `${(hoveredHourData.hour / 23) * 100}%`,
+                         transform: 'translateX(-50%)',
+                         bottom: '320px'
+                     }}>
+                    <div className="text-sm font-semibold mb-2">Kl. {String(hoveredHourData.hour).padStart(2, '0')}:00</div>
+                    <div className="space-y-1 text-xs">
+                        <div className="flex justify-between">
+                            <span>Spotpris:</span>
+                            <span>{hoveredHourData.spotPrice.toFixed(3)} kr/kWh</span>
+                        </div>
+                        {hoveredHourData.transport > 0 && (
+                            <div className="flex justify-between">
+                                <span>Netselskab:</span>
+                                <span>{hoveredHourData.transport.toFixed(3)} kr/kWh</span>
+                            </div>
+                        )}
+                        {hoveredHourData.system > 0 && (
+                            <div className="flex justify-between">
+                                <span>Forsyningstilsynet:</span>
+                                <span>{hoveredHourData.system.toFixed(3)} kr/kWh</span>
+                            </div>
+                        )}
+                        {hoveredHourData.elafgift > 0 && (
+                            <div className="flex justify-between">
+                                <span>Elafgift:</span>
+                                <span>{hoveredHourData.elafgift.toFixed(3)} kr/kWh</span>
+                            </div>
+                        )}
+                        <div className="border-t border-gray-600 pt-1 mt-1">
+                            <div className="flex justify-between font-semibold">
+                                <span>Total pris:</span>
+                                <span>{hoveredHourData.total.toFixed(3)} kr/kWh</span>
+                            </div>
+                        </div>
+                    </div>
+                    {/* Tooltip Arrow */}
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                </div>
+            )}
+            
             {/* X-AXIS LABELS */}
             <div className="flex justify-between text-gray-500 mt-2">
                 {calculatedData.map(({ hour, total }) => (

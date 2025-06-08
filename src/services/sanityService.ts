@@ -64,6 +64,11 @@ export class SanityService {
           title,
           buttonText,
           buttonUrl
+        },
+        _type == "livePriceGraph" => {
+          title,
+          subtitle,
+          apiRegion
         }
       }
     }`

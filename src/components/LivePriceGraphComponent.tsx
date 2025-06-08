@@ -119,7 +119,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
 
   return (
     <section className="container mx-auto px-4 py-16">
-      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+      <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-lg border border-gray-100 p-6">
         {/* TOP STATS SECTION */}
         <div className="grid grid-cols-3 gap-8 mb-6 text-center md:text-left">
             {stats && (
@@ -235,11 +235,11 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                 })}
             </div>
             {/* X-AXIS LABELS */}
-            <div className="grid grid-cols-12 lg:grid-cols-24 gap-1 text-xs text-gray-500 mt-2">
+            <div className="flex justify-between text-gray-500 mt-2">
                 {calculatedData.map(({ hour, total }) => (
-                    <div key={hour} className="text-center">
-                        <div className="text-xs leading-none mb-1">kl. {String(hour).padStart(2, '0')}</div>
-                        <div className="text-xs font-medium leading-none">{total.toFixed(2)} kr.</div>
+                    <div key={hour} className="flex-1 text-center px-0.5">
+                        <div className="text-[10px] font-medium leading-none">{total.toFixed(2)} kr.</div>
+                        <div className="text-[9px] leading-none mt-0.5">kl. {String(hour).padStart(2, '0')}</div>
                     </div>
                 ))}
             </div>

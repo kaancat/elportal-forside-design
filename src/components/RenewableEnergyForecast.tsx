@@ -67,33 +67,36 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
   }, [currentRegion, selectedDate]);
 
   const processedData = useMemo<ProcessedData[]>(() => {
-      if (!data || data.length === 0) return [];
+    if (!data || data.length === 0) return [];
 
-      // A reliable way to group API records by the hour.
-      const groupedByHour: { [hour: string]: { Solar: number; 'Onshore Wind': number; 'Offshore Wind': number; } } = {};
+    const groupedByHour: { [hour: string]: { 'Solar': number; 'Onshore Wind': number; 'Offshore Wind': number; } } = {};
 
-      for (const record of data) {
-        // Create a key for each hour, e.g., "23:00"
-        const hourKey = new Date(record.HourUTC).toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' });
-        
-        // If we haven't seen this hour before, initialize it.
-        if (!groupedByHour[hourKey]) {
-          groupedByHour[hourKey] = { Solar: 0, 'Onshore Wind': 0, 'Offshore Wind': 0 };
-        }
-        
-        // Add the forecast value to the correct category.
-        groupedByHour[hourKey][record.ForecastType] = record.ForecastDayAhead;
+    // Initialize all 24 hours to ensure a complete chart
+    for (let i = 0; i < 24; i++) {
+      const hourKey = `${i.toString().padStart(2, '0')}:00`;
+      groupedByHour[hourKey] = { 'Solar': 0, 'Onshore Wind': 0, 'Offshore Wind': 0 };
+    }
+    
+    // Loop through the data and SUM the values for each hour
+    for (const record of data) {
+      const hourKey = new Date(record.HourUTC).toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }).replace(/\./g, ':');
+      
+      if (groupedByHour[hourKey] && record.ForecastDayAhead !== null) {
+        // --- THIS IS THE KEY FIX ---
+        // Use += to sum the values from DK1 and DK2 for each forecast type
+        groupedByHour[hourKey][record.ForecastType] += record.ForecastDayAhead;
       }
+    }
 
-      // Convert the grouped object into an array of objects for the chart.
-      return Object.entries(groupedByHour).map(([hour, values]) => ({
-        hour: hour.replace(/\./g, ':'), // Ensure format is "HH:mm"
-        'Solar': values.Solar,
-        'Onshore Wind': values['Onshore Wind'],
-        'Offshore Wind': values['Offshore Wind'],
-        Total: values.Solar + values['Onshore Wind'] + values['Offshore Wind'],
-      }));
-    }, [data]);
+    // Convert the aggregated object into a sorted array for the chart
+    return Object.entries(groupedByHour)
+      .map(([hour, values]) => ({
+        hour,
+        ...values,
+        Total: values['Solar'] + values['Onshore Wind'] + values['Offshore Wind'],
+      }))
+      .sort((a, b) => a.hour.localeCompare(b.hour)); // Ensure correct chronological order
+  }, [data]);
   
   const chartColors = { solar: '#f59e0b', onshore: '#3b82f6', offshore: '#22c55e' };
 

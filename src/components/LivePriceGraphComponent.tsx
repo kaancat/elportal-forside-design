@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Settings } from 'lucide-react';
+import { Settings, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
@@ -45,6 +45,10 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    // Initialize with today's date in YYYY-MM-DD format
+    return new Date().toISOString().split('T')[0];
+  });
   const [feeToggles, setFeeToggles] = useState<FeeToggles>({
     elafgift: true,
     netselskab: true,
@@ -53,14 +57,11 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   });
 
   useEffect(() => {
-    console.log('--- EXECUTING LATEST VERSION OF fetchPriceData ---');
-    
     const fetchData = async () => {
       setLoading(true);
       setError(null);
       try {
-        // This is the only line that needs to be corrected
-        const response = await fetch(`/api/electricity-prices?region=${block.apiRegion}`);
+        const response = await fetch(`/api/electricity-prices?region=${block.apiRegion}&date=${selectedDate}`);
         
         if (!response.ok) {
           const errorData = await response.json();
@@ -76,13 +77,45 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
     };
 
     fetchData();
-  }, [block.apiRegion]);
+  }, [block.apiRegion, selectedDate]);
 
   const handleToggleChange = (feeType: keyof FeeToggles) => {
     setFeeToggles(prev => ({
       ...prev,
       [feeType]: !prev[feeType]
     }));
+  };
+
+  // Date navigation functions
+  const navigateDate = (direction: 'prev' | 'next' | 'today') => {
+    const currentDate = new Date(selectedDate);
+    
+    if (direction === 'prev') {
+      currentDate.setDate(currentDate.getDate() - 1);
+      setSelectedDate(currentDate.toISOString().split('T')[0]);
+    } else if (direction === 'next') {
+      currentDate.setDate(currentDate.getDate() + 1);
+      setSelectedDate(currentDate.toISOString().split('T')[0]);
+    } else if (direction === 'today') {
+      setSelectedDate(new Date().toISOString().split('T')[0]);
+    }
+  };
+
+  // Format date for display
+  const formatDisplayDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayString = yesterday.toISOString().split('T')[0];
+    
+    if (dateString === today) return 'I dag';
+    if (dateString === yesterdayString) return 'I går';
+    
+    return date.toLocaleDateString('da-DK', { 
+      day: 'numeric', 
+      month: 'short' 
+    });
   };
 
   // Calculate dynamic fees based on toggle states
@@ -133,6 +166,36 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
         {block.subtitle && <p className="text-gray-600 mb-6">{block.subtitle}</p>}
         
         <div className="bg-white rounded-lg border border-gray-200 p-6">
+          {/* Date Navigation */}
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigateDate('prev')}
+              className="flex items-center gap-1"
+            >
+              <ChevronLeft size={16} />
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigateDate('today')}
+              className="min-w-[100px]"
+            >
+              {formatDisplayDate(selectedDate)}
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigateDate('next')}
+              className="flex items-center gap-1"
+            >
+              <ChevronRight size={16} />
+            </Button>
+          </div>
+
           {/* Legend and Afgifter Button */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-6 text-sm">

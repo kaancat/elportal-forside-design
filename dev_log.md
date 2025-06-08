@@ -194,3 +194,32 @@ Goal: Correct property names in RenewableEnergyForecast to match actual EnergiDa
 NOTE: The renewable energy forecast component now perfectly aligns with EnergiDataService API data structure, ensuring proper data mapping and chart rendering with the correct property names that include spaces
 
 NOTE: The renewable energy forecast chart now displays all three energy categories with proper visual stacking, ensuring complete data visibility and accurate representation of the energy mix 
+
+---
+
+## [2024-12-28] – Energy Forecast API "Danmark" View Support
+Goal: Enhance energy-forecast API route to support a unified "Danmark" view alongside regional DK1/DK2 views
+
+- **Updated API Logic**: Modified `api/energy-forecast.ts` to conditionally apply region filtering
+  - **Default Region**: Changed from `'DK1'` to `'Danmark'` as the default parameter
+  - **Conditional Filtering**: Implemented logic to check if region is "Danmark" 
+  - **Region Filter Logic**: When region is "Danmark", no PriceArea filter is applied (shows all Denmark data)
+  - **Regional Views**: When region is "DK1" or "DK2", applies specific PriceArea filter
+
+- **Enhanced API Flexibility**: Now supports three view modes:
+  - **Danmark**: Returns all renewable energy forecast data for entire Denmark (no regional filtering)
+  - **DK1 (Vestdanmark)**: Returns data filtered specifically for West Denmark price area
+  - **DK2 (Østdanmark)**: Returns data filtered specifically for East Denmark price area
+
+## Technical Implementation Details
+- **Conditional URL Building**: Uses template string with conditional `regionFilter` variable
+- **API URL Structure**: Maintains same EnergiDataService endpoint with dynamic filtering
+- **Backward Compatibility**: Existing DK1/DK2 functionality remains unchanged
+- **Error Handling**: Preserved existing error handling and status codes
+
+## Usage Examples
+- **All Denmark**: `/api/energy-forecast?region=Danmark&date=2024-12-28`
+- **West Denmark**: `/api/energy-forecast?region=DK1&date=2024-12-28`  
+- **East Denmark**: `/api/energy-forecast?region=DK2&date=2024-12-28`
+
+NOTE: The energy forecast API now provides flexible viewing options, allowing users to see either unified Denmark data or specific regional breakdowns for more detailed analysis 

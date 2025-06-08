@@ -52,6 +52,7 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentRegion, setCurrentRegion] = useState<'DK1' | 'DK2' | 'Danmark'>('Danmark');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isRegionTooltipOpen, setIsRegionTooltipOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -135,9 +136,22 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
               <button onClick={() => setCurrentRegion('DK2')} className={cn("px-4 py-2 rounded-full", currentRegion === 'DK2' ? 'bg-blue-100 text-blue-800 font-semibold' : 'bg-white border text-gray-600')}>
                 <span className="hidden md:inline">Østdanmark (DK2)</span><span className="md:hidden">DK2</span>
               </button>
-              <ShadTooltip>
-                <TooltipTrigger><Info className="h-4 w-4 text-gray-400" /></TooltipTrigger>
-                <TooltipContent><p>DK1 dækker Jylland og Fyn. DK2 dækker Sjælland og øerne.</p></TooltipContent>
+              <ShadTooltip open={isRegionTooltipOpen} onOpenChange={setIsRegionTooltipOpen}>
+                <TooltipTrigger 
+                  onClick={() => setIsRegionTooltipOpen(!isRegionTooltipOpen)}
+                  onMouseEnter={() => setIsRegionTooltipOpen(true)}
+                  onMouseLeave={() => setIsRegionTooltipOpen(false)}
+                >
+                  <Info className="h-5 w-5 text-gray-400 hover:text-gray-600 cursor-pointer" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs p-4 text-base">
+                  <div className="space-y-2">
+                    <p className="font-semibold">Danske elområder:</p>
+                    <p><strong>DK1:</strong> Vestdanmark - Jylland og Fyn</p>
+                    <p><strong>DK2:</strong> Østdanmark - Sjælland, Lolland-Falster og Bornholm</p>
+                    <p className="text-sm text-gray-600 mt-2">Klik eller hold musen over ikonet for at se info.</p>
+                  </div>
+                </TooltipContent>
               </ShadTooltip>
             </div>
           </div>

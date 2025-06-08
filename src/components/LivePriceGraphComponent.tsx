@@ -1,151 +1,112 @@
-import React, { useEffect, useState } from 'react'
-import { LivePriceGraph } from '@/types/sanity'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { Skeleton } from '@/components/ui/skeleton'
+import React, { useState, useEffect } from 'react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
 
-interface LivePriceGraphComponentProps {
-  block: LivePriceGraph
+interface LivePriceGraphProps {
+  block: {
+    title: string;
+    subtitle?: string;
+    apiRegion: 'DK1' | 'DK2';
+  };
 }
 
+// Updated interface to reflect the data from our enhanced API
 interface PriceData {
-  hour: string
-  price: number
+  HourDK: string;
+  SpotPriceKWh: number;
+  TotalPriceKWh: number;
 }
 
-// Bemærk: API-svaret fra vores *egen* API er det samme som fra EnergiDataService
-interface ApiResponse {
-  records: Array<{
-    HourDK: string
-    SpotPriceDKK: number
-  }>
-}
+const LoadingSpinner = () => (
+  <div className="flex justify-center items-center h-64">
+    <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-green-500"></div>
+  </div>
+);
 
-const LivePriceGraphComponent: React.FC<LivePriceGraphComponentProps> = ({ block }) => {
-  const [data, setData] = useState<PriceData[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+const ErrorMessage = ({ message }: { message: string }) => (
+  <div className="text-center p-8 bg-red-100 text-red-700 rounded-lg">
+    <p className="font-bold">Der opstod en fejl</p>
+    <p>{message}</p>
+  </div>
+);
+
+const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
+  const [data, setData] = useState<PriceData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Tjek om der overhovedet er en region valgt, før vi forsøger at hente data
-    if (!block.apiRegion) {
-      setLoading(false)
-      setError("Price area (region) has not been selected in Sanity.")
-      return
-    }
-
-    const fetchPriceData = async () => {
-      setLoading(true)
-      setError(null)
-
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        // --- DEN ENE VIGTIGE ÆNDRING ER HER ---
-        // Vi kalder nu vores egen interne API-rute, som Vercel hoster for os.
-        const apiUrl = `/api/electricity-prices?region=${block.apiRegion}`;
-        
-        console.log('Fetching data from our INTERNAL API:', apiUrl);
-
-        const response = await fetch(apiUrl)
-        
+        const response = await fetch(`/api/electricity-prices?region=${block.apiRegion}`);
         if (!response.ok) {
-          // Hvis vores egen API fejler, viser vi status fra den.
-          throw new Error(`Request to our API failed: ${response.status} - ${response.statusText}`)
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Kunne ikke hente data fra serveren.');
         }
-
-        const apiData: ApiResponse = await response.json()
-
-        if (!apiData.records || apiData.records.length === 0) {
-            throw new Error('No price data available.')
-        }
-
-        // Transformér data til det format, vores graf skal bruge
-        const transformedData: PriceData[] = apiData.records.map(record => {
-          const hour = new Date(record.HourDK).getHours()
-          const pricePerKwh = record.SpotPriceDKK / 1000
-          
-          return {
-            hour: `${hour.toString().padStart(2, '0')}:00`,
-            price: Math.round(pricePerKwh * 100) / 100,
-          }
-        })
-
-        // Sorter data, da API'et nu kan returnere det i omvendt rækkefølge
-        transformedData.sort((a, b) => parseInt(a.hour) - parseInt(b.hour))
-
-        setData(transformedData)
-
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An unknown error occurred')
+        const result = await response.json();
+        setData(result.records);
+      } catch (err: any) {
+        setError(err.message || 'En ukendt fejl opstod.');
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchPriceData()
-  }, [block.apiRegion])
+    fetchData();
+  }, [block.apiRegion]);
 
-  // Resten af UI-koden er den samme...
+  // Enhanced Tooltip for stacked chart
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
+      const spotPrice = payload.find((p: any) => p.dataKey === 'Spotpris')?.value || 0;
+      const fees = payload.find((p: any) => p.dataKey === 'Afgifter & Moms')?.value || 0;
+      const total = spotPrice + fees;
+
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-medium">{`Kl. ${label}`}</p>
-          <p className="text-brand-green">
-            {`${payload[0].value.toFixed(2)} kr/kWh`}
-          </p>
+        <div className="p-3 bg-white border border-gray-300 rounded-lg shadow-lg text-sm">
+          <p className="font-bold text-gray-800 mb-2">{`Kl. ${label}`}</p>
+          <p className="text-green-600">{`Spotpris: ${spotPrice.toFixed(2)} kr.`}</p>
+          <p className="text-orange-500">{`Afgifter & Moms: ${fees.toFixed(2)} kr.`}</p>
+          <hr className="my-1 border-gray-200" />
+          <p className="font-bold text-gray-900">{`Total: ${total.toFixed(2)} kr./kWh`}</p>
         </div>
-      )
+      );
     }
-    return null
-  }
+    return null;
+  };
 
-  if (loading) {
-    return (
-      <section className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <Skeleton className="h-8 w-64 mb-2" />
-          {block.subtitle && <Skeleton className="h-6 w-48 mb-6" />}
-          <Skeleton className="h-80 w-full" />
-        </div>
-      </section>
-    )
-  }
-
-  if (error) {
-    return (
-      <section className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">{block.title}</h2>
-          {block.subtitle && <p className="text-gray-600 mb-6">{block.subtitle}</p>}
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-700">Kunne ikke hente prisdata: {error}</p>
-          </div>
-        </div>
-      </section>
-    )
-  }
+  if (loading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage message={error} />;
+  
+  // Prepare data for the stacked chart
+  const chartData = data.map(d => ({
+    name: new Date(d.HourDK).getHours().toString().padStart(2, '0'),
+    'Spotpris': d.SpotPriceKWh,
+    'Afgifter & Moms': d.TotalPriceKWh - d.SpotPriceKWh,
+  }));
 
   return (
-    <section className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">{block.title}</h2>
-        {block.subtitle && <p className="text-gray-600 mb-6">{block.subtitle}</p>}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="hour" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis fontSize={12} tickLine={false} axisLine={false} label={{ value: 'kr/kWh', angle: -90, position: 'insideLeft' }} />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="price" fill="#84db41" radius={[2, 2, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-          <div className="mt-4 text-sm text-gray-500 text-center">
-            Priser for {block.apiRegion === 'DK1' ? 'Vest-Danmark' : 'Øst-Danmark'} (i går)
-          </div>
-        </div>
+    <div className="p-4 md:p-6 bg-white rounded-lg shadow-lg">
+      <h3 className="text-2xl font-bold text-gray-800">{block.title}</h3>
+      {block.subtitle && <p className="text-gray-600 mb-4">{block.subtitle}</p>}
+      
+      <div style={{ width: '100%', height: 400 }}>
+        <ResponsiveContainer>
+          <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+            <YAxis tick={{ fontSize: 12 }} unit=" kr" tickFormatter={(value) => value.toFixed(2)} />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(236, 253, 245, 0.5)' }} />
+            <Legend wrapperStyle={{ fontSize: '14px', paddingTop: '20px' }} />
+            {/* The magic is the `stackId="a"` which tells recharts to stack these bars */}
+            <Bar dataKey="Spotpris" stackId="a" fill="#22c55e" />
+            <Bar dataKey="Afgifter & Moms" stackId="a" fill="#f97316" />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
-    </section>
-  )
-}
+    </div>
+  );
+};
 
-export default LivePriceGraphComponent
+export default LivePriceGraphComponent;

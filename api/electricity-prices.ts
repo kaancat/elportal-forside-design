@@ -25,9 +25,8 @@ export async function GET(request: Request) {
     const endDate = tomorrow.toISOString().split('T')[0];
 
     // --- Fee & Region Logic ---
-    const transportFeeKWh = 0.12;
-    const systemFeeKWh = 0.06;
-    const elafgiftKWh = 0.76;
+    const systemFeeKWh = 0.19;
+    const elafgiftKWh = 0.90;
     const vatRate = 1.25;
     const region = searchParams.get('region') || searchParams.get('area') || 'DK2';
     const area = region === 'DK1' ? 'DK1' : 'DK2';
@@ -48,7 +47,7 @@ export async function GET(request: Request) {
     const processedRecords = result.records.map((record: any) => {
       const spotPriceMWh = record.SpotPriceDKK ?? 0;
       const spotPriceKWh = spotPriceMWh / 1000;
-      const basePriceKWh = spotPriceKWh + transportFeeKWh + systemFeeKWh + elafgiftKWh;
+      const basePriceKWh = spotPriceKWh + systemFeeKWh + elafgiftKWh;
       const totalPriceKWh = basePriceKWh * vatRate;
       return { ...record, SpotPriceKWh: spotPriceKWh, TotalPriceKWh: totalPriceKWh };
     });

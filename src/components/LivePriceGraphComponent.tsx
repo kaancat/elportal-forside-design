@@ -43,9 +43,8 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   } | null>(null);
 
   const [fees, setFees] = useState({
-    transport: { name: 'Netselskab', value: 0.12, enabled: true },
-    system: { name: 'Forsyningstilsynet', value: 0.06, enabled: true },
-    elafgift: { name: 'Elafgift', value: 0.76, enabled: true },
+    system: { name: 'Systemgebyr', value: 0.19, enabled: true },
+    elafgift: { name: 'Elafgift', value: 0.90, enabled: true },
     moms: { name: 'Moms', value: 1.25, enabled: true },
   });
 
@@ -108,7 +107,6 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
     return data.map(d => {
       const spotPrice = d.SpotPriceKWh;
       let feesOnChart = 0;
-      if (fees.transport.enabled) feesOnChart += fees.transport.value;
       if (fees.system.enabled) feesOnChart += fees.system.value;
       if (fees.elafgift.enabled) feesOnChart += fees.elafgift.value;
       let totalWithFees = spotPrice + feesOnChart;
@@ -237,7 +235,6 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                             key={hour} 
                             className="flex-1 flex flex-col justify-end items-center group cursor-pointer"
                             onMouseEnter={() => {
-                                const transport = fees.transport.enabled ? fees.transport.value : 0;
                                 const system = fees.system.enabled ? fees.system.value : 0;
                                 const elafgift = fees.elafgift.enabled ? fees.elafgift.value : 0;
                                 const moms = fees.moms.enabled ? fees.moms.value : 1;
@@ -245,7 +242,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                                     hour,
                                     spotPrice,
                                     total,
-                                    transport,
+                                    transport: 0, // No longer used, keeping for compatibility
                                     system,
                                     elafgift,
                                     moms
@@ -281,20 +278,14 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                          bottom: '320px'
                      }}>
                     <div className="text-sm font-semibold mb-2">Kl. {String(hoveredHourData.hour).padStart(2, '0')}:00</div>
-                    <div className="space-y-1 text-xs">
+                    <div className="flex flex-col gap-y-1 text-xs">
                         <div className="flex justify-between">
                             <span>Spotpris:</span>
                             <span>{hoveredHourData.spotPrice.toFixed(3)} kr/kWh</span>
                         </div>
-                        {hoveredHourData.transport > 0 && (
-                            <div className="flex justify-between">
-                                <span>Netselskab:</span>
-                                <span>{hoveredHourData.transport.toFixed(3)} kr/kWh</span>
-                            </div>
-                        )}
                         {hoveredHourData.system > 0 && (
                             <div className="flex justify-between">
-                                <span>Forsyningstilsynet:</span>
+                                <span>Systemgebyr:</span>
                                 <span>{hoveredHourData.system.toFixed(3)} kr/kWh</span>
                             </div>
                         )}

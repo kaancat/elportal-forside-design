@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Settings2, CalendarDays } from 'lucide-react';
+import { Settings2, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from '@/components/ui/button';
@@ -82,7 +82,11 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
     setFees(prev => ({ ...prev, [feeKey]: { ...prev[feeKey], enabled: !prev[feeKey].enabled } }));
   };
 
-
+  const handleDateChange = (daysToAdd: number) => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(selectedDate.getDate() + daysToAdd);
+    setSelectedDate(newDate);
+  };
 
   const calculatedData = useMemo(() => {
     return data.map(d => {
@@ -111,9 +115,11 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   }, [calculatedData]);
 
   const isToday = formatDate(selectedDate) === formatDate(new Date());
+  const isTomorrow = formatDate(selectedDate) === formatDate((() => { const d = new Date(); d.setDate(d.getDate() + 1); return d; })());
 
   return (
-    <div className="p-4 md:p-8 my-12 bg-white rounded-xl shadow-lg border border-gray-100">
+    <section className="container mx-auto px-4 py-16">
+      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg border border-gray-100 p-6">
         {/* TOP STATS SECTION */}
         <div className="grid grid-cols-3 gap-8 mb-6 text-center md:text-left">
             {stats && (
@@ -140,6 +146,9 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
         {/* CONTROLS SECTION */}
         <div className="flex flex-wrap justify-between items-center gap-4 mb-6 border-t border-b border-gray-200 py-4">
             <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" onClick={() => handleDateChange(-1)}>
+                    <ChevronLeft size={18}/>
+                </Button>
                 <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                     <PopoverTrigger asChild>
                         <Button variant="ghost" className="flex items-center gap-2">
@@ -166,6 +175,9 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                         />
                     </PopoverContent>
                 </Popover>
+                <Button variant="ghost" size="icon" onClick={() => handleDateChange(1)} disabled={isTomorrow}>
+                    <ChevronRight size={18}/>
+                </Button>
             </div>
             <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 text-sm">
@@ -234,7 +246,8 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
         </div>
       )}
     </div>
-  );
+  </section>
+);
 };
 
 export default LivePriceGraphComponent;

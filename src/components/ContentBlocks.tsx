@@ -1,6 +1,6 @@
 
 import React from 'react'
-import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection } from '@/types/sanity'
+import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph } from '@/types/sanity'
 import PageSectionComponent from './PageSectionComponent'
 import FAQItemComponent from './FAQItemComponent'
 import PriceExampleTableComponent from './PriceExampleTableComponent'
@@ -8,16 +8,17 @@ import VideoSectionComponent from './VideoSectionComponent'
 import FaqGroupComponent from './FaqGroupComponent'
 import RichTextSectionComponent from './RichTextSectionComponent'
 import CallToActionSectionComponent from './CallToActionSectionComponent'
+import LivePriceGraphComponent from './LivePriceGraphComponent'
 
 interface ContentBlocksProps {
-  blocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection>
+  blocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph>
 }
 
 const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
   console.log('ContentBlocks component received blocks:', blocks)
 
   // Group consecutive FAQ items together
-  const groupedBlocks: Array<PageSection | FAQItem[] | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection> = []
+  const groupedBlocks: Array<PageSection | FAQItem[] | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph> = []
   let currentFAQGroup: FAQItem[] = []
 
   blocks.forEach((block, index) => {
@@ -73,6 +74,9 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         } else if (block._type === 'callToActionSection') {
           console.log('Passing callToActionSection to CallToActionSectionComponent:', block)
           return <CallToActionSectionComponent key={block._key} block={block as CallToActionSection} />
+        } else if (block._type === 'livePriceGraph') {
+          console.log('Passing livePriceGraph to LivePriceGraphComponent:', block)
+          return <LivePriceGraphComponent key={block._key} block={block as LivePriceGraph} />
         } else {
           console.log('Passing section to PageSectionComponent:', block)
           return <PageSectionComponent key={block._key} section={block as PageSection} />

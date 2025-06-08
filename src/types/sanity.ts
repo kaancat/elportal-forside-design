@@ -1,4 +1,3 @@
-
 export interface SanityImage {
   _type: 'image'
   asset: {
@@ -89,13 +88,21 @@ export interface CallToActionSection {
   buttonUrl: string
 }
 
+export interface LivePriceGraph {
+  _type: 'livePriceGraph'
+  _key: string
+  title: string
+  subtitle?: string
+  apiRegion: 'DK1' | 'DK2'
+}
+
 export interface HomePage {
   _id: string
   _type: 'homePage'
   title: string
   seoMetaTitle: string
   seoMetaDescription: string
-  contentBlocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection>
+  contentBlocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph>
 }
 
 export interface BlogPost {

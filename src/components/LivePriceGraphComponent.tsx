@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react'
 import { LivePriceGraph } from '@/types/sanity'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
@@ -33,7 +32,10 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphComponentProps> = ({ block
 
         // Get today's date in the required format
         const today = new Date()
-        const dateStr = today.toISOString().split('T')[0] // YYYY-MM-DD format
+        const year = today.getFullYear()
+        const month = String(today.getMonth() + 1).padStart(2, '0') // Months are 0-indexed
+        const day = String(today.getDate()).padStart(2, '0')
+        const dateStr = `${year}-${month}-${day}` // YYYY-MM-DD format
         
         // Construct API URL
         const baseUrl = 'https://api.energidataservice.dk/dataset/Elspotpriser'
@@ -54,7 +56,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphComponentProps> = ({ block
 
         // Transform data for chart
         const transformedData: PriceData[] = apiData.records.map(record => {
-          // Extract hour from HourDK format (e.g., "2025-06-08T00:00:00")
+          // Extract hour from HourDK format (e.g., "2024-06-08T00:00:00")
           const hour = new Date(record.HourDK).getHours()
           // Convert from DKK/MWh to kr/kWh
           const pricePerKwh = record.SpotPriceDKK / 1000

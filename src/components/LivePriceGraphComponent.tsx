@@ -19,7 +19,7 @@ interface ApiResponse {
   }>
 }
 
-// Force build refresh - Updated to use dynamic timestamp approach
+// Force build refresh - Updated to use yesterday's date for reliable data
 const LivePriceGraphComponent: React.FC<LivePriceGraphComponentProps> = ({ block }) => {
   const [data, setData] = useState<PriceData[]>([])
   const [loading, setLoading] = useState(true)
@@ -31,10 +31,23 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphComponentProps> = ({ block
         setLoading(true)
         setError(null)
 
-        // Construct API URL using dynamic timestamp approach
+        // Calculate yesterday's date for reliable data availability
+        const yesterday = new Date()
+        yesterday.setDate(yesterday.getDate() - 1) // Set to one day before today
+        
+        const year = yesterday.getFullYear()
+        const month = String(yesterday.getMonth() + 1).padStart(2, '0')
+        const day = String(yesterday.getDate()).padStart(2, '0')
+        const dateStr = `${year}-${month}-${day}` // YYYY-MM-DD format for yesterday
+        
+        console.log('Using yesterday\'s date for API call:', dateStr)
+
+        // Construct API URL using yesterday's date
         const baseUrl = 'https://api.energidataservice.dk/dataset/Elspotpriser'
+        const startTime = `${dateStr}T00:00`
+        const endTime = `${dateStr}T23:59`
         const filter = encodeURIComponent(`{"PriceArea":["${block.apiRegion}"]}`)
-        const apiUrl = `${baseUrl}?start=now-P1D&filter=${filter}`
+        const apiUrl = `${baseUrl}?start=${startTime}&end=${endTime}&filter=${filter}`
 
         console.log('Fetching electricity price data from:', apiUrl)
 
@@ -151,7 +164,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphComponentProps> = ({ block
           </ResponsiveContainer>
           
           <div className="mt-4 text-sm text-gray-500 text-center">
-            Priser for {block.apiRegion === 'DK1' ? 'Vest-Danmark' : 'Øst-Danmark'} i dag
+            Priser for {block.apiRegion === 'DK1' ? 'Vest-Danmark' : 'Øst-Danmark'} i går
           </div>
         </div>
       </div>

@@ -19,6 +19,7 @@ interface ApiResponse {
   }>
 }
 
+// Force build refresh - Updated to use current date correctly
 const LivePriceGraphComponent: React.FC<LivePriceGraphComponentProps> = ({ block }) => {
   const [data, setData] = useState<PriceData[]>([])
   const [loading, setLoading] = useState(true)
@@ -30,12 +31,14 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphComponentProps> = ({ block
         setLoading(true)
         setError(null)
 
-        // Get today's date in the required format
+        // Get today's date in the required format - FIXED TO USE CURRENT DATE
         const today = new Date()
         const year = today.getFullYear()
         const month = String(today.getMonth() + 1).padStart(2, '0') // Months are 0-indexed
         const day = String(today.getDate()).padStart(2, '0')
         const dateStr = `${year}-${month}-${day}` // YYYY-MM-DD format
+        
+        console.log('Current date being used for API call:', dateStr)
         
         // Construct API URL
         const baseUrl = 'https://api.energidataservice.dk/dataset/Elspotpriser'

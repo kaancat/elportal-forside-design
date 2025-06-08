@@ -119,3 +119,29 @@ Goal: Fix visual bugs in the stacked area chart for proper rendering of zero-val
 - **Visual Continuity**: Maintains proper color stacking and area rendering
 
 NOTE: The renewable energy forecast chart should now properly display all energy categories with correct stacking behavior 
+
+---
+
+## [2024-12-28] – RenewableEnergyForecast Data Processing Logic Fixes  
+Goal: Fix data processing logic to correctly parse API data and render the chart with proper scaling
+
+- **Replaced processedData useMemo hook**: Simplified and corrected the data grouping logic
+  - Removed complex 24-hour array generation that was causing issues
+  - Implemented direct hour-based grouping using `toLocaleTimeString` with both hour and minute
+  - Fixed hour key formatting to use proper `HH:mm` format with colon replacement
+  - Added proper null/empty data checks at the beginning of the function
+  - Simplified return mapping using object destructuring for cleaner code
+
+- **Enhanced Y-Axis scaling**: Added `domain={[0, 'dataMax + 100']}` prop to YAxis component
+  - Prevents "flatline" effect when values are very low but not zero
+  - Ensures Y-axis scales nicely from 0 to slightly above the highest data value
+  - Improves chart readability by providing proper visual scale
+
+## Technical Improvements
+- **Simplified Logic**: More direct and reliable data processing approach  
+- **Better Hour Handling**: Proper time formatting using Danish locale settings
+- **Robust Grouping**: For-loop based iteration with proper type safety
+- **Enhanced Scaling**: Dynamic Y-axis domain prevents visual scaling issues
+- **Improved Reliability**: Better handling of edge cases and empty data scenarios
+
+NOTE: The chart should now correctly parse API data and render with proper visual scaling, resolving any rendering issues with the renewable energy forecast display 

@@ -65,32 +65,30 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
   }, [currentRegion, selectedDate]);
 
   const processedData = useMemo<ProcessedData[]>(() => {
-        const hoursOfDay = Array.from({ length: 24 }, (_, i) => {
-            const hour = i.toString().padStart(2, '0');
-            return `${hour}:00`;
-        });
+      if (!data || data.length === 0) return [];
 
-        const groupedByHour: { [hour: string]: { Solar: number; OnshoreWind: number; OffshoreWind: number; } } = {};
+      // A reliable way to group API records by the hour.
+      const groupedByHour: { [hour: string]: { Solar: number; OnshoreWind: number; OffshoreWind: number; } } = {};
 
-        data.forEach(record => {
-            const hour = new Date(record.HourUTC).toLocaleTimeString('da-DK', { hour: '2-digit' }).replace(/\./g, ':');
-            if (!groupedByHour[hour]) {
-                groupedByHour[hour] = { Solar: 0, OnshoreWind: 0, OffshoreWind: 0 };
-            }
-            groupedByHour[hour][record.ForecastType] = record.ForecastDayAhead;
-        });
+      for (const record of data) {
+        // Create a key for each hour, e.g., "23:00"
+        const hourKey = new Date(record.HourUTC).toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' });
+        
+        // If we haven't seen this hour before, initialize it.
+        if (!groupedByHour[hourKey]) {
+          groupedByHour[hourKey] = { Solar: 0, OnshoreWind: 0, OffshoreWind: 0 };
+        }
+        
+        // Add the forecast value to the correct category.
+        groupedByHour[hourKey][record.ForecastType] = record.ForecastDayAhead;
+      }
 
-        return hoursOfDay.map(hour => {
-            const values = groupedByHour[hour] || { Solar: 0, OnshoreWind: 0, OffshoreWind: 0 };
-            const total = values.Solar + values.OnshoreWind + values.OffshoreWind;
-            return {
-                hour,
-                Solar: values.Solar,
-                OnshoreWind: values.OnshoreWind,
-                OffshoreWind: values.OffshoreWind,
-                Total: total,
-            };
-        });
+      // Convert the grouped object into an array of objects for the chart.
+      return Object.entries(groupedByHour).map(([hour, values]) => ({
+        hour: hour.replace(/\./g, ':'), // Ensure format is "HH:mm"
+        ...values,
+        Total: values.Solar + values.OnshoreWind + values.OffshoreWind,
+      }));
     }, [data]);
   
   const chartColors = { solar: '#f59e0b', onshore: '#3b82f6', offshore: '#22c55e' };
@@ -129,7 +127,7 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" vertical={false} />
                 <XAxis dataKey="hour" tick={{ fontSize: 12, fill: '#6b7280' }} tickLine={false} axisLine={{ stroke: '#d1d5db' }} dy={10} />
-                <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} tickLine={false} axisLine={false} label={{ value: 'MWh', angle: -90, position: 'insideLeft', offset: -10, style: { fill: '#6b7280' } }} />
+                <YAxis domain={[0, 'dataMax + 100']} tick={{ fontSize: 12, fill: '#6b7280' }} tickLine={false} axisLine={false} label={{ value: 'MWh', angle: -90, position: 'insideLeft', offset: -10, style: { fill: '#6b7280' } }} />
                 <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#374151', strokeWidth: 1, strokeDasharray: '3 3' }} />
                 
                 <Area type="monotone" dataKey="Solar" name="Solenergi" stackId="1" stroke={chartColors.solar} strokeWidth={2} fillOpacity={1} fill="url(#colorSolar)" />

@@ -29,6 +29,8 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphComponentProps> = ({ block
 
   useEffect(() => {
     const fetchPriceData = async () => {
+      console.log('--- EXECUTING LATEST VERSION OF fetchPriceData ---');
+      
       // Sørg for at nulstille status, hver gang vi henter data
       setLoading(true)
       setError(null)
@@ -36,25 +38,21 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphComponentProps> = ({ block
       try {
         // --- START PÅ DEN KORREKTE, SKUDSIKRE DATOLOGIK ---
 
-        // 1. Opret et dato-objekt for i dag
-        const yesterday = new Date()
-        // 2. Sæt datoen til i går. Dette håndterer alle edge-cases (f.eks. den 1. i måneden)
-        yesterday.setDate(yesterday.getDate() - 1)
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        const year = yesterday.getFullYear();
+        const month = String(yesterday.getMonth() + 1).padStart(2, '0');
+        const day = String(yesterday.getDate()).padStart(2, '0');
+        const dateStringForAPI = `${year}-${month}-${day}`;
 
-        // 3. Formatér datoen korrekt til YYYY-MM-DD
-        const year = yesterday.getFullYear()
-        const month = String(yesterday.getMonth() + 1).padStart(2, '0') // +1 fordi måneder er 0-indekseret
-        const day = String(yesterday.getDate()).padStart(2, '0')
-        const dateStringForAPI = `${year}-${month}-${day}`
+        const baseUrl = 'https://api.energidataservice.dk/dataset/Elspotpriser';
+        const filter = encodeURIComponent(`{"PriceArea":["${block.apiRegion}"]}`);
+        const apiUrl = `${baseUrl}?start=${dateStringForAPI}T00:00&end=${dateStringForAPI}T23:59&filter=${filter}`;
+
+        console.log('Final API URL to be fetched:', apiUrl);
         
         // --- SLUT PÅ DATOLOGIK ---
-
-        // Byg den endelige API URL med den korrekte dato
-        const baseUrl = 'https://api.energidataservice.dk/dataset/Elspotpriser'
-        const filter = encodeURIComponent(`{"PriceArea":["${block.apiRegion}"]}`)
-        
-        // Brug den korrekt formaterede dato-streng
-        const apiUrl = `${baseUrl}?start=${dateStringForAPI}T00:00&end=${dateStringForAPI}T23:59&filter=${filter}`
 
         const response = await fetch(apiUrl)
 

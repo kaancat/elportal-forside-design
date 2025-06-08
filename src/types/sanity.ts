@@ -103,13 +103,20 @@ export interface RealPriceComparisonTable {
   leadingText?: string
 }
 
+export interface RenewableEnergyForecast {
+  _type: 'renewableEnergyForecast'
+  _key: string
+  title: string
+  leadingText?: string
+}
+
 export interface HomePage {
   _id: string
   _type: 'homePage'
   title: string
   seoMetaTitle: string
   seoMetaDescription: string
-  contentBlocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph | RealPriceComparisonTable>
+  contentBlocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph | RealPriceComparisonTable | RenewableEnergyForecast>
 }
 
 export interface BlogPost {

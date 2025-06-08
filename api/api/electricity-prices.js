@@ -1,7 +1,8 @@
 // File: /api/electricity-prices.js
-// This is a Vercel Serverless Function, written in pure JavaScript.
+// This is a Vercel Serverless Function, written in CommonJS syntax for max compatibility.
 
-export default async function handler(request, response) {
+// We change "export default" to "module.exports" to use the CommonJS module system.
+module.exports = async (request, response) => {
   try {
     const { searchParams } = new URL(request.url, `http://${request.headers.host}`);
     const region = searchParams.get('region') || 'DK1';
@@ -35,4 +36,4 @@ export default async function handler(request, response) {
     console.error(error);
     return response.status(500).json({ error: 'Internal Server Error' });
   }
-}
+};

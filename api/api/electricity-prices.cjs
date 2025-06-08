@@ -1,7 +1,6 @@
-// File: /api/electricity-prices.js
-// This is a Vercel Serverless Function, written in CommonJS syntax for max compatibility.
+// File: /api/electricity-prices.cjs
+// This is a Vercel Serverless Function, written in CommonJS syntax (.cjs) for max compatibility.
 
-// We change "export default" to "module.exports" to use the CommonJS module system.
 module.exports = async (request, response) => {
   try {
     const { searchParams } = new URL(request.url, `http://${request.headers.host}`);

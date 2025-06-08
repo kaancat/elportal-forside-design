@@ -65,15 +65,33 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
   }, [currentRegion, selectedDate]);
 
   const processedData = useMemo<ProcessedData[]>(() => {
-    if (!data || data.length === 0) return [];
-    const groupedByHour: { [hour: string]: Partial<ProcessedData> } = {};
-    data.forEach(record => {
-      const hour = new Date(record.HourUTC).toLocaleTimeString('da-DK', { hour: '2-digit' });
-      if (!groupedByHour[hour]) groupedByHour[hour] = { hour: hour.replace(/\./g, ':'), Solar: 0, OnshoreWind: 0, OffshoreWind: 0 };
-      groupedByHour[hour][record.ForecastType] = record.ForecastDayAhead;
-    });
-    return Object.values(groupedByHour).map(d => ({ ...d, Total: (d.Solar || 0) + (d.OnshoreWind || 0) + (d.OffshoreWind || 0) })) as ProcessedData[];
-  }, [data]);
+        const hoursOfDay = Array.from({ length: 24 }, (_, i) => {
+            const hour = i.toString().padStart(2, '0');
+            return `${hour}:00`;
+        });
+
+        const groupedByHour: { [hour: string]: { Solar: number; OnshoreWind: number; OffshoreWind: number; } } = {};
+
+        data.forEach(record => {
+            const hour = new Date(record.HourUTC).toLocaleTimeString('da-DK', { hour: '2-digit' }).replace(/\./g, ':');
+            if (!groupedByHour[hour]) {
+                groupedByHour[hour] = { Solar: 0, OnshoreWind: 0, OffshoreWind: 0 };
+            }
+            groupedByHour[hour][record.ForecastType] = record.ForecastDayAhead;
+        });
+
+        return hoursOfDay.map(hour => {
+            const values = groupedByHour[hour] || { Solar: 0, OnshoreWind: 0, OffshoreWind: 0 };
+            const total = values.Solar + values.OnshoreWind + values.OffshoreWind;
+            return {
+                hour,
+                Solar: values.Solar,
+                OnshoreWind: values.OnshoreWind,
+                OffshoreWind: values.OffshoreWind,
+                Total: total,
+            };
+        });
+    }, [data]);
   
   const chartColors = { solar: '#f59e0b', onshore: '#3b82f6', offshore: '#22c55e' };
 
@@ -114,9 +132,9 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
                 <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} tickLine={false} axisLine={false} label={{ value: 'MWh', angle: -90, position: 'insideLeft', offset: -10, style: { fill: '#6b7280' } }} />
                 <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#374151', strokeWidth: 1, strokeDasharray: '3 3' }} />
                 
-                <Area type="monotone" dataKey="Solar" name="Solenergi" stroke={chartColors.solar} strokeWidth={2} fillOpacity={1} fill="url(#colorSolar)" />
-                <Area type="monotone" dataKey="OnshoreWind" name="Vind (Land)" stroke={chartColors.onshore} strokeWidth={2} fillOpacity={1} fill="url(#colorOnshore)" />
-                <Area type="monotone" dataKey="OffshoreWind" name="Vind (Hav)" stroke={chartColors.offshore} strokeWidth={2} fillOpacity={1} fill="url(#colorOffshore)" />
+                <Area type="monotone" dataKey="Solar" name="Solenergi" stackId="1" stroke={chartColors.solar} strokeWidth={2} fillOpacity={1} fill="url(#colorSolar)" />
+                <Area type="monotone" dataKey="OnshoreWind" name="Vind (Land)" stackId="1" stroke={chartColors.onshore} strokeWidth={2} fillOpacity={1} fill="url(#colorOnshore)" />
+                <Area type="monotone" dataKey="OffshoreWind" name="Vind (Hav)" stackId="1" stroke={chartColors.offshore} strokeWidth={2} fillOpacity={1} fill="url(#colorOffshore)" />
               </AreaChart>
             </ResponsiveContainer>
           )}

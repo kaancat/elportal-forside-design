@@ -1,7 +1,7 @@
 // File: /api/electricity-prices.ts
 // Final version with a custom padding function to avoid TS config issues.
 
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+export const dynamic = 'force-dynamic'; // Ensures the function runs dynamically for every request
 
 /**
  * Vercel Serverless Function to fetch electricity spot prices from EnergiDataService.
@@ -11,14 +11,11 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
  * Query Parameters:
  * @param {string} [region | area] - The price area ('DK1' or 'DK2'). Defaults to 'DK2'.
  */
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse
-) {
+export async function GET(request: Request) {
   try {
-    // 1. Determine the price area from query parameters.
-    const priceAreaQuery = req.query.region || req.query.area;
-    const area = priceAreaQuery === 'DK1' ? 'DK1' : 'DK2';
+    const { searchParams } = new URL(request.url);
+    const region = searchParams.get('region') || searchParams.get('area') || 'DK2';
+    const area = region === 'DK1' ? 'DK1' : 'DK2';
 
     // 2. Create a formatter for the 'YYYY-MM-DD' format in Danish timezone.
     // 'en-CA' locale is a reliable way to get this format.
@@ -39,33 +36,32 @@ export default async function handler(
     const apiUrl = `https://api.energidataservice.dk/dataset/Elspotprices?start=${startDate}&end=${endDate}&filter={"PriceArea":["${area}"]}&sort=HourUTC ASC`;
 
     // 5. Fetch data.
-    const response = await fetch(apiUrl);
+    const externalResponse = await fetch(apiUrl);
 
     // 6. Handle non-successful responses.
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error(`[API-FAIL] Status: ${response.status}`);
-      console.error(`[API-FAIL] URL Called: ${apiUrl}`);
-      console.error(`[API-FAIL] Response Body: ${errorBody}`);
-      
-      res.status(response.status).json({
-        error: 'Failed to fetch data from external energy service.',
-        details: `API returned status ${response.status}`,
-      });
-      return;
+    if (!externalResponse.ok) {
+      const errorBody = await externalResponse.text();
+      console.error(`External API failed with status ${externalResponse.status}: ${errorBody}`);
+      return Response.json(
+        { error: 'Failed to fetch data from EnergiDataService.' },
+        { status: externalResponse.status }
+      );
     }
 
     // 7. Parse and return successful response.
-    const data = await response.json();
-    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
-    res.status(200).json(data);
+    const data = await externalResponse.json();
+
+    // Set cache headers
+    const headers = { 'Cache-Control': 's-maxage=3600, stale-while-revalidate' };
+
+    return Response.json(data, { status: 200, headers });
 
   } catch (error: any) {
     // 8. Handle unexpected internal errors.
-    console.error('[FATAL-ERROR] An unexpected error occurred in the API route:', error);
-    res.status(500).json({ 
-      error: 'Internal Server Error.',
-      details: error.message 
-    });
+    console.error('An unexpected error occurred in the API route:', error);
+    return Response.json(
+      { error: 'Internal Server Error', details: error.message },
+      { status: 500 }
+    );
   }
 }

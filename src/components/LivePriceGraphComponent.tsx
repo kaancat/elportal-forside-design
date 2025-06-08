@@ -114,7 +114,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   const maxPrice = Math.max(...processedData.map(d => d.totalPrice), 1);
 
   return (
-    <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 my-8">
+    <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 my-12">
       {loading ? (
         <div className="text-center py-24">Indlæser graf...</div>
       ) : error ? (
@@ -232,9 +232,9 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                 
                 if (!hourData) {
                   return (
-                    <div key={index} className="flex flex-col items-center w-full">
-                      <div className="w-6 h-full"></div>
-                      <div className="text-xs text-gray-400 mt-2 text-center">
+                    <div key={index} className="flex flex-col items-center flex-1">
+                      <div className="w-full h-64 mb-2"></div>
+                      <div className="text-xs text-gray-400 text-center">
                         <div>kl. {index.toString().padStart(2, '0')}</div>
                         <div>- kr.</div>
                       </div>
@@ -242,27 +242,29 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                   );
                 }
 
-                const barHeight = (hourData.totalPrice / maxPrice) * 100;
-                const spotHeight = (hourData.spotPrice / maxPrice) * 100;
+                const barHeight = Math.max((hourData.totalPrice / maxPrice) * 240, 2); // Use pixels, min 2px
+                const spotHeight = Math.max((hourData.spotPrice / maxPrice) * 240, 1); // Use pixels, min 1px
                 
                 return (
                   <div 
                     key={index} 
-                    className="flex flex-col items-center w-full group cursor-pointer"
+                    className="flex flex-col items-center flex-1 group cursor-pointer"
                     onMouseEnter={() => setHoveredHour(hourData)}
                   >
-                    <div className="w-6 h-full flex flex-col justify-end">
-                      <div 
-                        style={{ height: `${barHeight}%` }} 
-                        className="relative bg-gray-300 group-hover:bg-gray-400 transition-colors"
-                      >
+                    <div className="w-full flex flex-col justify-end h-64 mb-2">
+                      <div className="mx-auto w-6 flex flex-col justify-end" style={{ height: `${barHeight}px` }}>
                         <div 
-                          style={{ height: `${(spotHeight / barHeight) * 100}%` }} 
-                          className="absolute bottom-0 left-0 right-0 bg-green-500 group-hover:bg-green-600 transition-colors"
-                        />
+                          className="relative bg-gray-300 group-hover:bg-gray-400 transition-colors w-full"
+                          style={{ height: `${barHeight}px` }}
+                        >
+                          <div 
+                            style={{ height: `${spotHeight}px` }} 
+                            className="absolute bottom-0 left-0 right-0 bg-green-500 group-hover:bg-green-600 transition-colors"
+                          />
+                        </div>
                       </div>
                     </div>
-                    <div className="text-xs text-gray-600 mt-2 text-center">
+                    <div className="text-xs text-gray-600 text-center">
                       <div>kl. {index.toString().padStart(2, '0')}</div>
                       <div>{hourData.totalPrice.toFixed(2)} kr.</div>
                     </div>

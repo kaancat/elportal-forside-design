@@ -183,25 +183,40 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
       
       {/* CHART AREA */}
       {loading ? <div className="text-center h-72 flex items-center justify-center">Indlæser graf...</div> : error ? <div className="text-center h-72 flex items-center justify-center text-red-600">{error}</div> : (
-        <div className="h-72 w-full">
-            <div className="flex justify-between items-end h-full">
+        <div className="w-full">
+            <div className="flex justify-between items-end h-72 w-full mb-4">
                 {calculatedData.map(({ hour, spotPrice, total }) => {
-                    const spotHeight = (spotPrice / maxPrice) * 100;
-                    const totalHeight = (total / maxPrice) * 100;
+                    const spotHeight = Math.max((spotPrice / maxPrice) * 280, 2); // Use pixels, min 2px
+                    const totalHeight = Math.max((total / maxPrice) * 280, 4); // Use pixels, min 4px
+                    const feesHeight = totalHeight - spotHeight;
 
                     return (
                         <div key={hour} className="flex-1 flex flex-col justify-end items-center group">
-                            <div style={{ height: `${totalHeight}%` }} className="w-3/4 relative bg-gray-200 rounded-t-md">
-                                <div style={{ height: `${(spotHeight / totalHeight) * 100}%` }} className="absolute bottom-0 left-0 right-0 bg-green-500 rounded-t-md" />
+                            <div className="w-3/4 flex flex-col justify-end" style={{ height: '280px' }}>
+                                <div className="relative flex flex-col justify-end w-full">
+                                    {/* Fees & Taxes (Gray) on top */}
+                                    <div 
+                                        style={{ height: `${feesHeight}px` }} 
+                                        className="bg-gray-300 group-hover:bg-gray-400 transition-colors rounded-t-md"
+                                    />
+                                    {/* Spot Price (Green) on bottom */}
+                                    <div 
+                                        style={{ height: `${spotHeight}px` }} 
+                                        className="bg-green-500 group-hover:bg-green-600 transition-colors"
+                                    />
+                                </div>
                             </div>
                         </div>
                     );
                 })}
             </div>
             {/* X-AXIS LABELS */}
-            <div className="flex justify-between mt-2 text-xs text-gray-500">
-                {calculatedData.map(({hour}) => (
-                    <div key={hour} className="flex-1 text-center">{String(hour).padStart(2, '0')}</div>
+            <div className="flex justify-between text-xs text-gray-500">
+                {calculatedData.map(({ hour, total }) => (
+                    <div key={hour} className="flex-1 text-center">
+                        <div>kl. {String(hour).padStart(2, '0')}</div>
+                        <div className="font-medium">{total.toFixed(2)} kr.</div>
+                    </div>
                 ))}
             </div>
         </div>

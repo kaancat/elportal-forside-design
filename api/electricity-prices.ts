@@ -1,10 +1,14 @@
-// File: /api/electricity-prices.cjs
-// This is a Vercel Serverless Function, written in CommonJS syntax (.cjs) for max compatibility.
+// File: /api/electricity-prices.ts
+// Vercel Serverless Function using ES Module syntax.
 
-module.exports = async (request, response) => {
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+
+export default async function handler(
+  request: VercelRequest,
+  response: VercelResponse,
+) {
   try {
-    const { searchParams } = new URL(request.url, `http://${request.headers.host}`);
-    const region = searchParams.get('region') || 'DK1';
+    const region = request.query.region || 'DK1';
 
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
@@ -35,4 +39,4 @@ module.exports = async (request, response) => {
     console.error(error);
     return response.status(500).json({ error: 'Internal Server Error' });
   }
-};
+}

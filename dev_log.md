@@ -78,4 +78,24 @@ Goal: Integrate RenewableEnergyForecast component into the content block renderi
 - Added proper logging for debugging block processing
 - Component is now ready to render when Sanity provides `renewableEnergyForecast` blocks
 
-NOTE: Frontend will now recognize and render the renewable energy forecast chart when it receives blocks of type `renewableEnergyForecast` from Sanity CMS 
+NOTE: Frontend will now recognize and render the renewable energy forecast chart when it receives blocks of type `renewableEnergyForecast` from Sanity CMS
+
+## [2024-12-28] – Energy Forecast API Route Creation
+Goal: Create missing API route to resolve 404 error for renewable energy forecast data
+
+- Created `api/energy-forecast.ts` API route for fetching renewable energy forecast data
+- Integrates with EnergiDataService.dk "Forecasts_Hour" dataset
+- Supports date range queries with start/end parameters
+- Handles region filtering for DK1 (Vestdanmark) and DK2 (Østdanmark) 
+- Includes proper error handling and status codes
+- Uses Vercel serverless function format for deployment
+- Resolves 404 error that was preventing RenewableEnergyForecast component from loading data
+
+## API Endpoint Features
+- **Date Range Support**: Queries forecast data for selected date + next day
+- **Region Filtering**: Supports DK1 and DK2 price areas
+- **Sorted Results**: Returns data sorted by HourUTC ascending
+- **Error Handling**: Proper HTTP status codes and error messages
+- **EnergiDataService Integration**: Uses official Danish energy data API
+
+NOTE: The renewable energy forecast chart should now load data successfully without 404 errors 

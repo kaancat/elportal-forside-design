@@ -175,19 +175,19 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                 {stats && (
                     <>
                         <div>
-                            <p className="text-xs text-gray-500">Højeste pris</p>
-                            <p className="text-lg font-bold text-gray-800">{stats.highest.price.toFixed(2)} kr.</p>
-                            <p className="text-xs text-gray-500">Kl. {String(stats.highest.hour).padStart(2, '0')}:00</p>
+                            <p className="text-[11px] sm:text-xs text-gray-500">Højeste pris</p>
+                            <p className="text-base sm:text-lg font-bold text-gray-800">{stats.highest.price.toFixed(2)} kr.</p>
+                            <p className="text-[11px] sm:text-xs text-gray-500">Kl. {String(stats.highest.hour).padStart(2, '0')}:00</p>
                         </div>
                         <div>
-                            <p className="text-xs text-gray-500">Laveste pris</p>
-                            <p className="text-lg font-bold text-gray-800">{stats.lowest.price.toFixed(2)} kr.</p>
-                            <p className="text-xs text-gray-500">Kl. {String(stats.lowest.hour).padStart(2, '0')}:00</p>
+                            <p className="text-[11px] sm:text-xs text-gray-500">Laveste pris</p>
+                            <p className="text-base sm:text-lg font-bold text-gray-800">{stats.lowest.price.toFixed(2)} kr.</p>
+                            <p className="text-[11px] sm:text-xs text-gray-500">Kl. {String(stats.lowest.hour).padStart(2, '0')}:00</p>
                         </div>
                         <div>
-                            <p className="text-xs text-gray-500">Gennemsnit</p>
-                            <p className="text-lg font-bold text-gray-800">{stats.average.price.toFixed(2)} kr.</p>
-                            <p className="text-xs text-gray-500">{selectedDate.toLocaleDateString('da-DK', { day: 'numeric', month: 'long' })}</p>
+                            <p className="text-[11px] sm:text-xs text-gray-500">Gennemsnit</p>
+                            <p className="text-base sm:text-lg font-bold text-gray-800">{stats.average.price.toFixed(2)} kr.</p>
+                            <p className="text-[11px] sm:text-xs text-gray-500">{selectedDate.toLocaleDateString('da-DK', { day: 'numeric', month: 'long' })}</p>
                         </div>
                     </>
                 )}
@@ -319,7 +319,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                                     <div className="w-3/4 flex flex-col justify-end relative" style={{ height: '280px' }}>
                                         {/* Current hour indicator */}
                                         {isCurrentHour && (
-                                            <div className="absolute inset-0 border-2 border-dashed border-blue-500 rounded-md -m-1 z-10"></div>
+                                            <div className="absolute inset-0 border-2 border-dashed border-blue-500 rounded-md -m-1 z-30"></div>
                                         )}
                                         <div className="relative flex flex-col justify-end w-full">
                                             {/* Fees portion (solid color) */}
@@ -401,15 +401,15 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
 
                 {/* UPDATED LEGEND */}
                 <div className="flex gap-x-6 gap-y-2 flex-wrap justify-center items-center mt-8 pt-6 border-t border-gray-200 min-w-[800px]">
-                    <div className="flex items-center gap-2">
+                    <div className="hidden md:flex items-center gap-2">
                         <div className="w-4 h-4 bg-green-500 rounded"></div>
                         <span className="text-sm text-gray-600">Lav pris</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="hidden md:flex items-center gap-2">
                         <div className="w-4 h-4 bg-yellow-400 rounded"></div>
                         <span className="text-sm text-gray-600">Mellem pris</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="hidden md:flex items-center gap-2">
                         <div className="w-4 h-4 bg-red-500 rounded"></div>
                         <span className="text-sm text-gray-600">Høj pris</span>
                     </div>

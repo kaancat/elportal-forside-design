@@ -251,7 +251,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
       {/* CHART AREA */}
       {loading ? <div className="text-center h-72 flex items-center justify-center">Indlæser graf...</div> : error ? <div className="text-center h-72 flex items-center justify-center text-red-600">{error}</div> : (
         <div className="w-full relative">
-            <div className="flex justify-between items-end h-72 w-full mb-4">
+            <div className="flex justify-between items-start h-72 w-full mb-4">
                 {calculatedData.map(({ hour, spotPrice, total, fees: feesAmount }) => {
                     const totalHeight = Math.max((total / maxPrice) * 280, 4);
                     const spotHeight = Math.max((spotPrice / maxPrice) * 280, 2);
@@ -271,7 +271,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                     return (
                         <div 
                             key={hour} 
-                            className="flex-1 flex flex-col justify-end items-center group cursor-pointer relative"
+                            className="flex-1 flex flex-col justify-start items-center group cursor-pointer relative pt-4"
                             onMouseEnter={() => {
                                 const system = fees.system.enabled ? fees.system.value : 0;
                                 const elafgift = fees.elafgift.enabled ? fees.elafgift.value : 0;
@@ -320,6 +320,12 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                                     </div>
                                 </div>
                             </div>
+                            
+                            {/* Labels container, placed directly below the bar */}
+                            <div className="text-center mt-2 px-0.5">
+                                <div className="text-xs font-medium text-gray-600 leading-none">{total.toFixed(2)}</div>
+                                <div className="text-xs text-gray-500 leading-none mt-0.5">kl. {String(hour).padStart(2, '0')}</div>
+                            </div>
                         </div>
                     );
                 })}
@@ -330,8 +336,9 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                 <div className="absolute bg-gray-800 text-white p-3 rounded-lg shadow-lg z-20 min-w-48" 
                      style={{
                          left: `${(hoveredHourData.hour / 23) * 100}%`,
-                         transform: 'translateX(-50%)',
-                         bottom: '320px'
+                         bottom: 'auto',
+                         top: '-10px',
+                         transform: 'translateX(-50%) translateY(-100%)'
                      }}>
                     <div className="text-sm font-semibold mb-2">Kl. {String(hoveredHourData.hour).padStart(2, '0')}:00</div>
                     <div className="flex flex-col gap-y-1 text-xs">
@@ -362,16 +369,6 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                     <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
                 </div>
             )}
-            
-            {/* X-AXIS LABELS */}
-            <div className="flex justify-between text-gray-500 mt-2">
-                {calculatedData.map(({ hour, total }) => (
-                    <div key={hour} className="flex-1 text-center px-0.5">
-                        <div className="text-xs font-medium leading-none">{total.toFixed(2)} kr.</div>
-                        <div className="text-xs leading-none mt-0.5">kl. {String(hour).padStart(2, '0')}</div>
-                    </div>
-                ))}
-            </div>
 
             {/* UPDATED LEGEND */}
             <div className="flex justify-center items-center gap-6 mt-6 pt-4 border-t border-gray-200">

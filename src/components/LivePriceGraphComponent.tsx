@@ -1,4 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
+import { Settings } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Switch } from '@/components/ui/switch';
 
 interface LivePriceGraphProps {
   block: {
@@ -13,6 +18,13 @@ interface PriceData {
   HourDK: string;
   SpotPriceKWh: number;
   TotalPriceKWh: number;
+}
+
+interface FeeToggles {
+  elafgift: boolean;
+  netselskab: boolean;
+  forsyningstilsynet: boolean;
+  moms: boolean;
 }
 
 const LoadingSpinner = () => (
@@ -33,20 +45,50 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [feeToggles, setFeeToggles] = useState<FeeToggles>({
+    elafgift: true,
+    netselskab: true,
+    forsyningstilsynet: true,
+    moms: true,
+  });
 
   useEffect(() => {
+    console.log('--- EXECUTING LATEST VERSION OF fetchPriceData ---');
+    
     const fetchData = async () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`/api/electricity-prices?region=${block.apiRegion}`);
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        const year = yesterday.getFullYear();
+        const month = String(yesterday.getMonth() + 1).padStart(2, '0');
+        const day = String(yesterday.getDate()).padStart(2, '0');
+        const dateStringForAPI = `${year}-${month}-${day}`;
+
+        const baseUrl = 'https://api.energidataservice.dk/dataset/Elspotpriser';
+        const filter = encodeURIComponent(`{"PriceArea":["${block.apiRegion}"]}`);
+        const apiUrl = `${baseUrl}?start=${dateStringForAPI}T00:00&end=${dateStringForAPI}T23:59&filter=${filter}`;
+
+        console.log('Final API URL to be fetched:', apiUrl);
+        
+        const response = await fetch(apiUrl);
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Kunne ikke hente data fra serveren.');
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
         const result = await response.json();
-        setData(result.records);
+        
+        // Transform the data to match our interface
+        const transformedData = result.records.map((record: any) => ({
+          HourDK: record.HourDK,
+          SpotPriceKWh: record.SpotPriceDKK / 1000, // Convert from DKK/MWh to DKK/kWh
+          TotalPriceKWh: record.SpotPriceDKK / 1000 + 2.5, // Add estimated fees
+        }));
+        
+        setData(transformedData);
       } catch (err: any) {
+        console.error('Error fetching data:', err);
         setError(err.message || 'En ukendt fejl opstod.');
       } finally {
         setLoading(false);
@@ -56,16 +98,49 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
     fetchData();
   }, [block.apiRegion]);
 
+  const handleToggleChange = (feeType: keyof FeeToggles) => {
+    setFeeToggles(prev => ({
+      ...prev,
+      [feeType]: !prev[feeType]
+    }));
+  };
+
+  // Calculate dynamic fees based on toggle states
+  const calculateDynamicFees = (baseFees: number) => {
+    let dynamicFees = 0;
+    
+    // Approximate fee breakdown (these would typically come from your data)
+    const feeBreakdown = {
+      elafgift: 0.8,
+      netselskab: 0.9,
+      forsyningstilsynet: 0.1,
+      moms: 0.7
+    };
+
+    Object.entries(feeToggles).forEach(([feeType, isEnabled]) => {
+      if (isEnabled) {
+        dynamicFees += feeBreakdown[feeType as keyof typeof feeBreakdown];
+      }
+    });
+
+    return dynamicFees;
+  };
+
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} />;
   
-  // Prepare data for the chart
-  const chartData = data.map(d => ({
-    hour: new Date(d.HourDK).getHours().toString().padStart(2, '0'),
-    spotPrice: d.SpotPriceKWh,
-    fees: d.TotalPriceKWh > d.SpotPriceKWh ? d.TotalPriceKWh - d.SpotPriceKWh : 0,
-    total: d.TotalPriceKWh,
-  }));
+  // Prepare data for the chart with dynamic fee calculation
+  const chartData = data.map(d => {
+    const baseFees = d.TotalPriceKWh - d.SpotPriceKWh;
+    const dynamicFees = calculateDynamicFees(baseFees);
+    
+    return {
+      hour: new Date(d.HourDK).getHours().toString().padStart(2, '0'),
+      spotPrice: d.SpotPriceKWh,
+      fees: dynamicFees,
+      total: d.SpotPriceKWh + dynamicFees,
+    };
+  });
 
   // Find max total price for scaling
   const maxPrice = Math.max(...chartData.map(d => d.total));
@@ -78,16 +153,70 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
         {block.subtitle && <p className="text-gray-600 mb-6">{block.subtitle}</p>}
         
         <div className="bg-white rounded-lg border border-gray-200 p-6">
-          {/* Legend */}
-          <div className="flex items-center gap-6 mb-6 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-green-500 rounded"></div>
-              <span>Spotpris</span>
+          {/* Legend and Afgifter Button */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-6 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-green-500 rounded"></div>
+                <span>Spotpris</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-gray-400 rounded"></div>
+                <span>Afgifter & Moms</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-gray-400 rounded"></div>
-              <span>Afgifter & Moms</span>
-            </div>
+            
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                  <Settings size={16} />
+                  Afgifter
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64" align="end">
+                <div className="space-y-4">
+                  <h4 className="font-medium text-sm">Vælg afgifter</h4>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label htmlFor="elafgift" className="text-sm">Elafgift</label>
+                      <Switch
+                        id="elafgift"
+                        checked={feeToggles.elafgift}
+                        onCheckedChange={() => handleToggleChange('elafgift')}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <label htmlFor="netselskab" className="text-sm">Netselskab</label>
+                      <Switch
+                        id="netselskab"
+                        checked={feeToggles.netselskab}
+                        onCheckedChange={() => handleToggleChange('netselskab')}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <label htmlFor="forsyningstilsynet" className="text-sm">Forsyningstilsynet</label>
+                      <Switch
+                        id="forsyningstilsynet"
+                        checked={feeToggles.forsyningstilsynet}
+                        onCheckedChange={() => handleToggleChange('forsyningstilsynet')}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <label htmlFor="moms" className="text-sm">Moms</label>
+                      <Switch
+                        id="moms"
+                        checked={feeToggles.moms}
+                        onCheckedChange={() => handleToggleChange('moms')}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
 
           {/* Chart Container */}

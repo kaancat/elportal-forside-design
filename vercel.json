@@ -1,7 +1,0 @@
-{
-  "functions": {
-    "api/electricity-prices.cjs": {
-      "runtime": "@vercel/node@18.x"
-    }
-  }
-}

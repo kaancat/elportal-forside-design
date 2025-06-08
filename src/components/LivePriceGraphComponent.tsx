@@ -171,7 +171,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
           {/* LEFT SIDE: Stats + Date Controls */}
           <div className="w-full flex-1 min-w-0">
             {/* STATISTICS */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-6 mb-6">
+            <div className="grid grid-cols-3 gap-x-4 gap-y-6 mb-6">
                 {stats && (
                     <>
                         <div>
@@ -263,7 +263,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
       {loading ? <div className="text-center h-72 flex items-center justify-center">Indlæser graf...</div> : error ? <div className="text-center h-72 flex items-center justify-center text-red-600">{error}</div> : (
         <div className="w-full relative">
             <div className="overflow-x-auto">
-                <div className="flex w-full min-w-[800px]">
+                <div className="flex w-full min-w-[800px] pb-4">
                     {/* Y-Axis Labels & Gridlines */}
                     <div className="relative h-72 w-16 pr-2">
                         {yAxisTicks.map((tick, index) => (
@@ -400,16 +400,16 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                 )}
 
                 {/* UPDATED LEGEND */}
-                <div className="flex gap-x-6 gap-y-2 flex-wrap justify-center items-center mt-8 pt-6 border-t border-gray-200 min-w-[800px]">
-                    <div className="hidden md:flex items-center gap-2">
+                <div className="flex gap-x-6 gap-y-2 flex-wrap justify-center items-center mt-8 min-w-[800px]">
+                    <div className="flex items-center gap-2">
                         <div className="w-4 h-4 bg-green-500 rounded"></div>
                         <span className="text-sm text-gray-600">Lav pris</span>
                     </div>
-                    <div className="hidden md:flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                         <div className="w-4 h-4 bg-yellow-400 rounded"></div>
                         <span className="text-sm text-gray-600">Mellem pris</span>
                     </div>
-                    <div className="hidden md:flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                         <div className="w-4 h-4 bg-red-500 rounded"></div>
                         <span className="text-sm text-gray-600">Høj pris</span>
                     </div>

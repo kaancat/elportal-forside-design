@@ -3,18 +3,16 @@ import { LivePriceGraph } from '@/types/sanity'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { Skeleton } from '@/components/ui/skeleton'
 
-// Definerer strukturen på de props, komponenten modtager
 interface LivePriceGraphComponentProps {
   block: LivePriceGraph
 }
 
-// Definerer strukturen på den data, vores graf forventer
 interface PriceData {
   hour: string
   price: number
 }
 
-// Definerer strukturen på det svar, vi forventer fra EnergiDataService API'et
+// Bemærk: API-svaret fra vores *egen* API er det samme som fra EnergiDataService
 interface ApiResponse {
   records: Array<{
     HourDK: string
@@ -28,45 +26,35 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphComponentProps> = ({ block
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    // Tjek om der overhovedet er en region valgt, før vi forsøger at hente data
+    if (!block.apiRegion) {
+      setLoading(false)
+      setError("Price area (region) has not been selected in Sanity.")
+      return
+    }
+
     const fetchPriceData = async () => {
-      console.log('--- EXECUTING LATEST VERSION OF fetchPriceData ---');
-      
-      // Sørg for at nulstille status, hver gang vi henter data
       setLoading(true)
       setError(null)
 
       try {
-        // --- START PÅ DEN KORREKTE, SKUDSIKRE DATOLOGIK ---
-
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
+        // --- DEN ENE VIGTIGE ÆNDRING ER HER ---
+        // Vi kalder nu vores egen interne API-rute, som Vercel hoster for os.
+        const apiUrl = `/api/electricity-prices?region=${block.apiRegion}`;
         
-        const year = yesterday.getFullYear();
-        const month = String(yesterday.getMonth() + 1).padStart(2, '0');
-        const day = String(yesterday.getDate()).padStart(2, '0');
-        const dateStringForAPI = `${year}-${month}-${day}`;
-
-        const baseUrl = 'https://api.energidataservice.dk/dataset/Elspotpriser';
-        const filter = encodeURIComponent(`{"PriceArea":["${block.apiRegion}"]}`);
-        const apiUrl = `${baseUrl}?start=${dateStringForAPI}T00:00&end=${dateStringForAPI}T23:59&filter=${filter}`;
-
-        console.log('Final API URL to be fetched:', apiUrl);
-        
-        // --- SLUT PÅ DATOLOGIK ---
+        console.log('Fetching data from our INTERNAL API:', apiUrl);
 
         const response = await fetch(apiUrl)
-
-        // Tjek om API-kaldet var en succes (status 200-299)
+        
         if (!response.ok) {
-          // Hvis ikke, kast en fejl med statuskoden, f.eks. "API request failed: 404"
-          throw new Error(`API request failed: ${response.status}`)
+          // Hvis vores egen API fejler, viser vi status fra den.
+          throw new Error(`Request to our API failed: ${response.status} - ${response.statusText}`)
         }
 
         const apiData: ApiResponse = await response.json()
 
-        // Hvis der ikke er nogen 'records', er der ingen data for den dag.
         if (!apiData.records || apiData.records.length === 0) {
-            throw new Error('No price data available for the selected day.')
+            throw new Error('No price data available.')
         }
 
         // Transformér data til det format, vores graf skal bruge
@@ -80,27 +68,22 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphComponentProps> = ({ block
           }
         })
 
-        // Sorter for en sikkerheds skyld
+        // Sorter data, da API'et nu kan returnere det i omvendt rækkefølge
         transformedData.sort((a, b) => parseInt(a.hour) - parseInt(b.hour))
 
         setData(transformedData)
 
       } catch (err) {
-        // Håndter eventuelle fejl (både fra fetch og fra databehandling)
         setError(err instanceof Error ? err.message : 'An unknown error occurred')
       } finally {
-        // Sæt loading til false, uanset om det lykkedes eller ej
         setLoading(false)
       }
     }
 
-    // Kald funktionen, når komponenten indlæses, eller når regionen ændres
-    if (block.apiRegion) {
-        fetchPriceData()
-    }
+    fetchPriceData()
   }, [block.apiRegion])
 
-  // Resten af komponenten (UI-delen) er den samme som før, den skal bare have data...
+  // Resten af UI-koden er den samme...
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (

@@ -375,3 +375,61 @@ Klik eller hold musen over ikonet for at se info.
 ```
 
 NOTE: The region tooltip now provides a significantly enhanced user experience with larger, more informative content and dual interaction methods (click + hover) for better accessibility across all devices
+
+---
+
+## [2024-12-28] – GROQ Query Fix for RenewableEnergyForecast Fields
+Goal: Update the main Sanity GROQ query to fully fetch all fields for renewableEnergyForecast block type
+
+- **Critical Data Fetching Fix**: Updated GROQ query in `src/services/sanityService.ts`
+  - **Previous Issue**: `renewableEnergyForecast` block type was not expanded in the contentBlocks query
+  - **Missing Fields**: title, leadingText, and explanation fields were not being fetched from Sanity
+  - **Component Impact**: RenewableEnergyForecast component couldn't display Sanity content
+
+- **GROQ Query Enhancement**:
+  - **Added Block Expansion**: `_type == "renewableEnergyForecast" => { ... }`
+  - **Complete Field Fetching**: Triple dots (`...`) syntax fetches all fields for the block type
+  - **Proper Integration**: Positioned correctly within the contentBlocks array query
+  - **Consistent Pattern**: Follows same structure as other block types (livePriceGraph, pageSection, etc.)
+
+- **Data Flow Resolution**:
+  1. **Sanity CMS**: Content editors enter title, leadingText, and explanation
+  2. **GROQ Query**: Now properly fetches all renewableEnergyForecast fields
+  3. **SanityService**: Returns complete data structure to frontend
+  4. **RenewableEnergyForecast Component**: Receives and displays Sanity content
+
+## Before and After Query Structure
+
+**Before:**
+```groq
+contentBlocks[]{
+  _type,
+  _key,
+  _type == "livePriceGraph" => { ... },
+  // renewableEnergyForecast was missing!
+}
+```
+
+**After:**
+```groq
+contentBlocks[]{
+  _type,
+  _key,
+  _type == "renewableEnergyForecast" => { ... },
+  _type == "livePriceGraph" => { ... },
+}
+```
+
+## Impact on User Experience
+- **Dynamic Content**: Title and leadingText from Sanity now appear correctly on the page
+- **Content Management**: Sanity editors can fully control component text content
+- **Flexible Messaging**: Easy to update component titles and descriptions without code changes
+- **Rich Text Support**: Explanation field with PortableText content now properly fetched
+
+## Technical Benefits
+- **Complete Data Fetching**: All renewableEnergyForecast fields now available to component
+- **Type Safety**: Frontend receives properly structured data matching TypeScript interfaces
+- **Performance**: Efficient single query fetches all required content
+- **Maintainability**: Follows established GROQ query patterns for consistency
+
+NOTE: The renewableEnergyForecast component now properly receives and displays all content fields from Sanity CMS, enabling full content management capabilities for the renewable energy forecast section

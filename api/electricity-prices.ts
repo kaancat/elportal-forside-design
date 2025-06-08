@@ -13,6 +13,12 @@ export const dynamic = 'force-dynamic'; // Ensures the function runs dynamically
  */
 export async function GET(request: Request) {
   try {
+    // --- Constants for calculation (in DKK per kWh) ---
+    const transportFeeKWh = 0.12; // Example transport fee
+    const systemFeeKWh = 0.06;  // Example system operator fee
+    const elafgiftKWh = 0.76;     // Example state electricity tax
+    const vatRate = 1.25;         // 25% VAT (moms)
+
     const { searchParams } = new URL(request.url);
     const region = searchParams.get('region') || searchParams.get('area') || 'DK2';
     const area = region === 'DK1' ? 'DK1' : 'DK2';
@@ -49,12 +55,33 @@ export async function GET(request: Request) {
     }
 
     // 7. Parse and return successful response.
-    const data = await externalResponse.json();
+    const result = await externalResponse.json();
+    
+    // Process records to include the total price
+    const processedRecords = result.records.map((record: any) => {
+      const spotPriceMWh = record.SpotPriceDKK ?? 0;
+      const spotPriceKWh = spotPriceMWh / 1000;
+
+      const basePriceKWh = spotPriceKWh + transportFeeKWh + systemFeeKWh + elafgiftKWh;
+      const totalPriceKWh = basePriceKWh * vatRate;
+
+      return {
+        ...record,
+        SpotPriceKWh: spotPriceKWh,
+        TotalPriceKWh: totalPriceKWh
+      };
+    });
+
+    // Create a new object to return
+    const finalData = {
+      ...result,
+      records: processedRecords
+    };
 
     // Set cache headers
     const headers = { 'Cache-Control': 's-maxage=3600, stale-while-revalidate' };
 
-    return Response.json(data, { status: 200, headers });
+    return Response.json(finalData, { status: 200, headers });
 
   } catch (error: any) {
     // 8. Handle unexpected internal errors.

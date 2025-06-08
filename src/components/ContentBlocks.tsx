@@ -1,6 +1,6 @@
 
 import React from 'react'
-import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable } from '@/types/sanity'
+import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast } from '@/types/sanity'
 import PageSectionComponent from './PageSectionComponent'
 import FAQItemComponent from './FAQItemComponent'
 import PriceExampleTableComponent from './PriceExampleTableComponent'
@@ -10,16 +10,17 @@ import RichTextSectionComponent from './RichTextSectionComponent'
 import CallToActionSectionComponent from './CallToActionSectionComponent'
 import LivePriceGraphComponent from './LivePriceGraphComponent'
 import RealPriceComparisonTableComponent from './RealPriceComparisonTable'
+import RenewableEnergyForecastComponent from './RenewableEnergyForecast'
 
 interface ContentBlocksProps {
-  blocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph | RealPriceComparisonTable>
+  blocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph | RealPriceComparisonTable | RenewableEnergyForecast>
 }
 
 const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
   console.log('ContentBlocks component received blocks:', blocks)
 
   // Group consecutive FAQ items together
-  const groupedBlocks: Array<PageSection | FAQItem[] | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph | RealPriceComparisonTable> = []
+  const groupedBlocks: Array<PageSection | FAQItem[] | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph | RealPriceComparisonTable | RenewableEnergyForecast> = []
   let currentFAQGroup: FAQItem[] = []
 
   blocks.forEach((block, index) => {
@@ -81,6 +82,9 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         } else if (block._type === 'realPriceComparisonTable') {
           console.log('Passing realPriceComparisonTable to RealPriceComparisonTableComponent:', block)
           return <RealPriceComparisonTableComponent key={block._key} block={block as RealPriceComparisonTable} />
+        } else if (block._type === 'renewableEnergyForecast') {
+          console.log('Passing renewableEnergyForecast to RenewableEnergyForecastComponent:', block)
+          return <RenewableEnergyForecastComponent key={block._key} block={block as RenewableEnergyForecast} />
         } else {
           console.log('Passing section to PageSectionComponent:', block)
           return <PageSectionComponent key={block._key} section={block as PageSection} />

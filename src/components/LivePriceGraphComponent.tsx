@@ -49,7 +49,10 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   });
 
   const popoverRef = useRef<HTMLDivElement>(null);
+  const chartAreaRef = useRef<HTMLDivElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
   const [maxPrice, setMaxPrice] = useState(1);
+  const [tooltipPosition, setTooltipPosition] = useState<{ left: number; top: number; opacity: number }>({ left: 0, top: 0, opacity: 0 });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -262,7 +265,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
       {/* CHART AREA */}
       {loading ? <div className="text-center h-72 flex items-center justify-center">Indlæser graf...</div> : error ? <div className="text-center h-72 flex items-center justify-center text-red-600">{error}</div> : (
         <div className="w-full relative">
-            <div className="overflow-x-auto">
+            <div ref={chartAreaRef} className="overflow-x-auto">
                 <div className="flex w-full min-w-[800px] pb-4">
                     {/* Y-Axis Labels & Gridlines */}
                     <div className="relative h-72 w-16 pr-2">
@@ -300,21 +303,43 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                                 <div 
                                     key={hour} 
                                     className="flex-1 flex flex-col justify-start items-center group cursor-pointer relative pt-4"
-                                    onMouseEnter={() => {
+                                    onMouseEnter={(event: React.MouseEvent<HTMLDivElement>) => {
+                                        // First, set the data for the tooltip content
                                         const system = fees.system.enabled ? fees.system.value : 0;
                                         const elafgift = fees.elafgift.enabled ? fees.elafgift.value : 0;
                                         const moms = fees.moms.enabled ? fees.moms.value : 1;
-                                        setHoveredHourData({
-                                            hour,
-                                            spotPrice,
-                                            total,
-                                            transport: 0,
-                                            system,
-                                            elafgift,
-                                            moms
+                                        setHoveredHourData({ hour, spotPrice, total, transport: 0, system, elafgift, moms });
+
+                                        // Now, calculate the position
+                                        if (!chartAreaRef.current) return;
+
+                                        const chartRect = chartAreaRef.current.getBoundingClientRect();
+                                        const barRect = event.currentTarget.getBoundingClientRect();
+                                        const tooltipWidth = tooltipRef.current?.offsetWidth || 192; // Default width as fallback
+
+                                        // Calculate the ideal centered position relative to the chart container
+                                        const barCenter = barRect.left + barRect.width / 2;
+                                        const idealLeft = barCenter - chartRect.left - tooltipWidth / 2 + chartAreaRef.current.scrollLeft;
+
+                                        // Constrain the position to stay within the chart's bounds
+                                        const finalLeft = Math.max(
+                                            chartAreaRef.current.scrollLeft, // Don't go off the left edge
+                                            Math.min(
+                                                idealLeft,
+                                                chartAreaRef.current.scrollWidth - tooltipWidth // Don't go off the right edge
+                                            )
+                                        );
+
+                                        setTooltipPosition({
+                                            left: finalLeft,
+                                            top: event.currentTarget.offsetTop - 10, // Position 10px above the bar
+                                            opacity: 1
                                         });
                                     }}
-                                    onMouseLeave={() => setHoveredHourData(null)}
+                                    onMouseLeave={() => {
+                                        setHoveredHourData(null);
+                                        setTooltipPosition(prev => ({ ...prev, opacity: 0 }));
+                                    }}
                                 >
                                     <div className="w-3/4 flex flex-col justify-end relative" style={{ height: '280px' }}>
                                         {/* Current hour indicator */}
@@ -362,13 +387,17 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                 
                 {/* TOOLTIP */}
                 {hoveredHourData && (
-                    <div className="absolute bg-gray-800 text-white p-3 rounded-lg shadow-lg z-20 min-w-48" 
-                         style={{
-                             left: `${((hoveredHourData.hour / 23) * 100)}%`,
-                             bottom: 'auto',
-                             top: '-10px',
-                             transform: 'translateX(-50%) translateY(-100%)'
-                         }}>
+                    <div 
+                        ref={tooltipRef}
+                        className="absolute bg-gray-800 text-white p-3 rounded-lg shadow-lg z-20 min-w-48" 
+                        style={{
+                            left: `${tooltipPosition.left}px`,
+                            top: `${tooltipPosition.top}px`,
+                            opacity: tooltipPosition.opacity,
+                            transform: 'translateY(-100%)',
+                            transition: 'opacity 0.2s'
+                        }}
+                    >
                         <div className="text-sm font-semibold mb-2">Kl. {String(hoveredHourData.hour).padStart(2, '0')}:00</div>
                         <div className="flex flex-col gap-y-1 text-xs">
                             <div className="flex justify-between">

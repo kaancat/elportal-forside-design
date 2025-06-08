@@ -103,6 +103,12 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
     setSelectedDate(tomorrow);
   };
 
+  const getPriceCategory = (price: number, averagePrice: number): 'low' | 'medium' | 'high' => {
+    if (price < averagePrice * 0.90) return 'low';
+    if (price > averagePrice * 1.10) return 'high';
+    return 'medium';
+  };
+
   const calculatedData = useMemo(() => {
     return data.map(d => {
       const spotPrice = d.SpotPriceKWh;
@@ -226,14 +232,23 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
         <div className="w-full relative">
             <div className="flex justify-between items-end h-72 w-full mb-4">
                 {calculatedData.map(({ hour, spotPrice, total }) => {
-                    const spotHeight = Math.max((spotPrice / maxPrice) * 280, 2); // Use pixels, min 2px
                     const totalHeight = Math.max((total / maxPrice) * 280, 4); // Use pixels, min 4px
-                    const feesHeight = totalHeight - spotHeight;
+                    const currentHour = new Date().getHours();
+                    const isCurrentHour = hour === currentHour && isToday;
+                    const priceCategory = stats ? getPriceCategory(total, stats.average.price) : 'medium';
+                    
+                    const getBarColor = (category: 'low' | 'medium' | 'high') => {
+                        switch (category) {
+                            case 'low': return 'bg-green-500 group-hover:bg-green-600';
+                            case 'medium': return 'bg-yellow-400 group-hover:bg-yellow-500';
+                            case 'high': return 'bg-red-500 group-hover:bg-red-600';
+                        }
+                    };
 
                     return (
                         <div 
                             key={hour} 
-                            className="flex-1 flex flex-col justify-end items-center group cursor-pointer"
+                            className="flex-1 flex flex-col justify-end items-center group cursor-pointer relative"
                             onMouseEnter={() => {
                                 const system = fees.system.enabled ? fees.system.value : 0;
                                 const elafgift = fees.elafgift.enabled ? fees.elafgift.value : 0;
@@ -250,17 +265,16 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                             }}
                             onMouseLeave={() => setHoveredHourData(null)}
                         >
-                            <div className="w-3/4 flex flex-col justify-end" style={{ height: '280px' }}>
+                            <div className="w-3/4 flex flex-col justify-end relative" style={{ height: '280px' }}>
+                                {/* Current hour indicator */}
+                                {isCurrentHour && (
+                                    <div className="absolute inset-0 border-2 border-dashed border-blue-500 rounded-md -m-1 z-10"></div>
+                                )}
                                 <div className="relative flex flex-col justify-end w-full">
-                                    {/* Fees & Taxes (Gray) on top */}
+                                    {/* Single colored bar based on price category */}
                                     <div 
-                                        style={{ height: `${feesHeight}px` }} 
-                                        className="bg-gray-300 group-hover:bg-gray-400 transition-colors rounded-t-md"
-                                    />
-                                    {/* Spot Price (Green) on bottom */}
-                                    <div 
-                                        style={{ height: `${spotHeight}px` }} 
-                                        className="bg-green-500 group-hover:bg-green-600 transition-colors"
+                                        style={{ height: `${totalHeight}px` }} 
+                                        className={`${getBarColor(priceCategory)} transition-colors rounded-t-md`}
                                     />
                                 </div>
                             </div>
@@ -315,6 +329,26 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                         <div className="text-xs leading-none mt-0.5">kl. {String(hour).padStart(2, '0')}</div>
                     </div>
                 ))}
+            </div>
+
+            {/* LEGEND */}
+            <div className="flex justify-center items-center gap-6 mt-6 pt-4 border-t border-gray-200">
+                <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-green-500 rounded"></div>
+                    <span className="text-sm text-gray-600">Lav pris</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-yellow-400 rounded"></div>
+                    <span className="text-sm text-gray-600">Mellem pris</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-red-500 rounded"></div>
+                    <span className="text-sm text-gray-600">Høj pris</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-dashed border-blue-500 rounded"></div>
+                    <span className="text-sm text-gray-600">Lige nu</span>
+                </div>
             </div>
         </div>
       )}

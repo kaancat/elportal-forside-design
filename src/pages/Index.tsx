@@ -53,12 +53,12 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-white">
       <Navigation />
-      <main>
+      <main className="space-y-8">
         <HeroSection />
         <ProviderList />
         <InfoSection />
         
-        {/* Render Sanity content blocks */}
+        {/* Render Sanity content blocks with reduced spacing */}
         {!loading && homepageData?.contentBlocks && homepageData.contentBlocks.length > 0 && (
           <ContentBlocks blocks={homepageData.contentBlocks} />
         )}

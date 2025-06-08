@@ -56,6 +56,14 @@ export class SanityService {
             hotspot,
             crop
           }
+        },
+        _type == "richTextSection" => {
+          content
+        },
+        _type == "callToActionSection" => {
+          title,
+          buttonText,
+          buttonUrl
         }
       }
     }`

@@ -1,9 +1,15 @@
-
-import React, { useState, useEffect } from 'react';
-import { Settings, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { Settings2, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Switch } from '@/components/ui/switch';
+
+interface PriceData {
+  HourDK: string;
+  SpotPriceKWh: number;
+  TotalPriceKWh: number;
+}
 
 interface LivePriceGraphProps {
   block: {
@@ -13,327 +19,155 @@ interface LivePriceGraphProps {
   };
 }
 
-// Updated interface to reflect the data from our enhanced API
-interface PriceData {
-  HourDK: string;
-  SpotPriceKWh: number;
-  TotalPriceKWh: number;
-}
-
-interface FeeToggles {
-  elafgift: boolean;
-  netselskab: boolean;
-  forsyningstilsynet: boolean;
-  moms: boolean;
-}
-
-const LoadingSpinner = () => (
-  <div className="flex justify-center items-center h-64">
-    <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-green-500"></div>
-  </div>
-);
-
-const ErrorMessage = ({ message }: { message: string }) => (
-  <div className="text-center p-8 bg-red-100 text-red-700 rounded-lg">
-    <p className="font-bold">Der opstod en fejl</p>
-    <p>{message}</p>
-  </div>
-);
+const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
 const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   const [data, setData] = useState<PriceData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string>(() => {
-    // Initialize with today's date in YYYY-MM-DD format
-    return new Date().toISOString().split('T')[0];
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const [fees, setFees] = useState({
+    transport: { name: 'Netselskab', value: 0.12, enabled: true },
+    system: { name: 'Forsyningstilsynet', value: 0.06, enabled: true },
+    elafgift: { name: 'Elafgift', value: 0.76, enabled: true },
+    moms: { name: 'Moms', value: 1.25, enabled: true },
   });
-  const [feeToggles, setFeeToggles] = useState<FeeToggles>({
-    elafgift: true,
-    netselskab: true,
-    forsyningstilsynet: true,
-    moms: true,
-  });
+  
+  const popoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
+      const dateString = formatDate(selectedDate);
       try {
-        const response = await fetch(`/api/electricity-prices?region=${block.apiRegion}&date=${selectedDate}`);
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Kunne ikke hente data fra serveren.');
-        }
+        const response = await fetch(`/api/electricity-prices?region=${block.apiRegion}&date=${dateString}`);
+        if (!response.ok) throw new Error('Kunne ikke hente data for den valgte dato.');
         const result = await response.json();
+        if (result.records.length === 0) {
+            setError('Priser for den valgte dato er endnu ikke tilgængelige.');
+        }
         setData(result.records);
       } catch (err: any) {
-        setError(err.message || 'En ukendt fejl opstod.');
+        setError(err.message);
+        setData([]);
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
   }, [block.apiRegion, selectedDate]);
 
-  const handleToggleChange = (feeType: keyof FeeToggles) => {
-    setFeeToggles(prev => ({
-      ...prev,
-      [feeType]: !prev[feeType]
-    }));
-  };
-
-  // Date navigation functions
-  const navigateDate = (direction: 'prev' | 'next' | 'today') => {
-    const currentDate = new Date(selectedDate);
-    
-    if (direction === 'prev') {
-      currentDate.setDate(currentDate.getDate() - 1);
-      setSelectedDate(currentDate.toISOString().split('T')[0]);
-    } else if (direction === 'next') {
-      currentDate.setDate(currentDate.getDate() + 1);
-      setSelectedDate(currentDate.toISOString().split('T')[0]);
-    } else if (direction === 'today') {
-      setSelectedDate(new Date().toISOString().split('T')[0]);
-    }
-  };
-
-  // Format date for display
-  const formatDisplayDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const today = new Date().toISOString().split('T')[0];
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayString = yesterday.toISOString().split('T')[0];
-    
-    if (dateString === today) return 'I dag';
-    if (dateString === yesterdayString) return 'I går';
-    
-    return date.toLocaleDateString('da-DK', { 
-      day: 'numeric', 
-      month: 'short' 
-    });
-  };
-
-  // Calculate dynamic fees based on toggle states
-  const calculateDynamicFees = (baseFees: number) => {
-    let dynamicFees = 0;
-    
-    // Approximate fee breakdown (these would typically come from your data)
-    const feeBreakdown = {
-      elafgift: 0.8,
-      netselskab: 0.9,
-      forsyningstilsynet: 0.1,
-      moms: 0.7
-    };
-
-    Object.entries(feeToggles).forEach(([feeType, isEnabled]) => {
-      if (isEnabled) {
-        dynamicFees += feeBreakdown[feeType as keyof typeof feeBreakdown];
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
+        setIsPopoverOpen(false);
       }
-    });
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-    return dynamicFees;
+  const handleFeeToggle = (feeKey: keyof typeof fees) => {
+    setFees(prev => ({ ...prev, [feeKey]: { ...prev[feeKey], enabled: !prev[feeKey].enabled } }));
   };
 
-  if (loading) return <LoadingSpinner />;
-  if (error) return <ErrorMessage message={error} />;
+  const handleDateChange = (daysToAdd: number) => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(selectedDate.getDate() + daysToAdd);
+    setSelectedDate(newDate);
+  };
   
-  // Prepare data for the chart with dynamic fee calculation
   const chartData = data.map(d => {
-    const baseFees = d.TotalPriceKWh - d.SpotPriceKWh;
-    const dynamicFees = calculateDynamicFees(baseFees);
+    const spotPrice = d.SpotPriceKWh;
     
+    let feesOnChart = 0;
+    if (fees.transport.enabled) feesOnChart += fees.transport.value;
+    if (fees.system.enabled) feesOnChart += fees.system.value;
+    if (fees.elafgift.enabled) feesOnChart += fees.elafgift.value;
+    
+    let totalWithFees = spotPrice + feesOnChart;
+    if (fees.moms.enabled) {
+      totalWithFees *= fees.moms.value;
+    }
+
     return {
-      hour: new Date(d.HourDK).getHours().toString().padStart(2, '0'),
-      spotPrice: d.SpotPriceKWh,
-      fees: dynamicFees,
-      total: d.SpotPriceKWh + dynamicFees,
+      name: new Date(d.HourDK).getHours().toString().padStart(2, '0'),
+      'Spotpris': spotPrice,
+      'Afgifter & Moms': totalWithFees - spotPrice,
+      'Total': totalWithFees,
     };
   });
 
-  // Find max total price for scaling
-  const maxPrice = Math.max(...chartData.map(d => d.total));
-  const chartHeight = 300;
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const total = payload[0].payload.Total;
+      return (
+        <div className="p-3 bg-white border rounded-lg shadow-lg text-sm">
+          <p className="font-bold mb-2">{`Kl. ${label}:00`}</p>
+          <p className="font-bold">{`Total: ${total.toFixed(2)} kr./kWh`}</p>
+        </div>
+      );
+    }
+    return null;
+  };
+  
+  const isToday = formatDate(selectedDate) === formatDate(new Date());
 
   return (
-    <section className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">{block.title}</h2>
-        {block.subtitle && <p className="text-gray-600 mb-6">{block.subtitle}</p>}
-        
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          {/* Date Navigation */}
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigateDate('prev')}
-              className="flex items-center gap-1"
-            >
-              <ChevronLeft size={16} />
+    <div className="p-4 md:p-6 bg-gray-50 rounded-lg shadow-md my-8">
+      <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
+        <div>
+          <h3 className="text-2xl font-bold text-gray-800">{block.title}</h3>
+          {block.subtitle && <p className="text-gray-600">{block.subtitle}</p>}
+        </div>
+        <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" onClick={() => handleDateChange(-1)}><ChevronLeft size={16}/></Button>
+            <Button variant="outline" className="w-40 flex items-center gap-2" onClick={() => setSelectedDate(new Date())}>
+                <CalendarDays size={16}/>{isToday ? "I dag" : selectedDate.toLocaleDateString('da-DK')}
             </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigateDate('today')}
-              className="min-w-[100px]"
-            >
-              {formatDisplayDate(selectedDate)}
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigateDate('next')}
-              className="flex items-center gap-1"
-            >
-              <ChevronRight size={16} />
-            </Button>
-          </div>
-
-          {/* Legend and Afgifter Button */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-6 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-green-500 rounded"></div>
-                <span>Spotpris</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-gray-400 rounded"></div>
-                <span>Afgifter & Moms</span>
-              </div>
-            </div>
-            
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="flex items-center gap-2">
-                  <Settings size={16} />
-                  Afgifter
+            <Button variant="outline" size="icon" onClick={() => handleDateChange(1)}><ChevronRight size={16}/></Button>
+            <div className="relative" ref={popoverRef}>
+                <Button variant="outline" onClick={() => setIsPopoverOpen(!isPopoverOpen)} className="flex items-center gap-2">
+                    <Settings2 size={16} />Afgifter
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-64" align="end">
-                <div className="space-y-4">
-                  <h4 className="font-medium text-sm">Vælg afgifter</h4>
-                  
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <label htmlFor="elafgift" className="text-sm">Elafgift</label>
-                      <Switch
-                        id="elafgift"
-                        checked={feeToggles.elafgift}
-                        onCheckedChange={() => handleToggleChange('elafgift')}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <label htmlFor="netselskab" className="text-sm">Netselskab</label>
-                      <Switch
-                        id="netselskab"
-                        checked={feeToggles.netselskab}
-                        onCheckedChange={() => handleToggleChange('netselskab')}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <label htmlFor="forsyningstilsynet" className="text-sm">Forsyningstilsynet</label>
-                      <Switch
-                        id="forsyningstilsynet"
-                        checked={feeToggles.forsyningstilsynet}
-                        onCheckedChange={() => handleToggleChange('forsyningstilsynet')}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <label htmlFor="moms" className="text-sm">Moms</label>
-                      <Switch
-                        id="moms"
-                        checked={feeToggles.moms}
-                        onCheckedChange={() => handleToggleChange('moms')}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          {/* Chart Container */}
-          <div className="relative">
-            {/* Y-axis labels */}
-            <div className="absolute left-0 top-4 bottom-12 flex flex-col justify-between text-xs text-gray-500">
-              <span>{maxPrice.toFixed(2)} kr</span>
-              <span>{(maxPrice * 0.75).toFixed(2)} kr</span>
-              <span>{(maxPrice * 0.5).toFixed(2)} kr</span>
-              <span>{(maxPrice * 0.25).toFixed(2)} kr</span>
-              <span>0.00 kr</span>
-            </div>
-
-            {/* Chart Area */}
-            <div className="ml-16 mr-4">
-              <div className="flex items-end justify-between gap-1" style={{ height: `${chartHeight}px` }}>
-                {chartData.map((item, index) => {
-                  const spotPriceHeight = (item.spotPrice / maxPrice) * chartHeight;
-                  const feesHeight = (item.fees / maxPrice) * chartHeight;
-                  
-                  return (
-                    <div
-                      key={index}
-                      className="relative flex-1 flex flex-col justify-end cursor-pointer transition-opacity hover:opacity-80"
-                      onMouseEnter={() => setHoveredIndex(index)}
-                      onMouseLeave={() => setHoveredIndex(null)}
-                    >
-                      {/* Tooltip */}
-                      {hoveredIndex === index && (
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-10">
-                          <div className="bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-sm whitespace-nowrap">
-                            <p className="font-bold text-gray-800 mb-1">{`Kl. ${item.hour}:00`}</p>
-                            <p className="text-green-600">{`Spotpris: ${item.spotPrice.toFixed(2)} kr.`}</p>
-                            <p className="text-gray-600">{`Afgifter & Moms: ${item.fees.toFixed(2)} kr.`}</p>
-                            <hr className="my-1 border-gray-200" />
-                            <p className="font-bold text-gray-900">{`Total: ${item.total.toFixed(2)} kr./kWh`}</p>
-                            {/* Tooltip arrow */}
-                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-white"></div>
-                          </div>
+                {isPopoverOpen && (
+                    <div className="absolute right-0 mt-2 w-64 bg-white border rounded-lg shadow-xl z-10 p-4">
+                        <p className="font-bold mb-3 text-gray-700">Inkluder i prisen</p>
+                        <div className="space-y-3">
+                            {Object.keys(fees).map((key) => {
+                                const fee = fees[key as keyof typeof fees];
+                                return (
+                                <div key={key} className="flex items-center justify-between">
+                                    <Label htmlFor={key} className="text-gray-600">{fee.name}</Label>
+                                    <Switch id={key} checked={fee.enabled} onCheckedChange={() => handleFeeToggle(key as keyof typeof fees)} />
+                                </div>
+                                )
+                            })}
                         </div>
-                      )}
-                      
-                      {/* Fees bar (top) */}
-                      <div 
-                        className="w-full bg-gray-400 rounded-t"
-                        style={{ height: `${feesHeight}px` }}
-                      ></div>
-                      
-                      {/* Spot price bar (bottom) */}
-                      <div 
-                        className="w-full bg-green-500"
-                        style={{ height: `${spotPriceHeight}px` }}
-                      ></div>
-                      
-                      {/* Hour label */}
-                      <div className="text-xs text-gray-600 text-center mt-2">
-                        {item.hour}
-                      </div>
                     </div>
-                  );
-                })}
-              </div>
+                )}
             </div>
-
-            {/* X-axis label */}
-            <div className="text-center text-sm text-gray-600 mt-4">Timer (24-timers format)</div>
-          </div>
-
-          <div className="mt-4 text-sm text-gray-500 text-center">
-            Priser for {block.apiRegion === 'DK1' ? 'Vest-Danmark' : 'Øst-Danmark'}
-          </div>
         </div>
       </div>
-    </section>
+      
+      {loading ? <div className="text-center py-16">Indlæser graf...</div> : error ? <div className="text-center py-16 text-red-600">{error}</div> : (
+        <div style={{ width: '100%', height: 350 }}>
+          <ResponsiveContainer>
+            <BarChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="name" tick={{ fontSize: 12 }} label={{ value: "Timer (24-timers format)", position: 'insideBottom', dy: 20 }} />
+              <YAxis tick={{ fontSize: 12 }} unit=" kr" tickFormatter={(value) => value.toFixed(2)} domain={[0, 'dataMax + 0.2']} />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(236, 253, 245, 0.5)' }} />
+              <Bar dataKey="Spotpris" stackId="a" fill="#22c55e" name="Spotpris" />
+              <Bar dataKey="Afgifter & Moms" stackId="a" fill="#a1a1aa" name="Afgifter & Moms" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+    </div>
   );
 };
 

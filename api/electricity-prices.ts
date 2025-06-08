@@ -11,18 +11,20 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
  * It fetches data for the current day in the specified price area (DK1 or DK2).
  *
  * Query Parameters:
- * @param {string} [area='DK2'] - The price area to fetch data for. Can be 'DK1' or 'DK2'.
+ * @param {string} [area] - The price area (e.g., 'DK1' or 'DK2').
+ * @param {string} [region] - Alternative for 'area'.
  */
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
   try {
-    // 1. Determine the price area from query parameters, default to DK2
-    const area = req.query.area === 'DK1' ? 'DK1' : 'DK2';
+    // 1. Determine the price area from query parameters.
+    //    Accepts 'region' or 'area' for flexibility. Defaults to 'DK2'.
+    const priceAreaQuery = req.query.region || req.query.area;
+    const area = priceAreaQuery === 'DK1' ? 'DK1' : 'DK2';
 
     // 2. Calculate the start and end dates for the API query (today)
-    // We get the date in the Copenhagen timezone to ensure we fetch for the correct day.
     const today = new Date();
     const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString().split('T')[0];
     const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString().split('T')[0];
@@ -35,12 +37,11 @@ export default async function handler(
 
     // 5. Handle non-successful responses from the external API
     if (!response.ok) {
-      // Log the error for debugging on Vercel
       console.error(`EnergiDataService API failed with status: ${response.status}`);
       const errorBody = await response.text();
+      console.error(`Failed URL: ${apiUrl}`);
       console.error(`Error body: ${errorBody}`);
       
-      // Return a user-friendly error
       res.status(response.status).json({
         error: 'Failed to fetch data from EnergiDataService.',
         details: `API returned status ${response.status}`,

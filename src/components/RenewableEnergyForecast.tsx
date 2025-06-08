@@ -130,9 +130,9 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
                 <YAxis domain={[0, 'dataMax + 100']} tick={{ fontSize: 12, fill: '#6b7280' }} tickLine={false} axisLine={false} label={{ value: 'MWh', angle: -90, position: 'insideLeft', offset: -10, style: { fill: '#6b7280' } }} />
                 <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#374151', strokeWidth: 1, strokeDasharray: '3 3' }} />
                 
-                <Area type="monotone" dataKey="Solar" name="Solenergi" stackId="1" stroke={chartColors.solar} strokeWidth={2} fillOpacity={1} fill="url(#colorSolar)" />
-                <Area type="monotone" dataKey="OnshoreWind" name="Vind (Land)" stackId="1" stroke={chartColors.onshore} strokeWidth={2} fillOpacity={1} fill="url(#colorOnshore)" />
                 <Area type="monotone" dataKey="OffshoreWind" name="Vind (Hav)" stackId="1" stroke={chartColors.offshore} strokeWidth={2} fillOpacity={1} fill="url(#colorOffshore)" />
+                <Area type="monotone" dataKey="OnshoreWind" name="Vind (Land)" stackId="1" stroke={chartColors.onshore} strokeWidth={2} fillOpacity={1} fill="url(#colorOnshore)" />
+                <Area type="monotone" dataKey="Solar" name="Solenergi" stackId="1" stroke={chartColors.solar} strokeWidth={2} fillOpacity={1} fill="url(#colorSolar)" />
               </AreaChart>
             </ResponsiveContainer>
           )}

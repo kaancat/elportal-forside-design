@@ -3,51 +3,62 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-// A simple helper function to replace padStart. It's "dumb" but works everywhere.
-function pad(num: number): string {
-  return num < 10 ? '0' + num : String(num);
-}
-
+/**
+ * Vercel Serverless Function to fetch electricity spot prices from EnergiDataService.
+ * This function is written as an ES Module, compatible with Vite projects
+ * configured with "type": "module" in package.json.
+ *
+ * It fetches data for the current day in the specified price area (DK1 or DK2).
+ *
+ * Query Parameters:
+ * @param {string} [area='DK2'] - The price area to fetch data for. Can be 'DK1' or 'DK2'.
+ */
 export default async function handler(
-  request: VercelRequest,
-  response: VercelResponse,
+  req: VercelRequest,
+  res: VercelResponse
 ) {
   try {
-    const region = request.query.region || 'DK1';
+    // 1. Determine the price area from query parameters, default to DK2
+    const area = req.query.area === 'DK1' ? 'DK1' : 'DK2';
 
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    
-    const year = yesterday.getFullYear();
-    // Use our custom padding function instead of .padStart()
-    const month = pad(yesterday.getMonth() + 1);
-    const day = pad(yesterday.getDate());
-    
-    const dateStringForAPI = `${year}-${month}-${day}`;
+    // 2. Calculate the start and end dates for the API query (today)
+    // We get the date in the Copenhagen timezone to ensure we fetch for the correct day.
+    const today = new Date();
+    const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString().split('T')[0];
+    const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString().split('T')[0];
 
-    const baseUrl = 'https://api.energidataservice.dk/dataset/Elspotpriser';
-    const filter = encodeURIComponent(`{"PriceArea":["${region}"]}`);
-    const apiUrl = `${baseUrl}?start=${dateStringForAPI}T00:00&end=${dateStringForAPI}T23:59&filter=${filter}`;
+    // 3. Construct the API URL for EnergiDataService
+    const apiUrl = `https://api.energidataservice.dk/dataset/Elspotprices?start=${startDate}&end=${endDate}&filter={"PriceArea":["${area}"]}&sort=HourUTC ASC`;
 
-    const edsResponse = await fetch(apiUrl);
+    // 4. Fetch data using the modern, global fetch API
+    const response = await fetch(apiUrl);
 
-    if (!edsResponse.ok) {
-      return response.status(edsResponse.status).json({ 
-        error: `Failed to fetch from EnergiDataService: ${edsResponse.statusText}` 
+    // 5. Handle non-successful responses from the external API
+    if (!response.ok) {
+      // Log the error for debugging on Vercel
+      console.error(`EnergiDataService API failed with status: ${response.status}`);
+      const errorBody = await response.text();
+      console.error(`Error body: ${errorBody}`);
+      
+      // Return a user-friendly error
+      res.status(response.status).json({
+        error: 'Failed to fetch data from EnergiDataService.',
+        details: `API returned status ${response.status}`,
       });
+      return;
     }
 
-    const data = await edsResponse.json();
-
-    response.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
-    return response.status(200).json(data);
+    // 6. Parse the JSON data and send it to the client
+    const data = await response.json();
+    
+    // Set cache headers to instruct Vercel's CDN to cache the response for 1 hour
+    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
+    
+    res.status(200).json(data);
 
   } catch (error) {
-    let errorMessage = 'An unknown error occurred.';
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    }
-    console.error('Error in API function:', error);
-    return response.status(500).json({ error: 'Internal Server Error', details: errorMessage });
+    // 7. Handle unexpected errors in our function
+    console.error('An unexpected error occurred in the API route:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 }

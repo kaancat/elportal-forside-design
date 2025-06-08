@@ -262,3 +262,42 @@ Goal: Implement comprehensive UI improvements including Danmark tab, responsive 
 - **Mobile Optimizations**: Shorter button labels and adjusted spacing for smaller screens
 
 NOTE: The renewable energy forecast component now offers a significantly enhanced user experience with comprehensive tooltips, responsive design, and flexible viewing options for Denmark's renewable energy landscape 
+
+---
+
+## [2024-12-28] – Data Aggregation Logic Fix for Danmark View
+Goal: Fix data aggregation logic to properly sum DK1 and DK2 forecasts for "Hele Danmark" view instead of overwriting them
+
+- **Critical Bug Fix**: Updated `processedData` useMemo hook to properly aggregate regional data
+  - **Previous Issue**: Using assignment (`=`) was overwriting values instead of summing them
+  - **Fixed Logic**: Changed to addition assignment (`+=`) to sum DK1 and DK2 forecasts
+  - **Result**: "Hele Danmark" now accurately displays total renewable energy production for entire country
+
+- **Enhanced Data Processing**:
+  - **Complete Hour Coverage**: Pre-initialize all 24 hours (00:00 to 23:00) to ensure complete chart display
+  - **Null Value Protection**: Added `record.ForecastDayAhead !== null` check to prevent calculation errors
+  - **Proper Regional Aggregation**: When region is "Danmark", API returns all regional data which is now correctly summed
+  - **Chronological Sorting**: Added `.sort()` to ensure proper hour ordering in final chart data
+
+- **Technical Implementation Details**:
+  - **Hour Key Consistency**: Maintain consistent "HH:mm" format throughout processing
+  - **Type Safety**: Proper handling of object spread syntax with quoted property names
+  - **Boundary Checking**: Verify `groupedByHour[hourKey]` exists before aggregation
+  - **Memory Efficiency**: Single-pass initialization followed by data accumulation
+
+## Data Flow for Danmark View
+1. **API Response**: EnergiDataService returns forecast records for both DK1 and DK2 regions
+2. **Hour Initialization**: All 24 hours initialized with zero values for each energy type
+3. **Data Aggregation**: Loop through records and sum values using `+=` operator
+4. **Chart Preparation**: Convert to sorted array with total calculations
+5. **Visual Result**: Chart displays accurate aggregated renewable energy production for entire Denmark
+
+## Impact on User Experience
+- **Accurate Data**: Danmark view now shows true total renewable energy production
+- **Regional Context**: Users can compare unified Denmark data against individual DK1/DK2 regions  
+- **Data Integrity**: Proper mathematical aggregation ensures reliable energy forecasting information
+- **Complete Coverage**: All hours displayed even when API data has gaps
+
+NOTE: The data aggregation fix ensures that "Hele Danmark" view accurately represents the sum of renewable energy forecasts from both DK1 and DK2 regions, providing users with correct total production values for comprehensive energy planning
+
+NOTE: The renewable energy forecast component now offers a significantly enhanced user experience with comprehensive tooltips, responsive design, and flexible viewing options for Denmark's renewable energy landscape 

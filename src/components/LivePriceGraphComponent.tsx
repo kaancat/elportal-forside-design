@@ -141,6 +141,17 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
     };
   }, [calculatedData]);
 
+  const yAxisTicks = useMemo(() => {
+    if (!stats) return [];
+    const tickCount = 5;
+    const ticks = [];
+    for (let i = 0; i < tickCount; i++) {
+      const price = (maxPrice / (tickCount - 1)) * i;
+      ticks.push(price);
+    }
+    return ticks.reverse(); // To render from top to bottom
+  }, [maxPrice, stats]);
+
   const isToday = formatDate(selectedDate) === formatDate(new Date());
   const isTomorrow = formatDate(selectedDate) === formatDate((() => { const d = new Date(); d.setDate(d.getDate() + 1); return d; })());
 
@@ -251,91 +262,108 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
       {/* CHART AREA */}
       {loading ? <div className="text-center h-72 flex items-center justify-center">Indlæser graf...</div> : error ? <div className="text-center h-72 flex items-center justify-center text-red-600">{error}</div> : (
         <div className="w-full relative">
-            <div className="flex justify-between items-start h-72 w-full mb-4">
-                {calculatedData.map(({ hour, spotPrice, total, fees: feesAmount }) => {
-                    const totalHeight = Math.max((total / maxPrice) * 280, 4);
-                    const spotHeight = Math.max((spotPrice / maxPrice) * 280, 2);
-                    const feesHeight = totalHeight - spotHeight;
-                    const currentHour = new Date().getHours();
-                    const isCurrentHour = hour === currentHour && isToday;
-                    const priceCategory = stats ? getPriceCategory(total, stats.average.price, stats.standardDeviation) : 'medium';
-                    
-                    const getBarColor = (category: 'low' | 'medium' | 'high') => {
-                        switch (category) {
-                            case 'low': return 'bg-green-500';
-                            case 'medium': return 'bg-yellow-400';
-                            case 'high': return 'bg-red-500';
-                        }
-                    };
-
-                    return (
+            <div className="flex w-full">
+                {/* Y-Axis Labels & Gridlines */}
+                <div className="relative h-72 w-16 pr-2">
+                    {yAxisTicks.map((tick, index) => (
                         <div 
-                            key={hour} 
-                            className="flex-1 flex flex-col justify-start items-center group cursor-pointer relative pt-4"
-                            onMouseEnter={() => {
-                                const system = fees.system.enabled ? fees.system.value : 0;
-                                const elafgift = fees.elafgift.enabled ? fees.elafgift.value : 0;
-                                const moms = fees.moms.enabled ? fees.moms.value : 1;
-                                setHoveredHourData({
-                                    hour,
-                                    spotPrice,
-                                    total,
-                                    transport: 0,
-                                    system,
-                                    elafgift,
-                                    moms
-                                });
-                            }}
-                            onMouseLeave={() => setHoveredHourData(null)}
+                            key={index} 
+                            className="absolute right-0 w-full flex items-center"
+                            style={{ top: `${((maxPrice - tick) / maxPrice) * 100}%`, transform: 'translateY(-50%)' }}
                         >
-                            <div className="w-3/4 flex flex-col justify-end relative" style={{ height: '280px' }}>
-                                {/* Current hour indicator */}
-                                {isCurrentHour && (
-                                    <div className="absolute inset-0 border-2 border-dashed border-blue-500 rounded-md -m-1 z-10"></div>
-                                )}
-                                <div className="relative flex flex-col justify-end w-full">
-                                    {/* Fees portion (solid color) */}
-                                    <div 
-                                        style={{ height: `${feesHeight}px` }} 
-                                        className={`${getBarColor(priceCategory)} transition-colors rounded-t-md`}
-                                    />
-                                    {/* Spot price portion (striped pattern) */}
-                                    <div 
-                                        style={{ height: `${spotHeight}px` }} 
-                                        className={`${getBarColor(priceCategory)} transition-colors relative overflow-hidden`}
-                                    >
-                                        {/* Diagonal stripe pattern */}
+                            <span className="text-xs text-gray-400 mr-2">{tick.toFixed(2)}</span>
+                            <div className="flex-1 border-b border-dashed border-gray-200"></div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Chart Bars Container */}
+                <div className="flex justify-between items-start h-72 w-full mb-4 flex-1">
+                    {calculatedData.map(({ hour, spotPrice, total, fees: feesAmount }) => {
+                        const totalHeight = Math.max((total / maxPrice) * 280, 4);
+                        const spotHeight = Math.max((spotPrice / maxPrice) * 280, 2);
+                        const feesHeight = totalHeight - spotHeight;
+                        const currentHour = new Date().getHours();
+                        const isCurrentHour = hour === currentHour && isToday;
+                        const priceCategory = stats ? getPriceCategory(total, stats.average.price, stats.standardDeviation) : 'medium';
+                        
+                        const getBarColor = (category: 'low' | 'medium' | 'high') => {
+                            switch (category) {
+                                case 'low': return 'bg-green-500';
+                                case 'medium': return 'bg-yellow-400';
+                                case 'high': return 'bg-red-500';
+                            }
+                        };
+
+                        return (
+                            <div 
+                                key={hour} 
+                                className="flex-1 flex flex-col justify-start items-center group cursor-pointer relative pt-4"
+                                onMouseEnter={() => {
+                                    const system = fees.system.enabled ? fees.system.value : 0;
+                                    const elafgift = fees.elafgift.enabled ? fees.elafgift.value : 0;
+                                    const moms = fees.moms.enabled ? fees.moms.value : 1;
+                                    setHoveredHourData({
+                                        hour,
+                                        spotPrice,
+                                        total,
+                                        transport: 0,
+                                        system,
+                                        elafgift,
+                                        moms
+                                    });
+                                }}
+                                onMouseLeave={() => setHoveredHourData(null)}
+                            >
+                                <div className="w-3/4 flex flex-col justify-end relative" style={{ height: '280px' }}>
+                                    {/* Current hour indicator */}
+                                    {isCurrentHour && (
+                                        <div className="absolute inset-0 border-2 border-dashed border-blue-500 rounded-md -m-1 z-10"></div>
+                                    )}
+                                    <div className="relative flex flex-col justify-end w-full">
+                                        {/* Fees portion (solid color) */}
                                         <div 
-                                            className="absolute inset-0 opacity-50"
-                                            style={{
-                                                backgroundImage: `repeating-linear-gradient(
-                                                    45deg,
-                                                    transparent,
-                                                    transparent 3px,
-                                                    rgba(255,255,255,0.7) 3px,
-                                                    rgba(255,255,255,0.7) 6px
-                                                )`
-                                            }}
+                                            style={{ height: `${feesHeight}px` }} 
+                                            className={`${getBarColor(priceCategory)} transition-colors rounded-t-md`}
                                         />
+                                        {/* Spot price portion (striped pattern) */}
+                                        <div 
+                                            style={{ height: `${spotHeight}px` }} 
+                                            className={`${getBarColor(priceCategory)} transition-colors relative overflow-hidden`}
+                                        >
+                                            {/* Diagonal stripe pattern */}
+                                            <div 
+                                                className="absolute inset-0"
+                                                style={{
+                                                    backgroundImage: `repeating-linear-gradient(
+                                                        -45deg,
+                                                        transparent,
+                                                        transparent 4px,
+                                                        rgba(0, 0, 0, 0.1) 4px,
+                                                        rgba(0, 0, 0, 0.1) 8px
+                                                    )`
+                                                }}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
+                                
+                                {/* Labels container, placed directly below the bar */}
+                                <div className="text-center mt-2 px-0.5">
+                                    <div className="text-xs font-medium text-gray-600 leading-none">{total.toFixed(2)}</div>
+                                    <div className="text-xs text-gray-500 leading-none mt-0.5">kl. {String(hour).padStart(2, '0')}</div>
+                                </div>
                             </div>
-                            
-                            {/* Labels container, placed directly below the bar */}
-                            <div className="text-center mt-2 px-0.5">
-                                <div className="text-xs font-medium text-gray-600 leading-none">{total.toFixed(2)}</div>
-                                <div className="text-xs text-gray-500 leading-none mt-0.5">kl. {String(hour).padStart(2, '0')}</div>
-                            </div>
-                        </div>
-                    );
-                })}
+                        );
+                    })}
+                </div>
             </div>
             
             {/* TOOLTIP */}
             {hoveredHourData && (
                 <div className="absolute bg-gray-800 text-white p-3 rounded-lg shadow-lg z-20 min-w-48" 
                      style={{
-                         left: `${(hoveredHourData.hour / 23) * 100}%`,
+                         left: `${((hoveredHourData.hour / 23) * 100)}%`,
                          bottom: 'auto',
                          top: '-10px',
                          transform: 'translateX(-50%) translateY(-100%)'
@@ -391,14 +419,14 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                 <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-gray-400 rounded relative overflow-hidden">
                         <div 
-                            className="absolute inset-0 opacity-70"
+                            className="absolute inset-0"
                             style={{
                                 backgroundImage: `repeating-linear-gradient(
-                                    45deg,
+                                    -45deg,
                                     transparent,
-                                    transparent 1px,
-                                    rgba(255,255,255,0.8) 1px,
-                                    rgba(255,255,255,0.8) 2px
+                                    transparent 2px,
+                                    rgba(0, 0, 0, 0.15) 2px,
+                                    rgba(0, 0, 0, 0.15) 4px
                                 )`
                             }}
                         />

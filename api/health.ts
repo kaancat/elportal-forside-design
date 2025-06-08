@@ -1,6 +1,10 @@
 // /api/health.ts
 
-// No imports, no TypeScript types. Just a plain function.
-export default function handler(req, res) {
-  res.status(200).json({ status: 'ok', from: 'pure-js-test' });
+// The modern Web API signature for Vercel Functions
+export function GET(request: Request) {
+  // Use the standard Response.json() helper to return a JSON response
+  return Response.json(
+    { status: 'ok', signature: 'modern-web-api' },
+    { status: 200 }
+  );
 } 

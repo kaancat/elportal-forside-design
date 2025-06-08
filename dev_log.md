@@ -164,3 +164,33 @@ Goal: Fix visual stacking order in RenewableEnergyForecast to ensure all energy 
 - **User Experience**: Users can clearly see the contribution of each energy type at any given hour
 
 NOTE: The renewable energy forecast chart now displays all three energy categories with proper visual stacking, ensuring complete data visibility and accurate representation of the energy mix 
+
+---
+
+## [2024-12-28] – API Property Name Alignment
+Goal: Correct property names in RenewableEnergyForecast to match actual EnergiDataService API data structure
+
+- **Updated TypeScript Interfaces**: Fixed ForecastRecord and ProcessedData interfaces to use API's actual property names
+  - **ForecastType**: Changed from `'OnshoreWind' | 'OffshoreWind'` to `'Onshore Wind' | 'Offshore Wind'` (with spaces)
+  - **ProcessedData**: Updated property names to use quoted strings for properties with spaces
+  - **API Alignment**: Now matches the actual data structure from EnergiDataService API
+
+- **Corrected Data Processing Logic**: Updated `processedData` useMemo hook in three key areas:
+  - **Type Definition**: `groupedByHour` object now uses `'Onshore Wind'` and `'Offshore Wind'` with quotes
+  - **Initialization**: Updated object initialization to use proper property names with spaces
+  - **Explicit Mapping**: Replaced object spread with explicit property mapping to handle spaced property names correctly
+
+- **Fixed Area Component DataKeys**: Updated `<Area>` components to use correct property names
+  - **Offshore Wind**: `dataKey="OffshoreWind"` → `dataKey="Offshore Wind"`
+  - **Onshore Wind**: `dataKey="OnshoreWind"` → `dataKey="Onshore Wind"`
+  - **Solar**: Remains `dataKey="Solar"` (no change needed)
+
+## Technical Implementation Details
+- **Property Name Handling**: Used bracket notation `values['Onshore Wind']` for properties with spaces
+- **TypeScript Compatibility**: Quoted property names in interfaces to handle spaces correctly
+- **Data Integrity**: Ensures perfect alignment between component and API data structure
+- **Chart Rendering**: Area components now correctly reference the processed data properties
+
+NOTE: The renewable energy forecast component now perfectly aligns with EnergiDataService API data structure, ensuring proper data mapping and chart rendering with the correct property names that include spaces
+
+NOTE: The renewable energy forecast chart now displays all three energy categories with proper visual stacking, ensuring complete data visibility and accurate representation of the energy mix 

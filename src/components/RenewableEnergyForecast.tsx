@@ -7,8 +7,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
 // --- DATA TYPES ---
-interface ForecastRecord { HourUTC: string; ForecastType: 'Solar' | 'OnshoreWind' | 'OffshoreWind'; ForecastDayAhead: number; }
-interface ProcessedData { hour: string; Solar: number; OnshoreWind: number; OffshoreWind: number; Total: number; }
+interface ForecastRecord { HourUTC: string; ForecastType: 'Solar' | 'Onshore Wind' | 'Offshore Wind'; ForecastDayAhead: number; }
+interface ProcessedData { hour: string; Solar: number; 'Onshore Wind': number; 'Offshore Wind': number; Total: number; }
 interface RenewableEnergyForecastProps { block: { _type: 'renewableEnergyForecast'; title: string; leadingText?: string; }; }
 
 const formatDateForApi = (date: Date) => date.toISOString().split('T')[0];
@@ -68,7 +68,7 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
       if (!data || data.length === 0) return [];
 
       // A reliable way to group API records by the hour.
-      const groupedByHour: { [hour: string]: { Solar: number; OnshoreWind: number; OffshoreWind: number; } } = {};
+      const groupedByHour: { [hour: string]: { Solar: number; 'Onshore Wind': number; 'Offshore Wind': number; } } = {};
 
       for (const record of data) {
         // Create a key for each hour, e.g., "23:00"
@@ -76,7 +76,7 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
         
         // If we haven't seen this hour before, initialize it.
         if (!groupedByHour[hourKey]) {
-          groupedByHour[hourKey] = { Solar: 0, OnshoreWind: 0, OffshoreWind: 0 };
+          groupedByHour[hourKey] = { Solar: 0, 'Onshore Wind': 0, 'Offshore Wind': 0 };
         }
         
         // Add the forecast value to the correct category.
@@ -86,8 +86,10 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
       // Convert the grouped object into an array of objects for the chart.
       return Object.entries(groupedByHour).map(([hour, values]) => ({
         hour: hour.replace(/\./g, ':'), // Ensure format is "HH:mm"
-        ...values,
-        Total: values.Solar + values.OnshoreWind + values.OffshoreWind,
+        'Solar': values.Solar,
+        'Onshore Wind': values['Onshore Wind'],
+        'Offshore Wind': values['Offshore Wind'],
+        Total: values.Solar + values['Onshore Wind'] + values['Offshore Wind'],
       }));
     }, [data]);
   
@@ -130,8 +132,8 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
                 <YAxis domain={[0, 'dataMax + 100']} tick={{ fontSize: 12, fill: '#6b7280' }} tickLine={false} axisLine={false} label={{ value: 'MWh', angle: -90, position: 'insideLeft', offset: -10, style: { fill: '#6b7280' } }} />
                 <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#374151', strokeWidth: 1, strokeDasharray: '3 3' }} />
                 
-                <Area type="monotone" dataKey="OffshoreWind" name="Vind (Hav)" stackId="1" stroke={chartColors.offshore} strokeWidth={2} fillOpacity={1} fill="url(#colorOffshore)" />
-                <Area type="monotone" dataKey="OnshoreWind" name="Vind (Land)" stackId="1" stroke={chartColors.onshore} strokeWidth={2} fillOpacity={1} fill="url(#colorOnshore)" />
+                <Area type="monotone" dataKey="Offshore Wind" name="Vind (Hav)" stackId="1" stroke={chartColors.offshore} strokeWidth={2} fillOpacity={1} fill="url(#colorOffshore)" />
+                <Area type="monotone" dataKey="Onshore Wind" name="Vind (Land)" stackId="1" stroke={chartColors.onshore} strokeWidth={2} fillOpacity={1} fill="url(#colorOnshore)" />
                 <Area type="monotone" dataKey="Solar" name="Solenergi" stackId="1" stroke={chartColors.solar} strokeWidth={2} fillOpacity={1} fill="url(#colorSolar)" />
               </AreaChart>
             </ResponsiveContainer>

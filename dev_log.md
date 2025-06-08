@@ -333,3 +333,45 @@ Goal: Improve component robustness by making title and leadingText fields condit
 - **Professional Display**: Only shows content when it's actually provided
 
 NOTE: The RenewableEnergyForecast component now properly handles optional Sanity content fields with defensive rendering patterns, ensuring a robust and flexible content management experience
+
+---
+
+## [2024-12-28] – Enhanced Region Tooltip with Click and Bigger Size
+Goal: Improve region tooltip UX by making it bigger, more informative, and clickable in addition to hover
+
+- **Enhanced Tooltip Functionality**:
+  - **Click Support**: Added `onClick` handler to toggle tooltip visibility
+  - **Controlled State**: Added `isRegionTooltipOpen` state for precise tooltip control
+  - **Dual Interaction**: Works on both click and hover for improved accessibility
+  - **Larger Icon**: Increased from `h-4 w-4` to `h-5 w-5` for better clickability
+
+- **Improved Content & Styling**:
+  - **Bigger Tooltip**: Added `max-w-xs p-4 text-base` classes for larger, more readable content
+  - **Structured Content**: Organized information with headers and clear formatting
+  - **Enhanced Information**: Added specific details about Bornholm and Lolland-Falster
+  - **Visual Feedback**: Added hover state (`hover:text-gray-600`) and cursor pointer
+
+- **Better User Experience**:
+  - **Mobile Friendly**: Click functionality works better on touch devices
+  - **Informative Content**: Clear explanation of DK1 vs DK2 geographical coverage
+  - **User Guidance**: Added instruction text "Klik eller hold musen over ikonet for at se info"
+  - **Accessible Design**: Multiple interaction methods (click + hover)
+
+## Technical Implementation
+- **State Management**: Added `isRegionTooltipOpen` boolean state
+- **Event Handlers**: 
+  - `onClick`: Toggles tooltip visibility
+  - `onMouseEnter`: Shows tooltip on hover
+  - `onMouseLeave`: Hides tooltip when mouse leaves
+- **Controlled Component**: Uses `open` and `onOpenChange` props for full control
+- **Responsive Content**: Structured layout with proper spacing and typography
+
+## Content Structure
+```
+Danske elområder:
+DK1: Vestdanmark - Jylland og Fyn
+DK2: Østdanmark - Sjælland, Lolland-Falster og Bornholm
+Klik eller hold musen over ikonet for at se info.
+```
+
+NOTE: The region tooltip now provides a significantly enhanced user experience with larger, more informative content and dual interaction methods (click + hover) for better accessibility across all devices

@@ -158,6 +158,28 @@ export interface ProviderListBlock {
   providers: ProviderProductBlock[]
 }
 
+export interface FeatureBlock {
+  _key: string
+  _type: 'feature'
+  title: string
+  description: string
+  icon: string
+}
+
+export interface FeatureListBlock {
+  _type: 'featureList'
+  _key: string
+  title?: string
+  features: FeatureBlock[]
+}
+
+export interface ValuePropositionBlock {
+  _type: 'valueProposition'
+  _key: string
+  title?: string
+  propositions: string[]
+}
+
 // Centralized ContentBlock union type
 export type ContentBlock = 
   | PageSection 
@@ -174,6 +196,8 @@ export type ContentBlock =
   | HeroWithCalculator 
   | MonthlyProductionChartBlock
   | ProviderListBlock
+  | FeatureListBlock
+  | ValuePropositionBlock
 
 export interface HomePage {
   _id: string

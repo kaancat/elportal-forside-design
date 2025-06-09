@@ -8,9 +8,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const start = twelveMonthsAgo.toISOString().split('T')[0];
   const end = today.toISOString().split('T')[0];
 
-  // These are the exact columns you provided from the Build Report tool
   const columns = [
-    'Month',
+    'HourUTC', // We need the hour to group by month
     'CentralPowerMWhDK1','CentralPowerMWhDK2',
     'LocalPowerMWhDK1','LocalPowerMWhDK2',
     'OffshoreWindGe100MW_MWhDK1','OffshoreWindGe100MW_MWhDK2',
@@ -23,16 +22,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     'SolarPowerSelfConMWhDK1','SolarPowerSelfConMWhDK2'
   ].join(',');
 
-  // The verified Dataset ID from your latest screenshot
-  const DATASET_ID = 'ProductionConsumptionSettlement';
-
-  const API_URL = `https://api.energidataservice.dk/dataset/${DATASET_ID}?start=${start}&end=${end}&sort=Month&columns=${columns}&aggregate=sum`;
+  // The verified Dataset ID, but we now sort by HourUTC
+  const API_URL = `https://api.energidataservice.dk/dataset/ProductionConsumptionSettlement?start=${start}&end=${end}&sort=HourUTC asc&columns=${columns}`;
 
   try {
     const apiResponse = await fetch(API_URL);
     if (!apiResponse.ok) {
       const errorText = await apiResponse.text();
-      console.error(`EnergiDataService API Error for ${DATASET_ID}:`, errorText);
+      console.error("EnergiDataService API Error:", errorText);
       throw new Error(`API call failed: ${apiResponse.status}`);
     }
     const data = await apiResponse.json();

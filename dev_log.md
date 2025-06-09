@@ -1,5 +1,45 @@
 # Dev Log
 
+## [2024-12-19] – Component Rebuild for New Dataset
+Goal: Rebuild MonthlyProductionChart component to correctly process ProductionAndConsumptionSettlement data
+
+- **Complete TypeScript Interface Overhaul** (src/components/MonthlyProductionChart.tsx):
+  - Replaced old interface with correct ProductionRecord fields
+  - Added comprehensive field mapping for all energy sources
+  - Proper optional field typing with `?` operators for reliability
+  - Removed unused PriceArea field from old dataset
+
+- **Enhanced Data Processing Logic**:
+  - **Solar Power**: Combines `SolarPowerGe10kW_MWh` + `SolarPowerLt10kW_MWh`
+  - **Onshore Wind**: Combines `OnshoreWindGe50kW_MWh` + `OnshoreWindLt50kW_MWh`
+  - **Offshore Wind**: Combines `OffshoreWindGe100MW_MWh` + `OffshoreWindLt100MW_MWh`
+  - **Central Power**: Direct mapping from `CentralPower_MWh`
+  - **Local Power**: Direct mapping from `LocalPower_MWh`
+
+- **Improved Chart Presentation**:
+  - Y-axis now displays values in GWh (dividing by 1000) for better readability
+  - Updated axis label from "MWh" to "Produktion"
+  - Enhanced error handling with proper error message display
+  - Simplified month formatting with 2-digit year (`year: '2-digit'`)
+
+- **Better Error Handling**:
+  - Enhanced fetch error handling to parse API error responses
+  - Added dedicated error state display in red text
+  - Proper error propagation from API route to component
+
+Technical Improvements:
+- **Data Accuracy**: Proper aggregation of sub-categories within energy types
+- **User Experience**: Clear error messages and loading states
+- **Chart Readability**: GWh scale for easier interpretation of large values
+- **Type Safety**: Comprehensive optional field handling prevents undefined errors
+
+Production Benefits:
+- ✅ Accurate 12-month electricity production visualization
+- ✅ Proper energy source categorization and aggregation
+- ✅ Enhanced chart readability with GWh scaling
+- ✅ Robust error handling for better user experience
+- ✅ Complete alignment with ProductionAndConsumptionSettlement dataset structure
+
 ## [2024-12-19] – API Dataset Correction
 Goal: Rebuild monthly-production API route to use correct ProductionAndConsumptionSettlement dataset
 

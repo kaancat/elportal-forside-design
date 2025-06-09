@@ -42,7 +42,7 @@ const PriceCalculatorWidget = () => {
     const brandGreen = '#98ce2f'; // Using a variable for the brand color
 
     return (
-        <div className="bg-white text-gray-900 rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-lg mx-auto">
+        <div className="bg-white text-gray-900 rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-md lg:max-w-xl mx-auto">
             <div className="flex justify-between items-center mb-6">
                 {[1, 2, 3].map(step => (
                     <React.Fragment key={step}>

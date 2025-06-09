@@ -1,12 +1,12 @@
-
 import React from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { PortableText } from '@portabletext/react'
 
 interface PriceExampleTable {
   _type: 'priceExampleTable'
   _key: string
   title: string
-  leadingText: string
+  leadingText: any[]
   example1_title: string
   example1_kwh_price: number
   example1_subscription: number
@@ -46,9 +46,9 @@ const PriceExampleTableComponent: React.FC<PriceExampleTableComponentProps> = ({
 
         {/* Leading Text */}
         {block.leadingText && (
-          <p className="text-lg lg:text-xl text-gray-700 text-center mb-12 leading-relaxed max-w-3xl mx-auto">
-            {block.leadingText}
-          </p>
+          <div className="text-lg lg:text-xl text-gray-700 text-center mb-12 leading-relaxed max-w-3xl mx-auto prose">
+            <PortableText value={block.leadingText} />
+          </div>
         )}
 
         {/* Price Comparison Table */}

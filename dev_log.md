@@ -9,6 +9,64 @@ Goal: <Short description of the goal>
 
 ---
 
+## [2024-12-19] – Update
+Goal: <What was done>
+
+- <Action>
+- <Impact>
+- NOTE: <Any notes about compatibility, limitations, etc.>
+
+---
+
+## [2024-12-19] – ProviderList Refactoring to Sanity CMS
+Goal: Migrate ProviderList component from static JSON data to dynamic Sanity CMS data
+
+### Changes Made:
+
+1. **Updated TypeScript Definitions (`src/types/sanity.ts`)**:
+   - Added `ProviderProductBlock` interface with fields: id, providerName, productName, logoUrl, displayPrice_kWh, displayMonthlyFee, signupLink, isVindstoedProduct, benefits[]
+   - Added `ProviderListBlock` interface for the content block with _type: 'providerList'
+   - Added `ProviderListBlock` to the main `ContentBlock` union type
+
+2. **Refactored ProviderList Component (`src/components/ProviderList.tsx`)**:
+   - Removed `useProducts` hook dependency and static JSON data fetching
+   - Changed component to accept `ProviderListBlock` as props instead of fetching data internally
+   - Added data conversion layer `convertToElectricityProduct()` to map Sanity data structure to existing `ElectricityProduct` interface
+   - Maintained existing UI functionality: household type selector, consumption slider, sorting logic
+   - Preserved sorting logic to prioritize Vindstød products first
+   - Added proper error handling for empty provider lists
+
+3. **Updated ContentBlocks Renderer (`src/components/ContentBlocks.tsx`)**:
+   - Added import for `ProviderListBlock` type and `ProviderList` component
+   - Added new case for `'providerList'` block type in the renderer switch statement
+   - Properly typed the block passing to ProviderList component
+
+### Architecture Impact:
+- **Data Flow**: Changed from Client-side JSON fetch → Direct Sanity CMS data via props
+- **Flexibility**: Now supports dynamic provider management through Sanity Studio
+- **Backwards Compatibility**: Maintained existing ProviderCard interface through data conversion layer
+- **Performance**: Eliminated redundant API calls by receiving pre-fetched data as props
+
+### Benefits Mapping Strategy:
+The component intelligently maps the flexible `benefits` array from Sanity to existing boolean properties:
+- `isVariablePrice`: Searches for benefit text containing "variabel"
+- `hasNoBinding`: Searches for benefit text containing "binding" 
+- `hasFreeSignup`: Searches for benefit text containing "gratis"
+
+### Next Steps:
+- Create corresponding Sanity schema for `providerList` and `providerProduct` document types
+- Update Sanity Studio configuration to enable provider management
+- Test the new component with sample Sanity data
+- Consider migrating the existing JSON data to Sanity initial content
+
+### Notes:
+- Component maintains full backward compatibility with existing ProviderCard component
+- All existing UI interactions (sliders, selectors, calculations) preserved
+- Proper error handling and empty state management implemented
+- TypeScript strictly typed throughout the refactoring
+
+---
+
 ## [2024-12-19] – TypeScript Centralization Fix
 Goal: Fix TypeScript errors by centralizing type definitions for monthlyProductionChart block
 

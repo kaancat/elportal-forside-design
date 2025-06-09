@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import ProviderCard from './ProviderCard';
 import HouseholdTypeSelector, { HouseholdType } from './HouseholdTypeSelector';
-import { useProducts } from '@/hooks/useProducts';
 import { Slider } from '@/components/ui/slider';
+import type { ProviderListBlock, ProviderProductBlock } from '../types/sanity';
 
-const ProviderList = () => {
-  const { data: productsResponse, isLoading, error } = useProducts();
+interface ProviderListProps {
+  block: ProviderListBlock;
+}
+
+export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
   const [annualConsumption, setAnnualConsumption] = useState([4000]);
   const [selectedHouseholdType, setSelectedHouseholdType] = useState<string | null>('small-house');
 
-  console.log('ProviderList render - isLoading:', isLoading);
-  console.log('ProviderList render - error:', error);
-  console.log('ProviderList render - productsResponse:', productsResponse);
+  console.log('ProviderList render - block:', block);
   console.log('ProviderList render - annualConsumption:', annualConsumption[0]);
 
   const handleHouseholdTypeSelect = (type: HouseholdType | null) => {
@@ -34,59 +35,42 @@ const ProviderList = () => {
     setSelectedHouseholdType('custom');
   };
 
-  if (isLoading) {
+  // Sort products to ensure the featured one is first
+  const sortedProviders = [...(block.providers || [])].sort((a, b) => {
+    if (a.isVindstoedProduct && !b.isVindstoedProduct) return -1;
+    if (!a.isVindstoedProduct && b.isVindstoedProduct) return 1;
+    // Add other sorting logic if needed, e.g., by price
+    return (a.displayPrice_kWh || 0) - (b.displayPrice_kWh || 0);
+  });
+
+  // Convert ProviderProductBlock to ElectricityProduct format for ProviderCard
+  const convertToElectricityProduct = (provider: ProviderProductBlock) => ({
+    id: provider.id,
+    supplierName: provider.providerName,
+    productName: provider.productName,
+    isVindstoedProduct: provider.isVindstoedProduct,
+    displayPrice_kWh: provider.displayPrice_kWh,
+    displayMonthlyFee: provider.displayMonthlyFee,
+    signupLink: provider.signupLink,
+    supplierLogoURL: provider.logoUrl,
+    // Map benefits to existing boolean properties
+    isVariablePrice: provider.benefits?.find(b => b.text.toLowerCase().includes('variabel'))?.included || true,
+    hasNoBinding: provider.benefits?.find(b => b.text.toLowerCase().includes('binding'))?.included || true,
+    hasFreeSignup: provider.benefits?.find(b => b.text.toLowerCase().includes('gratis'))?.included || true,
+    internalNotes: '',
+    lastUpdated: new Date().toISOString(),
+    sortOrderVindstoed: provider.isVindstoedProduct ? 1 : undefined,
+    sortOrderCompetitor: provider.isVindstoedProduct ? undefined : 1,
+  });
+
+  if (!block.providers || block.providers.length === 0) {
     return (
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="mb-12">
-            <h1 className="text-4xl font-bold text-center mb-4 text-brand-dark">Sammenlign eludbydere</h1>
-            <p className="text-center text-gray-600 text-lg mb-8">
-              Find den bedste elpris for dig baseret på dit forbrug
-            </p>
-          </div>
-          <div className="flex justify-center">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-              <div className="text-center text-brand-dark">Indlæser elpriser...</div>
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (error) {
-    console.error('Error loading products:', error);
-    return (
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="mb-12">
-            <h1 className="text-4xl font-bold text-center mb-4 text-brand-dark">Sammenlign eludbydere</h1>
-            <p className="text-center text-gray-600 text-lg mb-8">
-              Find den bedste elpris for dig baseret på dit forbrug
-            </p>
-          </div>
-          <div className="flex justify-center">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-              <div className="text-center text-red-500">
-                Der opstod en fejl ved indlæsning af elpriser.
-                <br />
-                <small className="text-gray-500">Fejl: {error?.message || 'Ukendt fejl'}</small>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  const products = productsResponse?.products || [];
-
-  if (products.length === 0) {
-    return (
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="mb-12">
-            <h1 className="text-4xl font-bold text-center mb-4 text-brand-dark">Sammenlign eludbydere</h1>
+            <h1 className="text-4xl font-bold text-center mb-4 text-brand-dark">
+              {block.title || 'Sammenlign eludbydere'}
+            </h1>
             <p className="text-center text-gray-600 text-lg mb-8">
               Find den bedste elpris for dig baseret på dit forbrug
             </p>
@@ -105,7 +89,9 @@ const ProviderList = () => {
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="mb-12">
-          <h1 className="text-4xl font-bold text-center mb-4 text-brand-dark">Sammenlign eludbydere</h1>
+          <h1 className="text-4xl font-bold text-center mb-4 text-brand-dark">
+            {block.title || 'Sammenlign eludbydere'}
+          </h1>
           <p className="text-center text-gray-600 text-lg mb-8">
             Find den bedste elpris for dig baseret på dit forbrug
           </p>
@@ -147,16 +133,16 @@ const ProviderList = () => {
         {/* Products List */}
         <div className="space-y-6">
           <h2 className="text-2xl font-bold text-center text-brand-dark mb-8">Aktuelle tilbud</h2>
-          {products.map(product => {
-            console.log('Rendering product:', product);
-            if (!product || !product.id) {
-              console.warn('Invalid product data:', product);
+          {sortedProviders.map(provider => {
+            console.log('Rendering provider:', provider);
+            if (!provider || !provider.id) {
+              console.warn('Invalid provider data:', provider);
               return null;
             }
             return (
               <ProviderCard 
-                key={product.id} 
-                product={product}
+                key={provider.id} 
+                product={convertToElectricityProduct(provider)}
                 annualConsumption={annualConsumption[0]}
               />
             );

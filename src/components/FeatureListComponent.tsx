@@ -5,7 +5,7 @@ import * as Icons from 'lucide-react';
 // A helper to safely get an icon component by name
 const getIcon = (name: string) => {
   const IconComponent = (Icons as any)[name];
-  return IconComponent ? <IconComponent className="h-8 w-8 text-brand-primary" /> : null;
+  return IconComponent ? <IconComponent className="h-8 w-8 text-brand-green" /> : null;
 };
 
 interface FeatureListComponentProps {
@@ -23,10 +23,10 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
             {block.title}
           </h2>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 text-center">
           {block.features.map((feature, index) => (
-            <div key={feature._key} className="flex flex-col items-start text-left">
-              <div className="flex items-center justify-center h-16 w-16 mb-6 rounded-full bg-brand-primary-light/10">
+            <div key={feature._key} className="flex flex-col items-center">
+              <div className="flex items-center justify-center h-16 w-16 mb-6 rounded-full bg-brand-green/20">
                 {getIcon(feature.icon)}
               </div>
               <h3 className="text-xl font-bold text-brand-dark mb-2">

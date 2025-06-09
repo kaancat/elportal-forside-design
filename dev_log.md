@@ -477,3 +477,73 @@ Goal: Update energy-forecast API to always fetch all regional data, preparing fo
 - Enhance data processing for multi-region aggregation
 
 NOTE: The API route now provides complete regional data, enabling the frontend component to implement flexible multi-region selection and visualization capabilities
+
+---
+
+## [2024-12-28] – Component Refactoring for Multi-Region Selection (Step 2)
+Goal: Transform RenewableEnergyForecast component to support multi-region selection with overlapping layers
+
+- **Major Architecture Changes**: Complete refactoring of component logic and UI
+  - **Multi-Selection State**: Replaced single region state with multi-selection object
+  - **Toggle Controls**: Replaced radio buttons with Toggle components for independent selection
+  - **Data Processing**: New logic processes separate datasets for each region
+  - **Chart Rendering**: Conditional Area layers for overlapping visualizations
+
+- **New State Management**:
+  - **Old**: `currentRegion` (single selection: 'DK1' | 'DK2' | 'Danmark')
+  - **New**: `selectedRegions` object `{ Danmark: true, DK1: false, DK2: false }`
+  - **Benefits**: Multiple regions can be selected simultaneously
+  - **Default**: Danmark enabled by default, DK1 and DK2 disabled
+
+- **Enhanced Data Processing**:
+  - **Separate Datasets**: `processRegion()` function creates independent data for each region
+  - **Dynamic Filtering**: DK1/DK2 filter by `PriceArea`, Danmark includes all data
+  - **Memoized Processing**: Efficient processing using useMemo for performance
+  - **Return Structure**: `{ Danmark: [], DK1: [], DK2: [] }` for flexible chart rendering
+
+- **Updated UI Components**:
+  - **Toggle Controls**: Replaced region buttons with Toggle components
+  - **Accessibility**: Added proper `aria-label` attributes for screen readers
+  - **Interactive Feedback**: Visual pressed state for active regions
+  - **Simplified Layout**: Removed tooltips and info icons for cleaner interface
+
+## Technical Implementation Details
+
+### New Data Processing Logic
+```typescript
+const processRegion = (region: 'DK1' | 'DK2' | 'Danmark'): ProcessedHourData[] => {
+  const regionData = region === 'Danmark' ? allData : allData.filter(d => d.PriceArea === region);
+  // Process and aggregate data for specific region
+  return sortedHourlyData;
+};
+```
+
+### Multi-Layer Chart Rendering
+```jsx
+{selectedRegions.Danmark && <Area data={processedData.Danmark} stroke="#16a34a" />}
+{selectedRegions.DK1 && <Area data={processedData.DK1} stroke="#3b82f6" />}
+{selectedRegions.DK2 && <Area data={processedData.DK2} stroke="#f59e0b" />}
+```
+
+### Updated Interface Types
+- **ForecastRecord**: Added `PriceArea: 'DK1' | 'DK2'` property
+- **ProcessedHourData**: Renamed from `ProcessedData` for clarity
+- **Chart Colors**: New color scheme for regions (green, blue, orange)
+
+## User Experience Improvements
+
+- **Flexible Comparison**: Users can compare any combination of regions
+- **Overlapping Visualization**: Multiple area charts layer for easy comparison
+- **Independent Selection**: Toggle regions on/off without affecting others
+- **Visual Clarity**: Distinct colors for each region with reduced opacity
+- **Performance**: Single API call provides all data, processed client-side
+
+## Breaking Changes
+- **Removed Features**: Info tooltips, consumption context, energy type breakdown
+- **Simplified Focus**: Chart now shows total renewable energy per region
+- **Chart Type**: Single metric (Total) instead of stacked energy types
+- **API Integration**: No longer sends region parameter to API
+
+NOTE: The component now provides a powerful multi-region comparison tool, enabling users to visualize and compare renewable energy forecasts across Denmark, DK1, and DK2 regions simultaneously with overlapping area charts
+
+NOTE: The API route now provides complete regional data, enabling the frontend component to implement flexible multi-region selection and visualization capabilities

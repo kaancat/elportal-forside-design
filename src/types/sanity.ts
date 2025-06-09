@@ -139,6 +139,25 @@ export interface MonthlyProductionChartBlock {
   description?: string
 }
 
+export interface ProviderProductBlock {
+  id: string
+  providerName: string
+  productName: string
+  logoUrl: string
+  displayPrice_kWh: number
+  displayMonthlyFee: number
+  signupLink: string
+  isVindstoedProduct: boolean
+  benefits: { text: string; included: boolean }[]
+}
+
+export interface ProviderListBlock {
+  _type: 'providerList'
+  _key: string
+  title?: string
+  providers: ProviderProductBlock[]
+}
+
 // Centralized ContentBlock union type
 export type ContentBlock = 
   | PageSection 
@@ -154,6 +173,7 @@ export type ContentBlock =
   | PriceCalculator 
   | HeroWithCalculator 
   | MonthlyProductionChartBlock
+  | ProviderListBlock
 
 export interface HomePage {
   _id: string

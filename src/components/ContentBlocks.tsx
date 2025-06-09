@@ -1,5 +1,5 @@
 import React from 'react'
-import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock } from '@/types/sanity'
+import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock } from '@/types/sanity'
 import PageSectionComponent from './PageSectionComponent'
 import FAQItemComponent from './FAQItemComponent'
 import PriceExampleTableComponent from './PriceExampleTableComponent'
@@ -13,6 +13,7 @@ import RenewableEnergyForecastComponent from './RenewableEnergyForecast'
 import PriceCalculatorWidget from './PriceCalculatorWidget'
 import HeroSection from './HeroSection'
 import MonthlyProductionChart from './MonthlyProductionChart'
+import ProviderList from './ProviderList'
 
 interface ContentBlocksProps {
   blocks: ContentBlock[]
@@ -96,6 +97,9 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         } else if (block._type === 'monthlyProductionChart') {
           console.log('Passing monthlyProductionChart to MonthlyProductionChart:', block)
           return <MonthlyProductionChart key={block._key} block={block as MonthlyProductionChartBlock} />
+        } else if (block._type === 'providerList') {
+          console.log('Passing providerList to ProviderList:', block)
+          return <ProviderList key={block._key} block={block as ProviderListBlock} />
         } else if (block._type === 'pageSection') {
           console.log('Passing pageSection to PageSectionComponent:', block)
           return <PageSectionComponent key={block._key} section={block as PageSection} />

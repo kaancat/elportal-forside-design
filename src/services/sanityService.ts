@@ -94,6 +94,13 @@ export class SanityService {
           title,
           subtitle,
           apiRegion
+        },
+        _type == "monthlyProductionChart" => {
+          _key,
+          _type,
+          title,
+          leadingText,
+          description
         }
       }
     }`

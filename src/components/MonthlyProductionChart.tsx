@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import type { MonthlyProductionChartBlock } from '../types/sanity';
 
 // --- TYPES ---
 interface ProductionRecord { Month: string; PriceArea: string; OffshoreWindLt100MW_MWh: number; OnshoreWind_MWh: number; SolarCell_MWh: number; CentralProd_MWh: number; LocalProd_MWh: number; }
 interface ProcessedMonthData { month: string; Sol: number; Landvind: number; Havvind: number; Decentrale: number; Centrale: number; }
-interface MonthlyProductionChartProps { block: { _type: 'monthlyProductionChart'; title: string; leadingText?: string; description?: string; }; }
+interface MonthlyProductionChartProps { block: MonthlyProductionChartBlock; }
 
 // --- CUSTOM TOOLTIP ---
 const CustomTooltip = ({ active, payload, label }: any) => {

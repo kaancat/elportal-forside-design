@@ -1,5 +1,68 @@
 # Dev Log
 
+## [2024-12-19] – TypeScript Centralization Fix
+Goal: Fix TypeScript errors by centralizing type definitions for monthlyProductionChart block
+
+- **Centralized Type Definition** (src/types/sanity.ts):
+  - Renamed `MonthlyProductionChart` to `MonthlyProductionChartBlock` for consistency
+  - Created centralized `ContentBlock` union type including all block types
+  - Simplified `HomePage.contentBlocks` to use `ContentBlock[]` array
+  - Improved type organization and reusability across components
+
+- **Updated Component Interface** (src/components/MonthlyProductionChart.tsx):
+  - Imported `MonthlyProductionChartBlock` type from centralized types
+  - Replaced inline interface definition with centralized type
+  - Improved type safety and consistency with other components
+
+- **Cleaned ContentBlocks Renderer** (src/components/ContentBlocks.tsx):
+  - Imported `ContentBlock` and `MonthlyProductionChartBlock` from centralized types
+  - Removed duplicate local `ContentBlock` type definition
+  - Replaced `any` type casting with proper `MonthlyProductionChartBlock` type
+  - Fixed all TypeScript compilation errors
+
+Technical Implementation:
+- **Type Safety**: Complete TypeScript support with centralized type definitions
+- **Code Maintainability**: Single source of truth for all block type definitions
+- **Build Success**: All TypeScript errors resolved, clean production build
+- **Developer Experience**: Better IntelliSense and type checking across the project
+
+Build Verification:
+- ✅ TypeScript compilation passes without errors
+- ✅ Vite production build completes successfully  
+- ✅ All components properly typed and integrated
+- ✅ No runtime type conflicts or casting issues
+
+## [2024-12-19] – Monthly Production Chart Integration
+Goal: Integrate MonthlyProductionChart component into ContentBlocks renderer and GROQ queries
+
+- **Updated GROQ Query** (src/services/sanityService.ts):
+  - Added `monthlyProductionChart` expansion to main homepage query
+  - Fetches `_key`, `_type`, `title`, `leadingText`, and `description` fields
+  - Enables MonthlyProductionChart blocks to be retrieved from Sanity CMS
+
+- **Updated ContentBlocks Renderer** (src/components/ContentBlocks.tsx):
+  - Added import for MonthlyProductionChart component
+  - Added case for `monthlyProductionChart` in the block type switch
+  - Component renders with proper key and block prop passing
+  - Added console logging for debugging block processing
+
+- **Added TypeScript Interface** (src/types/sanity.ts):
+  - Created MonthlyProductionChart interface with required fields
+  - Added to HomePage contentBlocks union type for proper typing
+  - Supports optional leadingText and description fields
+
+Technical Implementation:
+- **GROQ Integration**: MonthlyProductionChart blocks now included in homepage data fetching
+- **Component Routing**: ContentBlocks.tsx properly routes monthlyProductionChart blocks to component
+- **Type Safety**: Full TypeScript support for MonthlyProductionChart block structure
+- **Logging**: Debug logging added for easier troubleshooting
+
+Content Editor Experience:
+- **CMS Integration**: Content editors can now add MonthlyProductionChart blocks in Sanity
+- **Field Support**: Title, leading text, and description fields available for customization
+- **Live Rendering**: Charts appear immediately when monthlyProductionChart blocks are added
+- **Professional Display**: 12-month production data visualized with stacked area chart
+
 ## [2024-12-19] – Monthly Production Chart Component
 Goal: Create complete frontend component to display 12-month electricity production data with stacked area chart
 

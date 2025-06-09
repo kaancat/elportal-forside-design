@@ -95,11 +95,45 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
     return Math.ceil(dataMax / magnitude) * magnitude;
   }, [processedData, selectedRegions]);
 
+  const compositionLegendData = useMemo(() => {
+    const selectedCount = Object.values(selectedRegions).filter(Boolean).length;
+    if (selectedCount !== 1) return null; // Only show composition for a single selected region
+
+    const regionKey = Object.keys(selectedRegions).find(k => selectedRegions[k as keyof typeof selectedRegions]) as keyof typeof processedData;
+    const data = processedData[regionKey];
+    if (!data || data.length === 0) return null;
+
+    const totals = data.reduce((acc, hour) => {
+        acc.Solar += hour['Solar'];
+        acc['Onshore Wind'] += hour['Onshore Wind'];
+        acc['Offshore Wind'] += hour['Offshore Wind'];
+        acc.GrandTotal += hour.Total;
+        return acc;
+    }, { Solar: 0, 'Onshore Wind': 0, 'Offshore Wind': 0, GrandTotal: 0 });
+
+    if (totals.GrandTotal === 0) return null;
+
+    return {
+        Solar: (totals.Solar / totals.GrandTotal) * 100,
+        'Onshore Wind': (totals['Onshore Wind'] / totals.GrandTotal) * 100,
+        'Offshore Wind': (totals['Offshore Wind'] / totals.GrandTotal) * 100,
+    };
+  }, [selectedRegions, processedData]);
+
   const handleToggle = (region: keyof typeof selectedRegions) => {
     setSelectedRegions(prev => ({ ...prev, [region]: !prev[region] }));
   };
   
-  const chartColors = { Danmark: '#16a34a', DK1: '#3b82f6', DK2: '#ca8a04' };
+  const chartColors = {
+    // Colors for the compositional breakdown
+    solar: '#f59e0b',
+    onshore: '#3b82f6',
+    offshore: '#16a34a',
+    // Colors for the regional comparison lines
+    Danmark: '#16a34a', // Green
+    DK1: '#3b82f6',     // Blue
+    DK2: '#ca8a04',     // Dark Yellow
+  };
 
   return (
     <section className="bg-white py-16 lg:py-24">
@@ -156,11 +190,32 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
                       )}
         </div>
         
-        {/* --- CUSTOM LEGEND --- */}
-        <div className="flex justify-center items-center gap-x-6 gap-y-2 flex-wrap mt-8">
-            <div className="flex items-center gap-2 text-sm"><div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.Danmark}}></div><span>Hele Danmark</span></div>
-            <div className="flex items-center gap-2 text-sm"><div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.DK1}}></div><span>DK1 (Vest)</span></div>
-            <div className="flex items-center gap-2 text-sm"><div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.DK2}}></div><span>DK2 (Øst)</span></div>
+        {/* --- DYNAMIC LEGEND --- */}
+        <div className="flex justify-center items-center gap-x-8 gap-y-4 flex-wrap mt-8">
+            {compositionLegendData ? (
+                // VIEW 1: Detailed Composition Legend (when one region is selected)
+                <>
+                    <div className="flex items-center gap-2 text-sm">
+                        <div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.solar}}></div>
+                        <span>Solenergi ({compositionLegendData.Solar.toFixed(0)}%)</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                        <div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.onshore}}></div>
+                        <span>Vind (Land) ({compositionLegendData['Onshore Wind'].toFixed(0)}%)</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                        <div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.offshore}}></div>
+                        <span>Vind (Hav) ({compositionLegendData['Offshore Wind'].toFixed(0)}%)</span>
+                    </div>
+                </>
+            ) : (
+                // VIEW 2: Simple Region Key (when multiple regions are selected)
+                <>
+                    {selectedRegions.Danmark && <div className="flex items-center gap-2 text-sm"><div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.Danmark}}></div><span>Hele Danmark</span></div>}
+                    {selectedRegions.DK1 && <div className="flex items-center gap-2 text-sm"><div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.DK1}}></div><span>DK1 (Vest)</span></div>}
+                    {selectedRegions.DK2 && <div className="flex items-center gap-2 text-sm"><div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.DK2}}></div><span>DK2 (Øst)</span></div>}
+                </>
+            )}
         </div>
         
         {block.explanation && <div className="prose prose-lg max-w-4xl mx-auto mt-12 text-gray-700"><PortableText value={block.explanation} /></div>}

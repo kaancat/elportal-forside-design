@@ -613,4 +613,65 @@ const yAxisMax = useMemo(() => {
 
 NOTE: The component now provides a polished, production-ready experience with intuitive controls, smart scaling, and comprehensive visual feedback for optimal user engagement
 
+---
+
+## [2024-12-28] – Dynamic Legend Implementation
+Goal: Implement adaptive legend that shows energy composition for single region view and region key for multi-region comparison
+
+- **Dynamic Legend Logic**: Added intelligent legend switching based on selected region count
+  - **Single Region**: Shows detailed energy composition breakdown (Solar, Onshore Wind, Offshore Wind)
+  - **Multiple Regions**: Shows simple regional comparison key
+  - **Conditional Rendering**: Uses ternary operator for clean conditional display
+
+- **Composition Analysis**: Added `compositionLegendData` useMemo hook
+  - **Calculation Logic**: Aggregates totals for Solar, Onshore Wind, Offshore Wind across all hours
+  - **Percentage Conversion**: Converts raw MWh values to percentage composition
+  - **Single Region Detection**: Only activates when exactly one region is selected
+  - **Data Validation**: Handles edge cases (no data, zero totals)
+
+- **Enhanced Color Scheme**: Expanded chartColors object for dual use cases
+  - **Compositional Colors**: `solar: '#f59e0b'`, `onshore: '#3b82f6'`, `offshore: '#16a34a'`
+  - **Regional Colors**: `Danmark: '#16a34a'`, `DK1: '#3b82f6'`, `DK2: '#ca8a04'`
+  - **Consistent Mapping**: Colors align with both composition and regional views
+
+- **Improved User Experience**:
+  - **Context-Aware Information**: Provides most relevant data for current view
+  - **Educational Value**: Shows energy source percentages for deeper understanding  
+  - **Visual Consistency**: Maintains color coding across different legend modes
+  - **Responsive Layout**: Increased gap spacing for better mobile experience
+
+## Technical Implementation Details
+
+### Composition Calculation Algorithm
+```typescript
+const totals = data.reduce((acc, hour) => {
+  acc.Solar += hour['Solar'];
+  acc['Onshore Wind'] += hour['Onshore Wind']; 
+  acc['Offshore Wind'] += hour['Offshore Wind'];
+  acc.GrandTotal += hour.Total;
+  return acc;
+}, initialTotals);
+
+// Convert to percentages
+return {
+  Solar: (totals.Solar / totals.GrandTotal) * 100,
+  'Onshore Wind': (totals['Onshore Wind'] / totals.GrandTotal) * 100,
+  'Offshore Wind': (totals['Offshore Wind'] / totals.GrandTotal) * 100,
+};
+```
+
+### Conditional Legend Rendering
+- **Single Region View**: Energy composition with percentages
+- **Multi-Region View**: Regional comparison key
+- **Fallback Handling**: Graceful degradation for edge cases
+
+## User Experience Benefits
+
+- **Adaptive Interface**: Legend automatically adjusts to provide most relevant information
+- **Educational Insights**: Shows renewable energy composition when focusing on single region
+- **Comparison Clarity**: Maintains regional key when comparing multiple areas
+- **Professional Polish**: Intelligent UI behavior enhances credibility and usability
+
+NOTE: The dynamic legend transforms the component into an intelligent data visualization tool that adapts to user intent, providing contextual information for both detailed analysis and regional comparison scenarios
+
 NOTE: The API route now provides complete regional data, enabling the frontend component to implement flexible multi-region selection and visualization capabilities

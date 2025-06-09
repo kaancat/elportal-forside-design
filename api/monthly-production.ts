@@ -8,26 +8,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const start = twelveMonthsAgo.toISOString().split('T')[0];
   const end = today.toISOString().split('T')[0];
 
-  // --- THE VERIFIED, CORRECT DATASET ---
-  const API_URL = `https://api.energidataservice.dk/dataset/ProductionPerMunicipality?start=${start}&end=${end}&sort=Month&aggregate=sum`;
+  // These are the correct column names based on your custom report
+  const columns = [
+    'Month',
+    'CentralPower_MWh',
+    'LocalPower_MWh',
+    'OffshoreWindGe100MW_MWh',
+    'OffshoreWindLt100MW_MWh',
+    'OnshoreWindGe50kW_MWh',
+    'OnshoreWindLt50kW_MWh',
+    'SolarPowerGe40kW_MWh',
+    'SolarPower10To40kW_MWh',
+    'SolarPower0To10kW_MWh',
+  ].join(',');
+
+  // The dataset is "ProductionAndConsumptionSettlement", which contains these columns.
+  const API_URL = `https://api.energidataservice.dk/dataset/ProductionAndConsumptionSettlement?start=${start}&end=${end}&sort=Month&columns=${columns}&aggregate=sum`;
 
   try {
     const apiResponse = await fetch(API_URL);
-    if (!apiResponse.ok) throw new Error(`API call failed: ${apiResponse.status}`);
-    
-    const data = await apiResponse.json();
-
-    // --- DEBUGGING LINE TO ADD ---
-    // Log the very first record to the server console to inspect its structure.
-    if (data.records && data.records.length > 0) {
-      console.log("DEBUG: First record from EnergiDataService:", data.records[0]);
+    if (!apiResponse.ok) {
+      console.error("EnergiDataService API Error:", await apiResponse.text());
+      throw new Error(`API call failed: ${apiResponse.status}`);
     }
-    // --- END OF DEBUGGING LINE ---
-
+    const data = await apiResponse.json();
     res.status(200).json(data);
-
   } catch (error: any) {
-    console.error("API Route crashed:", error); // Also log the error itself
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Failed to fetch monthly production data.', details: error.message });
   }
 } 

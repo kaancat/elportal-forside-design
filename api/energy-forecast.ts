@@ -4,7 +4,8 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const { date } = req.query;
+  // Extract both region and date from query parameters
+  const { region = 'Danmark', date } = req.query;
 
   // Determine the start and end dates for the query
   const queryDate = date ? new Date(date as string) : new Date();
@@ -14,8 +15,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   tomorrow.setDate(tomorrow.getDate() + 1);
   const end = formatDate(tomorrow);
 
-  // URL now fetches ALL regions by default
-  const API_URL = `https://api.energidataservice.dk/dataset/Forecasts_Hour?start=${start}&end=${end}&sort=HourUTC asc`;
+  // Apply region filter - Danmark means no filter (all regions), otherwise filter by specific region
+  const regionFilter = region === 'Danmark' 
+    ? '' 
+    : `&filter={"PriceArea":["${region}"]}`;
+
+  const API_URL = `https://api.energidataservice.dk/dataset/Forecasts_Hour?start=${start}&end=${end}${regionFilter}&sort=HourUTC asc`;
 
   try {
     const apiResponse = await fetch(API_URL);

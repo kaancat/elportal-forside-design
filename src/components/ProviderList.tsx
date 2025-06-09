@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ProviderCard from './ProviderCard';
 import HouseholdTypeSelector, { HouseholdType } from './HouseholdTypeSelector';
 import { Slider } from '@/components/ui/slider';
@@ -22,9 +22,37 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
 
   const [annualConsumption, setAnnualConsumption] = useState([4000]);
   const [selectedHouseholdType, setSelectedHouseholdType] = useState<string | null>('small-house');
+  const [spotPrice, setSpotPrice] = useState<number | null>(null);
+  const [priceLoading, setPriceLoading] = useState(true);
 
   console.log('ProviderList render - block:', block);
   console.log('ProviderList render - annualConsumption:', annualConsumption[0]);
+
+  // Fetch live spot price when component mounts
+  useEffect(() => {
+    const fetchSpotPrice = async () => {
+      try {
+        const response = await fetch('/api/electricity-prices'); // Your existing API route
+        if (!response.ok) throw new Error('Could not fetch spot price');
+        const data = await response.json();
+        // Find the price for the current hour
+        const currentHour = new Date().getHours();
+        const currentPriceData = data.records.find((r: any) => new Date(r.HourDK).getHours() === currentHour);
+        if (currentPriceData) {
+          setSpotPrice(currentPriceData.SpotPriceKWh);
+          console.log('Fetched live spot price:', currentPriceData.SpotPriceKWh, 'kr/kWh');
+        }
+      } catch (error) {
+        console.error("Failed to fetch live spot price:", error);
+        // We can set a fallback price or show an error
+        setSpotPrice(1.5); // Fallback to a default value
+      } finally {
+        setPriceLoading(false);
+      }
+    };
+
+    fetchSpotPrice();
+  }, []);
 
   const handleHouseholdTypeSelect = (type: HouseholdType | null) => {
     if (type) {
@@ -143,7 +171,12 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
         
         {/* Products List */}
         <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-center text-brand-dark mb-8">Aktuelle tilbud</h2>
+          <h2 className="text-2xl font-bold text-center text-brand-dark mb-8">
+            Aktuelle tilbud
+            {priceLoading && (
+              <span className="text-sm text-gray-500 ml-2">(Henter live priser...)</span>
+            )}
+          </h2>
           {sortedProviders.map(provider => {
             console.log('Rendering provider:', provider);
             if (!provider || !provider.id) {
@@ -155,6 +188,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
                 key={provider.id} 
                 product={convertToElectricityProduct(provider)}
                 annualConsumption={annualConsumption[0]}
+                spotPrice={spotPrice}
               />
             );
           })}

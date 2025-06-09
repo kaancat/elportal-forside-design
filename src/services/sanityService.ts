@@ -66,7 +66,10 @@ export class SanityService {
           buttonUrl
         },
         _type == "renewableEnergyForecast" => {
-          ...
+          _key,
+          _type,
+          title,
+          leadingText
         },
         _type == "livePriceGraph" => {
           title,

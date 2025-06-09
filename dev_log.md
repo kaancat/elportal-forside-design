@@ -1,5 +1,35 @@
 # Dev Log
 
+## [2024-12-19] – Date Constraints for RenewableEnergyForecast
+Goal: Add date constraints to prevent users from navigating to future dates where no forecast data exists
+
+- **Added Future Date Detection**:
+  - **isFuture Flag**: Created a check that compares selectedDate with today (normalized to start of day)
+  - **Today Normalization**: Uses `setHours(0, 0, 0, 0)` to ensure proper date comparison
+  - **Dynamic Validation**: Flag updates automatically when date selection changes
+
+- **Forward Navigation Constraints**:
+  - **Disabled Forward Button**: Added `disabled={isFuture}` to the ChevronRight button
+  - **Visual Feedback**: Button appears disabled when already at today's date
+  - **Prevents Errors**: Users cannot navigate to dates without available data
+
+- **Calendar Date Limiting**:
+  - **Disabled Future Dates**: Added `disabled={(date) => date > new Date()}` to Calendar component
+  - **Visual Clarity**: Future dates appear grayed out and unselectable in calendar picker
+  - **Consistent UX**: Both navigation arrows and calendar picker respect same date constraints
+
+Technical Implementation:
+- **Date Comparison Logic**: Normalizes both today and selected date to midnight for accurate comparison
+- **UI State Management**: Forward button disabled state updates reactively based on date selection
+- **Calendar Integration**: Uses shadcn/ui Calendar component's built-in disabled prop functionality
+- **Error Prevention**: Eliminates possibility of selecting dates with no available forecast data
+
+User Experience Benefits:
+- **Clear Boundaries**: Users understand when they've reached the limit of available data
+- **No Error States**: Prevents API calls for dates without data
+- **Intuitive Navigation**: Disabled controls provide immediate visual feedback
+- **Professional Feel**: Polished interaction that prevents user confusion
+
 ## [2024-12-19] – Enhanced Two-Column Layout with CTA Support
 Goal: Perfect the PageSectionComponent two-column layout with proper image positioning and CTA functionality
 

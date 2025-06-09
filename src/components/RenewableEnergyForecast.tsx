@@ -80,6 +80,11 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
 
   const chartColors = { solar: '#f59e0b', onshore: '#3b82f6', offshore: '#16a34a' };
 
+  // Check if selected date is in the future
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Normalize to the start of today
+  const isFuture = selectedDate > today;
+
   return (
     <section className="bg-white py-16 lg:py-24">
       <div className="container mx-auto px-4">
@@ -89,8 +94,8 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 p-4 bg-gray-50 rounded-lg border">
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={() => setSelectedDate(d => { const n = new Date(d); n.setDate(d.getDate() - 1); return n; })}> <ChevronLeft size={18} /> </Button>
-            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}><PopoverTrigger asChild><Button variant="outline" className="w-[200px] justify-start text-left font-normal"><CalendarDays className="mr-2 h-4 w-4" />{selectedDate.toLocaleDateString('da-DK')}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={selectedDate} onSelect={(d) => { if(d) setSelectedDate(d); setIsCalendarOpen(false); }} initialFocus /></PopoverContent></Popover>
-            <Button variant="ghost" size="icon" onClick={() => setSelectedDate(d => { const n = new Date(d); n.setDate(d.getDate() + 1); return n; })}> <ChevronRight size={18} /> </Button>
+            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}><PopoverTrigger asChild><Button variant="outline" className="w-[200px] justify-start text-left font-normal"><CalendarDays className="mr-2 h-4 w-4" />{selectedDate.toLocaleDateString('da-DK')}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={selectedDate} onSelect={(d) => { if(d) setSelectedDate(d); setIsCalendarOpen(false); }} disabled={(date) => date > new Date()} initialFocus /></PopoverContent></Popover>
+            <Button variant="ghost" size="icon" onClick={() => setSelectedDate(d => { const n = new Date(d); n.setDate(d.getDate() + 1); return n; })} disabled={isFuture}> <ChevronRight size={18} /> </Button>
           </div>
           <div className="flex items-center gap-2">
             <Button onClick={() => setSelectedRegion('Danmark')} variant={selectedRegion === 'Danmark' ? 'default' : 'outline'}>Hele Danmark</Button>

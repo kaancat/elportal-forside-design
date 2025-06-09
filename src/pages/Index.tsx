@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Navigation from '@/components/Navigation';
 import HeroSection from '@/components/HeroSection';
-import InfoSection from '@/components/InfoSection';
 import Footer from '@/components/Footer';
 import ContentBlocks from '@/components/ContentBlocks';
 import { SanityService } from '@/services/sanityService';
@@ -53,9 +52,8 @@ const Index = () => {
       <Navigation />
       <main className="space-y-8">
         <HeroSection />
-        <InfoSection />
         
-        {/* Render Sanity content blocks with reduced spacing */}
+        {/* Render Sanity content blocks */}
         {!loading && homepageData?.contentBlocks && homepageData.contentBlocks.length > 0 && (
           <ContentBlocks blocks={homepageData.contentBlocks} />
         )}

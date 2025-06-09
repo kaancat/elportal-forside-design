@@ -1,5 +1,30 @@
 # Dev Log
 
+## [2024-12-19] – Field Name Correction Fix
+Goal: Fix 500 Internal Server Error by correcting data field names in MonthlyProductionChart component
+
+- **Fixed TypeScript Interface** (src/components/MonthlyProductionChart.tsx):
+  - Corrected `CentralProd_MWh` to `CentralPower_MWh` in ProductionRecord interface
+  - Corrected `LocalProd_MWh` to `LocalPower_MWh` in ProductionRecord interface
+  - Aligned interface with actual API response field names
+
+- **Fixed Data Processing Logic**:
+  - Updated `record.LocalProd_MWh` to `record.LocalPower_MWh` in reduce function
+  - Updated `record.CentralProd_MWh` to `record.CentralPower_MWh` in reduce function
+  - Resolved data mapping issues causing 500 errors when accessing undefined properties
+
+Technical Implementation:
+- **API Compatibility**: Component now correctly maps to actual API response fields
+- **Error Resolution**: 500 Internal Server Error eliminated by proper field name alignment
+- **Type Safety**: TypeScript interface matches actual data structure from EnergiDataService
+- **Data Processing**: Chart now properly aggregates Decentrale and Centrale production values
+
+User Experience Impact:
+- ✅ MonthlyProductionChart component loads without crashing
+- ✅ 12-month electricity production data displays correctly
+- ✅ Stacked area chart shows proper values for all energy sources
+- ✅ No more API errors when loading the component
+
 ## [2024-12-19] – TypeScript Centralization Fix
 Goal: Fix TypeScript errors by centralizing type definitions for monthlyProductionChart block
 

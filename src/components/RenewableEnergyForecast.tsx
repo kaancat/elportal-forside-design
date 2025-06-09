@@ -1,42 +1,33 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { CalendarDays, ChevronLeft, ChevronRight, Info } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Tooltip as ShadTooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { PortableText } from '@portabletext/react';
+import { Toggle } from "@/components/ui/toggle";
 import { cn } from "@/lib/utils";
+import { PortableText } from '@portabletext/react';
 
-// --- DATA TYPES ---
-interface ForecastRecord { HourUTC: string; ForecastType: 'Solar' | 'Onshore Wind' | 'Offshore Wind'; ForecastDayAhead: number; }
-interface ProcessedData { hour: string; Solar: number; 'Onshore Wind': number; 'Offshore Wind': number; Total: number; }
+// --- TYPES (REMAIN MOSTLY THE SAME) ---
+interface ForecastRecord { HourUTC: string; ForecastType: 'Solar' | 'Onshore Wind' | 'Offshore Wind'; ForecastDayAhead: number; PriceArea: 'DK1' | 'DK2'; }
+interface ProcessedHourData { hour: string; Solar: number; 'Onshore Wind': number; 'Offshore Wind': number; Total: number; }
 interface RenewableEnergyForecastProps { block: { _type: 'renewableEnergyForecast'; title?: string; leadingText?: string; explanation?: any[]; }; }
 
 const formatDateForApi = (date: Date) => date.toISOString().split('T')[0];
 
-// --- CUSTOM TOOLTIP COMPONENT ---
+// --- CUSTOM TOOLTIP (SLIGHTLY MODIFIED) ---
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
-    const total = payload.reduce((sum: number, entry: any) => sum + entry.value, 0);
     return (
       <div className="bg-gray-800 text-white p-4 rounded-lg shadow-lg border border-gray-700">
         <p className="font-bold text-base mb-2">{`Kl. ${label}`}</p>
         <div className="text-sm space-y-1">
           {payload.map((entry: any) => (
             <div key={entry.dataKey} className="flex justify-between items-center gap-4">
-              <div className="flex items-center">
-                <span className="inline-block w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: entry.color }}></span>
-                {entry.name}:
-              </div>
+              <div className="flex items-center"><span className="inline-block w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: entry.stroke }}></span>{entry.name}:</div>
               <span className="font-mono">{entry.value.toFixed(1)} MWh</span>
             </div>
           ))}
-          <div className="border-t border-gray-600 my-2"></div>
-          <div className="flex justify-between font-bold">
-            <span>Total:</span>
-            <span className="font-mono">{total.toFixed(1)} MWh</span>
-          </div>
         </div>
       </div>
     );
@@ -46,164 +37,100 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 // --- MAIN COMPONENT ---
 const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block }) => {
-  const [data, setData] = useState<ForecastRecord[]>([]);
+  const [allData, setAllData] = useState<ForecastRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [currentRegion, setCurrentRegion] = useState<'DK1' | 'DK2' | 'Danmark'>('Danmark');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [isRegionTooltipOpen, setIsRegionTooltipOpen] = useState(false);
+  
+  // NEW STATE: For multi-selection
+  const [selectedRegions, setSelectedRegions] = useState({ Danmark: true, DK1: false, DK2: false });
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true); setError(null);
       try {
-        const response = await fetch(`/api/energy-forecast?region=${currentRegion}&date=${formatDateForApi(selectedDate)}`);
+        const response = await fetch(`/api/energy-forecast?date=${formatDateForApi(selectedDate)}`);
         if (!response.ok) throw new Error('Kunne ikke hente prognosedata.');
         const result = await response.json();
-        setData(result.records || []);
+        setAllData(result.records || []);
       } catch (err: any) { setError(err.message); } finally { setLoading(false); }
     };
     fetchData();
-  }, [currentRegion, selectedDate]);
+  }, [selectedDate]);
 
-  const processedData = useMemo<ProcessedData[]>(() => {
-    if (!data || data.length === 0) return [];
+  // NEW DATA PROCESSING: Creates separate datasets for each region
+  const processedData = useMemo(() => {
+    const processRegion = (region: 'DK1' | 'DK2' | 'Danmark'): ProcessedHourData[] => {
+      const regionData = region === 'Danmark' ? allData : allData.filter(d => d.PriceArea === region);
+      const grouped = regionData.reduce((acc, record) => {
+        const hourKey = new Date(record.HourUTC).toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }).replace(/\./g, ':');
+        if (!acc[hourKey]) acc[hourKey] = { 'Solar': 0, 'Onshore Wind': 0, 'Offshore Wind': 0 };
+        acc[hourKey][record.ForecastType] += record.ForecastDayAhead;
+        return acc;
+      }, {} as Record<string, any>);
 
-    const groupedByHour: { [hour: string]: { 'Solar': number; 'Onshore Wind': number; 'Offshore Wind': number; } } = {};
-
-    // Initialize all 24 hours to ensure a complete chart
-    for (let i = 0; i < 24; i++) {
-      const hourKey = `${i.toString().padStart(2, '0')}:00`;
-      groupedByHour[hourKey] = { 'Solar': 0, 'Onshore Wind': 0, 'Offshore Wind': 0 };
-    }
+      return Object.entries(grouped).map(([hour, values]) => ({
+        hour, ...values, Total: values.Solar + values['Onshore Wind'] + values['Offshore Wind']
+      })).sort((a,b) => a.hour.localeCompare(b.hour));
+    };
     
-    // Loop through the data and SUM the values for each hour
-    for (const record of data) {
-      const hourKey = new Date(record.HourUTC).toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }).replace(/\./g, ':');
-      
-      if (groupedByHour[hourKey] && record.ForecastDayAhead !== null) {
-        // --- THIS IS THE KEY FIX ---
-        // Use += to sum the values from DK1 and DK2 for each forecast type
-        groupedByHour[hourKey][record.ForecastType] += record.ForecastDayAhead;
-      }
-    }
+    return {
+      Danmark: processRegion('Danmark'),
+      DK1: processRegion('DK1'),
+      DK2: processRegion('DK2'),
+    };
+  }, [allData]);
 
-    // Convert the aggregated object into a sorted array for the chart
-    return Object.entries(groupedByHour)
-      .map(([hour, values]) => ({
-        hour,
-        ...values,
-        Total: values['Solar'] + values['Onshore Wind'] + values['Offshore Wind'],
-      }))
-      .sort((a, b) => a.hour.localeCompare(b.hour)); // Ensure correct chronological order
-  }, [data]);
+  const handleToggle = (region: keyof typeof selectedRegions) => {
+    setSelectedRegions(prev => ({ ...prev, [region]: !prev[region] }));
+  };
   
-  const chartColors = { solar: '#f59e0b', onshore: '#3b82f6', offshore: '#22c55e' };
+  const chartColors = { Danmark: '#16a34a', DK1: '#3b82f6', DK2: '#f59e0b' };
 
   return (
-    <TooltipProvider>
-      <section className="bg-white py-16 lg:py-24">
-        <div className="container mx-auto px-4">
-          {/* Display the title from Sanity if it exists */}
-          {block.title && (
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 text-center mb-4">
-              {block.title}
-            </h2>
-          )}
-          
-          {/* Display the leadingText from Sanity if it exists */}
-          {block.leadingText && (
-            <p className="text-lg text-gray-600 text-center mb-12 max-w-3xl mx-auto">
-              {block.leadingText}
-            </p>
-          )}
-          
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 p-4 bg-gray-50 rounded-lg border">
-            {/* Date Controls */}
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" onClick={() => setSelectedDate(d => { const n = new Date(d); n.setDate(d.getDate() - 1); return n; })}> <ChevronLeft size={18} /> </Button>
-              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}><PopoverTrigger asChild><Button variant="outline" className="w-[200px] justify-start text-left font-normal"><CalendarDays className="mr-2 h-4 w-4" />{selectedDate.toLocaleDateString('da-DK')}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={selectedDate} onSelect={(d) => { if(d) setSelectedDate(d); setIsCalendarOpen(false); }} initialFocus /></PopoverContent></Popover>
-              <Button variant="ghost" size="icon" onClick={() => setSelectedDate(d => { const n = new Date(d); n.setDate(d.getDate() + 1); return n; })}> <ChevronRight size={18} /> </Button>
-            </div>
-            
-            {/* Region Controls with Tooltip */}
-            <div className="flex items-center gap-2 text-sm">
-              <button onClick={() => setCurrentRegion('Danmark')} className={cn("px-4 py-2 rounded-full", currentRegion === 'Danmark' ? 'bg-blue-100 text-blue-800 font-semibold' : 'bg-white border text-gray-600')}>Hele Danmark</button>
-              <button onClick={() => setCurrentRegion('DK1')} className={cn("px-4 py-2 rounded-full", currentRegion === 'DK1' ? 'bg-blue-100 text-blue-800 font-semibold' : 'bg-white border text-gray-600')}>
-                <span className="hidden md:inline">Vestdanmark (DK1)</span><span className="md:hidden">DK1</span>
-              </button>
-              <button onClick={() => setCurrentRegion('DK2')} className={cn("px-4 py-2 rounded-full", currentRegion === 'DK2' ? 'bg-blue-100 text-blue-800 font-semibold' : 'bg-white border text-gray-600')}>
-                <span className="hidden md:inline">Østdanmark (DK2)</span><span className="md:hidden">DK2</span>
-              </button>
-              <ShadTooltip open={isRegionTooltipOpen} onOpenChange={setIsRegionTooltipOpen}>
-                <TooltipTrigger 
-                  onClick={() => setIsRegionTooltipOpen(!isRegionTooltipOpen)}
-                  onMouseEnter={() => setIsRegionTooltipOpen(true)}
-                  onMouseLeave={() => setIsRegionTooltipOpen(false)}
-                >
-                  <Info className="h-5 w-5 text-gray-400 hover:text-gray-600 cursor-pointer" />
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs p-4 text-base">
-                  <div className="space-y-2">
-                    <p className="font-semibold">Danske elområder:</p>
-                    <p><strong>DK1:</strong> Vestdanmark - Jylland og Fyn</p>
-                    <p><strong>DK2:</strong> Østdanmark - Sjælland, Lolland-Falster og Bornholm</p>
-                    <p className="text-sm text-gray-600 mt-2">Klik eller hold musen over ikonet for at se info.</p>
-                  </div>
-                </TooltipContent>
-              </ShadTooltip>
-            </div>
-          </div>
-
-          <div className="w-full h-[450px] bg-white p-4 rounded-lg relative">
-            {/* Consumption Context Tooltip */}
-            <div className="absolute top-10 left-0">
-              <ShadTooltip>
-                <TooltipTrigger><Info className="h-4 w-4 text-gray-400" /></TooltipTrigger>
-                <TooltipContent><p>En gennemsnitsfamilie i hus bruger ca. 4.500 kWh om året, svarende til 0.0045 GWh.</p></TooltipContent>
-              </ShadTooltip>
-            </div>
-
-            {loading ? <div className="flex items-center justify-center h-full">Indlæser data...</div> :
-             error ? <div className="flex items-center justify-center h-full text-red-500">{error}</div> :
-             processedData.length === 0 ? <div className="flex items-center justify-center h-full">Ingen data for den valgte dag.</div> :
-            (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={processedData} margin={{ top: 10, right: 20, left: 20, bottom: 40 }}>
-                  <defs>
-                    <linearGradient id="colorSolar" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={chartColors.solar} stopOpacity={0.8}/><stop offset="95%" stopColor={chartColors.solar} stopOpacity={0.1}/></linearGradient>
-                    <linearGradient id="colorOnshore" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={chartColors.onshore} stopOpacity={0.8}/><stop offset="95%" stopColor={chartColors.onshore} stopOpacity={0.1}/></linearGradient>
-                    <linearGradient id="colorOffshore" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={chartColors.offshore} stopOpacity={0.8}/><stop offset="95%" stopColor={chartColors.offshore} stopOpacity={0.1}/></linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" vertical={false} />
-                  <XAxis dataKey="hour" tick={{ fontSize: 12, fill: '#6b7280' }} tickLine={false} axisLine={{ stroke: '#d1d5db' }} dy={10} />
-                  <YAxis domain={[0, 'dataMax + 100']} tick={{ fontSize: 12, fill: '#6b7280' }} tickLine={false} axisLine={false} label={{ value: 'MWh', angle: -90, position: 'insideLeft', offset: -10, style: { fill: '#6b7280' } }} />
-                  <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#374151', strokeWidth: 1, strokeDasharray: '3 3' }} />
-                  <Area type="monotone" dataKey="Offshore Wind" name="Vind (Hav)" stackId="1" stroke={chartColors.offshore} strokeWidth={2} fillOpacity={1} fill="url(#colorOffshore)" />
-                  <Area type="monotone" dataKey="Onshore Wind" name="Vind (Land)" stackId="1" stroke={chartColors.onshore} strokeWidth={2} fillOpacity={1} fill="url(#colorOnshore)" />
-                  <Area type="monotone" dataKey="Solar" name="Solenergi" stackId="1" stroke={chartColors.solar} strokeWidth={2} fillOpacity={1} fill="url(#colorSolar)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
+    <section className="bg-white py-16 lg:py-24">
+      <div className="container mx-auto px-4">
+        {block.title && <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 text-center mb-4">{block.title}</h2>}
+        {block.leadingText && <p className="text-lg text-gray-600 text-center mb-12 max-w-3xl mx-auto">{block.leadingText}</p>}
+        
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 p-4 bg-gray-50 rounded-lg border">
+          {/* Date Controls */}
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={() => setSelectedDate(d => { const n = new Date(d); n.setDate(d.getDate() - 1); return n; })}> <ChevronLeft size={18} /> </Button>
+            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}><PopoverTrigger asChild><Button variant="outline" className="w-[200px] justify-start text-left font-normal"><CalendarDays className="mr-2 h-4 w-4" />{selectedDate.toLocaleDateString('da-DK')}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={selectedDate} onSelect={(d) => { if(d) setSelectedDate(d); setIsCalendarOpen(false); }} initialFocus /></PopoverContent></Popover>
+            <Button variant="ghost" size="icon" onClick={() => setSelectedDate(d => { const n = new Date(d); n.setDate(d.getDate() + 1); return n; })}> <ChevronRight size={18} /> </Button>
           </div>
           
-          {/* Mobile Spacing Adjustment for Legend */}
-          <div className="flex justify-center items-center gap-6 mt-4 md:mt-8">
-              <div className="flex items-center gap-2"><div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.solar}}></div><span className="text-sm text-gray-700">Solenergi</span></div>
-              <div className="flex items-center gap-2"><div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.onshore}}></div><span className="text-sm text-gray-700">Vind (Land)</span></div>
-              <div className="flex items-center gap-2"><div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.offshore}}></div><span className="text-sm text-gray-700">Vind (Hav)</span></div>
+          {/* NEW Region Toggles */}
+          <div className="flex items-center gap-2">
+            <Toggle pressed={selectedRegions.Danmark} onPressedChange={() => handleToggle('Danmark')} aria-label="Toggle Danmark">Hele Danmark</Toggle>
+            <Toggle pressed={selectedRegions.DK1} onPressedChange={() => handleToggle('DK1')} aria-label="Toggle DK1">DK1</Toggle>
+            <Toggle pressed={selectedRegions.DK2} onPressedChange={() => handleToggle('DK2')} aria-label="Toggle DK2">DK2</Toggle>
           </div>
+        </div>
 
-          {/* Sanity Explanation Text */}
-          {block.explanation && (
-            <div className="prose prose-lg max-w-4xl mx-auto mt-12 text-gray-700">
-              <PortableText value={block.explanation} />
-            </div>
+        <div className="w-full h-[450px] bg-white p-4 rounded-lg">
+          {loading ? <div className="flex items-center justify-center h-full">Indlæser data...</div> :
+           (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart margin={{ top: 10, right: 20, left: 20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" vertical={false} />
+                <XAxis dataKey="hour" type="category" allowDuplicatedCategory={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
+                <YAxis domain={[0, 'dataMax + 100']} tick={{ fontSize: 12, fill: '#6b7280' }} label={{ value: 'MWh', angle: -90, position: 'insideLeft', offset: -10, style: { fill: '#6b7280' } }} />
+                <Tooltip content={<CustomTooltip />} />
+                
+                {/* NEW Conditional Rendering of Area Layers */}
+                {selectedRegions.Danmark && <Area type="monotone" data={processedData.Danmark} dataKey="Total" name="Danmark" stroke={chartColors.Danmark} fill={chartColors.Danmark} fillOpacity={0.2} strokeWidth={2} />}
+                {selectedRegions.DK1 && <Area type="monotone" data={processedData.DK1} dataKey="Total" name="DK1" stroke={chartColors.DK1} fill={chartColors.DK1} fillOpacity={0.2} strokeWidth={2} />}
+                {selectedRegions.DK2 && <Area type="monotone" data={processedData.DK2} dataKey="Total" name="DK2" stroke={chartColors.DK2} fill={chartColors.DK2} fillOpacity={0.2} strokeWidth={2} />}
+              </AreaChart>
+            </ResponsiveContainer>
           )}
         </div>
-      </section>
-    </TooltipProvider>
+        {block.explanation && <div className="prose prose-lg max-w-4xl mx-auto mt-12 text-gray-700"><PortableText value={block.explanation} /></div>}
+      </div>
+    </section>
   );
 };
 

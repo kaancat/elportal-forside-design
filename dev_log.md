@@ -1091,6 +1091,84 @@ When users added new, empty component blocks (like `heroWithCalculator` or `pric
 - Improves developer experience with actionable error messages
 - Maintains backward compatibility for existing `pageSection` blocks
 
+## [2024-12-22] – Theme System Implementation for PageSectionComponent  
+Goal: Implement dynamic color theme system for PageSection blocks to enable Sanity-driven styling
+
+**Implementation Summary:**
+Successfully implemented a complete theme system that allows content editors in Sanity to select color themes for PageSection blocks, which are then dynamically applied on the frontend.
+
+**Step A: GROQ Query Enhancement**
+- **File Modified**: `src/services/sanityService.ts`
+- **Change**: Updated pageSection query to fetch theme reference data
+- **Before**: Only fetched title, content, image, imagePosition
+- **After**: Added theme dereferencing with `theme->{ "background": background.hex, "text": text.hex, "primary": primary.hex }`
+- **Result**: GROQ now follows theme references and extracts hex color values
+
+**Step B: TypeScript Interface Update**
+- **File Modified**: `src/types/sanity.ts`
+- **Enhancement**: Added optional theme property to PageSection interface
+- **Schema**: `theme?: { background: string; text: string; primary: string; }`
+- **Type Safety**: Ensures proper typing for theme color values from Sanity
+
+**Step C: Component Styling Implementation**
+- **File Modified**: `src/components/PageSectionComponent.tsx`
+- **Dynamic Styling**: Replaced hardcoded Tailwind classes with inline styles
+- **Color Application**:
+  - **Background**: `section.theme?.background || '#FFFFFF'` (ElPortal white default)
+  - **Text Colors**: `section.theme?.text || '#001a12'` (ElPortal brand dark default)
+  - **Primary**: `section.theme?.primary || '#84db41'` (ElPortal brand green default)
+- **Fallback Strategy**: Maintains ElPortal brand colors when no theme is selected
+
+**Technical Implementation Details:**
+```typescript
+// Theme style object generation
+const sectionStyle = {
+  backgroundColor: section.theme?.background || '#FFFFFF',
+  color: section.theme?.text || '#001a12',
+}
+
+// Applied to main section element
+<section style={sectionStyle} className="py-20 lg:py-32">
+
+// Applied to text elements
+<h2 style={{ color: section.theme?.text || '#001a12' }}>
+<div style={{ color: section.theme?.text || '#374151' }}>
+```
+
+**Brand Color Integration:**
+- **Primary Green**: `#84db41` - Used for highlights, buttons, accents
+- **Brand Dark**: `#001a12` - Professional text color, brand authority  
+- **White**: `#FFFFFF` - Clean backgrounds, accessibility
+- **Gray**: `#374151` - Secondary text, readable content
+
+**Debug & Testing Features:**
+- Added console logging for theme data verification
+- Theme style object logging for development debugging
+- Fallback behavior testing for missing theme selections
+
+**User Experience Impact:**
+- **Content Editors**: Can now select "Brand Dark," "Light Green," or custom themes in Sanity
+- **Instant Updates**: Theme changes in CMS immediately reflect on live site
+- **Brand Consistency**: Default fallbacks ensure ElPortal brand compliance
+- **Accessibility**: Maintains contrast ratios with proper color combinations
+
+**Future Extensibility:**
+- Primary color variable ready for button/link styling
+- Theme system architecture can be extended to other components
+- Sanity Site Settings integration prepared for centralized color management
+
+**Files Modified:**
+- `src/services/sanityService.ts` - GROQ query enhancement
+- `src/types/sanity.ts` - TypeScript interface update  
+- `src/components/PageSectionComponent.tsx` - Dynamic styling implementation
+
+**Git Operations:**
+- Committed as: "feat: implement theme system for PageSectionComponent"
+- Successfully pushed to origin/main
+- Changes ready for Sanity Studio theme dropdown integration
+
+---
+
 ## [2024-12-22] – TypeScript Error Resolution in ContentBlocks Component
 Goal: Fix red TypeScript errors showing in IDE for ContentBlocks.tsx while maintaining functionality
 

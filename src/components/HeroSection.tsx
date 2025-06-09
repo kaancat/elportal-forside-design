@@ -1,8 +1,7 @@
-
 import React from 'react';
-import { ArrowRight, Check } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import CalcProgress from './CalcProgress';
+import PriceCalculatorWidget from '@/components/PriceCalculatorWidget';
 
 const HeroSection = () => {
   return (
@@ -47,54 +46,7 @@ const HeroSection = () => {
           
           {/* Right column with calculator */}
           <div className="lg:w-1/2">
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-              <CalcProgress currentStep="welcome" />
-              
-              <div className="p-6">
-                <div className="text-center mb-6">
-                  <h2 className="text-xl font-bold text-brand-dark mb-1">
-                    Se om du kan spare penge
-                  </h2>
-                  <p className="text-2xl font-bold mb-3">Prøv vores beregner</p>
-                  <p className="text-gray-600 text-sm mb-4">
-                    Få estimerede og tilpassede priser på elaftaler, som tager udgangspunkt i dit forbrug.
-                  </p>
-                </div>
-                
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-start">
-                    <div className="mr-3 mt-1">
-                      <Check className="h-4 w-4 text-brand-green" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">Beregn dit forbrug</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <div className="mr-3 mt-1">
-                      <Check className="h-4 w-4 text-brand-green" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">Sammenlign elselskaber</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <div className="mr-3 mt-1">
-                      <Check className="h-4 w-4 text-brand-green" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">Gratis og uforpligtende</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <Button className="w-full py-4 bg-brand-green hover:bg-opacity-90 text-white font-medium rounded-md">
-                  Begynd <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+            <PriceCalculatorWidget />
           </div>
         </div>
       </div>

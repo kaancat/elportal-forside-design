@@ -1,5 +1,35 @@
 # Dev Log
 
+## [2024-12-19] – Monthly Production Chart Component
+Goal: Create complete frontend component to display 12-month electricity production data with stacked area chart
+
+- **Created new component**: `src/components/MonthlyProductionChart.tsx`
+  - **Stacked Area Chart**: Displays 5 production categories using Recharts library
+  - **Danish Localization**: Month labels and number formatting in Danish (da-DK)
+  - **Custom Tooltip**: Dark-themed tooltip with colored indicators and formatted values
+  - **Responsive Design**: Full-width chart that adapts to container size
+
+- **Production Categories Visualized**:
+  - **Sol** (#facc15): Solar cell production (SolarCell_MWh)
+  - **Landvind** (#4ade80): Onshore wind production (OnshoreWind_MWh)
+  - **Havvind** (#2dd4bf): Offshore wind production (OffshoreWindLt100MW_MWh)
+  - **Decentrale værker** (#60a5fa): Local/distributed production (LocalProd_MWh)
+  - **Centrale værker** (#0f766e): Central power plants (CentralProd_MWh)
+
+- **Component Features**:
+  - **API Integration**: Fetches data from `/api/monthly-production` endpoint
+  - **Data Processing**: Groups records by month and aggregates production values
+  - **Loading States**: Shows "Indlæser data..." while fetching
+  - **Error Handling**: Comprehensive error state management
+  - **TypeScript Types**: Full type safety for all data structures
+
+Technical Implementation:
+- **Data Transformation**: Raw API data grouped by month using Danish locale formatting
+- **Recharts Integration**: Uses AreaChart with stacked areas for visual clarity
+- **Color Scheme**: Professional color palette for different energy sources
+- **Performance**: useMemo for data processing optimization
+- **Accessibility**: Proper labels and semantic structure
+
 ## [2024-12-19] – Monthly Production Data API Route
 Goal: Create API endpoint for fetching 12 months of historical electricity production data
 

@@ -26,8 +26,19 @@ const PageSectionComponent: React.FC<PageSectionComponentProps> = (props) => {
   const image = section?.image
   const imagePosition = section?.imagePosition || placeholderData.imagePosition
 
+  // Theme colors with ElPortal brand defaults
+  const sectionStyle = {
+    backgroundColor: section.theme?.background || '#FFFFFF', // Default to white
+    color: section.theme?.text || '#001a12', // Default to brand dark
+  }
+  
+  // Primary color for accents (can be used for buttons, links, etc.)
+  const primaryColor = section.theme?.primary || '#84db41' // Default to brand green
+
   console.log('Extracted section data:', { title, content, image, imagePosition })
   console.log('PageSection image data:', image)
+  console.log('PageSection theme data:', section.theme)
+  console.log('Applied section style:', sectionStyle)
 
   // Don't render anything if there's no section
   if (!section) return null
@@ -65,16 +76,16 @@ const PageSectionComponent: React.FC<PageSectionComponentProps> = (props) => {
     <div className={`w-full ${hasImage ? 'lg:w-1/2' : 'lg:w-full'} flex flex-col justify-center`}>
       <div className="max-w-xl">
         {title && (
-          <h2 className="text-4xl lg:text-5xl font-bold text-brand-dark mb-8 leading-tight">
+          <h2 className="text-4xl lg:text-5xl font-bold mb-8 leading-tight" style={{ color: section.theme?.text || '#001a12' }}>
             {title}
           </h2>
         )}
         {content ? (
-          <div className="prose prose-xl max-w-none text-gray-700 leading-relaxed">
+          <div className="prose prose-xl max-w-none leading-relaxed" style={{ color: section.theme?.text || '#374151' }}>
             <BlockContent content={content} />
           </div>
         ) : (
-          <p className="text-xl lg:text-2xl text-gray-700 leading-relaxed">
+          <p className="text-xl lg:text-2xl leading-relaxed" style={{ color: section.theme?.text || '#374151' }}>
             {placeholderData.content}
           </p>
         )}
@@ -85,7 +96,7 @@ const PageSectionComponent: React.FC<PageSectionComponentProps> = (props) => {
   console.log('Rendering section with image position:', imagePosition)
 
   return (
-    <section className="bg-gradient-to-br from-gray-50 to-white py-20 lg:py-32">
+    <section style={sectionStyle} className="py-20 lg:py-32">
       <div className="container mx-auto px-6 lg:px-8 max-w-7xl">
         <div className={`flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-16 ${
           imagePosition === 'right' ? 'lg:flex-row-reverse' : ''

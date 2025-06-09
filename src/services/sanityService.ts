@@ -15,15 +15,12 @@ export class SanityService {
         _type,
         _key,
         _type == "pageSection" => {
-          title,
-          content,
-          image{
-            asset,
-            alt,
-            hotspot,
-            crop
-          },
-          imagePosition
+          ..., // Get all fields from pageSection
+          theme->{ // Follow the reference to the colorTheme
+            "background": background.hex,
+            "text": text.hex,
+            "primary": primary.hex
+          }
         },
         _type == "faqItem" => {
           question,

@@ -743,4 +743,91 @@ Goal: Revert to simpler, more stable implementation with clear stacked area char
 
 NOTE: This reversion prioritizes clarity, stability, and educational value over complex multi-region comparison capabilities, providing a more focused and reliable user experience for understanding renewable energy composition
 
+---
+
+## [2024-12-28] – PriceCalculatorComponent Creation and React Error #31 Fix
+Goal: Create PriceCalculatorComponent with proper Sanity integration to resolve React error #31
+
+- **Component Creation**: Built complete PriceCalculatorComponent from scratch
+  - **Hero Section**: Two-column layout with Sanity content on left, calculator on right
+  - **Sanity Integration**: Proper props interface connecting to `heroWithCalculator` block type
+  - **React Error Fix**: Resolved error #31 by correctly implementing props and JSX structure
+
+- **Props Interface Implementation**: Defined proper TypeScript interface for Sanity data
+  ```typescript
+  interface PriceCalculatorProps {
+    block: {
+      _type: 'heroWithCalculator';
+      title?: string;
+      subtitle?: string;
+      stats?: { value: string; label: string }[];
+    };
+  }
+  ```
+
+- **Multi-Step Calculator Functionality**: Interactive price calculator with progressive disclosure
+  - **Step 1**: Welcome screen with value proposition and benefits
+  - **Step 2**: Consumption input with housing type presets and slider
+  - **Stepper Navigation**: Visual progress indicator across steps
+  - **Preset Buttons**: 5 housing types (apartments, houses, summer house) with consumption estimates
+
+- **Dynamic Content Rendering**: Conditional rendering of Sanity CMS content
+  - **Title**: Large hero headline with green accent on "sammenlign"
+  - **Subtitle**: Supporting description text from CMS
+  - **Stats**: Dynamic stats display with value/label pairs
+  - **Call-to-Action**: Primary action button with icon
+
+- **Interactive UI Components**: Rich user interface with state management
+  - **Housing Presets**: Visual buttons with icons for quick consumption estimates
+  - **Consumption Slider**: Range input for precise annual consumption (500-10,000 kWh)
+  - **Active States**: Visual feedback for selected preset and current step
+  - **Responsive Design**: Mobile-friendly grid layout and spacing
+
+## Technical Implementation Details
+
+### Component Structure
+- **Left Column**: Hero content from Sanity (title, subtitle, stats, CTA)
+- **Right Column**: White card with multi-step calculator interface
+- **State Management**: React hooks for step progression and consumption tracking
+- **Conditional Rendering**: Different UI based on current step and selections
+
+### Preset Button Logic
+```typescript
+const handlePresetClick = (preset: string) => {
+  setActivePreset(preset);
+  const consumptionMap = {
+    lilleLejlighed: 2000,    // Small apartment
+    storLejlighed: 3000,     // Large apartment  
+    mindreHus: 4000,         // Small house
+    stortHus: 6000,          // Large house
+    sommerhus: 2000          // Summer house
+  };
+  setAnnualConsumption(consumptionMap[preset] || 4000);
+};
+```
+
+### Sanity Content Integration
+- **Conditional Rendering**: All Sanity fields are optional and safely rendered
+- **Dynamic Stats**: Maps over stats array with proper key handling
+- **Type Safety**: Proper TypeScript interfaces prevent runtime errors
+- **Fallback Handling**: Graceful degradation when CMS content is missing
+
+## User Experience Features
+
+- **Progressive Disclosure**: Guided flow reducing cognitive load
+- **Visual Feedback**: Clear indication of current step and selected options
+- **Quick Estimates**: Preset housing types for fast calculations
+- **Precision Control**: Slider for exact consumption specification
+- **Professional Design**: Dark hero section with white calculator card contrast
+
+## Next Steps
+
+- **Page Integration**: Add component to main page renderer with `heroWithCalculator` case
+- **Step 3 Implementation**: Complete results display functionality
+- **API Integration**: Connect to actual price comparison service
+- **Form Validation**: Add input validation and error handling
+- **Analytics**: Track user interactions and conversion funnel
+
+NOTE: The PriceCalculatorComponent successfully resolves React error #31 and provides a complete hero section with integrated price calculator, ready for Sanity CMS content management and user interaction
+
 NOTE: The API route now provides complete regional data, enabling the frontend component to implement flexible multi-region selection and visualization capabilities

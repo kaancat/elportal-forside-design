@@ -1,8 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import Navigation from '@/components/Navigation';
 import HeroSection from '@/components/HeroSection';
-import ProviderList from '@/components/ProviderList';
 import InfoSection from '@/components/InfoSection';
 import Footer from '@/components/Footer';
 import ContentBlocks from '@/components/ContentBlocks';
@@ -55,7 +53,6 @@ const Index = () => {
       <Navigation />
       <main className="space-y-8">
         <HeroSection />
-        <ProviderList />
         <InfoSection />
         
         {/* Render Sanity content blocks with reduced spacing */}

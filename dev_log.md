@@ -468,35 +468,55 @@ NOTE: This is the FINAL implementation using verified ProductionAndConsumptionSe
 
 ---
 
-## [2024-12-19] – FINAL API and Component Implementation
-Goal: Create the final, correct API route and component using verified field structure from ProductionAndConsumptionSettlement dataset
+## [2024-12-19] – Architecture Cleanup: Remove Duplicate Provider Sections
+Goal: Eliminate duplicate provider components and unused legacy files for cleaner architecture
 
-**API Changes (api/monthly-production.ts):**
-- Back to ProductionAndConsumptionSettlement dataset with explicit column selection
-- Added specific columns array with all detailed field names: Month, CentralPower_MWh, LocalPower_MWh, OffshoreWindGe100MW_MWh, OffshoreWindLt100MW_MWh, OnshoreWindGe50kW_MWh, OnshoreWindLt50kW_MWh, SolarPowerGe40kW_MWh, SolarPower10To40kW_MWh, SolarPower0To10kW_MWh
-- Enhanced error logging with full error text response
-- Proper aggregation with sum parameter for monthly totals
-- Removed debug logging statements (no longer needed)
+### Problem Identified:
+- **Duplicate Provider Sections**: Index.tsx was rendering both static `<ProviderList />` and Sanity-driven `<ContentBlocks />` containing another ProviderList
+- **Legacy File Bloat**: Multiple unused files from the old static JSON architecture remained in the codebase
+- **Broken User Experience**: Users saw duplicate provider sections on the homepage
 
-**Component Changes (src/components/MonthlyProductionChart.tsx):**
-- Updated ProductionRecord interface with all 10 detailed field names matching API columns exactly
-- Enhanced data processing with proper aggregation logic:
-  - Solar: Combines all 3 solar categories (Ge40kW + 10To40kW + 0To10kW)
-  - Onshore Wind: Combines 2 categories (Ge50kW + Lt50kW)  
-  - Offshore Wind: Combines 2 categories (Ge100MW + Lt100MW)
-  - Central and Local power as separate categories
-- Updated ProcessedMonthData interface with Lokal/Central instead of Decentrale/Centrale
-- Enhanced tooltip display with GWh scaling for better readability
-- Improved error handling with detailed error messages and better UX
-- Updated chart areas with correct Danish labels: "Lokal kraft" and "Central kraft"
+### Changes Made:
 
-**Technical Benefits:**
-- Eliminates 500 Internal Server Error by using exact field names
-- Provides more granular data breakdown with proper aggregation
-- Better user experience with GWh display units
-- Enhanced error reporting for easier debugging
-- Cleaner code structure with verified field mappings
+1. **Fixed Index.tsx Duplication (`src/pages/Index.tsx`)**:
+   - **Removed**: `import ProviderList from '@/components/ProviderList';` (line 4)
+   - **Removed**: `<ProviderList />` JSX call (line 57)
+   - **Kept**: `<ContentBlocks blocks={homepageData.contentBlocks} />` (Sanity-driven system)
+   - **Result**: Single provider section controlled entirely through Sanity CMS
 
-Build successful, all TypeScript errors resolved. Ready for production deployment.
+2. **Deleted Unused Legacy Files**:
+   - `src/hooks/useProducts.ts` - Old React Query hook for static product fetching
+   - `src/services/productService.ts` - Old service class for JSON data manipulation
+   - `src/data/products.json` - Hard-coded provider data (now in Sanity)
 
-NOTE: This is the FINAL implementation using verified ProductionAndConsumptionSettlement dataset structure with all correct field names.
+### Architecture Impact:
+
+**Before Cleanup**:
+```
+Index.tsx → <ProviderList /> (static, unused)
+Index.tsx → <ContentBlocks /> → <ProviderList /> (Sanity-driven, working)
+```
+
+**After Cleanup**:
+```
+Index.tsx → <ContentBlocks /> → <ProviderList /> (single, Sanity-driven)
+```
+
+### Benefits:
+- **Single Source of Truth**: Only Sanity CMS controls provider display
+- **Cleaner Codebase**: Removed 3 unused legacy files and ~150 lines of dead code
+- **Better UX**: No more duplicate provider sections confusing users
+- **Maintainability**: Simplified data flow with only one provider rendering path
+
+### Files Removed:
+- `src/hooks/useProducts.ts` (84 lines) - React Query hook
+- `src/services/productService.ts` (45 lines) - Static data service  
+- `src/data/products.json` (156 lines) - Hard-coded JSON data
+
+### Migration Status:
+✅ **Complete**: All provider data now managed through Sanity CMS
+✅ **Live Pricing**: Integration with spot price API working
+✅ **UI Polish**: Professional styling and price transparency
+✅ **Architecture**: Clean, single-responsibility component structure
+
+This cleanup completes the migration from static JSON to dynamic Sanity CMS architecture while eliminating technical debt.

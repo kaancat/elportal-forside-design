@@ -3,17 +3,17 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 // --- TYPES VERIFIED FROM YOUR REPORT ---
 interface ProductionRecord {
-  HourUTC: string; // Changed from Month to HourUTC
-  CentralPowerMWhDK1: number; CentralPowerMWhDK2: number;
-  LocalPowerMWhDK1: number; LocalPowerMWhDK2: number;
-  OffshoreWindGe100MW_MWhDK1: number; OffshoreWindGe100MW_MWhDK2: number;
-  OffshoreWindLt100MW_MWhDK1: number; OffshoreWindLt100MW_MWhDK2: number;
-  OnshoreWindGe50kW_MWhDK1: number; OnshoreWindGe50kW_MWhDK2: number;
-  OnshoreWindLt50kW_MWhDK1: number; OnshoreWindLt50kW_MWhDK2: number;
-  SolarPowerGe10Lt40kW_MWhDK1: number; SolarPowerGe10Lt40kW_MWhDK2: number;
-  SolarPowerGe40kW_MWhDK1: number; SolarPowerGe40kW_MWhDK2: number;
-  SolarPowerLt10kW_MWhDK1: number; SolarPowerLt10kW_MWhDK2: number;
-  SolarPowerSelfConMWhDK1: number; SolarPowerSelfConMWhDK2: number;
+  HourUTC: string; // We receive hourly data
+  CentralPowerMWhDK1?: number; CentralPowerMWhDK2?: number;
+  LocalPowerMWhDK1?: number; LocalPowerMWhDK2?: number;
+  OffshoreWindGe100MW_MWhDK1?: number; OffshoreWindGe100MW_MWhDK2?: number;
+  OffshoreWindLt100MW_MWhDK1?: number; OffshoreWindLt100MW_MWhDK2?: number;
+  OnshoreWindGe50kW_MWhDK1?: number; OnshoreWindGe50kW_MWhDK2?: number;
+  OnshoreWindLt50kW_MWhDK1?: number; OnshoreWindLt50kW_MWhDK2?: number;
+  SolarPowerGe10Lt40kW_MWhDK1?: number; SolarPowerGe10Lt40kW_MWhDK2?: number;
+  SolarPowerGe40kW_MWhDK1?: number; SolarPowerGe40kW_MWhDK2?: number;
+  SolarPowerLt10kW_MWhDK1?: number; SolarPowerLt10kW_MWhDK2?: number;
+  SolarPowerSelfConMWhDK1?: number; SolarPowerSelfConMWhDK2?: number;
 }
 interface ProcessedMonthData { month: string; Sol: number; Landvind: number; Havvind: number; Decentrale: number; Centrale: number; }
 interface MonthlyProductionChartProps { block: { _type: 'monthlyProductionChart'; title: string; leadingText?: string; description?: string; }; }
@@ -60,45 +60,38 @@ const MonthlyProductionChart: React.FC<MonthlyProductionChartProps> = ({ block }
 
   const processedData = useMemo<ProcessedMonthData[]>(() => {
     if (!data || data.length === 0) return [];
-    
-    // Group hourly data by month and aggregate
-    const monthlyData: { [key: string]: ProcessedMonthData } = {};
-    
-    data.forEach(record => {
-      const date = new Date(record.HourUTC);
-      const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-      
-      if (!monthlyData[monthKey]) {
-        monthlyData[monthKey] = {
-          month: date.toLocaleString('da-DK', { month: 'short', year: 'numeric' }),
-          Sol: 0,
-          Landvind: 0,
-          Havvind: 0,
-          Decentrale: 0,
-          Centrale: 0,
-        };
-      }
-      
-      // Aggregate all energy sources for this hour
-      monthlyData[monthKey].Sol += (record.SolarPowerGe40kW_MWhDK1 || 0) + (record.SolarPowerGe40kW_MWhDK2 || 0) + 
-           (record.SolarPowerGe10Lt40kW_MWhDK1 || 0) + (record.SolarPowerGe10Lt40kW_MWhDK2 || 0) + 
-           (record.SolarPowerLt10kW_MWhDK1 || 0) + (record.SolarPowerLt10kW_MWhDK2 || 0) +
-           (record.SolarPowerSelfConMWhDK1 || 0) + (record.SolarPowerSelfConMWhDK2 || 0);
-           
-      monthlyData[monthKey].Landvind += (record.OnshoreWindGe50kW_MWhDK1 || 0) + (record.OnshoreWindGe50kW_MWhDK2 || 0) + 
-                 (record.OnshoreWindLt50kW_MWhDK1 || 0) + (record.OnshoreWindLt50kW_MWhDK2 || 0);
-                 
-      monthlyData[monthKey].Havvind += (record.OffshoreWindGe100MW_MWhDK1 || 0) + (record.OffshoreWindGe100MW_MWhDK2 || 0) + 
-               (record.OffshoreWindLt100MW_MWhDK1 || 0) + (record.OffshoreWindLt100MW_MWhDK2 || 0);
-               
-      monthlyData[monthKey].Decentrale += (record.LocalPowerMWhDK1 || 0) + (record.LocalPowerMWhDK2 || 0);
-      monthlyData[monthKey].Centrale += (record.CentralPowerMWhDK1 || 0) + (record.CentralPowerMWhDK2 || 0);
-    });
-    
-    // Convert to array and sort by month
-    return Object.keys(monthlyData)
-      .sort()
-      .map(monthKey => monthlyData[monthKey]);
+
+    const groupedByMonth = data.reduce((acc, record) => {
+        const monthKey = record.HourUTC.substring(0, 7); // Group by YYYY-MM
+        if (!acc[monthKey]) {
+            acc[monthKey] = { Sol: 0, Landvind: 0, Havvind: 0, Decentrale: 0, Centrale: 0 };
+        }
+
+        acc[monthKey].Sol += (record.SolarPowerGe40kW_MWhDK1 || 0) + (record.SolarPowerGe40kW_MWhDK2 || 0) + 
+                             (record.SolarPowerGe10Lt40kW_MWhDK1 || 0) + (record.SolarPowerGe10Lt40kW_MWhDK2 || 0) + 
+                             (record.SolarPowerLt10kW_MWhDK1 || 0) + (record.SolarPowerLt10kW_MWhDK2 || 0) +
+                             (record.SolarPowerSelfConMWhDK1 || 0) + (record.SolarPowerSelfConMWhDK2 || 0);
+        acc[monthKey].Landvind += (record.OnshoreWindGe50kW_MWhDK1 || 0) + (record.OnshoreWindGe50kW_MWhDK2 || 0) + 
+                                  (record.OnshoreWindLt50kW_MWhDK1 || 0) + (record.OnshoreWindLt50kW_MWhDK2 || 0);
+        acc[monthKey].Havvind += (record.OffshoreWindGe100MW_MWhDK1 || 0) + (record.OffshoreWindGe100MW_MWhDK2 || 0) + 
+                                 (record.OffshoreWindLt100MW_MWhDK1 || 0) + (record.OffshoreWindLt100MW_MWhDK2 || 0);
+        acc[monthKey].Decentrale += (record.LocalPowerMWhDK1 || 0) + (record.LocalPowerMWhDK2 || 0);
+        acc[monthKey].Centrale += (record.CentralPowerMWhDK1 || 0) + (record.CentralPowerMWhDK2 || 0);
+
+        return acc;
+    }, {} as Record<string, Omit<ProcessedMonthData, 'month'>>);
+
+    return Object.entries(groupedByMonth)
+      .map(([month, values]) => ({
+        month: new Date(month + '-02').toLocaleString('da-DK', { month: 'short', year: 'numeric' }),
+        ...values,
+      }))
+      // Important: sort the result to ensure correct chronological order on the chart
+      .sort((a, b) => {
+        const dateA = new Date(a.month.split(" ").reverse().join(" ")).getTime();
+        const dateB = new Date(b.month.split(" ").reverse().join(" ")).getTime();
+        return dateA - dateB;
+      });
   }, [data]);
       
   const chartColors = { sol: '#facc15', landvind: '#4ade80', havvind: '#2dd4bf', decentrale: '#60a5fa', centrale: '#0f766e' };

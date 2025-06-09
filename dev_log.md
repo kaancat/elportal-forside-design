@@ -675,3 +675,418 @@ return {
 NOTE: The dynamic legend transforms the component into an intelligent data visualization tool that adapts to user intent, providing contextual information for both detailed analysis and regional comparison scenarios
 
 NOTE: The API route now provides complete regional data, enabling the frontend component to implement flexible multi-region selection and visualization capabilities
+
+## [2024-01-11] – Energy Forecast API Region Parameter Fix
+Goal: Fix the energy forecast API to properly handle region parameter for Danmark/DK1/DK2 filtering
+
+### Issue Identified:
+The RenewableEnergyForecast.tsx component was correctly sending region parameter in the API call:
+```javascript
+const response = await fetch(`/api/energy-forecast?region=${selectedRegion}&date=${formatDateForApi(selectedDate)}`);
+```
+
+However, the API route `api/energy-forecast.ts` was not reading or using the region parameter, causing all region buttons to show the same data.
+
+### Changes Made:
+1. **Added region parameter extraction**: `const { region = 'Danmark', date } = req.query;`
+2. **Implemented region filtering logic**: 
+   - Danmark: No filter (shows all regions combined)
+   - DK1/DK2: Applies filter `&filter={"PriceArea":["${region}"]}`
+3. **Updated API URL construction** to include region filter when needed
+
+### Technical Details:
+- The EnergiDataService API supports filtering by PriceArea (DK1 or DK2)
+- When region is 'Danmark', no filter is applied to show combined data from all regions
+- When region is 'DK1' or 'DK2', specific filter is applied to show only that region's data
+
+### Impact:
+- Region selection buttons now work correctly
+- Chart updates properly when switching between Danmark, DK1, and DK2
+- Data filtering happens at API level for better performance
+- Maintains backward compatibility with existing functionality
+
+---
+
+## [2024-01-11] – React Error #31 Fix in PriceExampleTableComponent
+Goal: Fix React Error #31 by properly handling rich text from Sanity CMS
+
+### What was done:
+- Added `PortableText` import from `@portabletext/react` to handle rich text rendering
+- Updated `leadingText` type in `PriceExampleTable` interface from `string` to `any[]`
+- Replaced JSX `<p>{block.leadingText}</p>` with `<PortableText value={block.leadingText} />`
+- Added `prose` Tailwind class for proper rich text styling
+
+### Technical Details:
+The error occurred because Sanity CMS sends rich text as an array of objects (Portable Text format), but our component was expecting a simple string. The PortableText component properly renders this rich text structure.
+
+### Changes Made:
+1. Import: `import { PortableText } from '@portabletext/react'`
+2. Type: `leadingText: any[]` (instead of `string`)
+3. JSX: `<PortableText value={block.leadingText} />` (instead of `{block.leadingText}`)
+
+### Impact:
+- Resolves React Error #31 completely
+- Proper rich text rendering from Sanity CMS
+- Maintains existing styling and functionality
+- No breaking changes to other components
+
+## [2024-01-11] – PriceCalculatorWidget Refinements & Navigation Enhancement
+Goal: Refine visual styling to match original design and implement complete three-step navigation
+
+### Enhanced Progress Indicator:
+- **Visual Improvements**: Replaced simple text with circular step indicators
+- **Active States**: Green background for current/completed steps, gray for pending
+- **Checkmark Icons**: Completed steps show `CheckCircle` instead of numbers
+- **Better Typography**: Refined step labels with proper font weights and sizes
+
+### Navigation Flow Implementation:
+- **Step 1 → Step 2**: "Begynd" button advances to consumption selection
+- **Step 2 → Step 3**: "Se dine priser" button proceeds to results
+- **Back Navigation**: Added "Tilbage" buttons for step-by-step return
+- **Complete Flow**: Users can navigate forward and backward through all steps
+
+### Visual Design Refinements:
+- **Housing Preset Buttons**: 
+  - Refined padding and spacing for better mobile experience
+  - Improved icon placement and color states
+  - Enhanced hover effects with group styling
+  - Better typography hierarchy
+- **Brand Color Consistency**: Using `brand-green` throughout instead of hardcoded green colors
+- **Responsive Spacing**: Better mobile/desktop padding with `p-6 md:p-8`
+- **Typography Polish**: Consistent font weights and sizes across all steps
+
+### Step 3 Results Placeholder:
+- **Results Screen**: Complete placeholder for future price comparison results
+- **Dynamic Consumption Display**: Shows selected consumption value in results
+- **Development Notice**: Clear indication that this section is under development
+- **Back Navigation**: Users can return to Step 2 to adjust consumption
+
+### Technical Improvements:
+- **Icon Library**: Added `ArrowLeft`, `CheckCircle` to lucide-react imports
+- **State Management**: Enhanced navigation with proper step transitions
+- **UI Polish**: Consistent button styling and spacing throughout
+- **Accessibility**: Better semantic structure and visual feedback
+
+### User Experience Enhancements:
+- **Clear Progress**: Visual indicators show exactly where users are in the process
+- **Flexible Navigation**: Users can go back to modify their selections
+- **Visual Feedback**: Active states clearly indicate selected options
+- **Mobile Optimization**: Responsive design works well on all screen sizes
+
+### Impact:
+- Professional, polished calculator widget that matches design expectations
+- Complete user flow from welcome to results (with placeholder)
+- Foundation ready for actual price calculation integration
+- Enhanced user experience with clear navigation and visual feedback
+
+---
+
+## [2024-01-11] – Dynamic Price Calculator Widget Implementation
+Goal: Replace static calculator with fully functional multi-step PriceCalculatorWidget component
+
+### New Component Created: `PriceCalculatorWidget.tsx`
+A complete, self-contained calculator widget with the following features:
+
+#### Multi-Step Flow:
+1. **Step 1 (Velkommen)**: Welcome screen with feature checklist and start button
+2. **Step 2 (Dit forbrug)**: Housing type selection + consumption slider
+3. **Step 3 (Resultat)**: Ready for results display
+
+#### Housing Type Presets:
+- **Lille Lejlighed**: 2,000 kWh (< 80 m²)
+- **Stor Lejlighed**: 3,000 kWh (> 80 m²)  
+- **Mindre Hus**: 4,000 kWh (< 130 m²)
+- **Stort Hus**: 6,000 kWh (> 130 m²)
+- **Sommerhus**: 2,000 kWh (Feriebolig)
+
+#### Interactive Features:
+- Dynamic progress bar with visual step indicators
+- Clickable housing type buttons with visual feedback
+- Consumption slider (500-15,000 kWh range)
+- State management for step navigation and consumption values
+- Danish number formatting and localization
+
+### HeroSection Integration:
+- **Removed**: Static `CalcProgress` component and all static calculator JSX
+- **Added**: Import for `PriceCalculatorWidget`
+- **Replaced**: Entire static calculator div with `<PriceCalculatorWidget />`
+- **Cleaned up**: Removed unused imports (`Check` icon, `CalcProgress`)
+
+### Technical Implementation:
+- **TypeScript**: Full type safety with `HousingType` union and preset mappings
+- **State Management**: Uses React hooks for step navigation and consumption tracking
+- **UI Components**: Leverages shadcn/ui `Button` and `Slider` components
+- **Responsive Design**: Mobile-first approach with responsive grid layouts
+- **Accessibility**: Proper semantic markup and keyboard navigation support
+
+### Architecture Benefits:
+- **Separation of Concerns**: Calculator logic isolated from hero layout
+- **Reusability**: Widget can be used in other parts of the application
+- **Maintainability**: Self-contained component with clear API
+- **Scalability**: Easy to extend with additional steps or features
+
+### Impact:
+- Transforms static hero section into interactive user experience
+- Provides foundation for actual price calculation functionality
+- Maintains existing hero content while adding dynamic calculator
+- Clean, maintainable code structure for future enhancements
+
+---
+
+## [2024-01-11] – Sanity-Driven PriceCalculatorWidget Refactoring
+Goal: Convert PriceCalculatorWidget to a standalone, reusable component driven by Sanity CMS props
+
+### Major Refactoring Changes:
+
+#### 1. Props Interface Implementation:
+```tsx
+interface PriceCalculatorWidgetProps {
+  block: {
+    _type: 'priceCalculator';
+    title?: string;
+  };
+  variant?: 'standalone' | 'hero';
+}
+```
+
+#### 2. Component Signature Update:
+- **From**: `const PriceCalculatorWidget = () => {`
+- **To**: `const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, variant = 'standalone' }) => {`
+
+#### 3. Dual Usage Pattern Implementation:
+- **Hero Variant**: Returns widget content only (no section wrapper) for hero section integration
+- **Standalone Variant**: Returns full section with optional title and gray background for CMS usage
+
+#### 4. ContentBlocks Integration:
+- Added `PriceCalculator` type interface to ContentBlocks component
+- Implemented `priceCalculator` case in ContentBlocks renderer
+- Added import for `PriceCalculatorWidget`
+- Updated type unions to include `PriceCalculator`
+
+#### 5. HeroSection Compatibility:
+- Created minimal block object for hero section usage
+- Added `variant="hero"` prop to maintain existing hero layout
+- Preserved all existing functionality while enabling Sanity integration
+
+### Technical Architecture:
+
+#### Variant System:
+- **Hero Mode**: Direct widget rendering without section wrapper
+- **Standalone Mode**: Full section with container, padding, and optional title
+- **Shared Logic**: All calculator functionality remains identical across variants
+
+#### Sanity Integration Ready:
+- Component can now be driven entirely by Sanity CMS data
+- Optional title support for standalone usage
+- Proper TypeScript interfaces for type safety
+- ContentBlocks renderer automatically handles `priceCalculator` type
+
+#### Backward Compatibility:
+- Hero section continues to work exactly as before
+- No breaking changes to existing functionality
+- Calculator logic and styling completely preserved
+
+### Implementation Benefits:
+
+#### 1. Reusability:
+- Component can be used anywhere on the site via Sanity
+- No code duplication between hero and content sections
+- Consistent behavior across different contexts
+
+#### 2. Content Management:
+- Editors can add calculator widgets through Sanity Studio
+- Optional titles for different use cases
+- Flexible placement within content blocks
+
+#### 3. Maintainability:
+- Single source of truth for calculator logic
+- Centralized component for all calculator instances
+- Easy to update functionality across entire site
+
+#### 4. Scalability:
+- Foundation for future calculator enhancements
+- Easy to extend with additional Sanity fields
+- Supports multiple calculator instances per page
+
+### Future Extensions Ready:
+- Additional Sanity fields (descriptions, configurations, etc.)
+- Custom styling options via Sanity
+- A/B testing variants
+- Region-specific calculator variations
+
+---
+
+## [2024-01-11] – PriceCalculatorWidget Refinements & Navigation Enhancement
+Goal: Refine visual styling to match original design and implement complete three-step navigation
+
+### Enhanced Progress Indicator:
+- **Visual Improvements**: Replaced simple text with circular step indicators
+- **Active States**: Green background for current/completed steps, gray for pending
+- **Checkmark Icons**: Completed steps show `CheckCircle` instead of numbers
+- **Better Typography**: Refined step labels with proper font weights and sizes
+
+### Navigation Flow Implementation:
+- **Step 1 → Step 2**: "Begynd" button advances to consumption selection
+- **Step 2 → Step 3**: "Se dine priser" button proceeds to results
+- **Back Navigation**: Added "Tilbage" buttons for step-by-step return
+- **Complete Flow**: Users can navigate forward and backward through all steps
+
+### Visual Design Refinements:
+- **Housing Preset Buttons**: 
+  - Refined padding and spacing for better mobile experience
+  - Improved icon placement and color states
+  - Enhanced hover effects with group styling
+  - Better typography hierarchy
+- **Brand Color Consistency**: Using `brand-green` throughout instead of hardcoded green colors
+- **Responsive Spacing**: Better mobile/desktop padding with `p-6 md:p-8`
+- **Typography Polish**: Consistent font weights and sizes across all steps
+
+### Step 3 Results Placeholder:
+- **Results Screen**: Complete placeholder for future price comparison results
+- **Dynamic Consumption Display**: Shows selected consumption value in results
+- **Development Notice**: Clear indication that this section is under development
+- **Back Navigation**: Users can return to Step 2 to adjust consumption
+
+### Technical Improvements:
+- **Icon Library**: Added `ArrowLeft`, `CheckCircle` to lucide-react imports
+- **State Management**: Enhanced navigation with proper step transitions
+- **UI Polish**: Consistent button styling and spacing throughout
+- **Accessibility**: Better semantic structure and visual feedback
+
+### User Experience Enhancements:
+- **Clear Progress**: Visual indicators show exactly where users are in the process
+- **Flexible Navigation**: Users can go back to modify their selections
+- **Visual Feedback**: Active states clearly indicate selected options
+- **Mobile Optimization**: Responsive design works well on all screen sizes
+
+### Impact:
+- Professional, polished calculator widget that matches design expectations
+- Complete user flow from welcome to results (with placeholder)
+- Foundation ready for actual price calculation integration
+- Enhanced user experience with clear navigation and visual feedback
+
+---
+
+## [2024-01-11] – Dynamic Price Calculator Widget Implementation
+Goal: Replace static calculator with fully functional multi-step PriceCalculatorWidget component
+
+### New Component Created: `PriceCalculatorWidget.tsx`
+A complete, self-contained calculator widget with the following features:
+
+#### Multi-Step Flow:
+1. **Step 1 (Velkommen)**: Welcome screen with feature checklist and start button
+2. **Step 2 (Dit forbrug)**: Housing type selection + consumption slider
+3. **Step 3 (Resultat)**: Ready for results display
+
+#### Housing Type Presets:
+- **Lille Lejlighed**: 2,000 kWh (< 80 m²)
+- **Stor Lejlighed**: 3,000 kWh (> 80 m²)  
+- **Mindre Hus**: 4,000 kWh (< 130 m²)
+- **Stort Hus**: 6,000 kWh (> 130 m²)
+- **Sommerhus**: 2,000 kWh (Feriebolig)
+
+#### Interactive Features:
+- Dynamic progress bar with visual step indicators
+- Clickable housing type buttons with visual feedback
+- Consumption slider (500-15,000 kWh range)
+- State management for step navigation and consumption values
+- Danish number formatting and localization
+
+### HeroSection Integration:
+- **Removed**: Static `CalcProgress` component and all static calculator JSX
+- **Added**: Import for `PriceCalculatorWidget`
+- **Replaced**: Entire static calculator div with `<PriceCalculatorWidget />`
+- **Cleaned up**: Removed unused imports (`Check` icon, `CalcProgress`)
+
+### Technical Implementation:
+- **TypeScript**: Full type safety with `HousingType` union and preset mappings
+- **State Management**: Uses React hooks for step navigation and consumption tracking
+- **UI Components**: Leverages shadcn/ui `Button` and `Slider` components
+- **Responsive Design**: Mobile-first approach with responsive grid layouts
+- **Accessibility**: Proper semantic markup and keyboard navigation support
+
+### Architecture Benefits:
+- **Separation of Concerns**: Calculator logic isolated from hero layout
+- **Reusability**: Widget can be used in other parts of the application
+- **Maintainability**: Self-contained component with clear API
+- **Scalability**: Easy to extend with additional steps or features
+
+### Impact:
+- Transforms static hero section into interactive user experience
+- Provides foundation for actual price calculation functionality
+- Maintains existing hero content while adding dynamic calculator
+- Clean, maintainable code structure for future enhancements
+
+---
+
+## [2024-01-11] – Ghost Content Bug Fix
+Goal: Resolve the "ghost content" bug where unknown block types rendered as PageSection with placeholder content
+
+### Issue Description:
+When users added new, empty component blocks (like `heroWithCalculator` or `priceCalculator`) to pages in Sanity, the frontend sometimes rendered them as a completely different component (PageSection with "Elpriser kan være en jungle..." headline). This indicated that props were being mixed up or wrong components being rendered by default.
+
+### Root Cause Analysis:
+1. **Silent Fallback Problem**: ContentBlocks.tsx had an `else` clause that automatically rendered any unknown block type as `PageSectionComponent`
+2. **Placeholder Content**: PageSectionComponent contained hardcoded placeholder data: `"Elpriser kan være en jungle – vi giver dig overblikket"`
+3. **Missing Block Types**: New block types like `heroWithCalculator` had no explicit case in the renderer
+4. **Type Casting**: Unknown blocks were force-cast as `PageSection`, causing data structure mismatches
+
+### Bug Sequence:
+1. User adds new `heroWithCalculator` block in Sanity
+2. ContentBlocks renderer receives unknown `_type: 'heroWithCalculator'`
+3. No matching case found → falls through to `else` clause
+4. Block gets cast as `PageSection` and rendered by `PageSectionComponent`
+5. Empty block has no content → placeholder content displays
+6. User sees "Elpriser kan være en jungle..." instead of expected component
+
+### Solution Implemented:
+- **Replaced silent fallback** with explicit error handling for unknown block types
+- **Added specific case** for legitimate `pageSection` types
+- **Created visual error indicator** that shows:
+  - Clear warning message about unknown component type
+  - Specific block type that's missing (`heroWithCalculator`, etc.)
+  - Instructions for developers to add the missing component
+  - Expandable block data for debugging
+
+### Code Changes:
+```tsx
+// Before (silent fallback):
+} else {
+  console.log('Passing section to PageSectionComponent:', block)
+  return <PageSectionComponent key={block._key} section={block as PageSection} />
+}
+
+// After (explicit error handling):
+} else if (block._type === 'pageSection') {
+  console.log('Passing pageSection to PageSectionComponent:', block)
+  return <PageSectionComponent key={block._key} section={block as PageSection} />
+} else {
+  const unknownBlock = block as any
+  console.warn(`Unknown block type: ${unknownBlock._type}`, unknownBlock)
+  return (
+    <div key={unknownBlock._key || `unknown-${index}`} className="bg-red-100 border-2 border-red-400...">
+      <h3>⚠️ Unknown Component Type</h3>
+      <p>Block Type: {unknownBlock._type}</p>
+      // ... error details
+    </div>
+  )
+}
+```
+
+### Benefits:
+- **Immediate Detection**: Unknown block types are immediately visible with clear error messages
+- **Developer Friendly**: Error messages include exact block type and debugging information
+- **Prevents Silent Failures**: No more mystery content appearing from placeholder data
+- **Actionable**: Error messages tell developers exactly what needs to be implemented
+
+### Prevention:
+- Unknown block types now show bright red error boxes instead of random content
+- Console warnings alert developers to missing component implementations
+- Debugging information helps trace the source of unknown blocks
+- Clear instructions guide developers on how to fix the issue
+
+### Impact:
+- Eliminates confusing "ghost content" appearing on the frontend
+- Provides clear feedback when new Sanity block types need frontend implementation
+- Improves developer experience with actionable error messages
+- Maintains backward compatibility for existing `pageSection` blocks

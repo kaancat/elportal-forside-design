@@ -50,7 +50,7 @@ export interface PriceExampleTable {
   _type: 'priceExampleTable'
   _key: string
   title: string
-  leadingText: string
+  leadingText: any[]
   example1_title: string
   example1_kwh_price: number
   example1_subscription: number
@@ -110,13 +110,24 @@ export interface RenewableEnergyForecast {
   leadingText?: string
 }
 
+export interface PriceCalculator {
+  _type: 'priceCalculator'
+  _key: string
+  title?: string
+}
+
+export interface HeroWithCalculator {
+  _type: 'heroWithCalculator'
+  _key: string
+}
+
 export interface HomePage {
   _id: string
   _type: 'homePage'
   title: string
   seoMetaTitle: string
   seoMetaDescription: string
-  contentBlocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph | RealPriceComparisonTable | RenewableEnergyForecast>
+  contentBlocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph | RealPriceComparisonTable | RenewableEnergyForecast | PriceCalculator | HeroWithCalculator>
 }
 
 export interface BlogPost {

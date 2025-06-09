@@ -95,9 +95,26 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         } else if (block._type === 'priceCalculator') {
           console.log('Passing priceCalculator to PriceCalculatorWidget:', block)
           return <PriceCalculatorWidget key={block._key} block={block as PriceCalculator} />
-        } else {
-          console.log('Passing section to PageSectionComponent:', block)
+        } else if (block._type === 'pageSection') {
+          console.log('Passing pageSection to PageSectionComponent:', block)
           return <PageSectionComponent key={block._key} section={block as PageSection} />
+        } else {
+          // Handle unknown block types with a clear error message instead of silent fallback
+          const unknownBlock = block as any
+          console.warn(`Unknown block type: ${unknownBlock._type}`, unknownBlock)
+          return (
+            <div key={unknownBlock._key || `unknown-${index}`} className="bg-red-100 border-2 border-red-400 text-red-700 px-6 py-4 rounded-lg mx-4 my-4">
+              <h3 className="font-bold text-lg mb-2">⚠️ Unknown Component Type</h3>
+              <p className="mb-2"><strong>Block Type:</strong> <code className="bg-red-200 px-2 py-1 rounded">{unknownBlock._type}</code></p>
+              <p className="text-sm">This component type needs to be added to ContentBlocks.tsx renderer.</p>
+              <details className="mt-3">
+                <summary className="cursor-pointer text-sm font-medium">Show Block Data</summary>
+                <pre className="mt-2 text-xs bg-red-50 p-2 rounded overflow-auto max-h-40">
+                  {JSON.stringify(unknownBlock, null, 2)}
+                </pre>
+              </details>
+            </div>
+          )
         }
       })}
     </div>

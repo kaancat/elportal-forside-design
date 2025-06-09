@@ -674,4 +674,73 @@ return {
 
 NOTE: The dynamic legend transforms the component into an intelligent data visualization tool that adapts to user intent, providing contextual information for both detailed analysis and regional comparison scenarios
 
+---
+
+## [2024-12-28] – Component Reversion to Stable Single-Region Model
+Goal: Revert to simpler, more stable implementation with clear stacked area chart showing energy composition
+
+- **Architecture Simplification**: Reverted from complex multi-region toggle system to single-region selection
+  - **Removed**: Multi-region toggle functionality and dynamic legend logic
+  - **Restored**: Traditional button-based region selection (Danmark, DK1, DK2)
+  - **Rationale**: Prioritize clarity and stability over complexity
+
+- **Stacked Area Chart Implementation**: Restored energy composition visualization
+  - **Chart Type**: Stacked areas showing Solar, Onshore Wind, and Offshore Wind
+  - **Visual Enhancement**: Linear gradients for each energy type with proper opacity
+  - **Stacking Order**: Offshore Wind (bottom) → Onshore Wind (middle) → Solar (top)
+  - **Benefits**: Clear visual representation of energy source composition over time
+
+- **Enhanced Tooltip for Composition**: Improved tooltip showing individual and total values
+  - **Individual Values**: Each energy type with color coding
+  - **Total Calculation**: Sum of all renewable sources displayed at bottom
+  - **Visual Separation**: Border line separating individual values from total
+  - **Reversed Order**: Bottom-to-top display matching stacked chart order
+
+- **Simplified State Management**: Streamlined component state
+  - **Single Region State**: `selectedRegion: 'Danmark' | 'DK1' | 'DK2'`
+  - **Default Selection**: Danmark as initial region
+  - **Button Variants**: Clear visual feedback with default/outline styling
+  - **Removed Complexity**: Eliminated multi-selection logic and dynamic calculations
+
+- **Improved Y-Axis Scaling**: Enhanced mathematical approach for cleaner scaling
+  - **Half-Magnitude Rounding**: More granular scaling than full magnitude
+  - **Formula**: `Math.ceil(dataMax / (magnitude / 2)) * (magnitude / 2)`
+  - **Benefits**: Better distribution of Y-axis ticks for improved readability
+
+## Technical Implementation Details
+
+### Stacked Chart Configuration
+```jsx
+<Area dataKey="Offshore Wind" stackId="1" fill="url(#colorOffshore)" />
+<Area dataKey="Onshore Wind" stackId="1" fill="url(#colorOnshore)" />  
+<Area dataKey="Solar" stackId="1" fill="url(#colorSolar)" />
+```
+
+### Enhanced Tooltip Logic
+- Reverses payload array to match visual stacking order
+- Calculates total across all energy types
+- Provides clear visual separation between individual and total values
+
+### Gradient Definitions
+- Linear gradients from 70% to 10% opacity for visual depth
+- Color scheme: Solar (orange), Onshore Wind (blue), Offshore Wind (green)
+- Consistent with established energy type color conventions
+
+## Design Rationale
+
+- **User Experience Priority**: Simplified interaction model reduces cognitive load
+- **Visual Clarity**: Stacked chart clearly shows both composition and total production
+- **Data Education**: Users can easily understand renewable energy mix
+- **Performance Optimization**: Reduced component complexity improves rendering
+- **Maintenance Benefits**: Simpler codebase easier to debug and extend
+
+## Breaking Changes from Multi-Region Version
+
+- **Removed Features**: Toggle components, multi-region selection, dynamic legend
+- **Restored Features**: Single region selection, stacked energy composition, static legend
+- **Changed Data Flow**: Frontend filtering instead of multi-dataset processing
+- **Updated UI**: Button-based selection instead of toggle-based selection
+
+NOTE: This reversion prioritizes clarity, stability, and educational value over complex multi-region comparison capabilities, providing a more focused and reliable user experience for understanding renewable energy composition
+
 NOTE: The API route now provides complete regional data, enabling the frontend component to implement flexible multi-region selection and visualization capabilities

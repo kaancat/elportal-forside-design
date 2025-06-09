@@ -8,9 +8,10 @@ import { ElectricityProduct } from '@/types/product';
 interface ProviderCardProps {
   product: ElectricityProduct;
   annualConsumption: number;
+  spotPrice: number | null;
 }
 
-const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption }) => {
+const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption, spotPrice }) => {
   console.log('ProviderCard render - product:', product);
   console.log('ProviderCard render - annualConsumption:', annualConsumption);
 
@@ -26,9 +27,14 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption 
     }
   };
 
-  // Calculate estimated monthly price
-  const estimatedMonthlyPrice = ((product.displayPrice_kWh || 0) * annualConsumption / 12) + (product.displayMonthlyFee || 0);
+  // Calculate estimated monthly price using live spot price + markup or fallback to display price
+  const finalKwhPrice = spotPrice !== null ? 
+    spotPrice + (product.displayPrice_kWh || 0) : // Live spot price + markup
+    (product.displayPrice_kWh || 0); // Fallback to display price
   
+  const estimatedMonthlyPrice = (finalKwhPrice * annualConsumption / 12) + (product.displayMonthlyFee || 0);
+  
+  console.log('Price calculation - spotPrice:', spotPrice, 'markup:', product.displayPrice_kWh, 'final:', finalKwhPrice);
   console.log('Calculated monthly price:', estimatedMonthlyPrice, 'for consumption:', annualConsumption);
 
   return (
@@ -107,7 +113,10 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption 
                   pr. måned
                 </div>
                 <div className="text-xs text-gray-500 space-y-1">
-                  <div>{(product.displayPrice_kWh || 0).toFixed(2)} kr/kWh</div>
+                  <div>{finalKwhPrice.toFixed(2)} kr/kWh</div>
+                  {spotPrice !== null && (
+                    <div className="text-xs text-blue-600">Live pris: {spotPrice.toFixed(2)} + {(product.displayPrice_kWh || 0).toFixed(2)} tillæg</div>
+                  )}
                   <div>Månedligt gebyr: {product.displayMonthlyFee || 0} kr</div>
                 </div>
               </div>

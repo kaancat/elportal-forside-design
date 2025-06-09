@@ -152,6 +152,63 @@ This fix addresses the root cause of the data fetching issue and should restore 
 
 ---
 
+## [2024-12-19] – Implement Live Spot Price Integration
+Goal: Refactor ProviderList and ProviderCard to fetch and use live spot prices in monthly price calculations
+
+### Changes Made:
+
+1. **Enhanced ProviderList with Live Price Fetching (`src/components/ProviderList.tsx`)**:
+   - Added `useState` for `spotPrice` and `priceLoading` state management
+   - Implemented `useEffect` hook to fetch live spot price from `/api/electricity-prices`
+   - Added current hour matching logic to get real-time pricing
+   - Added fallback price (1.5 kr/kWh) for error handling
+   - Added loading indicator: "Henter live priser..." during fetch
+   - Pass `spotPrice` down to all ProviderCard instances
+
+2. **Updated ProviderCard for Dynamic Pricing (`src/components/ProviderCard.tsx`)**:
+   - Extended `ProviderCardProps` interface to accept `spotPrice: number | null`
+   - Implemented new price calculation logic:
+     ```tsx
+     const finalKwhPrice = spotPrice !== null ? 
+       spotPrice + (product.displayPrice_kWh || 0) : // Live price + markup
+       (product.displayPrice_kWh || 0); // Fallback to display price
+     ```
+   - Updated price display to show calculated `finalKwhPrice` instead of static `displayPrice_kWh`
+   - Added live price breakdown when spot price is available: "Live pris: X.XX + Y.YY tillæg"
+
+### Technical Implementation:
+
+**Price Calculation Logic**:
+- **When spotPrice available**: `finalPrice = spotPrice + markup`
+- **When spotPrice unavailable**: `finalPrice = displayPrice_kWh` (fallback)
+- Monthly calculation: `(finalPrice × annualConsumption ÷ 12) + monthlyFee`
+
+**Live Data Flow**:
+```
+API → Current Hour Spot Price → Provider Markup → Final kWh Price → Monthly Estimate
+```
+
+**Error Handling**:
+- API failure → 1.5 kr/kWh fallback price
+- Missing current hour data → Uses fallback
+- Loading states with user feedback
+
+### User Experience Enhancements:
+
+**Real-time Accuracy**: Prices now reflect current market conditions
+**Transparency**: Shows breakdown of spot price + provider markup
+**Loading Feedback**: Clear indication when fetching live prices
+**Graceful Degradation**: Works even if live price API fails
+
+### Data Structure Impact:
+- `displayPrice_kWh` now represents **provider markup** when live prices are available
+- Maintains backward compatibility when spot price is unavailable
+- Dynamic pricing makes the tool incredibly accurate and valuable
+
+This implementation transforms the static price calculator into a live, market-accurate tool that provides real-time pricing based on current electricity spot prices plus provider-specific markups.
+
+---
+
 ## [2024-12-19] – TypeScript Centralization Fix
 Goal: Fix TypeScript errors by centralizing type definitions for monthlyProductionChart block
 

@@ -3,7 +3,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import type { MonthlyProductionChartBlock } from '../types/sanity';
 
 // --- TYPES ---
-interface ProductionRecord { Month: string; PriceArea: string; OffshoreWindLt100MW_MWh: number; OnshoreWind_MWh: number; SolarCell_MWh: number; CentralProd_MWh: number; LocalProd_MWh: number; }
+interface ProductionRecord { Month: string; PriceArea: string; OffshoreWindLt100MW_MWh: number; OnshoreWind_MWh: number; SolarCell_MWh: number; CentralPower_MWh: number; LocalPower_MWh: number; }
 interface ProcessedMonthData { month: string; Sol: number; Landvind: number; Havvind: number; Decentrale: number; Centrale: number; }
 interface MonthlyProductionChartProps { block: MonthlyProductionChartBlock; }
 
@@ -55,8 +55,8 @@ const MonthlyProductionChart: React.FC<MonthlyProductionChartProps> = ({ block }
       acc[monthKey].Sol += record.SolarCell_MWh || 0;
       acc[monthKey].Landvind += record.OnshoreWind_MWh || 0;
       acc[monthKey].Havvind += record.OffshoreWindLt100MW_MWh || 0;
-      acc[monthKey].Decentrale += record.LocalProd_MWh || 0;
-      acc[monthKey].Centrale += record.CentralProd_MWh || 0;
+      acc[monthKey].Decentrale += record.LocalPower_MWh || 0;
+      acc[monthKey].Centrale += record.CentralPower_MWh || 0;
       return acc;
     }, {} as Record<string, Omit<ProcessedMonthData, 'month'>>);
     

@@ -1091,6 +1091,132 @@ When users added new, empty component blocks (like `heroWithCalculator` or `pric
 - Improves developer experience with actionable error messages
 - Maintains backward compatibility for existing `pageSection` blocks
 
+## [2024-12-22] – Custom Portable Text Renderers for Embedded Blocks Implementation
+Goal: Enable proper rendering of custom components (livePriceGraph, renewableEnergyForecast, priceCalculator) when embedded within PageSection rich text content
+
+**Problem Statement:**
+When content editors embedded custom blocks like `livePriceGraph` inside the rich text content of a `pageSection`, these components would show as blank space because the custom `BlockContent` component couldn't handle them.
+
+**Complete Solution Implemented:**
+
+### Step 1: Replace Custom BlockContent with PortableText
+**File Modified**: `src/components/PageSectionComponent.tsx`
+- **Removed**: Custom `BlockContent` component import
+- **Added**: `PortableText` from `@portabletext/react`
+- **Added**: Imports for embedded components (`LivePriceGraphComponent`, `RenewableEnergyForecastComponent`, `PriceCalculatorWidget`)
+
+### Step 2: Create Custom Component Renderers
+**Implemented**: Comprehensive `customComponents` object with three renderer categories:
+
+#### A. Custom Block Type Renderers
+```typescript
+types: {
+  livePriceGraph: ({ value }) => <LivePriceGraphComponent block={value} />,
+  renewableEnergyForecast: ({ value }) => <RenewableEnergyForecastComponent block={value} />,
+  priceCalculator: ({ value }) => <PriceCalculatorWidget block={value} variant="standalone" />,
+}
+```
+
+#### B. Text Block Style Renderers
+```typescript
+block: {
+  h1: ({ children }) => <h1 className="text-3xl font-bold mb-4">{children}</h1>,
+  h2: ({ children }) => <h2 className="text-2xl font-bold mb-3">{children}</h2>,
+  h3: ({ children }) => <h3 className="text-xl font-bold mb-2">{children}</h3>,
+  blockquote: ({ children }) => <blockquote className="border-l-4 border-brand-green pl-4 italic mb-4">{children}</blockquote>,
+  normal: ({ children }) => <p className="mb-4">{children}</p>,
+}
+```
+
+#### C. Text Mark Renderers
+```typescript
+marks: {
+  strong: ({ children }) => <strong>{children}</strong>,
+  em: ({ children }) => <em>{children}</em>,
+}
+```
+
+### Step 3: Enhanced GROQ Query for Embedded Blocks
+**File Modified**: `src/services/sanityService.ts`
+- **Enhanced**: `pageSection` content query to expand embedded block data
+- **Added**: Specific data fetching for each embedded block type
+
+#### Updated Content Array Query:
+```groq
+content[]{ // Expand content array to include embedded blocks
+  ..., // Get all fields for standard blocks (text, etc.)
+  // Add expansions for each custom block type
+  _type == "livePriceGraph" => {
+    _key, _type, title, subtitle, apiRegion
+  },
+  _type == "renewableEnergyForecast" => {
+    _key, _type, title, leadingText
+  },
+  _type == "priceCalculator" => {
+    _key, _type, title
+  }
+}
+```
+
+### Step 4: Seamless Integration with Existing System
+**PortableText Integration**:
+```typescript
+<PortableText value={content} components={customComponents} />
+```
+
+**Debug Logging**: Added console logging for embedded component rendering verification
+
+**TypeScript Compatibility**: Used `any` types for PortableText component props to resolve type conflicts
+
+### Technical Architecture Benefits:
+
+#### 1. **Unified Content Management**
+- Content editors can embed interactive components directly within rich text
+- No need for separate content block sections
+- Seamless mixing of text and interactive elements
+
+#### 2. **Component Reusability**
+- Same components used in ContentBlocks now work in PageSection content
+- `PriceCalculatorWidget` variant system allows appropriate rendering context
+- Consistent component behavior across different usage scenarios
+
+#### 3. **Enhanced User Experience**
+- **Before**: Embedded components showed as blank space
+- **After**: Full interactive components render properly within text content
+- Natural content flow with mixed text and interactive elements
+
+#### 4. **Data Flow Architecture**
+```
+Sanity CMS → GROQ Query (fetches embedded data) → PortableText (renders with custom components) → Interactive Components
+```
+
+### Content Editor Workflow:
+1. **Create PageSection** in Sanity Studio
+2. **Add Rich Text Content** using the content editor
+3. **Embed Components** by inserting livePriceGraph, renewableEnergyForecast, or priceCalculator blocks
+4. **Publish Changes** - components render immediately on frontend with full functionality
+
+### Performance Impact:
+- **Minimal Bundle Size Increase**: Only imports components that are actually used
+- **Lazy Loading Ready**: Component imports can be made dynamic if needed
+- **Cached GROQ Data**: Embedded block data fetched once with main query
+
+### Future Extensibility:
+- Easy to add new embedded component types by extending `customComponents.types`
+- Template ready for video embeds, image galleries, forms, etc.
+- Portable Text renderer architecture supports unlimited component types
+
+**Files Modified:**
+- `src/components/PageSectionComponent.tsx` - PortableText integration and custom renderers
+- `src/services/sanityService.ts` - Enhanced GROQ query for embedded block data
+
+**Git Operations:**
+- Committed as: "feat: implement custom Portable Text renderers for embedded blocks"
+- Successfully pushed to origin/main
+- Ready for content editor testing and component embedding
+
+---
+
 ## [2024-12-22] – Theme System Implementation for PageSectionComponent  
 Goal: Implement dynamic color theme system for PageSection blocks to enable Sanity-driven styling
 

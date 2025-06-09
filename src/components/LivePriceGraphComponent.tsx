@@ -159,7 +159,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   const isToday = formatDate(selectedDate) === formatDate(new Date());
   const isTomorrow = formatDate(selectedDate) === formatDate((() => { const d = new Date(); d.setDate(d.getDate() + 1); return d; })());
 
-  return (
+    return (
     <section className="container mx-auto px-4 py-16">
       <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-lg border border-gray-100 p-6">
         
@@ -300,7 +300,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                                 }
                             };
 
-                            return (
+  return (
                                 <div 
                                     key={hour} 
                                     className="flex-1 flex flex-col justify-start items-center group cursor-pointer relative pt-4"
@@ -462,8 +462,8 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                             <div className="flex justify-between font-semibold">
                                 <span>Total pris:</span>
                                 <span>{hoveredHourData.total.toFixed(2)} kr/kWh</span>
-                            </div>
-                        </div>
+          </div>
+        </div>
                     </div>
                     {/* Tooltip Arrow */}
                     <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
@@ -471,8 +471,8 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
             )}
         </div>
       )}
-    </div>
-  </section>
+      </div>
+    </section>
 );
 };
 

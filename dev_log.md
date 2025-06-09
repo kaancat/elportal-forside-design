@@ -1,5 +1,32 @@
 # Dev Log
 
+## [2024-12-19] – Monthly Production Data API Route
+Goal: Create API endpoint for fetching 12 months of historical electricity production data
+
+- **Created new API route**: `api/monthly-production.ts`
+  - **Dataset Integration**: Uses EnergiDataService "ElectricityProdex5TechMonth" dataset
+  - **Dynamic Date Range**: Automatically calculates last 12 months from current date
+  - **Sorted Results**: Returns data sorted by month in ascending order
+  - **Error Handling**: Comprehensive error handling with status codes and details
+
+- **API Functionality**:
+  - **Date Calculation**: Uses `setFullYear(today.getFullYear() - 1)` for 12-month lookback
+  - **URL Construction**: Builds API URL with start/end dates and sorting parameters
+  - **Response Format**: Returns JSON data from EnergiDataService or error details
+  - **Vercel Compatible**: Uses Vercel serverless function format for deployment
+
+Technical Implementation:
+- **Date Formatting**: Uses ISO date format (YYYY-MM-DD) for API compatibility
+- **HTTP Status Codes**: Returns 200 for success, 500 for errors
+- **TypeScript Support**: Proper typing with VercelRequest/VercelResponse interfaces
+- **API Integration**: Fetches from official Danish energy data API
+
+Data Coverage:
+- **Time Range**: Rolling 12-month period updated daily
+- **Technology Breakdown**: Multiple electricity production technologies
+- **Monthly Aggregation**: Production data aggregated by month for trends analysis
+- **Danish Market**: Comprehensive coverage of Danish electricity production
+
 ## [2024-12-19] – Date Constraints for RenewableEnergyForecast
 Goal: Add date constraints to prevent users from navigating to future dates where no forecast data exists
 

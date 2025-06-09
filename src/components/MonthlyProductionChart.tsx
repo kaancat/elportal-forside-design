@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-// --- TYPES BASED ON PRODUCTIONPERMUNICIPALITY DATASET ---
+// --- FINAL, VERIFIED TYPES ---
 interface ProductionRecord {
   Month: string;
   CentralPowerPlants_MWh: number;
@@ -52,12 +52,12 @@ const MonthlyProductionChart: React.FC<MonthlyProductionChartProps> = ({ block }
     fetchData();
   }, []);
 
-  // --- CORRECT AGGREGATION LOGIC ---
+  // --- FINAL, VERIFIED DATA PROCESSING LOGIC ---
   const processedData = useMemo<ProcessedMonthData[]>(() => {
     if (!data || data.length === 0) return [];
     
     const groupedByMonth = data.reduce((acc, record) => {
-        const monthKey = record.Month; // Use the YYYY-MM-DD string as a key
+        const monthKey = record.Month;
         if (!acc[monthKey]) {
             acc[monthKey] = { Sol: 0, Landvind: 0, Havvind: 0, Decentrale: 0, Centrale: 0 };
         }

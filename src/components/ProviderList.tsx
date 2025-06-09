@@ -9,6 +9,13 @@ interface ProviderListProps {
 }
 
 export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
+  // --- SAFETY CHECK ---
+  if (!block) {
+    console.error('ProviderList: block prop is undefined');
+    return <div className="text-center text-red-500 py-8">Provider list data is missing.</div>;
+  }
+  // --- END OF SAFETY CHECK ---
+
   const [annualConsumption, setAnnualConsumption] = useState([4000]);
   const [selectedHouseholdType, setSelectedHouseholdType] = useState<string | null>('small-house');
 

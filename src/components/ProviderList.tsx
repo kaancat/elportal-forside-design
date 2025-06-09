@@ -9,6 +9,10 @@ interface ProviderListProps {
 }
 
 export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
+  // --- DEBUG LOGGING ---
+  console.log('Data received by ProviderList:', JSON.stringify(block, null, 2));
+  // --- END DEBUG LOGGING ---
+  
   // --- SAFETY CHECK ---
   if (!block) {
     console.error('ProviderList: block prop is undefined');

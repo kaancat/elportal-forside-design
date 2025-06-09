@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import ProviderCard from './ProviderCard';
 import HouseholdTypeSelector, { HouseholdType } from './HouseholdTypeSelector';
 import { Slider } from '@/components/ui/slider';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Info } from 'lucide-react';
 import type { ProviderListBlock, ProviderProductBlock } from '../types/sanity';
 
 interface ProviderListProps {
@@ -24,6 +26,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
   const [selectedHouseholdType, setSelectedHouseholdType] = useState<string | null>('small-house');
   const [spotPrice, setSpotPrice] = useState<number | null>(null);
   const [priceLoading, setPriceLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   console.log('ProviderList render - block:', block);
   console.log('ProviderList render - annualConsumption:', annualConsumption[0]);
@@ -40,6 +43,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
         const currentPriceData = data.records.find((r: any) => new Date(r.HourDK).getHours() === currentHour);
         if (currentPriceData) {
           setSpotPrice(currentPriceData.SpotPriceKWh);
+          setLastUpdated(new Date()); // SET THE TIMESTAMP HERE
           console.log('Fetched live spot price:', currentPriceData.SpotPriceKWh, 'kr/kWh');
         }
       } catch (error) {
@@ -177,6 +181,25 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
               <span className="text-sm text-gray-500 ml-2">(Henter live priser...)</span>
             )}
           </h2>
+          
+          {/* Last Updated Timestamp with Tooltip */}
+          <div className="flex justify-center items-center gap-2 mb-8">
+            {lastUpdated && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <p className="text-sm text-gray-500 cursor-pointer flex items-center gap-1">
+                      Priser sidst opdateret: {lastUpdated.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}
+                      <Info size={14} />
+                    </p>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>De viste priser er estimater baseret på live spotpriser, <br /> som opdateres hver time.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
           {sortedProviders.map(provider => {
             console.log('Rendering provider:', provider);
             if (!provider || !provider.id) {

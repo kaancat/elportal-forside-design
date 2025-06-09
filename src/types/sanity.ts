@@ -37,6 +37,11 @@ export interface PageSection {
   content: BlockContent[]
   image?: SanityImage
   imagePosition?: 'left' | 'right' | 'none'
+  theme?: {
+    background: string;
+    text: string;
+    primary: string;
+  };
 }
 
 export interface FAQItem {

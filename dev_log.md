@@ -1090,3 +1090,34 @@ When users added new, empty component blocks (like `heroWithCalculator` or `pric
 - Provides clear feedback when new Sanity block types need frontend implementation
 - Improves developer experience with actionable error messages
 - Maintains backward compatibility for existing `pageSection` blocks
+
+## [2024-12-22] – TypeScript Error Resolution in ContentBlocks Component
+Goal: Fix red TypeScript errors showing in IDE for ContentBlocks.tsx while maintaining functionality
+
+**Problem Identified:**
+- Local type definitions (`PriceCalculator`, `HeroWithCalculator`) in ContentBlocks.tsx caused TypeScript conflicts
+- Complex type union arrays created long type definitions that IDE struggled with
+- Type mismatch between local interfaces and centralized sanity types
+
+**Solution Implemented:**
+- Moved `PriceCalculator` and `HeroWithCalculator` interfaces to `src/types/sanity.ts` for centralization
+- Updated `HomePage` interface `contentBlocks` type union to include new types
+- Simplified ContentBlocks.tsx by importing centralized types instead of local definitions
+- Created `ContentBlock` type alias for cleaner code and better readability
+- Fixed `PriceExampleTable.leadingText` type from `string` to `any[]` for PortableText compatibility
+
+**Result:**
+- All TypeScript errors resolved in IDE
+- Maintained full functionality on frontend
+- Cleaner, more maintainable type definitions
+- Proper type safety across the application
+
+**Files Modified:**
+- `src/types/sanity.ts` - Added new interfaces and updated HomePage
+- `src/components/ContentBlocks.tsx` - Cleaned up type definitions, used centralized types
+
+**Git Operations:**
+- Committed as: "fix: centralize TypeScript type definitions to resolve IDE errors"
+- Successfully pushed to origin/main
+
+---

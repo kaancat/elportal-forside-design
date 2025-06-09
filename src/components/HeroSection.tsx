@@ -4,6 +4,13 @@ import { Button } from '@/components/ui/button';
 import PriceCalculatorWidget from '@/components/PriceCalculatorWidget';
 
 const HeroSection = () => {
+  // Create a minimal block object for the calculator widget in hero section
+  const calculatorBlock = {
+    _type: 'priceCalculator' as const,
+    _key: 'hero-calculator',
+    title: undefined // No title in hero section
+  };
+
   return (
     <section className="relative overflow-hidden bg-brand-dark">
       {/* Background overlay with windmill image */}
@@ -46,7 +53,7 @@ const HeroSection = () => {
           
           {/* Right column with calculator */}
           <div className="lg:w-1/2">
-            <PriceCalculatorWidget />
+            <PriceCalculatorWidget block={calculatorBlock} variant="hero" />
           </div>
         </div>
       </div>

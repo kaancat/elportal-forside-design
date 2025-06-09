@@ -10,20 +10,20 @@ export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps>
   if (!block || !block.propositions) return null;
 
   return (
-    <section className="py-12 lg:py-16">
+    <section className="py-8 lg:py-10">
       <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto p-6 bg-brand-green/10 rounded-2xl border border-brand-green/20">
+        <div className="max-w-4xl mx-auto p-4 bg-brand-green/10 rounded-xl border border-brand-green/20">
           {block.title && (
-            <div className="flex items-center mb-4">
-              <Info className="h-5 w-5 text-brand-green mr-3" />
-              <h2 className="text-xl font-bold text-brand-dark">{block.title}</h2>
+            <div className="flex items-center mb-3">
+              <Info className="h-4 w-4 text-brand-green mr-2" />
+              <h2 className="text-lg font-bold text-brand-dark">{block.title}</h2>
             </div>
           )}
-          <ul className="space-y-3">
+          <ul className="space-y-2">
             {block.propositions.map((proposition, index) => (
               <li key={index} className="flex items-start">
-                                                    <Check className="h-5 w-5 text-brand-green mr-3 flex-shrink-0 mt-0.5" />
-                  <span className="text-base text-gray-700">{proposition}</span>
+                                                    <Check className="h-4 w-4 text-brand-green mr-2 flex-shrink-0 mt-0.5" />
+                  <span className="text-sm text-gray-700">{proposition}</span>
               </li>
             ))}
           </ul>

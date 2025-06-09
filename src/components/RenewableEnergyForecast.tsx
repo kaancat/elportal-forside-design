@@ -44,7 +44,7 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   
   // NEW STATE: For multi-selection
-  const [selectedRegions, setSelectedRegions] = useState({ Danmark: true, DK1: false, DK2: false });
+  const [selectedRegions, setSelectedRegions] = useState({ Danmark: true, DK1: true, DK2: true });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -82,11 +82,24 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
     };
   }, [allData]);
 
+  const yAxisMax = useMemo(() => {
+    const allTotals = [
+      ...(selectedRegions.Danmark ? processedData.Danmark.map(d => d.Total) : []),
+      ...(selectedRegions.DK1 ? processedData.DK1.map(d => d.Total) : []),
+      ...(selectedRegions.DK2 ? processedData.DK2.map(d => d.Total) : []),
+    ];
+    if (allTotals.length === 0) return 1000; // Default max if no data
+    const dataMax = Math.max(...allTotals);
+    // Calculate a "nice" round number above the max value
+    const magnitude = Math.pow(10, Math.floor(Math.log10(dataMax)));
+    return Math.ceil(dataMax / magnitude) * magnitude;
+  }, [processedData, selectedRegions]);
+
   const handleToggle = (region: keyof typeof selectedRegions) => {
     setSelectedRegions(prev => ({ ...prev, [region]: !prev[region] }));
   };
   
-  const chartColors = { Danmark: '#16a34a', DK1: '#3b82f6', DK2: '#f59e0b' };
+  const chartColors = { Danmark: '#16a34a', DK1: '#3b82f6', DK2: '#ca8a04' };
 
   return (
     <section className="bg-white py-16 lg:py-24">
@@ -104,9 +117,18 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
           
           {/* NEW Region Toggles */}
           <div className="flex items-center gap-2">
-            <Toggle pressed={selectedRegions.Danmark} onPressedChange={() => handleToggle('Danmark')} aria-label="Toggle Danmark">Hele Danmark</Toggle>
-            <Toggle pressed={selectedRegions.DK1} onPressedChange={() => handleToggle('DK1')} aria-label="Toggle DK1">DK1</Toggle>
-            <Toggle pressed={selectedRegions.DK2} onPressedChange={() => handleToggle('DK2')} aria-label="Toggle DK2">DK2</Toggle>
+            <Toggle pressed={selectedRegions.Danmark} onPressedChange={() => handleToggle('Danmark')} aria-label="Toggle Danmark" 
+                    className="data-[state=on]:bg-green-600 data-[state=on]:text-white">
+              Hele Danmark
+            </Toggle>
+            <Toggle pressed={selectedRegions.DK1} onPressedChange={() => handleToggle('DK1')} aria-label="Toggle DK1"
+                    className="data-[state=on]:bg-blue-600 data-[state=on]:text-white">
+              DK1
+            </Toggle>
+            <Toggle pressed={selectedRegions.DK2} onPressedChange={() => handleToggle('DK2')} aria-label="Toggle DK2"
+                    className="data-[state=on]:bg-yellow-600 data-[state=on]:text-white">
+              DK2
+            </Toggle>
           </div>
         </div>
 
@@ -117,7 +139,12 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
               <AreaChart margin={{ top: 10, right: 20, left: 20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" vertical={false} />
                 <XAxis dataKey="hour" type="category" allowDuplicatedCategory={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
-                <YAxis domain={[0, 'dataMax + 100']} tick={{ fontSize: 12, fill: '#6b7280' }} label={{ value: 'MWh', angle: -90, position: 'insideLeft', offset: -10, style: { fill: '#6b7280' } }} />
+                <YAxis 
+                  domain={[0, yAxisMax]} 
+                  tickFormatter={(tick) => Math.round(tick).toString()}
+                  tick={{ fontSize: 12, fill: '#6b7280' }} 
+                  label={{ value: 'MWh', angle: -90, position: 'insideLeft', offset: -10, style: { fill: '#6b7280' } }} 
+                />
                 <Tooltip content={<CustomTooltip />} />
                 
                 {/* NEW Conditional Rendering of Area Layers */}
@@ -126,8 +153,16 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
                 {selectedRegions.DK2 && <Area type="monotone" data={processedData.DK2} dataKey="Total" name="DK2" stroke={chartColors.DK2} fill={chartColors.DK2} fillOpacity={0.2} strokeWidth={2} />}
               </AreaChart>
             </ResponsiveContainer>
-          )}
+                      )}
         </div>
+        
+        {/* --- CUSTOM LEGEND --- */}
+        <div className="flex justify-center items-center gap-x-6 gap-y-2 flex-wrap mt-8">
+            <div className="flex items-center gap-2 text-sm"><div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.Danmark}}></div><span>Hele Danmark</span></div>
+            <div className="flex items-center gap-2 text-sm"><div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.DK1}}></div><span>DK1 (Vest)</span></div>
+            <div className="flex items-center gap-2 text-sm"><div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.DK2}}></div><span>DK2 (Øst)</span></div>
+        </div>
+        
         {block.explanation && <div className="prose prose-lg max-w-4xl mx-auto mt-12 text-gray-700"><PortableText value={block.explanation} /></div>}
       </div>
     </section>

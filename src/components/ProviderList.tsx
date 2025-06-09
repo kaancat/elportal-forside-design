@@ -189,7 +189,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <p className="text-sm text-gray-500 cursor-pointer flex items-center gap-1">
-                      Priser sidst opdateret: {lastUpdated.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}
+                      Priser sidst opdateret: {lastUpdated.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit', hour12: false })}
                       <Info size={14} />
                     </p>
                   </TooltipTrigger>

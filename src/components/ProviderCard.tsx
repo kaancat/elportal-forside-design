@@ -124,11 +124,11 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
                   pr. måned
                 </div>
                 <div className="text-xs text-gray-500 space-y-1">
-                  <div>Estimeret {finalKwhPriceWithVat.toFixed(2)} kr/kWh</div>
+                  <div className="text-sm text-brand-dark font-semibold">Estimeret {finalKwhPriceWithVat.toFixed(2)} kr/kWh</div>
                   
                   <Popover>
                     <PopoverTrigger asChild>
-                      <button className="text-xs text-blue-600 hover:underline mt-1 inline-flex items-center gap-1">
+                      <button className="text-xs text-brand-green hover:underline mt-1 inline-flex items-center gap-1">
                         Se prisdetaljer <Info size={14} />
                       </button>
                     </PopoverTrigger>
@@ -137,17 +137,17 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
                         <h4 className="font-medium leading-none">Prisudregning</h4>
                         <p className="text-sm text-muted-foreground">Estimat baseret på live spotpris.</p>
                         <div className="text-xs space-y-1 pt-2">
-                          <div className="flex justify-between"><span>Rå elpris:</span> <span>{baseSpotPrice.toFixed(4)} kr.</span></div>
-                          <div className="flex justify-between"><span>Dit elselskab (tillæg):</span> <span>{markupKr.toFixed(4)} kr.</span></div>
+                          <div className="flex justify-between"><span>Rå elpris:</span> <span>{baseSpotPrice.toFixed(2)} kr.</span></div>
+                          <div className="flex justify-between"><span>Dit elselskab (tillæg):</span> <span>{markupKr.toFixed(2)} kr.</span></div>
                           <div className="border-t my-1"></div>
-                          <div className="flex justify-between"><span>Netselskab (gns.):</span> <span>{NETSelskab_AVG.toFixed(4)} kr.</span></div>
-                          <div className="flex justify-between"><span>Energinet:</span> <span>{ENERGINET_FEE.toFixed(4)} kr.</span></div>
-                          <div className="flex justify-between"><span>Staten (elafgift):</span> <span>{STATEN_ELAFGIFT.toFixed(4)} kr.</span></div>
+                          <div className="flex justify-between"><span>Netselskab (gns.):</span> <span>{NETSelskab_AVG.toFixed(2)} kr.</span></div>
+                          <div className="flex justify-between"><span>Energinet:</span> <span>{ENERGINET_FEE.toFixed(2)} kr.</span></div>
+                          <div className="flex justify-between"><span>Staten (elafgift):</span> <span>{STATEN_ELAFGIFT.toFixed(2)} kr.</span></div>
                           <div className="border-t my-1"></div>
-                          <div className="flex justify-between font-semibold"><span>Pris u. moms:</span> <span>{priceBeforeVat.toFixed(4)} kr.</span></div>
-                          <div className="flex justify-between font-semibold"><span>Moms (25%):</span> <span>{(priceBeforeVat * 0.25).toFixed(4)} kr.</span></div>
+                          <div className="flex justify-between font-semibold"><span>Pris u. moms:</span> <span>{priceBeforeVat.toFixed(2)} kr.</span></div>
+                          <div className="flex justify-between font-semibold"><span>Moms (25%):</span> <span>{(priceBeforeVat * 0.25).toFixed(2)} kr.</span></div>
                           <div className="border-t border-dashed my-1"></div>
-                          <div className="flex justify-between font-bold"><span>Total pr. kWh:</span> <span>{finalKwhPriceWithVat.toFixed(4)} kr.</span></div>
+                          <div className="flex justify-between font-bold"><span>Total pr. kWh:</span> <span>{finalKwhPriceWithVat.toFixed(2)} kr.</span></div>
                         </div>
                       </div>
                     </PopoverContent>

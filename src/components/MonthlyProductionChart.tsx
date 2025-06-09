@@ -1,17 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-// --- NEW, CORRECT TYPES ---
+// --- TYPES BASED ON PRODUCTIONPERMUNICIPALITY DATASET ---
 interface ProductionRecord {
   Month: string;
-  CentralPower_MWh?: number;
-  LocalPower_MWh?: number;
-  OffshoreWindGe100MW_MWh?: number;
-  OffshoreWindLt100MW_MWh?: number;
-  OnshoreWindGe50kW_MWh?: number;
-  OnshoreWindLt50kW_MWh?: number;
-  SolarPowerGe10kW_MWh?: number;
-  SolarPowerLt10kW_MWh?: number;
+  CentralPowerPlants_MWh: number;
+  DecentralPowerPlants_MWh: number;
+  OffshoreWindPower_MWh: number;
+  OnshoreWindPower_MWh: number;
+  SolarPower_MWh: number;
 }
 interface ProcessedMonthData { month: string; Sol: number; Landvind: number; Havvind: number; Decentrale: number; Centrale: number; }
 interface MonthlyProductionChartProps { block: { _type: 'monthlyProductionChart'; title: string; leadingText?: string; description?: string; }; }
@@ -20,7 +17,7 @@ interface MonthlyProductionChartProps { block: { _type: 'monthlyProductionChart'
 const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-gray-800 text-white p-4 rounded-lg shadow-lg border border-gray-700">
+            <div className="bg-gray-800 text-white p-4 rounded-lg shadow-lg border border-gray-700 min-w-[220px]">
                 <p className="font-bold text-base mb-2">{label}</p>
                 <div className="text-sm space-y-1">
                     {payload.slice().reverse().map((entry: any) => (
@@ -47,10 +44,7 @@ const MonthlyProductionChart: React.FC<MonthlyProductionChartProps> = ({ block }
       setLoading(true); setError(null);
       try {
         const response = await fetch('/api/monthly-production');
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Kunne ikke hente månedsdata.');
-        }
+        if (!response.ok) throw new Error('Kunne ikke hente månedsdata.');
         const result = await response.json();
         setData(result.records || []);
       } catch (err: any) { setError(err.message); } finally { setLoading(false); }
@@ -58,27 +52,32 @@ const MonthlyProductionChart: React.FC<MonthlyProductionChartProps> = ({ block }
     fetchData();
   }, []);
 
+  // --- CORRECT AGGREGATION LOGIC ---
   const processedData = useMemo<ProcessedMonthData[]>(() => {
     if (!data || data.length === 0) return [];
     
-    return data.map(record => {
-        const sol = (record.SolarPowerGe10kW_MWh || 0) + (record.SolarPowerLt10kW_MWh || 0);
-        const landvind = (record.OnshoreWindGe50kW_MWh || 0) + (record.OnshoreWindLt50kW_MWh || 0);
-        const havvind = (record.OffshoreWindGe100MW_MWh || 0) + (record.OffshoreWindLt100MW_MWh || 0);
-        const centrale = record.CentralPower_MWh || 0;
-        const decentrale = record.LocalPower_MWh || 0;
-
-        return {
-            month: new Date(record.Month).toLocaleString('da-DK', { month: 'short', year: '2-digit' }),
-            Sol: sol,
-            Landvind: landvind,
-            Havvind: havvind,
-            Decentrale: decentrale,
-            Centrale: centrale,
-        };
-    });
+    const groupedByMonth = data.reduce((acc, record) => {
+        const monthKey = record.Month; // Use the YYYY-MM-DD string as a key
+        if (!acc[monthKey]) {
+            acc[monthKey] = { Sol: 0, Landvind: 0, Havvind: 0, Decentrale: 0, Centrale: 0 };
+        }
+        
+        acc[monthKey].Sol += record.SolarPower_MWh || 0;
+        acc[monthKey].Landvind += record.OnshoreWindPower_MWh || 0;
+        acc[monthKey].Havvind += record.OffshoreWindPower_MWh || 0;
+        acc[monthKey].Decentrale += record.DecentralPowerPlants_MWh || 0;
+        acc[monthKey].Centrale += record.CentralPowerPlants_MWh || 0;
+        return acc;
+    }, {} as Record<string, Omit<ProcessedMonthData, 'month'>>);
+    
+    return Object.entries(groupedByMonth)
+      .map(([month, values]) => ({
+          month: new Date(month).toLocaleString('da-DK', { month: 'short', year: '2-digit' }),
+          ...values,
+      }))
+      .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime()); // Ensure chronological order
   }, [data]);
-  
+      
   const chartColors = { sol: '#facc15', landvind: '#4ade80', havvind: '#2dd4bf', decentrale: '#60a5fa', centrale: '#0f766e' };
 
   return (
@@ -88,7 +87,8 @@ const MonthlyProductionChart: React.FC<MonthlyProductionChartProps> = ({ block }
         {block.leadingText && <p className="text-lg text-gray-600 text-center mb-12 max-w-3xl mx-auto">{block.leadingText}</p>}
         
         <div className="w-full h-[500px] bg-white p-4 rounded-lg">
-          {loading ? <div className="flex items-center justify-center h-full">Indlæser data...</div> : error ? <div className="flex items-center justify-center h-full text-red-600">{error}</div> :
+          {loading ? <div className="flex items-center justify-center h-full">Indlæser data...</div> :
+           error ? <div className="flex items-center justify-center h-full text-red-600">{error}</div> :
            (
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={processedData} margin={{ top: 10, right: 30, left: 30, bottom: 0 }}>
@@ -106,6 +106,7 @@ const MonthlyProductionChart: React.FC<MonthlyProductionChartProps> = ({ block }
             </ResponsiveContainer>
           )}
         </div>
+        
         {block.description && <p className="text-center text-sm text-gray-500 mt-8">{block.description}</p>}
       </div>
     </section>

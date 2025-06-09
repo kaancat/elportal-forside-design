@@ -9,21 +9,23 @@ interface ValuePropositionComponentProps {
 export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps> = ({ block }) => {
   if (!block || !block.propositions) return null;
 
-  return (
-    <section className="py-8 lg:py-10">
+    return (
+    <section className="py-16 lg:py-24">
       <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto p-4 bg-brand-green/10 rounded-xl border border-brand-green/20">
+        <div className="max-w-4xl mx-auto p-8 bg-green-50/60 rounded-2xl border border-green-200/60">
           {block.title && (
-            <div className="flex items-center mb-3">
-              <Info className="h-4 w-4 text-brand-green mr-2" />
-              <h2 className="text-lg font-bold text-brand-dark">{block.title}</h2>
+            <div className="flex items-center mb-6">
+              <div className="flex items-center justify-center h-7 w-7 rounded-full bg-green-100 border border-green-200 mr-3">
+                <Info className="h-5 w-5 text-brand-primary" />
+              </div>
+              <h2 className="text-2xl font-bold text-brand-dark">{block.title}</h2>
             </div>
           )}
-          <ul className="space-y-2">
+          <ul className="space-y-3 pl-1">
             {block.propositions.map((proposition, index) => (
-              <li key={index} className="flex items-start">
-                                                    <Check className="h-4 w-4 text-brand-green mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-sm text-gray-700">{proposition}</span>
+              <li key={index} className="flex items-center">
+                <Check className="h-6 w-6 text-brand-primary mr-3 flex-shrink-0" />
+                <span className="text-lg text-gray-800">{proposition}</span>
               </li>
             ))}
           </ul>

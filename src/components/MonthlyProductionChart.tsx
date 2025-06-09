@@ -30,7 +30,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
                                 <span className="inline-block w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: entry.color }}></span>
                                 {entry.name}:
                             </div>
-                            <span className="font-mono">{(entry.value / 1000000).toFixed(1)} TWh</span>
+                            <span className="font-mono">{Math.round(entry.value).toLocaleString('da-DK')} MWh</span>
                         </div>
                     ))}
                 </div>
@@ -100,7 +100,7 @@ const MonthlyProductionChart: React.FC<MonthlyProductionChartProps> = ({ block }
               <AreaChart data={processedData} margin={{ top: 10, right: 30, left: 30, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis tickFormatter={(tick) => `${(tick / 1000000).toFixed(1)} TWh`} tick={{ fontSize: 12 }} />
+                <YAxis tickFormatter={(tick) => tick.toLocaleString('da-DK')} tick={{ fontSize: 12 }} label={{ value: 'MWh', angle: -90, position: 'insideLeft', offset: -20, style: { fill: '#6b7280' } }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Area dataKey="Sol" name="Sol" stackId="1" stroke={chartColors.sol} fill={chartColors.sol} color={chartColors.sol} />
                 <Area dataKey="Landvind" name="Landvind" stackId="1" stroke={chartColors.landvind} fill={chartColors.landvind} color={chartColors.landvind} />
@@ -111,6 +111,16 @@ const MonthlyProductionChart: React.FC<MonthlyProductionChartProps> = ({ block }
             </ResponsiveContainer>
           )}
         </div>
+
+        {/* --- ADD THIS LEGEND --- */}
+        <div className="flex justify-center items-center gap-x-6 gap-y-2 flex-wrap mt-8">
+            <div className="flex items-center gap-2 text-sm"><div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.sol}}></div><span>Sol</span></div>
+            <div className="flex items-center gap-2 text-sm"><div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.landvind}}></div><span>Landvind</span></div>
+            <div className="flex items-center gap-2 text-sm"><div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.havvind}}></div><span>Havvind</span></div>
+            <div className="flex items-center gap-2 text-sm"><div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.decentrale}}></div><span>Decentrale værker</span></div>
+            <div className="flex items-center gap-2 text-sm"><div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.centrale}}></div><span>Centrale værker</span></div>
+        </div>
+        
         {block.description && <p className="text-center text-sm text-gray-500 mt-8">{block.description}</p>}
       </div>
     </section>

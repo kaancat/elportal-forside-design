@@ -20,37 +20,25 @@ const PageSectionComponent: React.FC<PageSectionComponentProps> = (props) => {
   const customComponents = {
     types: {
       livePriceGraph: ({ value }: { value: any }) => {
-        console.log('Rendering embedded livePriceGraph with width:', value.width, value)
-        const widthClass = 
-          value.width === 'wide' ? '-mx-4 sm:-mx-8 md:-mx-16' : 
-          value.width === 'full' ? 'w-screen -translate-x-1/2 ml-[50vw]' : 
-          '';
+        console.log('Rendering embedded livePriceGraph:', value)
         return (
-          <div className={widthClass}>
+          <div className="w-full lg:-mx-16 my-8">
             <LivePriceGraphComponent block={value} />
           </div>
         );
       },
       renewableEnergyForecast: ({ value }: { value: any }) => {
-        console.log('Rendering embedded renewableEnergyForecast with width:', value.width, value)
-        const widthClass = 
-          value.width === 'wide' ? '-mx-4 sm:-mx-8 md:-mx-16' : 
-          value.width === 'full' ? 'w-screen -translate-x-1/2 ml-[50vw]' : 
-          '';
+        console.log('Rendering embedded renewableEnergyForecast:', value)
         return (
-          <div className={widthClass}>
+          <div className="w-full lg:-mx-16 my-8">
             <RenewableEnergyForecastComponent block={value} />
           </div>
         );
       },
       priceCalculator: ({ value }: { value: any }) => {
-        console.log('Rendering embedded priceCalculator with width:', value.width, value)
-        const widthClass = 
-          value.width === 'wide' ? '-mx-4 sm:-mx-8 md:-mx-16' : 
-          value.width === 'full' ? 'w-screen -translate-x-1/2 ml-[50vw]' : 
-          '';
+        console.log('Rendering embedded priceCalculator:', value)
         return (
-          <div className={widthClass}>
+          <div className="w-full lg:-mx-16 my-8">
             <PriceCalculatorWidget block={value} variant="standalone" />
           </div>
         );
@@ -148,7 +136,7 @@ const PageSectionComponent: React.FC<PageSectionComponentProps> = (props) => {
           </h2>
         )}
         {content ? (
-          <div className="prose prose-xl max-w-none leading-relaxed" style={{ color: section.theme?.text || '#374151' }}>
+          <div className="prose prose-lg mx-auto max-w-4xl leading-relaxed" style={{ color: section.theme?.text || '#374151' }}>
             <PortableText value={content} components={customComponents} />
           </div>
         ) : (

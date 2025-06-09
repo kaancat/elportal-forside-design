@@ -12,22 +12,21 @@ interface PageSectionComponentProps {
 }
 
 const PageSectionComponent: React.FC<PageSectionComponentProps> = ({ section }) => {
-  // The new, correct customComponents object
+  // Define custom components for embedded blocks in Portable Text
   const customComponents = {
     types: {
       livePriceGraph: ({ value }: { value: any }) => (
-        // This div breaks out of the `prose` max-width constraint
-        <div className="not-prose -mx-4 sm:-mx-6 lg:-mx-8 my-12">
+        <div className="not-prose -mx-4 sm:-mx-6 lg:-mx-16 my-12">
           <LivePriceGraphComponent block={value} />
         </div>
       ),
       renewableEnergyForecast: ({ value }: { value: any }) => (
-        <div className="not-prose -mx-4 sm:-mx-6 lg:-mx-8 my-12">
+        <div className="not-prose -mx-4 sm:-mx-6 lg:-mx-16 my-12">
           <RenewableEnergyForecastComponent block={value} />
         </div>
       ),
+      // A component that should STAY inside the narrow text column
       priceCalculator: ({ value }: { value: any }) => (
-         // This one should probably stay contained within the prose width
          <div className="my-12">
            <PriceCalculatorWidget block={value} variant="standalone" />
          </div>
@@ -57,26 +56,40 @@ const PageSectionComponent: React.FC<PageSectionComponentProps> = ({ section }) 
     },
   }
   
+  // Define styles from theme
   const sectionStyle = {
     backgroundColor: section?.theme?.background || 'transparent',
   };
-  
-  return (
-    <section style={sectionStyle} className="py-16 lg:py-24">
-      <div className="container mx-auto px-4">
-        {/* Title can be here, centered */}
-        {section.title && (
-          <h2 className="text-3xl font-bold text-center mb-12" style={{color: section?.theme?.text}}>
-            {section.title}
-          </h2>
-        )}
+  const textStyle = {
+    color: section?.theme?.text,
+  };
 
-        {/* Main Content Area */}
-        <div className="prose prose-lg max-w-4xl mx-auto" style={{color: section?.theme?.text}}>
-          <PortableText 
-            value={section.content} 
-            components={customComponents} 
-          />
+  // Generate image URL if image exists
+  const imageUrl = section?.image 
+    ? urlFor(section.image).width(600).height(450).auto('format').url() 
+    : null;
+
+  const content = (
+    <div className="flex-1">
+      {section?.title && <h2 className="text-3xl font-bold mb-6" style={textStyle}>{section.title}</h2>}
+      <div className="prose prose-lg max-w-none" style={textStyle}>
+        {section?.content && <PortableText value={section.content} components={customComponents} />}
+      </div>
+    </div>
+  );
+
+  const image = imageUrl ? (
+    <div className="flex-1">
+      <img src={imageUrl} alt={section?.image?.alt || ''} className="rounded-lg shadow-lg" />
+    </div>
+  ) : null;
+
+  return (
+    <section style={sectionStyle}>
+      <div className="container mx-auto px-4 py-16 lg:py-24">
+        <div className={`flex flex-col md:flex-row gap-12 items-center ${section?.imagePosition === 'left' ? 'md:flex-row-reverse' : ''}`}>
+          {content}
+          {image}
         </div>
       </div>
     </section>

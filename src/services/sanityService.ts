@@ -20,6 +20,28 @@ export class SanityService {
             "background": background.hex,
             "text": text.hex,
             "primary": primary.hex
+          },
+          content[]{ // Expand content array to include embedded blocks
+            ..., // Get all fields for standard blocks (text, etc.)
+            // Add expansions for each custom block type
+            _type == "livePriceGraph" => {
+              _key,
+              _type,
+              title,
+              subtitle,
+              apiRegion
+            },
+            _type == "renewableEnergyForecast" => {
+              _key,
+              _type,
+              title,
+              leadingText
+            },
+            _type == "priceCalculator" => {
+              _key,
+              _type,
+              title
+            }
           }
         },
         _type == "faqItem" => {

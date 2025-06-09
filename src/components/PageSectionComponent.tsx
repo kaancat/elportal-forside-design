@@ -2,7 +2,10 @@
 import React from 'react'
 import { PageSection } from '@/types/sanity'
 import { urlFor } from '@/lib/sanity'
-import BlockContent from './BlockContent'
+import { PortableText } from '@portabletext/react'
+import LivePriceGraphComponent from './LivePriceGraphComponent'
+import RenewableEnergyForecastComponent from './RenewableEnergyForecast'
+import PriceCalculatorWidget from './PriceCalculatorWidget'
 
 interface PageSectionComponentProps {
   section: PageSection
@@ -12,6 +15,46 @@ const PageSectionComponent: React.FC<PageSectionComponentProps> = (props) => {
   console.log('Props received by PageSectionComponent:', props)
   
   const { section } = props
+
+  // Define custom components for embedded blocks in Portable Text
+  const customComponents = {
+    types: {
+      livePriceGraph: ({ value }: { value: any }) => {
+        console.log('Rendering embedded livePriceGraph:', value)
+        return <LivePriceGraphComponent block={value} />
+      },
+      renewableEnergyForecast: ({ value }: { value: any }) => {
+        console.log('Rendering embedded renewableEnergyForecast:', value)
+        return <RenewableEnergyForecastComponent block={value} />
+      },
+      priceCalculator: ({ value }: { value: any }) => {
+        console.log('Rendering embedded priceCalculator:', value)
+        return <PriceCalculatorWidget block={value} variant="standalone" />
+      },
+    },
+    block: {
+      // Customize text block styles
+      h1: ({ children }: any) => (
+        <h1 className="text-3xl font-bold mb-4">{children}</h1>
+      ),
+      h2: ({ children }: any) => (
+        <h2 className="text-2xl font-bold mb-3">{children}</h2>
+      ),
+      h3: ({ children }: any) => (
+        <h3 className="text-xl font-bold mb-2">{children}</h3>
+      ),
+      blockquote: ({ children }: any) => (
+        <blockquote className="border-l-4 border-brand-green pl-4 italic mb-4">{children}</blockquote>
+      ),
+      normal: ({ children }: any) => (
+        <p className="mb-4">{children}</p>
+      ),
+    },
+    marks: {
+      strong: ({ children }: any) => <strong>{children}</strong>,
+      em: ({ children }: any) => <em>{children}</em>,
+    },
+  }
   
   // Temporary placeholder data for styling purposes
   const placeholderData = {
@@ -82,7 +125,7 @@ const PageSectionComponent: React.FC<PageSectionComponentProps> = (props) => {
         )}
         {content ? (
           <div className="prose prose-xl max-w-none leading-relaxed" style={{ color: section.theme?.text || '#374151' }}>
-            <BlockContent content={content} />
+            <PortableText value={content} components={customComponents} />
           </div>
         ) : (
           <p className="text-xl lg:text-2xl leading-relaxed" style={{ color: section.theme?.text || '#374151' }}>

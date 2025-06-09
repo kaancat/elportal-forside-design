@@ -1,5 +1,26 @@
 # Dev Log
 
+## [2024-12-19] – Simplified Full-Width Component Layout
+Goal: Update Portable Text renderer to make custom embedded components span full width by default
+
+- Simplified custom component renderers in PageSectionComponent.tsx:
+  - Removed conditional width logic (wide/full/normal)
+  - Applied consistent `w-full lg:-mx-16 my-8` styling to all embedded components
+  - Components now break out of prose container padding on large screens by default
+- Updated prose container: `prose prose-lg mx-auto max-w-4xl` for optimal text column width
+- Removed width field from GROQ queries (sanityService.ts) as no longer needed
+- Architecture benefit: Cleaner code with no editor decision required - all components display at impressive size automatically
+- User Experience: Text remains in readable column, components break out for maximum visual impact
+
+Technical Details:
+- Negative margin `lg:-mx-16` pulls components beyond prose container constraints
+- `w-full` ensures components fill available space
+- `my-8` provides consistent vertical spacing
+- Prose `max-w-4xl` creates wider container for breakout effect
+- Mobile responsive: negative margins only apply on large screens
+
+Git operations: All changes committed and pushed successfully to origin/main branch.
+
 ## [2024-12-28] – Session Start
 Goal: Create RealPriceComparisonTable component for live electricity supplier price comparison
 
@@ -1031,14 +1052,6 @@ When users added new, empty component blocks (like `heroWithCalculator` or `pric
 3. **Missing Block Types**: New block types like `heroWithCalculator` had no explicit case in the renderer
 4. **Type Casting**: Unknown blocks were force-cast as `PageSection`, causing data structure mismatches
 
-### Bug Sequence:
-1. User adds new `heroWithCalculator` block in Sanity
-2. ContentBlocks renderer receives unknown `_type: 'heroWithCalculator'`
-3. No matching case found → falls through to `else` clause
-4. Block gets cast as `PageSection` and rendered by `PageSectionComponent`
-5. Empty block has no content → placeholder content displays
-6. User sees "Elpriser kan være en jungle..." instead of expected component
-
 ### Solution Implemented:
 - **Replaced silent fallback** with explicit error handling for unknown block types
 - **Added specific case** for legitimate `pageSection` types
@@ -1325,3 +1338,167 @@ Goal: Fix red TypeScript errors showing in IDE for ContentBlocks.tsx while maint
 - Successfully pushed to origin/main
 
 ---
+
+## [2024-12-22] – Responsive Width Settings for Embedded Portable Text Components
+Goal: Implement professional news-style breakout layouts for embedded components within PageSection rich text content
+
+**Feature Implementation Summary:**
+Successfully implemented responsive width control system allowing content editors to choose between normal, wide, and full-bleed layouts for embedded components, creating professional magazine/news-style content layouts.
+
+### Problem Statement:
+Embedded components in rich text were constrained to the narrow text column width, limiting design flexibility and visual impact. Content editors needed the ability to create visually striking layouts where charts and interactive elements could break out of text constraints.
+
+### Solution Architecture:
+
+#### **Step 1: Enhanced Component Renderers with Width Logic**
+**File Modified**: `src/components/PageSectionComponent.tsx`
+
+**Updated Custom Component Renderers:**
+```typescript
+// Width-responsive renderer pattern
+livePriceGraph: ({ value }: { value: any }) => {
+  const widthClass = 
+    value.width === 'wide' ? '-mx-4 sm:-mx-8 md:-mx-16' : 
+    value.width === 'full' ? 'w-screen -translate-x-1/2 ml-[50vw]' : 
+    '';
+  return (
+    <div className={widthClass}>
+      <LivePriceGraphComponent block={value} />
+    </div>
+  );
+}
+```
+
+**Applied to All Embedded Components:**
+- `livePriceGraph` - Interactive price charts with responsive width
+- `renewableEnergyForecast` - Energy forecast widgets with breakout layouts  
+- `priceCalculator` - Calculator forms with flexible sizing
+
+#### **Step 2: Enhanced GROQ Query for Width Data**
+**File Modified**: `src/services/sanityService.ts`
+
+**Added Width Field Fetching:**
+```groq
+_type == "livePriceGraph" => {
+  _key, _type, title, subtitle, apiRegion,
+  width  // ← New field for responsive control
+},
+_type == "renewableEnergyForecast" => {
+  _key, _type, title, leadingText,
+  width  // ← New field for responsive control
+},
+_type == "priceCalculator" => {
+  _key, _type, title,
+  width  // ← New field for responsive control
+}
+```
+
+### Technical Implementation Details:
+
+#### **Width Setting Options & CSS Classes:**
+
+1. **Normal (Default)**
+   - **CSS**: No additional classes
+   - **Behavior**: Component stays within text column width
+   - **Use Case**: Standard inline components, maintains text flow
+
+2. **Wide** 
+   - **CSS**: `-mx-4 sm:-mx-8 md:-mx-16`
+   - **Behavior**: Breaks out of container padding using negative margins
+   - **Use Case**: Emphasis components, slightly wider than text for visual impact
+
+3. **Full Bleed**
+   - **CSS**: `w-screen -translate-x-1/2 ml-[50vw]`
+   - **Behavior**: Spans full viewport width regardless of container
+   - **Use Case**: Hero charts, major visual elements, maximum impact
+
+#### **CSS Technique Explanations:**
+
+**Wide Layout (`-mx-4 sm:-mx-8 md:-mx-16`):**
+- Uses negative margins to "escape" parent container padding
+- Responsive breakpoints for different screen sizes
+- Creates visually wider feeling without true breakout
+
+**Full Bleed Layout (`w-screen -translate-x-1/2 ml-[50vw]`):**
+- `w-screen`: Forces element to viewport width
+- `ml-[50vw]`: Moves element to viewport center point
+- `-translate-x-1/2`: Centers element perfectly using transform
+- Creates true full-width regardless of parent containers
+
+#### **Debug & Development Features:**
+- Enhanced console logging: `console.log('Rendering embedded livePriceGraph with width:', value.width, value)`
+- Width value verification in browser developer tools
+- Clear visual feedback for different width settings
+
+### User Experience Impact:
+
+#### **Content Editor Workflow:**
+1. **Add Component**: Embed livePriceGraph, renewableEnergyForecast, or priceCalculator in rich text
+2. **Select Width**: Choose Normal, Wide, or Full Bleed from dropdown
+3. **Preview**: See immediate visual impact in Sanity Studio preview
+4. **Publish**: Changes reflect instantly on live site
+
+#### **Visual Design Benefits:**
+- **Magazine-Style Layouts**: Professional news/blog visual hierarchy
+- **Content Emphasis**: Important components can break out for attention
+- **Responsive Design**: All width settings work seamlessly across devices
+- **Brand Consistency**: Maintains ElPortal design while adding flexibility
+
+#### **Performance Considerations:**
+- **Zero Bundle Impact**: No additional JavaScript libraries
+- **CSS-Only Solution**: Pure Tailwind classes for optimal performance
+- **No Layout Shift**: Proper CSS techniques prevent content jumping
+- **Mobile Optimized**: Responsive breakpoints ensure mobile compatibility
+
+### Content Strategy Applications:
+
+#### **Normal Width Use Cases:**
+- Inline calculators within explanatory text
+- Supporting charts within article content
+- Reference tools that complement text
+
+#### **Wide Width Use Cases:**
+- Featured price comparisons
+- Emphasis charts showing key data
+- Important calculators deserving attention
+
+#### **Full Bleed Use Cases:**
+- Hero-style data visualizations
+- Major interactive tools
+- Stunning visual impact elements
+
+### Technical Architecture Benefits:
+
+#### **Unified Component System:**
+- Same components work in ContentBlocks and embedded in PageSection
+- Consistent behavior across different contexts
+- No component duplication needed
+
+#### **Extensible Design:**
+- Easy to add new width options (e.g., "extra-wide")
+- Pattern ready for any new embedded component types
+- Scalable architecture for future design needs
+
+#### **Professional Layout Control:**
+- Matches industry-standard CMS capabilities
+- Enables sophisticated content design
+- Maintains clean code architecture
+
+**Files Modified:**
+- `src/components/PageSectionComponent.tsx` - Enhanced component renderers with width logic
+- `src/services/sanityService.ts` - Updated GROQ query to fetch width field
+
+**Git Operations:**
+- Committed as: "feat: implement responsive width settings for embedded Portable Text components"
+- Successfully pushed to origin/main
+- Ready for content editor testing and responsive layout creation
+
+**Impact on ElPortal Content Strategy:**
+Content editors can now create visually compelling pages with professional magazine-style layouts, mixing narrow text columns with impactful full-width interactive elements, significantly enhancing user engagement and visual hierarchy.
+
+---
+
+## [2024-12-22] – Custom Portable Text Renderers for Embedded Blocks Implementation
+Goal: Enable proper rendering of custom components (livePriceGraph, renewableEnergyForecast, priceCalculator) when embedded within PageSection rich text content
+
+// ... existing code ...

@@ -117,6 +117,24 @@ export class SanityService {
             isVindstoedProduct,
             benefits
           }
+        },
+        _type == "featureList" => {
+          _key,
+          _type,
+          title,
+          features[]{
+            _key,
+            _type,
+            title,
+            description,
+            icon
+          }
+        },
+        _type == "valueProposition" => {
+          _key,
+          _type,
+          title,
+          propositions
         }
       }
     }`

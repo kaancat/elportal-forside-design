@@ -1,5 +1,5 @@
 import React from 'react'
-import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock } from '@/types/sanity'
+import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
 import PageSectionComponent from './PageSectionComponent'
 import FAQItemComponent from './FAQItemComponent'
 import PriceExampleTableComponent from './PriceExampleTableComponent'
@@ -14,6 +14,8 @@ import PriceCalculatorWidget from './PriceCalculatorWidget'
 import HeroSection from './HeroSection'
 import MonthlyProductionChart from './MonthlyProductionChart'
 import ProviderList from './ProviderList'
+import { FeatureListComponent } from './FeatureListComponent'
+import { ValuePropositionComponent } from './ValuePropositionComponent'
 
 interface ContentBlocksProps {
   blocks: ContentBlock[]
@@ -100,6 +102,12 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         } else if (block._type === 'providerList') {
           console.log('Passing providerList to ProviderList:', block)
           return <ProviderList key={block._key} block={block as ProviderListBlock} />
+        } else if (block._type === 'featureList') {
+          console.log('Passing featureList to FeatureListComponent:', block)
+          return <FeatureListComponent key={block._key} block={block as FeatureListBlock} />
+        } else if (block._type === 'valueProposition') {
+          console.log('Passing valueProposition to ValuePropositionComponent:', block)
+          return <ValuePropositionComponent key={block._key} block={block as ValuePropositionBlock} />
         } else if (block._type === 'pageSection') {
           console.log('Passing pageSection to PageSectionComponent:', block)
           return <PageSectionComponent key={block._key} section={block as PageSection} />

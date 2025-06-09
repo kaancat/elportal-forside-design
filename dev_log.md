@@ -433,3 +433,47 @@ contentBlocks[]{
 - **Maintainability**: Follows established GROQ query patterns for consistency
 
 NOTE: The renewableEnergyForecast component now properly receives and displays all content fields from Sanity CMS, enabling full content management capabilities for the renewable energy forecast section
+
+---
+
+## [2024-12-28] – API Route Refactoring for Multi-Region Support (Step 1)
+Goal: Update energy-forecast API to always fetch all regional data, preparing for multi-region selection feature
+
+- **API Simplification**: Refactored `api/energy-forecast.ts` to remove region filtering
+  - **Removed Parameter**: No longer accepts `region` query parameter
+  - **Removed Logic**: Eliminated conditional `regionFilter` logic and PriceArea filtering
+  - **Complete Data Fetch**: Now always fetches data for all Danish regions (DK1, DK2)
+  - **Client-Side Filtering**: Component will handle region filtering and aggregation
+
+- **API Endpoint Changes**:
+  - **Before**: `?region=${region}&date=${date}` with conditional filtering
+  - **After**: `?date=${date}` fetching all regions unconditionally
+  - **Data Volume**: Returns complete dataset for both DK1 and DK2 regions
+  - **Performance**: Single API call provides all data needed for multi-region views
+
+- **Technical Benefits**:
+  - **Reduced Complexity**: Simplified API logic removes conditional filtering code
+  - **Better Caching**: Single endpoint result can be cached and reused
+  - **Flexible Frontend**: Component can now filter, aggregate, and display regions dynamically
+  - **Preparation**: Sets foundation for multi-region selection feature
+
+## Data Flow Changes
+
+**Previous Flow:**
+1. Component selects region (Danmark/DK1/DK2)
+2. API fetches only selected region data
+3. Component displays single region
+
+**New Flow:**
+1. API always fetches all region data
+2. Component receives complete dataset
+3. Component filters/aggregates as needed
+4. Enables future multi-region selection
+
+## Next Steps
+- Update component to handle client-side region filtering
+- Implement multi-selection UI for regions
+- Add overlapping layer visualization for multiple regions
+- Enhance data processing for multi-region aggregation
+
+NOTE: The API route now provides complete regional data, enabling the frontend component to implement flexible multi-region selection and visualization capabilities

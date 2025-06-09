@@ -1,5 +1,5 @@
 import React from 'react'
-import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast } from '@/types/sanity'
+import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, PriceCalculator, HeroWithCalculator } from '@/types/sanity'
 import PageSectionComponent from './PageSectionComponent'
 import FAQItemComponent from './FAQItemComponent'
 import PriceExampleTableComponent from './PriceExampleTableComponent'
@@ -13,27 +13,18 @@ import RenewableEnergyForecastComponent from './RenewableEnergyForecast'
 import PriceCalculatorWidget from './PriceCalculatorWidget'
 import HeroSection from './HeroSection'
 
-// Add PriceCalculator and HeroWithCalculator types
-interface PriceCalculator {
-  _type: 'priceCalculator'
-  _key: string
-  title?: string
-}
-
-interface HeroWithCalculator {
-  _type: 'heroWithCalculator'
-  _key: string
-}
+// Define the content blocks type for reusability
+type ContentBlock = PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph | RealPriceComparisonTable | RenewableEnergyForecast | PriceCalculator | HeroWithCalculator
 
 interface ContentBlocksProps {
-  blocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph | RealPriceComparisonTable | RenewableEnergyForecast | PriceCalculator | HeroWithCalculator>
+  blocks: ContentBlock[]
 }
 
 const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
   console.log('ContentBlocks component received blocks:', blocks)
 
   // Group consecutive FAQ items together
-  const groupedBlocks: Array<PageSection | FAQItem[] | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph | RealPriceComparisonTable | RenewableEnergyForecast | PriceCalculator | HeroWithCalculator> = []
+  const groupedBlocks: Array<ContentBlock | FAQItem[]> = []
   let currentFAQGroup: FAQItem[] = []
 
   blocks.forEach((block, index) => {

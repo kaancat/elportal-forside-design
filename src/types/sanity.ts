@@ -38,6 +38,10 @@ export interface PageSection {
   image?: SanityImage
   imagePosition?: 'left' | 'right' | 'none'
   fullWidth?: boolean
+  cta?: {
+    text: string;
+    url: string;
+  };
   theme?: {
     background: string;
     text: string;

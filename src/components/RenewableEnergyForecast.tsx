@@ -5,12 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { PortableText } from '@portabletext/react';
 
 // --- TYPES ---
 interface ForecastRecord { HourUTC: string; ForecastType: 'Solar' | 'Onshore Wind' | 'Offshore Wind'; ForecastDayAhead: number; PriceArea: 'DK1' | 'DK2'; }
 interface ProcessedHourData { hour: string; Solar: number; 'Onshore Wind': number; 'Offshore Wind': number; Total: number; }
-interface RenewableEnergyForecastProps { block: { _type: 'renewableEnergyForecast'; title?: string; leadingText?: string; explanation?: any[]; }; }
+interface RenewableEnergyForecastProps { block: { _type: 'renewableEnergyForecast'; title?: string; leadingText?: string; }; }
 
 const formatDateForApi = (date: Date) => date.toISOString().split('T')[0];
 
@@ -144,8 +143,6 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
             <div className="flex items-center gap-2 text-sm"><div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.onshore}}></div><span>Vind (Land)</span></div>
             <div className="flex items-center gap-2 text-sm"><div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.offshore}}></div><span>Vind (Hav)</span></div>
         </div>
-
-        {block.explanation && <div className="prose prose-lg max-w-4xl mx-auto mt-12 text-gray-700"><PortableText value={block.explanation} /></div>}
       </div>
     </section>
   );

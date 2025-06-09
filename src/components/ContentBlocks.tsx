@@ -1,5 +1,5 @@
 import React from 'react'
-import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, PriceCalculator, HeroWithCalculator } from '@/types/sanity'
+import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock } from '@/types/sanity'
 import PageSectionComponent from './PageSectionComponent'
 import FAQItemComponent from './FAQItemComponent'
 import PriceExampleTableComponent from './PriceExampleTableComponent'
@@ -12,9 +12,7 @@ import RealPriceComparisonTableComponent from './RealPriceComparisonTable'
 import RenewableEnergyForecastComponent from './RenewableEnergyForecast'
 import PriceCalculatorWidget from './PriceCalculatorWidget'
 import HeroSection from './HeroSection'
-
-// Define the content blocks type for reusability
-type ContentBlock = PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph | RealPriceComparisonTable | RenewableEnergyForecast | PriceCalculator | HeroWithCalculator
+import MonthlyProductionChart from './MonthlyProductionChart'
 
 interface ContentBlocksProps {
   blocks: ContentBlock[]
@@ -95,6 +93,9 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         } else if (block._type === 'heroWithCalculator') {
           console.log('Rendering heroWithCalculator as HeroSection:', block)
           return <HeroSection key={block._key} />
+        } else if (block._type === 'monthlyProductionChart') {
+          console.log('Passing monthlyProductionChart to MonthlyProductionChart:', block)
+          return <MonthlyProductionChart key={block._key} block={block as MonthlyProductionChartBlock} />
         } else if (block._type === 'pageSection') {
           console.log('Passing pageSection to PageSectionComponent:', block)
           return <PageSectionComponent key={block._key} section={block as PageSection} />

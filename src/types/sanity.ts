@@ -131,13 +131,37 @@ export interface HeroWithCalculator {
   _key: string
 }
 
+export interface MonthlyProductionChartBlock {
+  _type: 'monthlyProductionChart'
+  _key: string
+  title: string
+  leadingText?: string
+  description?: string
+}
+
+// Centralized ContentBlock union type
+export type ContentBlock = 
+  | PageSection 
+  | FAQItem 
+  | PriceExampleTable 
+  | VideoSection 
+  | FaqGroup 
+  | RichTextSection 
+  | CallToActionSection 
+  | LivePriceGraph 
+  | RealPriceComparisonTable 
+  | RenewableEnergyForecast 
+  | PriceCalculator 
+  | HeroWithCalculator 
+  | MonthlyProductionChartBlock
+
 export interface HomePage {
   _id: string
   _type: 'homePage'
   title: string
   seoMetaTitle: string
   seoMetaDescription: string
-  contentBlocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph | RealPriceComparisonTable | RenewableEnergyForecast | PriceCalculator | HeroWithCalculator>
+  contentBlocks: ContentBlock[]
 }
 
 export interface BlogPost {

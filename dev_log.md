@@ -1,5 +1,24 @@
 # Dev Log
 
+## [2024-12-19] – Reusable Container Components
+Goal: Create standardized container components for consistent content width management
+
+- Created new file `src/components/Container.tsx` with three reusable container components:
+  - **Container**: Standard-width, centered container with responsive padding (`container mx-auto px-4 sm:px-6 lg:px-8`)
+  - **WideContainer**: Wide-width container with max-w-7xl constraint for larger content areas
+  - **FullBleedContainer**: Full-bleed, edge-to-edge container for maximum width content
+- All components accept children and optional className props for customization
+- Uses `cn` utility from `@/lib/utils` for proper class name merging
+- Implements consistent responsive padding patterns across all container types
+- Provides foundation for standardized layout patterns throughout the application
+
+Technical Implementation:
+- TypeScript interface `ContainerProps` for proper type safety
+- Functional components with React.FC typing
+- Tailwind CSS classes for responsive design
+- Flexible className override system using `cn` utility
+- Clean component architecture for easy maintenance and extension
+
 ## [2024-12-19] – Simplified Full-Width Component Layout
 Goal: Update Portable Text renderer to make custom embedded components span full width by default
 

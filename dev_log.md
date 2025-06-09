@@ -1,5 +1,32 @@
 # Dev Log
 
+## [2024-12-19] – API Dataset Correction
+Goal: Rebuild monthly-production API route to use correct ProductionAndConsumptionSettlement dataset
+
+- **Dataset Update** (api/monthly-production.ts):
+  - Changed from incorrect `ElectricityProdex5TechMonth` dataset
+  - Updated to correct `ProductionAndConsumptionSettlement` dataset
+  - Added `aggregate=sum` parameter for proper monthly data aggregation
+  - Simplified API URL construction with proper sort parameter
+
+- **API Endpoint Improvements**:
+  - Correct data source alignment with EnergiDataService structure
+  - Proper monthly aggregation of production and consumption data
+  - Standardized sort order for consistent month sequencing
+  - Maintained error handling and response structure
+
+Technical Implementation:
+- **Data Source**: Now uses official ProductionAndConsumptionSettlement dataset
+- **Aggregation**: Monthly sum aggregation for accurate production totals
+- **Compatibility**: Aligned with actual API field names and structure
+- **Error Handling**: Preserved comprehensive error response system
+
+Expected Benefits:
+- ✅ Correct data structure matching component expectations
+- ✅ Accurate monthly electricity production aggregation
+- ✅ Reliable data source for 12-month historical analysis
+- ✅ Proper field name alignment with frontend processing logic
+
 ## [2024-12-19] – Field Name Correction Fix
 Goal: Fix 500 Internal Server Error by correcting data field names in MonthlyProductionChart component
 

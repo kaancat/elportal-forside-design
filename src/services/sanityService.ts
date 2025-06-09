@@ -135,6 +135,24 @@ export class SanityService {
           _type,
           title,
           propositions
+        },
+        _type == "realPriceComparisonTable" => {
+          _key,
+          _type,
+          title,
+          leadingText,
+          // Hent ALLE provider-dokumenter og send dem med i denne blok
+          "allProviders": *[_type == "provider"]{
+            "id": _id,
+            providerName,
+            productName,
+            "logoUrl": logo.asset->url,
+            "displayPrice_kWh": kwhMarkup,
+            "displayMonthlyFee": monthlySubscription,
+            "signupLink": signupLink,
+            isVindstoedProduct,
+            benefits
+          }
         }
       }
     }`

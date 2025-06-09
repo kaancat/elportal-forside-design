@@ -111,6 +111,7 @@ export interface RealPriceComparisonTable {
   _key: string
   title: string
   leadingText?: string
+  allProviders: ProviderProductBlock[] // Bruger den eksisterende type for et produkt
 }
 
 export interface RenewableEnergyForecast {

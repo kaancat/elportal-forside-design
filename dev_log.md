@@ -1,5 +1,165 @@
 # Dev Log
 
+## [2024-12-19] – GROQ Query and TypeScript Updates for RealPriceComparisonTable
+Goal: Update GROQ query and TypeScript types to support data-driven RealPriceComparisonTable with complete provider data
+
+### Changes Made:
+
+1. **Updated TypeScript Interface (`src/types/sanity.ts`)**:
+   - Enhanced `RealPriceComparisonTable` interface to include `allProviders` field
+   - Added field: `allProviders: ProviderProductBlock[]` using existing provider type
+   - This allows the component to receive complete provider data instead of fetching it separately
+
+2. **Enhanced GROQ Query (`src/services/sanityService.ts`)**:
+   - Added complete `realPriceComparisonTable` block definition to contentBlocks expansion
+   - Implemented comprehensive provider data fetching:
+     ```groq
+     _type == "realPriceComparisonTable" => {
+       _key,
+       _type,
+       title,
+       leadingText,
+       // Hent ALLE provider-dokumenter og send dem med i denne blok
+       "allProviders": *[_type == "provider"]{
+         "id": _id,
+         providerName,
+         productName,
+         "logoUrl": logo.asset->url,
+         "displayPrice_kWh": kwhMarkup,
+         "displayMonthlyFee": monthlySubscription,
+         "signupLink": signupLink,
+         isVindstoedProduct,
+         benefits
+       }
+     }
+     ```
+
+### Technical Implementation:
+
+**Data Architecture Enhancement**:
+- **Before**: RealPriceComparisonTable would need separate API calls to fetch provider data
+- **After**: All provider data is pre-fetched and included in the content block via GROQ query
+
+**Field Mapping Strategy**:
+- Maps Sanity fields to expected `ProviderProductBlock` interface
+- `kwhMarkup` → `displayPrice_kWh` 
+- `monthlySubscription` → `displayMonthlyFee`
+- `logo.asset->url` → `logoUrl` (resolves image references)
+- Maintains compatibility with existing provider data structure
+
+**GROQ Query Enhancement**:
+- Uses `*[_type == "provider"]` to fetch ALL provider documents
+- Resolves image asset references with `logo.asset->url`
+- Properly maps field names to match TypeScript interface expectations
+
+### Architecture Impact:
+
+**Performance Benefits**:
+- Eliminates need for separate API calls within RealPriceComparisonTable component
+- Single query fetches all required data for the entire page
+- Reduces client-side data fetching complexity
+
+**Data Consistency**:
+- Ensures all provider data is synchronized and current
+- Single source of truth for provider information
+- Consistent data structure across all components using provider data
+
+**Component Simplification**:
+- RealPriceComparisonTable can now focus purely on presentation logic
+- No need for internal data fetching or state management for provider data
+- Cleaner component architecture with props-driven data flow
+
+### Build Verification:
+- ✅ TypeScript compilation successful
+- ✅ Vite build completed without errors
+- ✅ All type definitions properly aligned
+
+### Next Steps:
+- ✅ Test RealPriceComparisonTable component with new data structure
+- ✅ Verify provider data is correctly received in component props
+- ✅ Update component implementation to use `allProviders` prop
+
+---
+
+## [2024-12-19] – Complete RealPriceComparisonTable Component Refactoring
+Goal: Replace the entire RealPriceComparisonTable component with data-driven version using Sanity CMS data
+
+### Changes Made:
+
+1. **Complete Component Refactoring (`src/components/RealPriceComparisonTable.tsx`)**:
+   - **Removed External API Dependencies**: Eliminated `/api/pricelists` fetching and external data dependencies
+   - **Replaced with Sanity Data**: Now uses `block.allProviders` from GROQ query
+   - **Updated State Management**: 
+     - Removed `loading`, `error`, and `allSuppliers` states
+     - Simplified to `selectedProvider1`, `selectedProvider2`, and `monthlyConsumption`
+   - **Fixed Field Mapping**: Updated to use correct TypeScript interface fields:
+     - `displayPrice_kWh` instead of `kwhMarkup`
+     - `displayMonthlyFee` instead of `monthlySubscription`
+   - **Enhanced UI**: Provider selection now shows both `providerName` and `productName`
+
+2. **Simplified Component Architecture**:
+   - **Props-driven**: Receives all data through props instead of internal fetching
+   - **No Loading States**: Eliminates loading/error states since data comes pre-fetched
+   - **Better Error Handling**: Shows clear message if no providers configured in Sanity
+   - **Cleaner Code**: Removed 100+ lines of API fetching logic
+
+### Technical Implementation:
+
+**Data Flow Changes**:
+- **Before**: Component → API fetch → External price service → Display
+- **After**: Sanity CMS → GROQ query → Props → Display
+
+**Price Calculation Logic**:
+```tsx
+const getPriceDetails = (provider: ProviderProductBlock | null) => {
+  if (!provider) return { kwhPrice: 0, subscription: 0, total: 0 };
+  const kwhPrice = (provider.displayPrice_kWh || 0); // Already in kr
+  const subscription = provider.displayMonthlyFee || 0;
+  const total = (kwhPrice * monthlyConsumption) + subscription;
+  return { kwhPrice, subscription, total };
+};
+```
+
+**Component Interface**:
+```tsx
+interface RealPriceComparisonTableProps {
+  block: RealPriceComparisonTable; // Uses the enhanced type with allProviders
+}
+```
+
+### Architecture Benefits:
+
+**Performance Improvements**:
+- **Eliminated API Calls**: No more runtime API fetching
+- **Faster Rendering**: No loading states or external dependencies
+- **Single Data Source**: All data comes from the same GROQ query
+
+**Data Consistency**:
+- **Unified Provider Data**: Uses same provider data structure as ProviderList
+- **Real-time Updates**: Updates automatically when Sanity data changes
+- **Type Safety**: Full TypeScript support with proper interfaces
+
+**User Experience**:
+- **Instant Load**: No more "Indlæser prisdata..." loading states
+- **Better Error Handling**: Clear feedback when no providers configured
+- **Enhanced Selection**: Shows both provider name and product name in dropdowns
+
+### Build Verification:
+- ✅ TypeScript compilation successful
+- ✅ Vite build completed without errors
+- ✅ Component properly integrated with existing ContentBlocks system
+- ✅ All field mappings correct and type-safe
+
+### Refactoring Impact:
+- **Lines of Code**: Reduced from ~200 to ~100 lines
+- **Dependencies**: Eliminated external API dependencies
+- **Complexity**: Simplified from stateful API component to props-driven presentation component
+- **Maintainability**: Easier to maintain and test with clear data flow
+
+This completes the full refactoring of RealPriceComparisonTable to use the new data-driven architecture with Sanity CMS integration.
+
+---
+
 ## [2024-12-19] – Session Start
 Goal: <Short description of the goal>
 

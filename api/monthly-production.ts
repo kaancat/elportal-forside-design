@@ -8,22 +8,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const start = twelveMonthsAgo.toISOString().split('T')[0];
   const end = today.toISOString().split('T')[0];
 
-  const columns = [
-    'HourUTC', // We need the hour to group by month
-    'CentralPowerMWhDK1','CentralPowerMWhDK2',
-    'LocalPowerMWhDK1','LocalPowerMWhDK2',
-    'OffshoreWindGe100MW_MWhDK1','OffshoreWindGe100MW_MWhDK2',
-    'OffshoreWindLt100MW_MWhDK1','OffshoreWindLt100MW_MWhDK2',
-    'OnshoreWindGe50kW_MWhDK1','OnshoreWindGe50kW_MWhDK2',
-    'OnshoreWindLt50kW_MWhDK1','OnshoreWindLt50kW_MWhDK2',
-    'SolarPowerGe10Lt40kW_MWhDK1','SolarPowerGe10Lt40kW_MWhDK2',
-    'SolarPowerGe40kW_MWhDK1','SolarPowerGe40kW_MWhDK2',
-    'SolarPowerLt10kW_MWhDK1','SolarPowerLt10kW_MWhDK2',
-    'SolarPowerSelfConMWhDK1','SolarPowerSelfConMWhDK2'
-  ].join(',');
-
-  // The verified Dataset ID, but we now sort by HourUTC
-  const API_URL = `https://api.energidataservice.dk/dataset/ProductionConsumptionSettlement?start=${start}&end=${end}&sort=HourUTC asc&columns=${columns}`;
+  // The verified Dataset ID. We will fetch all columns and process them on the frontend.
+  const API_URL = `https://api.energidataservice.dk/dataset/ProductionConsumptionSettlement?start=${start}&end=${end}&sort=HourUTC asc`;
 
   try {
     const apiResponse = await fetch(API_URL);

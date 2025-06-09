@@ -69,27 +69,41 @@ const PageSectionComponent: React.FC<PageSectionComponentProps> = ({ section }) 
     ? urlFor(section.image).width(600).height(450).auto('format').url() 
     : null;
 
-  const content = (
+  // Define the content block
+  const contentBlock = (
     <div className="flex-1">
-      {section?.title && <h2 className="text-3xl font-bold mb-6" style={textStyle}>{section.title}</h2>}
+      {section?.title && <h2 className="text-3xl lg:text-4xl font-bold mb-8" style={textStyle}>{section.title}</h2>}
       <div className="prose prose-lg max-w-none" style={textStyle}>
         {section?.content && <PortableText value={section.content} components={customComponents} />}
       </div>
+      {section?.cta && section.cta.text && section.cta.url && (
+        <div className="mt-8">
+          <a href={section.cta.url} className="inline-block bg-green-500 text-white font-bold py-3 px-8 rounded-lg">
+            {section.cta.text}
+          </a>
+        </div>
+      )}
     </div>
   );
 
-  const image = imageUrl ? (
-    <div className="flex-1">
-      <img src={imageUrl} alt={section?.image?.alt || ''} className="rounded-lg shadow-lg" />
+  // Define the image block
+  const imageBlock = imageUrl ? (
+    <div className="flex-1 flex justify-center items-center">
+      <img src={imageUrl} alt={section?.image?.alt || ''} className="rounded-lg shadow-xl" />
     </div>
   ) : null;
 
   return (
-    <section style={sectionStyle}>
-      <div className="container mx-auto px-4 py-16 lg:py-24">
-        <div className={`flex flex-col md:flex-row gap-12 items-center ${section?.imagePosition === 'left' ? 'md:flex-row-reverse' : ''}`}>
-          {content}
-          {image}
+    <section style={sectionStyle} className="py-16 lg:py-24">
+      <div className="container mx-auto px-4">
+        {/* Main layout container with conditional flex-direction */}
+        <div className={`flex flex-col md:flex-row gap-12 lg:gap-16 items-center ${
+          section?.imagePosition === 'left' ? 'md:flex-row-reverse' : ''
+        }`}>
+          {/* Always render the content block */}
+          {contentBlock}
+          {/* Only render the image block if it exists */}
+          {imageBlock}
         </div>
       </div>
     </section>

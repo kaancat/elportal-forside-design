@@ -1,5 +1,32 @@
 # Dev Log
 
+## [2024-12-19] – Enhanced Two-Column Layout with CTA Support
+Goal: Perfect the PageSectionComponent two-column layout with proper image positioning and CTA functionality
+
+- **Enhanced Layout Structure**:
+  - **Improved Spacing**: Increased gap from `gap-12` to `gap-12 lg:gap-16` for better desktop spacing
+  - **Better Title Sizing**: Enhanced title from `text-3xl` to `text-3xl lg:text-4xl` for improved hierarchy
+  - **Image Centering**: Added `flex justify-center items-center` to image container for perfect alignment
+  - **Enhanced Shadow**: Upgraded image shadow from `shadow-lg` to `shadow-xl` for more dramatic effect
+
+- **CTA (Call-to-Action) Support**:
+  - **Added CTA Interface**: Extended PageSection type with optional `cta` object containing text and url
+  - **Button Styling**: Green button with `bg-green-500 text-white font-bold py-3 px-8 rounded-lg`
+  - **Conditional Rendering**: CTA only appears when both text and url are provided
+  - **Proper Spacing**: CTA positioned with `mt-8` below content for visual hierarchy
+
+- **Layout Improvements**:
+  - **Clearer Comments**: Added descriptive comments for content and image blocks
+  - **Better Variable Names**: Renamed `content`/`image` to `contentBlock`/`imageBlock` for clarity
+  - **Responsive Polish**: Maintained responsive behavior with mobile-first stacking
+  - **Image Positioning**: Proper left/right positioning via `md:flex-row-reverse` when imagePosition is 'left'
+
+Technical Implementation:
+- **Enhanced Type Safety**: Added CTA interface to PageSection type definition
+- **Improved Structure**: Better separation between content logic and rendering
+- **Professional Styling**: Consistent spacing, shadows, and typography hierarchy
+- **Accessibility**: Proper alt text handling and semantic structure
+
 ## [2024-12-19] – Complete PageSection Restoration with Enhanced Breakout
 Goal: Restore PageSectionComponent to its intended logic with proper image/text layout and enhanced breakout components
 

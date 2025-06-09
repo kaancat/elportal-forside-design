@@ -1,5 +1,29 @@
 # Dev Log
 
+## [2024-12-28] – Remove Explanation Field from RenewableEnergyForecast  
+Goal: Clean up RenewableEnergyForecast component by removing unused explanation field rendering
+
+- **Removed PortableText Import**: Deleted `import { PortableText } from '@portabletext/react';` from component imports
+- **Updated Props Interface**: Removed `explanation?: any[];` property from `RenewableEnergyForecastProps` interface  
+- **Removed JSX Rendering Block**: Deleted the entire explanation rendering block:
+  ```jsx
+  {block.explanation && (
+    <div className="prose prose-lg max-w-4xl mx-auto mt-12 text-gray-700">
+      <PortableText value={block.explanation} />
+    </div>
+  )}
+  ```
+
+## Technical Implementation
+- **Component Simplification**: Streamlined component by removing unused rich text rendering capability
+- **Interface Cleanup**: Props interface now only includes necessary fields (title, leadingText)
+- **Import Optimization**: Removed unused PortableText dependency from component  
+- **Code Maintenance**: Reduced component complexity and eliminated potential rich text rendering issues
+
+NOTE: The RenewableEnergyForecast component is now cleaner and focused purely on the chart functionality without rich text explanation rendering
+
+---
+
 ## [2024-12-28] – Session Start
 Goal: Create RealPriceComparisonTable component for live electricity supplier price comparison
 

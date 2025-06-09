@@ -8,8 +8,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const start = twelveMonthsAgo.toISOString().split('T')[0];
   const end = today.toISOString().split('T')[0];
 
-  // Dataset: "ElectricityProdex5TechMonth"
-  const API_URL = `https://api.energidataservice.dk/dataset/ElectricityProdex5TechMonth?start=${start}&end=${end}&sort=Month asc`;
+  // CORRECT DATASET: "ProductionAndConsumptionSettlement"
+  const API_URL = `https://api.energidataservice.dk/dataset/ProductionAndConsumptionSettlement?start=${start}&end=${end}&sort=Month&aggregate=sum`;
 
   try {
     const apiResponse = await fetch(API_URL);

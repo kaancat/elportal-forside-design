@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast } from '@/types/sanity'
 import PageSectionComponent from './PageSectionComponent'
@@ -11,16 +10,24 @@ import CallToActionSectionComponent from './CallToActionSectionComponent'
 import LivePriceGraphComponent from './LivePriceGraphComponent'
 import RealPriceComparisonTableComponent from './RealPriceComparisonTable'
 import RenewableEnergyForecastComponent from './RenewableEnergyForecast'
+import PriceCalculatorWidget from './PriceCalculatorWidget'
+
+// Add PriceCalculator type
+interface PriceCalculator {
+  _type: 'priceCalculator'
+  _key: string
+  title?: string
+}
 
 interface ContentBlocksProps {
-  blocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph | RealPriceComparisonTable | RenewableEnergyForecast>
+  blocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph | RealPriceComparisonTable | RenewableEnergyForecast | PriceCalculator>
 }
 
 const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
   console.log('ContentBlocks component received blocks:', blocks)
 
   // Group consecutive FAQ items together
-  const groupedBlocks: Array<PageSection | FAQItem[] | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph | RealPriceComparisonTable | RenewableEnergyForecast> = []
+  const groupedBlocks: Array<PageSection | FAQItem[] | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph | RealPriceComparisonTable | RenewableEnergyForecast | PriceCalculator> = []
   let currentFAQGroup: FAQItem[] = []
 
   blocks.forEach((block, index) => {
@@ -85,6 +92,9 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         } else if (block._type === 'renewableEnergyForecast') {
           console.log('Passing renewableEnergyForecast to RenewableEnergyForecastComponent:', block)
           return <RenewableEnergyForecastComponent key={block._key} block={block as RenewableEnergyForecast} />
+        } else if (block._type === 'priceCalculator') {
+          console.log('Passing priceCalculator to PriceCalculatorWidget:', block)
+          return <PriceCalculatorWidget key={block._key} block={block as PriceCalculator} />
         } else {
           console.log('Passing section to PageSectionComponent:', block)
           return <PageSectionComponent key={block._key} section={block as PageSection} />

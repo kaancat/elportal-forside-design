@@ -4,6 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Home, Building, Building2, Sun, ArrowRight, ArrowLeft, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+// --- PROPS INTERFACE ---
+interface PriceCalculatorWidgetProps {
+  block: {
+    _type: 'priceCalculator';
+    title?: string;
+  };
+  variant?: 'standalone' | 'hero'; // Add variant prop for different use cases
+}
+
+// --- TYPES & PRESETS ---
 type HousingType = 'custom' | 'lilleLejlighed' | 'storLejlighed' | 'mindreHus' | 'stortHus' | 'sommerhus';
 const presets: Record<Exclude<HousingType, 'custom'>, number> = {
     lilleLejlighed: 2000,
@@ -13,6 +23,7 @@ const presets: Record<Exclude<HousingType, 'custom'>, number> = {
     sommerhus: 2000,
 };
 
+// --- PRESET BUTTON ---
 const PresetButton = ({ icon, label, value, consumption, isActive, onClick }: any) => (
     <button onClick={onClick} className={cn("p-3 border rounded-lg text-center transition-all flex flex-col items-center justify-start h-full group", isActive ? "border-brand-green bg-green-50" : "border-gray-200 hover:border-gray-400")}>
         <div className={cn("mb-2", isActive ? 'text-brand-green' : 'text-gray-500 group-hover:text-gray-700')}>
@@ -24,7 +35,8 @@ const PresetButton = ({ icon, label, value, consumption, isActive, onClick }: an
     </button>
 );
 
-const PriceCalculatorWidget = () => {
+// --- MAIN WIDGET COMPONENT ---
+const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, variant = 'standalone' }) => {
     const [currentStep, setCurrentStep] = useState(1);
     const [annualConsumption, setAnnualConsumption] = useState(4000);
     const [activePreset, setActivePreset] = useState<HousingType>('mindreHus');
@@ -41,8 +53,10 @@ const PriceCalculatorWidget = () => {
 
     const brandGreen = '#98ce2f'; // Using a variable for the brand color
 
-    return (
+    // Widget content component
+    const WidgetContent = () => (
         <div className="bg-white text-gray-900 rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-md lg:max-w-xl mx-auto">
+            {/* Stepper */}
             <div className="flex justify-between items-center mb-6">
                 {[1, 2, 3].map(step => (
                     <React.Fragment key={step}>
@@ -59,6 +73,7 @@ const PriceCalculatorWidget = () => {
                 ))}
             </div>
 
+            {/* Step 1 */}
             {currentStep === 1 && (
                 <div className="mt-8">
                     <h3 className="text-lg font-bold text-gray-800 mb-1">Se om du kan spare penge</h3>
@@ -75,6 +90,7 @@ const PriceCalculatorWidget = () => {
                 </div>
             )}
             
+            {/* Step 2 */}
             {currentStep === 2 && (
                 <div className="mt-8">
                     <div className="text-center mb-4"><h3 className="text-base font-bold text-gray-800">Vælg din boligtype for et hurtigt estimat:</h3></div>
@@ -95,6 +111,7 @@ const PriceCalculatorWidget = () => {
                 </div>
             )}
 
+            {/* Step 3 */}
             {currentStep === 3 && (
                 <div className="mt-8 text-center">
                     <h3 className="text-xl font-bold text-gray-800 mb-2">Resultater</h3>
@@ -104,6 +121,24 @@ const PriceCalculatorWidget = () => {
                 </div>
             )}
         </div>
+    );
+
+    // Return based on variant
+    if (variant === 'hero') {
+        // For hero usage - just return the widget without section wrapper
+        return <WidgetContent />;
+    }
+
+    // For standalone usage - return with section wrapper and optional title
+    return (
+        <section className="bg-gray-100 py-16 lg:py-24">
+            <div className="container mx-auto px-4">
+                {block.title && (
+                    <h2 className="text-3xl font-bold text-center mb-12">{block.title}</h2>
+                )}
+                <WidgetContent />
+            </div>
+        </section>
     );
 };
 

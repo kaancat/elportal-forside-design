@@ -11,23 +11,29 @@ import LivePriceGraphComponent from './LivePriceGraphComponent'
 import RealPriceComparisonTableComponent from './RealPriceComparisonTable'
 import RenewableEnergyForecastComponent from './RenewableEnergyForecast'
 import PriceCalculatorWidget from './PriceCalculatorWidget'
+import HeroSection from './HeroSection'
 
-// Add PriceCalculator type
+// Add PriceCalculator and HeroWithCalculator types
 interface PriceCalculator {
   _type: 'priceCalculator'
   _key: string
   title?: string
 }
 
+interface HeroWithCalculator {
+  _type: 'heroWithCalculator'
+  _key: string
+}
+
 interface ContentBlocksProps {
-  blocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph | RealPriceComparisonTable | RenewableEnergyForecast | PriceCalculator>
+  blocks: Array<PageSection | FAQItem | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph | RealPriceComparisonTable | RenewableEnergyForecast | PriceCalculator | HeroWithCalculator>
 }
 
 const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
   console.log('ContentBlocks component received blocks:', blocks)
 
   // Group consecutive FAQ items together
-  const groupedBlocks: Array<PageSection | FAQItem[] | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph | RealPriceComparisonTable | RenewableEnergyForecast | PriceCalculator> = []
+  const groupedBlocks: Array<PageSection | FAQItem[] | PriceExampleTable | VideoSection | FaqGroup | RichTextSection | CallToActionSection | LivePriceGraph | RealPriceComparisonTable | RenewableEnergyForecast | PriceCalculator | HeroWithCalculator> = []
   let currentFAQGroup: FAQItem[] = []
 
   blocks.forEach((block, index) => {
@@ -95,6 +101,9 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         } else if (block._type === 'priceCalculator') {
           console.log('Passing priceCalculator to PriceCalculatorWidget:', block)
           return <PriceCalculatorWidget key={block._key} block={block as PriceCalculator} />
+        } else if (block._type === 'heroWithCalculator') {
+          console.log('Rendering heroWithCalculator as HeroSection:', block)
+          return <HeroSection key={block._key} />
         } else if (block._type === 'pageSection') {
           console.log('Passing pageSection to PageSectionComponent:', block)
           return <PageSectionComponent key={block._key} section={block as PageSection} />

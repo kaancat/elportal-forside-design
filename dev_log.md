@@ -1,5 +1,38 @@
 # Dev Log
 
+## [2024-12-19] – Container-Based PageSection Refactor
+Goal: Refactor PageSectionComponent to use new container components for cleaner, more maintainable layouts
+
+- **Refactored PageSectionComponent.tsx**:
+  - Added imports for Container, WideContainer, FullBleedContainer
+  - Simplified component structure with conditional container selection based on fullWidth setting
+  - Removed complex image/text layout logic in favor of centered, stacked approach
+  - Updated custom component renderers to use simple `my-12` spacing (no complex width logic)
+  - Streamlined theme application and removed placeholder data
+
+- **Updated TypeScript interfaces** (src/types/sanity.ts):
+  - Added optional `fullWidth?: boolean` property to PageSection interface
+  - Enables content editors to choose between standard and full-bleed layouts
+
+- **Simplified Custom Component Renderers**:
+  - Removed all `w-full lg:-mx-16` width manipulation logic
+  - Applied consistent `my-12` vertical spacing to all embedded components
+  - Components now naturally fill their container without CSS tricks
+  - Cleaner, more maintainable code with no breakout logic needed
+
+Technical Architecture:
+- **Container Selection**: `section.fullWidth ? FullBleedContainer : Container`
+- **Centered Layout**: Title, image, and content are stacked vertically and centered
+- **Natural Sizing**: Embedded components fill container width automatically
+- **Responsive Padding**: Container components handle all responsive spacing
+- **Theme Support**: Dynamic background and text colors from Sanity theme settings
+
+User Experience Benefits:
+- Content editors can choose full-width or standard layouts via boolean toggle
+- Embedded components display at optimal size within their container
+- Consistent spacing and alignment across all page sections
+- Professional, magazine-quality layouts with minimal complexity
+
 ## [2024-12-19] – Reusable Container Components
 Goal: Create standardized container components for consistent content width management
 

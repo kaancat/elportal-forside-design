@@ -37,6 +37,7 @@ export interface PageSection {
   content: BlockContent[]
   image?: SanityImage
   imagePosition?: 'left' | 'right' | 'none'
+  fullWidth?: boolean
   theme?: {
     background: string;
     text: string;

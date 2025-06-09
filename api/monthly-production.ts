@@ -8,7 +8,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const start = twelveMonthsAgo.toISOString().split('T')[0];
   const end = today.toISOString().split('T')[0];
 
-  // These are the exact columns you provided
+  // These are the exact columns you provided from the Build Report tool
   const columns = [
     'Month',
     'CentralPowerMWhDK1','CentralPowerMWhDK2',
@@ -23,14 +23,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     'SolarPowerSelfConMWhDK1','SolarPowerSelfConMWhDK2'
   ].join(',');
 
-  const API_URL = `https://api.energidataservice.dk/dataset/ProductionAndConsumptionSettlement?start=${start}&end=${end}&sort=Month&columns=${columns}&aggregate=sum`;
+  // The verified Dataset ID from your latest screenshot
+  const DATASET_ID = 'ProductionConsumptionSettlement';
+
+  const API_URL = `https://api.energidataservice.dk/dataset/${DATASET_ID}?start=${start}&end=${end}&sort=Month&columns=${columns}&aggregate=sum`;
 
   try {
     const apiResponse = await fetch(API_URL);
     if (!apiResponse.ok) {
       const errorText = await apiResponse.text();
-      console.error("EnergiDataService API Error:", errorText);
-      throw new Error(`API call failed with status: ${apiResponse.status}`);
+      console.error(`EnergiDataService API Error for ${DATASET_ID}:`, errorText);
+      throw new Error(`API call failed: ${apiResponse.status}`);
     }
     const data = await apiResponse.json();
     res.status(200).json(data);

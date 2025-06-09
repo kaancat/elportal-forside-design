@@ -2,18 +2,29 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 // --- FINAL, VERIFIED TYPES ---
-// These match the exact column names from the ProductionAndConsumptionSettlement API
+// These match the exact DK1 and DK2 column names from ProductionAndConsumptionSettlement API
 interface ProductionRecord {
   Month: string;
-  CentralPower_MWh: number;
-  LocalPower_MWh: number;
-  OffshoreWindGe100MW_MWh: number;
-  OffshoreWindLt100MW_MWh: number;
-  OnshoreWindGe50kW_MWh: number;
-  OnshoreWindLt50kW_MWh: number;
-  SolarPowerGe40kW_MWh: number;
-  SolarPower10To40kW_MWh: number;
-  SolarPower0To10kW_MWh: number;
+  CentralPowerMWhDK1: number;
+  CentralPowerMWhDK2: number;
+  LocalPowerMWhDK1: number;
+  LocalPowerMWhDK2: number;
+  OffshoreWindGe100MW_MWhDK1: number;
+  OffshoreWindGe100MW_MWhDK2: number;
+  OffshoreWindLt100MW_MWhDK1: number;
+  OffshoreWindLt100MW_MWhDK2: number;
+  OnshoreWindGe50kW_MWhDK1: number;
+  OnshoreWindGe50kW_MWhDK2: number;
+  OnshoreWindLt50kW_MWhDK1: number;
+  OnshoreWindLt50kW_MWhDK2: number;
+  SolarPowerGe10Lt40kW_MWhDK1: number;
+  SolarPowerGe10Lt40kW_MWhDK2: number;
+  SolarPowerGe40kW_MWhDK1: number;
+  SolarPowerGe40kW_MWhDK2: number;
+  SolarPowerLt10kW_MWhDK1: number;
+  SolarPowerLt10kW_MWhDK2: number;
+  SolarPowerSelfConMWhDK1: number;
+  SolarPowerSelfConMWhDK2: number;
 }
 
 interface ProcessedMonthData { 
@@ -94,22 +105,31 @@ const MonthlyProductionChart: React.FC<MonthlyProductionChartProps> = ({ block }
             acc[monthKey] = { Sol: 0, Landvind: 0, Havvind: 0, Lokal: 0, Central: 0 };
         }
         
-        // Aggregate all solar power categories
-        acc[monthKey].Sol += (record.SolarPowerGe40kW_MWh || 0) + 
-                             (record.SolarPower10To40kW_MWh || 0) + 
-                             (record.SolarPower0To10kW_MWh || 0);
+        // Aggregate all solar power categories (DK1 + DK2)
+        acc[monthKey].Sol += (record.SolarPowerGe10Lt40kW_MWhDK1 || 0) + 
+                             (record.SolarPowerGe10Lt40kW_MWhDK2 || 0) +
+                             (record.SolarPowerGe40kW_MWhDK1 || 0) + 
+                             (record.SolarPowerGe40kW_MWhDK2 || 0) +
+                             (record.SolarPowerLt10kW_MWhDK1 || 0) + 
+                             (record.SolarPowerLt10kW_MWhDK2 || 0) +
+                             (record.SolarPowerSelfConMWhDK1 || 0) + 
+                             (record.SolarPowerSelfConMWhDK2 || 0);
         
-        // Aggregate all onshore wind categories
-        acc[monthKey].Landvind += (record.OnshoreWindGe50kW_MWh || 0) + 
-                                  (record.OnshoreWindLt50kW_MWh || 0);
+        // Aggregate all onshore wind categories (DK1 + DK2)
+        acc[monthKey].Landvind += (record.OnshoreWindGe50kW_MWhDK1 || 0) + 
+                                  (record.OnshoreWindGe50kW_MWhDK2 || 0) +
+                                  (record.OnshoreWindLt50kW_MWhDK1 || 0) + 
+                                  (record.OnshoreWindLt50kW_MWhDK2 || 0);
         
-        // Aggregate all offshore wind categories
-        acc[monthKey].Havvind += (record.OffshoreWindGe100MW_MWh || 0) + 
-                                 (record.OffshoreWindLt100MW_MWh || 0);
+        // Aggregate all offshore wind categories (DK1 + DK2)
+        acc[monthKey].Havvind += (record.OffshoreWindGe100MW_MWhDK1 || 0) + 
+                                 (record.OffshoreWindGe100MW_MWhDK2 || 0) +
+                                 (record.OffshoreWindLt100MW_MWhDK1 || 0) + 
+                                 (record.OffshoreWindLt100MW_MWhDK2 || 0);
         
-        // Central and Local power
-        acc[monthKey].Central += record.CentralPower_MWh || 0;
-        acc[monthKey].Lokal += record.LocalPower_MWh || 0;
+        // Central and Local power (DK1 + DK2)
+        acc[monthKey].Central += (record.CentralPowerMWhDK1 || 0) + (record.CentralPowerMWhDK2 || 0);
+        acc[monthKey].Lokal += (record.LocalPowerMWhDK1 || 0) + (record.LocalPowerMWhDK2 || 0);
         return acc;
     }, {} as Record<string, Omit<ProcessedMonthData, 'month'>>);
     

@@ -12,23 +12,25 @@ interface PageSectionComponentProps {
 }
 
 const PageSectionComponent: React.FC<PageSectionComponentProps> = ({ section }) => {
-  // Define custom components for embedded blocks in Portable Text
+  // The new, correct customComponents object
   const customComponents = {
     types: {
       livePriceGraph: ({ value }: { value: any }) => (
-        <div className="my-12">
+        // This div breaks out of the `prose` max-width constraint
+        <div className="not-prose -mx-4 sm:-mx-6 lg:-mx-8 my-12">
           <LivePriceGraphComponent block={value} />
         </div>
       ),
       renewableEnergyForecast: ({ value }: { value: any }) => (
-        <div className="my-12">
+        <div className="not-prose -mx-4 sm:-mx-6 lg:-mx-8 my-12">
           <RenewableEnergyForecastComponent block={value} />
         </div>
       ),
       priceCalculator: ({ value }: { value: any }) => (
-        <div className="my-12">
-          <PriceCalculatorWidget block={value} variant="standalone" />
-        </div>
+         // This one should probably stay contained within the prose width
+         <div className="my-12">
+           <PriceCalculatorWidget block={value} variant="standalone" />
+         </div>
       ),
     },
     block: {

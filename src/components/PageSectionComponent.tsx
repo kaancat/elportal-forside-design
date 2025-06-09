@@ -20,16 +20,40 @@ const PageSectionComponent: React.FC<PageSectionComponentProps> = (props) => {
   const customComponents = {
     types: {
       livePriceGraph: ({ value }: { value: any }) => {
-        console.log('Rendering embedded livePriceGraph:', value)
-        return <LivePriceGraphComponent block={value} />
+        console.log('Rendering embedded livePriceGraph with width:', value.width, value)
+        const widthClass = 
+          value.width === 'wide' ? '-mx-4 sm:-mx-8 md:-mx-16' : 
+          value.width === 'full' ? 'w-screen -translate-x-1/2 ml-[50vw]' : 
+          '';
+        return (
+          <div className={widthClass}>
+            <LivePriceGraphComponent block={value} />
+          </div>
+        );
       },
       renewableEnergyForecast: ({ value }: { value: any }) => {
-        console.log('Rendering embedded renewableEnergyForecast:', value)
-        return <RenewableEnergyForecastComponent block={value} />
+        console.log('Rendering embedded renewableEnergyForecast with width:', value.width, value)
+        const widthClass = 
+          value.width === 'wide' ? '-mx-4 sm:-mx-8 md:-mx-16' : 
+          value.width === 'full' ? 'w-screen -translate-x-1/2 ml-[50vw]' : 
+          '';
+        return (
+          <div className={widthClass}>
+            <RenewableEnergyForecastComponent block={value} />
+          </div>
+        );
       },
       priceCalculator: ({ value }: { value: any }) => {
-        console.log('Rendering embedded priceCalculator:', value)
-        return <PriceCalculatorWidget block={value} variant="standalone" />
+        console.log('Rendering embedded priceCalculator with width:', value.width, value)
+        const widthClass = 
+          value.width === 'wide' ? '-mx-4 sm:-mx-8 md:-mx-16' : 
+          value.width === 'full' ? 'w-screen -translate-x-1/2 ml-[50vw]' : 
+          '';
+        return (
+          <div className={widthClass}>
+            <PriceCalculatorWidget block={value} variant="standalone" />
+          </div>
+        );
       },
     },
     block: {

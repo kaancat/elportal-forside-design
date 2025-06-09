@@ -29,18 +29,21 @@ export class SanityService {
               _type,
               title,
               subtitle,
-              apiRegion
+              apiRegion,
+              width
             },
             _type == "renewableEnergyForecast" => {
               _key,
               _type,
               title,
-              leadingText
+              leadingText,
+              width
             },
             _type == "priceCalculator" => {
               _key,
               _type,
-              title
+              title,
+              width
             }
           }
         },

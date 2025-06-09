@@ -101,6 +101,22 @@ export class SanityService {
           title,
           leadingText,
           description
+        },
+        _type == "providerList" => {
+          _key,
+          _type,
+          title,
+          'providers': providers[]->{ // The key is 'providers': and the operator is ->
+            "id": _id,
+            providerName,
+            productName,
+            "logoUrl": logo.asset->url,
+            displayPrice_kWh,
+            displayMonthlyFee,
+            signupLink,
+            isVindstoedProduct,
+            benefits
+          }
         }
       }
     }`

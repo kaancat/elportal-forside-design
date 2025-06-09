@@ -100,6 +100,58 @@ This prevents the runtime error "Cannot read properties of undefined" and provid
 
 ---
 
+## [2024-12-19] – Fix GROQ Query for ProviderList Reference Resolution
+Goal: Fix data fetching issue by ensuring GROQ query correctly resolves provider references
+
+### Changes Made:
+
+1. **Fixed Missing ProviderList in GROQ Query (`src/services/sanityService.ts`)**:
+   - **Root Cause**: The `providerList` block type was completely missing from the `contentBlocks` expansion in the GROQ query
+   - **Added Complete Block Definition**:
+     ```groq
+     _type == "providerList" => {
+       _key,
+       _type,
+       title,
+       'providers': providers[]->{ // Critical: using -> operator to follow references
+         "id": _id,
+         providerName,
+         productName,
+         "logoUrl": logo.asset->url,
+         displayPrice_kWh,
+         displayMonthlyFee,
+         signupLink,
+         isVindstoedProduct,
+         benefits
+       }
+     }
+     ```
+
+2. **Added Debug Logging (`src/components/ProviderList.tsx`)**:
+   - Added `console.log('Data received by ProviderList:', JSON.stringify(block, null, 2));`
+   - This will help verify if the GROQ query is now correctly fetching provider data
+   - Can identify if the issue is data fetching vs. component rendering
+
+### Technical Details:
+
+**Critical GROQ Syntax Elements**:
+- `'providers': providers[]->` - The `->` operator is essential for following references to provider documents
+- `"logoUrl": logo.asset->url` - Resolves image asset references to actual URLs
+- `"id": _id` - Maps Sanity's internal `_id` to our expected `id` field
+
+### Expected Debug Output:
+- **If Successful**: Console will show full provider data with resolved references
+- **If providers: null or []**: References are not linked correctly in Sanity Studio
+- **If data is present but UI broken**: Issue is in React component logic
+
+### Data Flow Impact:
+**Before**: GROQ query ignored `providerList` blocks → undefined data → component crashes
+**After**: GROQ query properly expands `providerList` → resolved provider references → working component
+
+This fix addresses the root cause of the data fetching issue and should restore full functionality to the ProviderList component.
+
+---
+
 ## [2024-12-19] – TypeScript Centralization Fix
 Goal: Fix TypeScript errors by centralizing type definitions for monthlyProductionChart block
 

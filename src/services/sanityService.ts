@@ -66,21 +66,7 @@ export class SanityService {
           buttonUrl
         },
         _type == "renewableEnergyForecast" => {
-          _key,
-          _type,
-          title,
-          leadingText,
-          explanation[]{ // Explicitly expand the 'explanation' array
-            ..., // Get all properties of the block
-            markDefs[]{ // Expand the mark definitions (for links, etc.)
-              ...,
-              _key
-            },
-            children[]{ // Expand the children of the block
-              ...,
-              _key
-            }
-          }
+          ...
         },
         _type == "livePriceGraph" => {
           title,

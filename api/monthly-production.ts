@@ -14,9 +14,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const apiResponse = await fetch(API_URL);
     if (!apiResponse.ok) throw new Error(`API call failed: ${apiResponse.status}`);
+    
     const data = await apiResponse.json();
+
+    // --- DEBUGGING LINE TO ADD ---
+    // Log the very first record to the server console to inspect its structure.
+    if (data.records && data.records.length > 0) {
+      console.log("DEBUG: First record from EnergiDataService:", data.records[0]);
+    }
+    // --- END OF DEBUGGING LINE ---
+
     res.status(200).json(data);
+
   } catch (error: any) {
+    console.error("API Route crashed:", error); // Also log the error itself
     res.status(500).json({ error: error.message });
   }
 } 

@@ -6,15 +6,12 @@ import { PortableText } from '@portabletext/react'
 import LivePriceGraphComponent from './LivePriceGraphComponent'
 import RenewableEnergyForecastComponent from './RenewableEnergyForecast'
 import PriceCalculatorWidget from './PriceCalculatorWidget'
-import { Container, WideContainer, FullBleedContainer } from './Container'
 
 interface PageSectionComponentProps {
   section: PageSection
 }
 
 const PageSectionComponent: React.FC<PageSectionComponentProps> = ({ section }) => {
-  console.log('Props received by PageSectionComponent:', { section })
-
   // Define custom components for embedded blocks in Portable Text
   const customComponents = {
     types: {
@@ -58,54 +55,30 @@ const PageSectionComponent: React.FC<PageSectionComponentProps> = ({ section }) 
     },
   }
   
-  // Don't render anything if there's no section
-  if (!section) return null
-
-  // Theme colors with ElPortal brand defaults
   const sectionStyle = {
-    backgroundColor: section.theme?.background || 'transparent',
-    color: section.theme?.text || '#001a12',
-  }
-
-  // Choose the container based on the 'fullWidth' setting
-  const ContainerComponent = section.fullWidth ? FullBleedContainer : Container
-
+    backgroundColor: section?.theme?.background || 'transparent',
+  };
+  
   return (
-    <section style={sectionStyle}>
-      <ContainerComponent className="py-16 lg:py-24">
-        {/* Title */}
+    <section style={sectionStyle} className="py-16 lg:py-24">
+      <div className="container mx-auto px-4">
+        {/* Title can be here, centered */}
         {section.title && (
-          <h2 className="text-4xl lg:text-5xl font-bold mb-8 leading-tight text-center">
+          <h2 className="text-3xl font-bold text-center mb-12" style={{color: section?.theme?.text}}>
             {section.title}
           </h2>
         )}
 
-        {/* Image */}
-        {section.image?.asset && (
-          <div className="mb-12 text-center">
-            <div className="relative overflow-hidden rounded-2xl shadow-2xl inline-block max-w-2xl">
-              <img
-                src={urlFor(section.image).width(800).height(600).auto('format').url()}
-                alt={section.image.alt || ''}
-                className="w-full h-auto object-cover transition-transform duration-500 hover:scale-105"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* The PortableText component for rendering the content array */}
-        {section.content && (
-          <div className="prose prose-lg mx-auto max-w-3xl">
-            <PortableText 
-              value={section.content} 
-              components={customComponents} 
-            />
-          </div>
-        )}
-
-      </ContainerComponent>
+        {/* Main Content Area */}
+        <div className="prose prose-lg max-w-4xl mx-auto" style={{color: section?.theme?.text}}>
+          <PortableText 
+            value={section.content} 
+            components={customComponents} 
+          />
+        </div>
+      </div>
     </section>
-  )
+  );
 }
 
 export default PageSectionComponent

@@ -146,11 +146,9 @@ export class SanityService {
             providerName,
             productName,
             "logoUrl": logo.asset->url,
-            "displayPrice_kWh": kwhMarkup,
-            "displayMonthlyFee": monthlySubscription,
-            kwhMarkup,  // Include original field for direct access
-            monthlySubscription,  // Include original field for direct access
-            "signupLink": signupLink,
+            displayPrice_kWh,
+            displayMonthlyFee,
+            signupLink,
             isVindstoedProduct,
             benefits
           }

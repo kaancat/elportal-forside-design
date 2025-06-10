@@ -5,58 +5,104 @@ import { Slider } from '@/components/ui/slider';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info } from 'lucide-react';
 import type { ProviderListBlock, ProviderProductBlock } from '../types/sanity';
+import { client } from '@/lib/sanity';
 
 interface ProviderListProps {
   block: ProviderListBlock;
 }
 
 export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
-  // --- DEBUG LOGGING ---
-  console.log('Data received by ProviderList:', JSON.stringify(block, null, 2));
-  // --- END DEBUG LOGGING ---
-  
-  // --- SAFETY CHECK ---
-  if (!block) {
-    console.error('ProviderList: block prop is undefined');
-    return <div className="text-center text-red-500 py-8">Provider list data is missing.</div>;
-  }
-  // --- END OF SAFETY CHECK ---
-
+  const [providers, setProviders] = useState<ProviderProductBlock[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [annualConsumption, setAnnualConsumption] = useState([4000]);
   const [selectedHouseholdType, setSelectedHouseholdType] = useState<string | null>('small-house');
   const [spotPrice, setSpotPrice] = useState<number | null>(null);
   const [priceLoading, setPriceLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  console.log('ProviderList render - block:', block);
-  console.log('ProviderList render - annualConsumption:', annualConsumption[0]);
-
-  // Fetch live spot price when component mounts
+  // Fetch provider data and spot price when component mounts
   useEffect(() => {
-    const fetchSpotPrice = async () => {
+    const fetchData = async () => {
+      if (!block.providers || block.providers.length === 0) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        const response = await fetch('/api/electricity-prices'); // Your existing API route
-        if (!response.ok) throw new Error('Could not fetch spot price');
-        const data = await response.json();
-        // Find the price for the current hour
-        const currentHour = new Date().getHours();
-        const currentPriceData = data.records.find((r: any) => new Date(r.HourDK).getHours() === currentHour);
-        if (currentPriceData) {
-          setSpotPrice(currentPriceData.SpotPriceKWh);
-          setLastUpdated(new Date()); // SET THE TIMESTAMP HERE
-          console.log('Fetched live spot price:', currentPriceData.SpotPriceKWh, 'kr/kWh');
+        // Check if providers are references or full objects
+        const hasReferences = block.providers.some(p => (p as any)._ref);
+        let providerData: ProviderProductBlock[] = [];
+
+        if (hasReferences) {
+          // Create a query to fetch only the providers referenced in this block
+          const providerIds = block.providers.map(p => (p as any)._ref);
+          const query = `*[_type == "provider" && _id in $providerIds]{
+            "id": _id, 
+            providerName, 
+            productName, 
+            "logoUrl": logo.asset->url, 
+            kwhMarkup,
+            monthlySubscription,
+            displayPrice_kWh,
+            displayMonthlyFee, 
+            signupLink, 
+            isVindstoedProduct, 
+            benefits
+          }`;
+
+          const [fetchedProviders, spotPriceResponse] = await Promise.all([
+            client.fetch(query, { providerIds }),
+            fetch('/api/electricity-prices')
+          ]);
+          providerData = fetchedProviders;
+
+          if (spotPriceResponse.ok) {
+            const priceData = await spotPriceResponse.json();
+            const currentHour = new Date().getHours();
+            const currentPriceData = priceData.records.find((r: any) => new Date(r.HourDK).getHours() === currentHour);
+            if (currentPriceData) {
+              setSpotPrice(currentPriceData.SpotPriceKWh);
+              setLastUpdated(new Date());
+              console.log('Fetched live spot price:', currentPriceData.SpotPriceKWh, 'kr/kWh');
+            } else {
+              setSpotPrice(1.0); // Fallback
+            }
+          } else {
+            setSpotPrice(1.0); // Fallback
+          }
+        } else {
+          // Providers are already full objects, just fetch spot price
+          providerData = block.providers;
+          
+          const spotPriceResponse = await fetch('/api/electricity-prices');
+          if (spotPriceResponse.ok) {
+            const priceData = await spotPriceResponse.json();
+            const currentHour = new Date().getHours();
+            const currentPriceData = priceData.records.find((r: any) => new Date(r.HourDK).getHours() === currentHour);
+            if (currentPriceData) {
+              setSpotPrice(currentPriceData.SpotPriceKWh);
+              setLastUpdated(new Date());
+              console.log('Fetched live spot price:', currentPriceData.SpotPriceKWh, 'kr/kWh');
+            } else {
+              setSpotPrice(1.0); // Fallback
+            }
+          } else {
+            setSpotPrice(1.0); // Fallback
+          }
         }
+
+        setProviders(providerData);
       } catch (error) {
-        console.error("Failed to fetch live spot price:", error);
-        // We can set a fallback price or show an error
-        setSpotPrice(1.5); // Fallback to a default value
+        console.error("Failed to fetch provider data:", error);
+        setSpotPrice(1.0); // Fallback
       } finally {
+        setIsLoading(false);
         setPriceLoading(false);
       }
     };
 
-    fetchSpotPrice();
-  }, []);
+    fetchData();
+  }, [block.providers]);
 
   const handleHouseholdTypeSelect = (type: HouseholdType | null) => {
     if (type) {
@@ -78,14 +124,6 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
     setSelectedHouseholdType('custom');
   };
 
-  // Sort products to ensure the featured one is first
-  const sortedProviders = [...(block.providers || [])].sort((a, b) => {
-    if (a.isVindstoedProduct && !b.isVindstoedProduct) return -1;
-    if (!a.isVindstoedProduct && b.isVindstoedProduct) return 1;
-    // Add other sorting logic if needed, e.g., by price
-    return (a.displayPrice_kWh || 0) - (b.displayPrice_kWh || 0);
-  });
-
   // Convert ProviderProductBlock to ElectricityProduct format for ProviderCard
   const convertToElectricityProduct = (provider: ProviderProductBlock) => ({
     id: provider.id,
@@ -106,7 +144,17 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
     sortOrderCompetitor: provider.isVindstoedProduct ? undefined : 1,
   });
 
-  if (!block.providers || block.providers.length === 0) {
+  if (isLoading) {
+    return (
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center py-16">Indlæser udbydere...</div>
+        </div>
+      </section>
+    );
+  }
+
+  if (providers.length === 0) {
     return (
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
@@ -127,6 +175,14 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
       </section>
     );
   }
+
+  // Sort products to ensure the featured one is first
+  const sortedProviders = [...providers].sort((a, b) => {
+    if (a.isVindstoedProduct && !b.isVindstoedProduct) return -1;
+    if (!a.isVindstoedProduct && b.isVindstoedProduct) return 1;
+    // Add other sorting logic if needed, e.g., by price
+    return (a.displayPrice_kWh || 0) - (b.displayPrice_kWh || 0);
+  });
 
   return (
     <section className="py-16 bg-gray-50">
@@ -201,7 +257,6 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
             )}
           </div>
           {sortedProviders.map(provider => {
-            console.log('Rendering provider:', provider);
             if (!provider || !provider.id) {
               console.warn('Invalid provider data:', provider);
               return null;

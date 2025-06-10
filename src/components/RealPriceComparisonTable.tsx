@@ -11,60 +11,38 @@ interface RealPriceComparisonTableProps {
   block: RealPriceComparisonTable;
 }
 
-const RealPriceComparisonTableComponent: React.FC<RealPriceComparisonTableProps> = ({ block }) => {
+const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ block }) => {
   const [selectedProvider1, setSelectedProvider1] = useState<ProviderProductBlock | null>(null);
   const [selectedProvider2, setSelectedProvider2] = useState<ProviderProductBlock | null>(null);
   const [monthlyConsumption, setMonthlyConsumption] = useState(150);
-  const [spotPrice, setSpotPrice] = useState<number | null>(null);
 
   const { allProviders, title, leadingText } = block;
 
-  useEffect(() => {
-    const fetchSpotPrice = async () => {
-      try {
-        const response = await fetch('/api/electricity-prices');
-        if (!response.ok) throw new Error('Could not fetch spot price');
-        const data = await response.json();
-        const currentHour = new Date().getHours();
-        const currentPriceData = data.records.find((r: any) => new Date(r.HourDK).getHours() === currentHour);
-        setSpotPrice(currentPriceData ? currentPriceData.SpotPriceKWh : 1.0); // Fallback
-      } catch (error) {
-        console.error("Failed to fetch live spot price:", error);
-        setSpotPrice(1.0); // Fallback
-      }
-    };
-    fetchSpotPrice();
-  }, []);
-
   const handleSelect1 = (providerId: string) => {
-    setSelectedProvider1(allProviders.find(p => p.id === providerId) || null);
+    const provider = allProviders.find(p => p.id === providerId) || null;
+    setSelectedProvider1(provider);
   };
 
   const handleSelect2 = (providerId: string) => {
-    setSelectedProvider2(allProviders.find(p => p.id === providerId) || null);
+    const provider = allProviders.find(p => p.id === providerId) || null;
+    setSelectedProvider2(provider);
   };
 
   const getPriceDetails = (provider: ProviderProductBlock | null) => {
-    if (!provider || spotPrice === null) return { kwhPrice: 0, subscription: 0, total: 0, tillæg: 0 };
+    if (!provider) {
+      return { tillæg: 0, subscription: 0, total: 0 };
+    }
     
-    const tillæg = (provider.displayPrice_kWh || 0); // Already in kr, not øre
+    const tillæg = provider.displayPrice_kWh || 0;
     const subscription = provider.displayMonthlyFee || 0;
     
-    // Full price calculation including all fees
-    const NETSelskab_AVG = 0.30;
-    const ENERGINET_FEE = 0.11;
-    const STATEN_ELAFGIFT = 0.76;
-    const priceBeforeVat = spotPrice + tillæg + NETSelskab_AVG + ENERGINET_FEE + STATEN_ELAFGIFT;
-    const finalKwhPriceWithVat = priceBeforeVat * 1.25;
-
-    // The total is based on kWh price, NOT the tillæg
-    const total = (finalKwhPriceWithVat * (monthlyConsumption * 12) / 12) + subscription;
+    const total = (tillæg * monthlyConsumption) + subscription;
     
-    return { kwhPrice: finalKwhPriceWithVat, subscription, total, tillæg };
+    return { tillæg, subscription, total };
   };
 
-  const details1 = useMemo(() => getPriceDetails(selectedProvider1), [selectedProvider1, monthlyConsumption, spotPrice]);
-  const details2 = useMemo(() => getPriceDetails(selectedProvider2), [selectedProvider2, monthlyConsumption, spotPrice]);
+  const details1 = useMemo(() => getPriceDetails(selectedProvider1), [selectedProvider1, monthlyConsumption]);
+  const details2 = useMemo(() => getPriceDetails(selectedProvider2), [selectedProvider2, monthlyConsumption]);
   
   if (!allProviders || allProviders.length === 0) {
     return <div className="text-center py-16">Konfigurer venligst udbydere i Sanity.</div>;
@@ -73,7 +51,7 @@ const RealPriceComparisonTableComponent: React.FC<RealPriceComparisonTableProps>
   return (
     <section className="bg-gray-50 py-16 lg:py-24">
       <div className="container mx-auto px-6 lg:px-8 max-w-4xl">
-        {title && <h2 className="text-3xl lg:text-4xl font-display font-bold text-gray-900 text-center mb-6">{title}</h2>}
+        {title && <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 text-center mb-6 font-display">{title}</h2>}
         {leadingText && <p className="text-lg text-gray-600 text-center mb-12">{leadingText}</p>}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 bg-white p-6 rounded-lg shadow-sm border">
@@ -137,10 +115,10 @@ const RealPriceComparisonTableComponent: React.FC<RealPriceComparisonTableProps>
                 <span className="font-bold text-gray-800 w-24 text-center">{monthlyConsumption} kWh</span>
             </div>
         </div>
-        <p className="text-sm text-gray-500 text-center mt-6">* Estimatet er baseret på live spotpris og inkluderer gennemsnitlig nettarif, afgifter og moms.</p>
+        <p className="text-sm text-gray-500 text-center mt-6">* Priserne er baseret på dit valg og inkluderer ikke spotpris, skatter og afgifter.</p>
       </div>
     </section>
   );
 };
 
-export default RealPriceComparisonTableComponent; 
+export default RealPriceComparisonTable; 

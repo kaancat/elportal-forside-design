@@ -3,13 +3,13 @@
 ## [2024-12-19] – RealPriceComparisonTable Price Calculation Fix
 Goal: Fix price calculation logic to ensure correct totals and proper field access
 
-- Enhanced `getPriceDetails` function with improved calculation logic and clearer comments
-- Ensured proper currency conversion from øre to kroner using `(provider.kwhMarkup || 0) / 100`
-- Clarified calculation formula: `(markup per kWh * monthly kWh) + monthly subscription`
-- Fixed potential null reference issues by using `|| 0` fallback for kwhMarkup field
-- Added descriptive comments explaining the calculation logic for better maintainability
+- Updated `getPriceDetails` function with simplified conditional logic for kwhMarkup field
+- Changed from `(provider.kwhMarkup || 0) / 100` to `provider.kwhMarkup ? provider.kwhMarkup / 100 : 0`
+- Maintains proper currency conversion from øre to kroner with explicit null checking
+- Simplified calculation formula: `(tillæg * monthlyConsumption) + subscription`
+- Removed verbose comments for cleaner code structure
 - Verified table display correctly shows "Tillæg pr. kWh" with proper formatting
-- NOTE: Monthly consumption calculation now properly accounts for kWh-based pricing
+- NOTE: Monthly consumption calculation properly accounts for kWh-based pricing
 - TODO: Test price calculations with various consumption values and provider data
 
 ---

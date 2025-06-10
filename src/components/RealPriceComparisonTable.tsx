@@ -18,13 +18,21 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
 
   const { allProviders, title, leadingText } = block;
 
+  // 🔍 DEBUG: Log the received data
+  console.log('🔍 DEBUG - RealPriceComparisonTable block:', block);
+  console.log('🔍 DEBUG - allProviders:', allProviders);
+  console.log('🔍 DEBUG - First provider structure:', allProviders?.[0]);
+  console.log('🔍 DEBUG - Selected providers:', { selectedProvider1, selectedProvider2 });
+
   const handleSelect1 = (providerId: string) => {
     const provider = allProviders.find(p => p.id === providerId) || null;
+    console.log('🔍 DEBUG - Selected provider 1:', provider);
     setSelectedProvider1(provider);
   };
 
   const handleSelect2 = (providerId: string) => {
     const provider = allProviders.find(p => p.id === providerId) || null;
+    console.log('🔍 DEBUG - Selected provider 2:', provider);
     setSelectedProvider2(provider);
   };
 
@@ -33,10 +41,22 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
       return { tillæg: 0, subscription: 0, total: 0 };
     }
     
+    // 🔍 DEBUG: Log all available fields
+    console.log('🔍 DEBUG - Provider object keys:', Object.keys(provider));
+    console.log('🔍 DEBUG - Provider full object:', provider);
+    console.log('🔍 DEBUG - Available fields:', {
+      displayPrice_kWh: provider.displayPrice_kWh,
+      displayMonthlyFee: provider.displayMonthlyFee,
+      kwhMarkup: provider.kwhMarkup,
+      monthlySubscription: provider.monthlySubscription
+    });
+    
     // Use the correct field names that come from the GROQ query
     const tillæg = provider.displayPrice_kWh || 0;
     const subscription = provider.displayMonthlyFee || 0;
     const total = (tillæg * monthlyConsumption) + subscription;
+    
+    console.log('🔍 DEBUG - Calculated values:', { tillæg, subscription, total, monthlyConsumption });
     
     return { tillæg, subscription, total };
   };
@@ -53,6 +73,15 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
       <div className="container mx-auto px-6 lg:px-8 max-w-4xl">
         {title && <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 text-center mb-6 font-display">{title}</h2>}
         {leadingText && <p className="text-lg text-gray-600 text-center mb-12">{leadingText}</p>}
+
+        {/* 🔍 DEBUG: Show data structure */}
+        <div className="mb-4 p-4 bg-red-100 text-xs">
+          <strong>DEBUG INFO:</strong><br/>
+          Total providers: {allProviders?.length}<br/>
+          First provider keys: {allProviders?.[0] ? Object.keys(allProviders[0]).join(', ') : 'none'}<br/>
+          Selected 1: {selectedProvider1?.id} - {selectedProvider1?.providerName}<br/>
+          Selected 2: {selectedProvider2?.id} - {selectedProvider2?.providerName}
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 bg-white p-6 rounded-lg shadow-sm border">
           <div>

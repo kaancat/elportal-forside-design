@@ -105,7 +105,19 @@ export class SanityService {
           _key,
           _type,
           title,
-          providers, // This will be an array of references, e.g., [{_ref: '...'}, ...]
+          providers[]->{
+            "id": _id,
+            providerName,
+            productName,
+            "logoUrl": logo.asset->url,
+            "displayPrice_kWh": kwhMarkup,
+            "displayMonthlyFee": monthlySubscription,
+            kwhMarkup,  // Include original field for direct access
+            monthlySubscription,  // Include original field for direct access
+            "signupLink": signupLink,
+            isVindstoedProduct,
+            benefits
+          }
         },
         _type == "featureList" => {
           _key,

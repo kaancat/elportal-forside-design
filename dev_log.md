@@ -1065,3 +1065,122 @@ To: "Priserne er baseret på dit valg og inkluderer ikke spotpris, skatter og af
 Build successful, comparison table now works consistently across all devices and screen sizes.
 
 NOTE: This fix maintains the component's core functionality while eliminating the mobile/desktop inconsistency through simplified state management and correct field mapping.
+
+---
+
+## [2024-12-19] – Fix RealPriceComparisonTable Field Access and Currency Conversion
+Goal: Correct field access in RealPriceComparisonTable to use original Sanity field names and properly convert øre to kroner
+
+### Problem Identified:
+- **Incorrect Field Access**: Component was using mapped field names instead of original Sanity fields
+- **Currency Conversion Missing**: kwhMarkup values in Sanity are stored in øre but need conversion to kroner
+- **Data Source Mismatch**: GROQ query was mapping fields but component needed access to original values
+- **Tillæg Display Issues**: Comparison table showing incorrect values due to field access problems
+
+### Changes Made:
+
+1. **Updated TypeScript Interface (`src/types/sanity.ts`)**:
+   - **Added Original Fields**: Included `kwhMarkup?: number` and `monthlySubscription?: number`
+   - **Maintained Compatibility**: Kept existing `displayPrice_kWh` and `displayMonthlyFee` for backward compatibility
+   - **Added Documentation**: Commented that kwhMarkup is in øre and needs conversion
+
+2. **Fixed getPriceDetails Function (`src/components/RealPriceComparisonTable.tsx`)**:
+   - **Correct Field Access**: Changed from `provider.displayPrice_kWh` to `provider.kwhMarkup`
+   - **Currency Conversion**: Added `/100` conversion from øre to kroner for kwhMarkup
+   - **Original Subscription**: Changed from `provider.displayMonthlyFee` to `provider.monthlySubscription`
+   - **Simplified Logic**: Maintained clean calculation without complex dependencies
+
+3. **Enhanced GROQ Query (`src/services/sanityService.ts`)**:
+   - **Dual Field Access**: Added both original fields and mapped fields to the query
+   - **Data Availability**: Ensures component can access either field naming convention
+   - **Future-proofing**: Maintains flexibility for different component requirements
+
+### Technical Implementation:
+
+**Updated Field Access**:
+```tsx
+const getPriceDetails = (provider: ProviderProductBlock | null) => {
+  if (!provider) return { tillæg: 0, subscription: 0, total: 0 };
+  
+  // Access original Sanity fields with proper conversion
+  const tillæg = provider.kwhMarkup ? provider.kwhMarkup / 100 : 0; // øre → kroner
+  const subscription = provider.monthlySubscription || 0;
+  const total = (tillæg * monthlyConsumption) + subscription;
+  
+  return { tillæg, subscription, total };
+};
+```
+
+**Enhanced TypeScript Interface**:
+```tsx
+export interface ProviderProductBlock {
+  // ... existing fields ...
+  displayPrice_kWh: number      // Mapped field (kroner)
+  displayMonthlyFee: number     // Mapped field
+  kwhMarkup?: number           // Original field (øre)
+  monthlySubscription?: number  // Original field
+  // ... other fields ...
+}
+```
+
+**GROQ Query Enhancement**:
+```groq
+"allProviders": *[_type == "provider"]{
+  "displayPrice_kWh": kwhMarkup,    // Mapped conversion
+  "displayMonthlyFee": monthlySubscription,  // Mapped field
+  kwhMarkup,                        // Original field
+  monthlySubscription,              // Original field
+  // ... other fields ...
+}
+```
+
+### Data Flow Architecture:
+
+**Before Fix**:
+```
+Sanity (øre) → GROQ mapping → displayPrice_kWh (kroner) → Component (incorrect values)
+```
+
+**After Fix**:
+```
+Sanity (øre) → GROQ (dual fields) → kwhMarkup (øre) → Component (/100) → kroner (correct)
+```
+
+### Benefits:
+
+**Accurate Data Display**:
+- **Correct Currency**: Proper conversion from øre to kroner for tillæg values
+- **Direct Access**: Component uses original Sanity field names as intended
+- **Precise Calculations**: Monthly cost calculations now use correct base values
+
+**Improved Reliability**:
+- **Source Truth**: Direct access to original Sanity data reduces mapping errors
+- **Consistent Units**: Clear currency conversion logic prevents display inconsistencies
+- **Better Debugging**: Easier to trace data from Sanity through to display
+
+**Backward Compatibility**:
+- **Dual Support**: Both original and mapped field names available
+- **No Breaking Changes**: Existing components using mapped names continue to work
+- **Flexible Architecture**: Different components can use appropriate field naming
+
+### User Experience Impact:
+
+**Before Fix**:
+- Tillæg values potentially incorrect due to field mapping issues
+- Currency conversion unclear or missing
+- Comparison calculations might show wrong amounts
+
+**After Fix**:
+- ✅ Correct tillæg values displayed in kroner
+- ✅ Accurate monthly cost calculations
+- ✅ Transparent currency conversion (øre → kroner)
+- ✅ Reliable comparison data across providers
+
+### Data Integrity:
+- **Field Validation**: TypeScript ensures both field access patterns are type-safe
+- **Conversion Accuracy**: Explicit `/100` conversion for øre to kroner
+- **Query Optimization**: GROQ provides both field formats without extra requests
+
+Build successful, comparison table now displays accurate provider data with correct currency conversion.
+
+NOTE: This fix ensures the comparison table uses the correct data source and properly converts currency units for accurate price comparisons.

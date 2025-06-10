@@ -105,16 +105,14 @@ export class SanityService {
           _key,
           _type,
           title,
-          providers[]->{
+          'providers': providers[]->{ // The key is 'providers': and the operator is ->
             "id": _id,
             providerName,
             productName,
             "logoUrl": logo.asset->url,
-            "displayPrice_kWh": kwhMarkup,
-            "displayMonthlyFee": monthlySubscription,
-            kwhMarkup,  // Include original field for direct access
-            monthlySubscription,  // Include original field for direct access
-            "signupLink": signupLink,
+            displayPrice_kWh,
+            displayMonthlyFee,
+            signupLink,
             isVindstoedProduct,
             benefits
           }

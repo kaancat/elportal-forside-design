@@ -147,6 +147,8 @@ export interface ProviderProductBlock {
   logoUrl: string
   displayPrice_kWh: number
   displayMonthlyFee: number
+  kwhMarkup?: number  // In øre, needs conversion to kroner
+  monthlySubscription?: number
   signupLink: string
   isVindstoedProduct: boolean
   benefits: { text: string; included: boolean }[]

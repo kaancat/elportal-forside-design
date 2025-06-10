@@ -1,5 +1,19 @@
 # Dev Log
 
+## [2024-12-19] – RealPriceComparisonTable Price Calculation Fix
+Goal: Fix price calculation logic to ensure correct totals and proper field access
+
+- Enhanced `getPriceDetails` function with improved calculation logic and clearer comments
+- Ensured proper currency conversion from øre to kroner using `(provider.kwhMarkup || 0) / 100`
+- Clarified calculation formula: `(markup per kWh * monthly kWh) + monthly subscription`
+- Fixed potential null reference issues by using `|| 0` fallback for kwhMarkup field
+- Added descriptive comments explaining the calculation logic for better maintainability
+- Verified table display correctly shows "Tillæg pr. kWh" with proper formatting
+- NOTE: Monthly consumption calculation now properly accounts for kWh-based pricing
+- TODO: Test price calculations with various consumption values and provider data
+
+---
+
 ## [2024-12-19] – ProviderList Refactoring for Self-Sufficient Data Fetching
 Goal: Refactor ProviderList component to fetch its own data based on references for better architecture
 

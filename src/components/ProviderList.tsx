@@ -111,7 +111,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="mb-12">
-            <h1 className="text-4xl font-bold text-center mb-4 text-brand-dark">
+            <h1 className="text-4xl font-display font-bold text-center mb-4 text-brand-dark">
               {block.title || 'Sammenlign eludbydere'}
             </h1>
             <p className="text-center text-gray-600 text-lg mb-8">
@@ -132,7 +132,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="mb-12">
-          <h1 className="text-4xl font-bold text-center mb-4 text-brand-dark">
+          <h1 className="text-4xl font-display font-bold text-center mb-4 text-brand-dark">
             {block.title || 'Sammenlign eludbydere'}
           </h1>
           <p className="text-center text-gray-600 text-lg mb-8">
@@ -152,7 +152,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
         {/* Consumption Slider */}
         <div className="mb-12 bg-white rounded-xl shadow-sm border border-gray-100 p-8">
           <div className="max-w-lg mx-auto">
-            <h2 className="text-lg font-semibold text-brand-dark mb-6 text-center">
+            <h2 className="text-lg font-display font-semibold text-brand-dark mb-6 text-center">
               Præcis årligt forbrug
             </h2>
             <label className="block text-sm font-medium text-brand-dark mb-4 text-center">
@@ -175,7 +175,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
         
         {/* Products List */}
         <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-center text-brand-dark mb-8">
+          <h2 className="text-2xl font-display font-bold text-center text-brand-dark mb-8">
             Aktuelle tilbud
             {priceLoading && (
               <span className="text-sm text-gray-500 ml-2">(Henter live priser...)</span>

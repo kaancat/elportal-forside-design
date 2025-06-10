@@ -134,7 +134,7 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
         <section className="bg-gray-100 py-16 lg:py-24">
             <div className="container mx-auto px-4">
                 {block.title && (
-                    <h2 className="text-3xl font-bold text-center mb-12">{block.title}</h2>
+                    <h2 className="text-3xl font-display font-bold text-center mb-12">{block.title}</h2>
                 )}
                 <WidgetContent />
             </div>

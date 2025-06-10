@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Info, Star, Filter, Check, List } from 'lucide-react';
 
@@ -7,7 +6,7 @@ const InfoSection = () => {
     <section className="py-16 bg-white">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold mb-12 text-center">Sådan fungerer ElPortal.dk</h2>
+          <h2 className="text-3xl font-display font-bold mb-12 text-center">Sådan fungerer ElPortal.dk</h2>
           
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">

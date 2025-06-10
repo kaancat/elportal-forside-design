@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { PageSection } from '@/types/sanity'
 import { urlFor } from '@/lib/sanity'
@@ -35,10 +34,10 @@ const PageSectionComponent: React.FC<PageSectionComponentProps> = ({ section }) 
     block: {
       // Customize text block styles
       h1: ({ children }: any) => (
-        <h1 className="text-3xl font-bold mb-4">{children}</h1>
+        <h1 className="text-3xl font-display font-bold mb-4">{children}</h1>
       ),
       h2: ({ children }: any) => (
-        <h2 className="text-2xl font-bold mb-3">{children}</h2>
+        <h2 className="text-2xl font-display font-bold mb-3">{children}</h2>
       ),
       h3: ({ children }: any) => (
         <h3 className="text-xl font-bold mb-2">{children}</h3>
@@ -72,7 +71,7 @@ const PageSectionComponent: React.FC<PageSectionComponentProps> = ({ section }) 
   // Define the content block
   const contentBlock = (
     <div className="flex-1">
-      {section?.title && <h2 className="text-3xl lg:text-4xl font-bold mb-8" style={textStyle}>{section.title}</h2>}
+      {section?.title && <h2 className="text-3xl lg:text-4xl font-display font-bold mb-8" style={textStyle}>{section.title}</h2>}
       <div className="prose prose-lg max-w-none" style={textStyle}>
         {section?.content && <PortableText value={section.content} components={customComponents} />}
       </div>

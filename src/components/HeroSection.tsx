@@ -24,7 +24,7 @@ const HeroSection = () => {
         <div className="flex flex-col lg:flex-row items-center gap-8">
           {/* Left column with hero content */}
           <div className="lg:w-1/2 text-white">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-6">
               Elpriser - Find og <span className="text-brand-green">sammenlign</span> elpriser
             </h1>
             <p className="text-xl mb-8">
@@ -33,15 +33,15 @@ const HeroSection = () => {
             
             <div className="flex flex-wrap gap-8 mb-10">
               <div className="text-center">
-                <p className="text-3xl lg:text-4xl font-bold text-brand-green">10.000+</p>
+                <p className="text-3xl lg:text-4xl font-display font-bold text-brand-green">10.000+</p>
                 <p className="text-sm lg:text-base">Brugere dagligt</p>
               </div>
               <div className="text-center">
-                <p className="text-3xl lg:text-4xl font-bold text-brand-green">30+</p>
+                <p className="text-3xl lg:text-4xl font-display font-bold text-brand-green">30+</p>
                 <p className="text-sm lg:text-base">Elaftaler</p>
               </div>
               <div className="text-center">
-                <p className="text-3xl lg:text-4xl font-bold text-brand-green">2 ud af 3</p>
+                <p className="text-3xl lg:text-4xl font-display font-bold text-brand-green">2 ud af 3</p>
                 <p className="text-sm lg:text-base">Kan spare ved at skifte</p>
               </div>
             </div>

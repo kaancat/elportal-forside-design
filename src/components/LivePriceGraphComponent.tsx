@@ -165,7 +165,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
         
         {/* SECTION HEADER */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">{block.title}</h2>
+          <h2 className="text-2xl font-display font-bold text-gray-900 mb-2">{block.title}</h2>
           {block.subtitle && <p className="text-gray-600">{block.subtitle}</p>}
         </div>
 

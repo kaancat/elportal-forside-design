@@ -88,7 +88,7 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
   return (
     <section className="bg-white py-16 lg:py-24">
       <div className="container mx-auto px-4">
-        {block.title && <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 text-center mb-4">{block.title}</h2>}
+        {block.title && <h2 className="text-3xl lg:text-4xl font-display font-bold text-gray-900 text-center mb-4">{block.title}</h2>}
         {block.leadingText && <p className="text-lg text-gray-600 text-center mb-12 max-w-3xl mx-auto">{block.leadingText}</p>}
         
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 p-4 bg-gray-50 rounded-lg border">

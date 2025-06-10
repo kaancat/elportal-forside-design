@@ -18,6 +18,44 @@ Goal: Identify why RealPriceComparisonTable shows "0.00 kr." for all values desp
 NOTE: Previous fix attempt used displayPrice_kWh and displayMonthlyFee fields but prices still show 0.00 kr.
 TODO: Analyze debug output to identify correct field names in Sanity provider objects
 
+## [2025-01-14] – FIXED: RealPriceComparisonTable GROQ Query Issue
+Goal: Fix the root cause of null price values in RealPriceComparisonTable
+
+### Problem Identified:
+- **Root Cause**: GROQ query field mapping mismatch in `realPriceComparisonTable` block
+- **Broken Query**: Tried to map from non-existent fields `kwhMarkup` → `displayPrice_kWh`
+- **Working Query**: `providerList` accessed fields directly as `displayPrice_kWh, displayMonthlyFee`
+- **Result**: `realPriceComparisonTable` received `null` values while `providerList` worked correctly
+
+### Solution Applied:
+- **Fixed GROQ Query** in `src/services/sanityService.ts` line 149-155
+- **Changed From**: 
+  ```groq
+  "displayPrice_kWh": kwhMarkup,
+  "displayMonthlyFee": monthlySubscription,
+  kwhMarkup,
+  monthlySubscription,
+  "signupLink": signupLink,
+  ```
+- **Changed To**:
+  ```groq
+  displayPrice_kWh,
+  displayMonthlyFee,
+  signupLink,
+  ```
+- **Removed Debug Code**: Cleaned up extensive logging from component
+- **Pattern Match**: Made `realPriceComparisonTable` use same field access as working `providerList`
+
+### Expected Results:
+- RealPriceComparisonTable should now show correct prices: 
+  - **Vindstød**: 0.63 kr/kWh, 0 kr/month → **94.5 kr** total (150 kWh)
+  - **Norlys**: 1.95 kr/kWh, 29 kr/month → **321.5 kr** total (150 kWh)
+- Component calculates: `(tillæg × consumption) + subscription`
+- No more "0.00 kr." values in price comparison table
+
+NOTE: This was a data source issue, not a calculation issue. The component logic was correct all along.
+TODO: Test the fix to confirm pricing values now display correctly
+
 ---
 
 ## [2024-12-19] – RealPriceComparisonTable Price Calculation Fix

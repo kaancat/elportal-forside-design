@@ -33,11 +33,8 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
       return { tillæg: 0, subscription: 0, total: 0 };
     }
     
-    // Correctly get the markup in øre and convert to kroner
-    const tillæg = (provider.kwhMarkup || 0) / 100;
+    const tillæg = provider.kwhMarkup ? provider.kwhMarkup / 100 : 0;
     const subscription = provider.monthlySubscription || 0;
-    
-    // CORRECT CALCULATION: (markup per kWh * monthly kWh) + monthly subscription
     const total = (tillæg * monthlyConsumption) + subscription;
     
     return { tillæg, subscription, total };

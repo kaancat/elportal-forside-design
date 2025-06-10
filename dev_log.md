@@ -160,6 +160,96 @@ This completes the full refactoring of RealPriceComparisonTable to use the new d
 
 ---
 
+## [2024-12-19] – Enhanced RealPriceComparisonTable with Live Spot Price Integration
+Goal: Make RealPriceComparisonTable fully interactive with live spot price and comprehensive fee calculations
+
+### Changes Made:
+
+1. **Added Live Spot Price Fetching**:
+   - Added `spotPrice` state and `useEffect` hook to fetch live electricity prices
+   - Fetches current hour spot price from `/api/electricity-prices` endpoint
+   - Fallback to 1.0 kr/kWh if API call fails
+   - Updates prices reactively when spot price changes
+
+2. **Enhanced Price Calculation Logic**:
+   - **Comprehensive Fee Structure**: Includes all Danish electricity fees and taxes:
+     - Live spot price (from API)
+     - Provider markup/tillæg (`displayPrice_kWh`)
+     - Network tariff (NETSelskab_AVG): 0.30 kr/kWh
+     - Energinet fee: 0.11 kr/kWh
+     - State electricity tax (STATEN_ELAFGIFT): 0.76 kr/kWh
+     - VAT (25%): Applied to total price before VAT
+   - **Accurate Monthly Calculation**: `(finalKwhPriceWithVat × monthlyConsumption) + subscription`
+
+3. **Improved Table Display**:
+   - **Separate "Tillæg" Row**: Shows only the provider markup/tillæg
+   - **Accurate Monthly Total**: Based on full kWh price including all fees
+   - **Enhanced Footer**: Updated disclaimer to reflect live pricing and fee inclusion
+
+4. **Reactive State Management**:
+   - `useMemo` dependencies updated to include `spotPrice` for automatic recalculation
+   - Interactive dropdowns trigger immediate price recalculation
+   - Consumption slider updates both providers' calculations simultaneously
+
+### Technical Implementation:
+
+**Price Calculation Formula**:
+```tsx
+const priceBeforeVat = spotPrice + tillæg + NETSelskab_AVG + ENERGINET_FEE + STATEN_ELAFGIFT;
+const finalKwhPriceWithVat = priceBeforeVat * 1.25;
+const total = (finalKwhPriceWithVat * monthlyConsumption) + subscription;
+```
+
+**Enhanced Return Object**:
+```tsx
+return { 
+  kwhPrice: finalKwhPriceWithVat,  // Full price including all fees
+  subscription,                     // Monthly subscription fee
+  total,                           // Complete monthly estimate
+  tillæg                           // Provider markup only
+};
+```
+
+**Reactive Dependencies**:
+```tsx
+const details1 = useMemo(() => getPriceDetails(selectedProvider1), 
+  [selectedProvider1, monthlyConsumption, spotPrice]);
+```
+
+### User Experience Improvements:
+
+**Real-time Accuracy**:
+- Prices reflect current market conditions with live spot prices
+- All mandatory Danish electricity fees included in calculations
+- Transparent breakdown showing provider markup separately
+
+**Interactive Functionality**:
+- Instant price updates when changing providers or consumption
+- Unique slider ID (`consumption-slider-2`) to avoid conflicts
+- Clear visual separation between markup and total monthly cost
+
+**Professional Presentation**:
+- "Tillæg pr. kWh" clearly shows provider markup only
+- "Estimeret pris pr. måned" shows complete monthly cost
+- Updated disclaimer: "Estimatet er baseret på live spotpris og inkluderer gennemsnitlig nettarif, afgifter og moms"
+
+### Architecture Benefits:
+
+**Data Accuracy**: Matches the same comprehensive pricing model used in ProviderCard
+**Consistency**: Unified pricing logic across all components
+**Transparency**: Clear separation between provider markup and total costs
+**Real-time Updates**: Live spot price integration for current market conditions
+
+### Build Verification:
+- ✅ TypeScript compilation successful
+- ✅ Vite build completed without errors
+- ✅ All state management and calculations working correctly
+- ✅ Proper field mapping with `displayPrice_kWh` and `displayMonthlyFee`
+
+This enhancement transforms RealPriceComparisonTable from a simple comparison tool into a sophisticated, real-time pricing calculator that provides accurate, transparent pricing information to users.
+
+---
+
 ## [2024-12-19] – Session Start
 Goal: <Short description of the goal>
 
@@ -805,3 +895,77 @@ Goal: Correct styling of FeatureListComponent and ValuePropositionComponent for 
 - **Professional Appearance**: Cohesive design language throughout components
 
 Build successful, styling corrections applied and ready for production.
+
+---
+
+## [2024-12-19] – Add Custom Variable Fonts Integration
+Goal: Implement Inter and Geist variable fonts for improved typography and brand consistency
+
+### Changes Made:
+
+1. **Added Variable Font Definitions (`src/index.css`)**:
+   - **Inter Variable Font**: Added `Inter-VariableFont_opsz,wght.ttf` with weight range 100-900
+   - **Inter Italic Variable Font**: Added `Inter-Italic-VariableFont_opsz,wght.ttf` with weight range 100-900
+   - **Geist Variable Font**: Added `Geist-VariableFont_wght.ttf` with weight range 100-900
+   - **Optimized Loading**: Used `font-display: swap` for better performance
+   - **Format Support**: Used `truetype-variations` format for variable font support
+
+2. **Enhanced Tailwind Configuration (`tailwind.config.ts`)**:
+   - **Default Body Font**: Set Inter as the default `font-sans` for all body text
+   - **Display Font**: Added Geist as `font-display` for headings and emphasis
+   - **Fallback Stack**: Included proper fallback fonts for browser compatibility
+   - **Typography Classes**: Now available as `font-sans` (Inter) and `font-display` (Geist)
+
+3. **Updated Base Styles (`src/index.css`)**:
+   - **Body Default**: Applied `font-sans` to body element for site-wide Inter usage
+   - **Automatic Application**: All text now uses Inter by default unless overridden
+
+### Technical Implementation:
+
+**Variable Font Advantages**:
+- **Single File**: Each font family in one file instead of multiple weight files
+- **Performance**: Reduced HTTP requests and faster loading
+- **Flexibility**: Support for any weight value (100-900) dynamically
+- **File Size**: More efficient than loading multiple static font files
+
+**Font Usage Pattern**:
+```tsx
+// Body text (automatic)
+<p>This uses Inter automatically</p>
+
+// Headings with Geist
+<h1 className="font-display">This uses Geist</h1>
+
+// Specific weights work seamlessly
+<span className="font-sans font-medium">Inter Medium</span>
+<span className="font-display font-bold">Geist Bold</span>
+```
+
+**File Structure**:
+```
+public/fonts/
+├── Inter-VariableFont_opsz,wght.ttf
+├── Inter-Italic-VariableFont_opsz,wght.ttf
+└── Geist-VariableFont_wght.ttf
+```
+
+### Performance Benefits:
+- **Reduced Requests**: 3 font files instead of potentially 12+ static files
+- **Faster Loading**: `font-display: swap` shows fallback text immediately
+- **Better UX**: No flash of invisible text (FOIT)
+- **Smaller Bundle**: Variable fonts are typically smaller than multiple static files
+
+### Brand Typography System:
+- **Inter**: Professional, readable body text - excellent for paragraphs, UI text, and data
+- **Geist**: Modern, geometric headings - perfect for titles, hero text, and emphasis
+- **Consistent**: Unified typography system across all components
+
+### Compatibility Notes:
+- **Browser Support**: Variable fonts supported in all modern browsers
+- **Fallback Fonts**: Proper fallback stack ensures compatibility
+- **Windows Compatibility**: TTF format works perfectly on Windows systems
+- **Performance**: Optimized for fast loading and rendering
+
+Build successful, typography system ready for production use.
+
+NOTE: Variable fonts provide superior flexibility and performance compared to static font files, supporting any weight value between 100-900 dynamically.

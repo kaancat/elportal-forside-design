@@ -1,5 +1,25 @@
 # Dev Log
 
+## [2025-01-14] – Debug Implementation for RealPriceComparisonTable Pricing Issue
+Goal: Identify why RealPriceComparisonTable shows "0.00 kr." for all values despite provider selection
+
+- Applied extensive debug logging to RealPriceComparisonTable component
+- Added console.log statements to capture actual data structure from Sanity
+- Added visual debug panel to show provider count and structure on the page
+- Debug logs will reveal:
+  - Available object keys in provider objects
+  - Values of displayPrice_kWh vs kwhMarkup fields
+  - Calculated pricing values step by step
+  - Complete provider object structure
+- Component will show debug info in red box above the table
+- After identifying correct field names, debug code will be removed
+- Issue: Field access mismatch between expected and actual Sanity data structure
+
+NOTE: Previous fix attempt used displayPrice_kWh and displayMonthlyFee fields but prices still show 0.00 kr.
+TODO: Analyze debug output to identify correct field names in Sanity provider objects
+
+---
+
 ## [2024-12-19] – RealPriceComparisonTable Price Calculation Fix
 Goal: Fix price calculation logic to ensure correct totals and proper field access
 
@@ -1198,3 +1218,30 @@ Sanity (øre) → GROQ (dual fields) → kwhMarkup (øre) → Component (/100) �
 Build successful, comparison table now displays accurate provider data with correct currency conversion.
 
 NOTE: This fix ensures the comparison table uses the correct data source and properly converts currency units for accurate price comparisons.
+
+---
+
+## [2024-12-19] – Restore ProviderList GROQ Query to Full Provider Data Expansion
+Goal: Revert simplified GROQ query back to full provider data fetching for optimal performance
+
+- Restored `providerList` GROQ query from simple references to full provider data expansion
+- Changed from `providers,` back to `providers[]->{ ... }` with complete field mapping
+- Maintains single-request data fetching for better performance and UX
+- Eliminates need for additional client-side data fetching in ProviderList component
+- Ensures consistent, predictable data structure with all required provider fields
+- NOTE: Full expansion is more appropriate for this use case than reference-only approach
+- TODO: Verify ProviderList component receives full provider data correctly
+
+---
+
+## [2024-12-19] – RealPriceComparisonTable Price Calculation Fix
+Goal: Fix price calculation logic to ensure correct totals and proper field access
+
+- Updated `getPriceDetails` function with simplified conditional logic for kwhMarkup field
+- Changed from `(provider.kwhMarkup || 0) / 100` to `provider.kwhMarkup ? provider.kwhMarkup / 100 : 0`
+- Maintains proper currency conversion from øre to kroner with explicit null checking
+- Simplified calculation formula: `(tillæg * monthlyConsumption) + subscription`
+- Removed verbose comments for cleaner code structure
+- Verified table display correctly shows "Tillæg pr. kWh" with proper formatting
+- NOTE: Monthly consumption calculation properly accounts for kWh-based pricing
+- TODO: Test price calculations with various consumption values and provider data

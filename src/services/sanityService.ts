@@ -105,17 +105,7 @@ export class SanityService {
           _key,
           _type,
           title,
-          'providers': providers[]->{ // The key is 'providers': and the operator is ->
-            "id": _id,
-            providerName,
-            productName,
-            "logoUrl": logo.asset->url,
-            displayPrice_kWh,
-            displayMonthlyFee,
-            signupLink,
-            isVindstoedProduct,
-            benefits
-          }
+          providers, // This will be an array of references, e.g., [{_ref: '...'}, ...]
         },
         _type == "featureList" => {
           _key,

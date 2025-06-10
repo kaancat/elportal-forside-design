@@ -18,7 +18,7 @@ export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps>
               <div className="flex items-center justify-center h-7 w-7 rounded-full bg-green-100 border border-green-200 mr-3">
                 <Info className="h-5 w-5 text-brand-primary" />
               </div>
-              <h2 className="text-2xl font-bold text-brand-dark">{block.title}</h2>
+              <h2 className="text-2xl font-display font-bold text-brand-dark">{block.title}</h2>
             </div>
           )}
           <ul className="space-y-3 pl-1">

@@ -39,7 +39,7 @@ const PriceExampleTableComponent: React.FC<PriceExampleTableComponentProps> = ({
       <div className="container mx-auto px-6 lg:px-8 max-w-4xl">
         {/* Title */}
         {block.title && (
-          <h2 className="text-3xl lg:text-4xl font-bold text-brand-dark text-center mb-6">
+          <h2 className="text-3xl lg:text-4xl font-display font-bold text-brand-dark text-center mb-6">
             {block.title}
           </h2>
         )}

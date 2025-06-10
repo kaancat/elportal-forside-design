@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { CallToActionSection } from '@/types/sanity'
 import { Button } from '@/components/ui/button'
@@ -27,7 +26,7 @@ const CallToActionSectionComponent: React.FC<CallToActionSectionComponentProps> 
     <section className="bg-gray-50 py-16">
       <div className="container mx-auto px-4 text-center">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
+          <h2 className="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-8">
             {block.title}
           </h2>
           <Button

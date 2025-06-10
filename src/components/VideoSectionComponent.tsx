@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react'
 import ReactPlayer from 'react-player'
 import { Play } from 'lucide-react'
@@ -26,7 +25,7 @@ const VideoSectionComponent: React.FC<VideoSectionComponentProps> = ({ block }) 
       <section className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto">
           {block.title && (
-            <h2 className="text-3xl md:text-4xl font-bold text-brand-dark mb-8 text-center">
+            <h2 className="text-3xl md:text-4xl font-display font-bold text-brand-dark mb-8 text-center">
               {block.title}
             </h2>
           )}
@@ -85,7 +84,7 @@ const VideoSectionComponent: React.FC<VideoSectionComponentProps> = ({ block }) 
     <section className="container mx-auto px-4 py-16">
       <div className="max-w-4xl mx-auto">
         {block.title && (
-          <h2 className="text-3xl md:text-4xl font-bold text-brand-dark mb-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-display font-bold text-brand-dark mb-8 text-center">
             {block.title}
           </h2>
         )}

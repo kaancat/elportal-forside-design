@@ -19,7 +19,7 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
     <section className="py-16 lg:py-24 bg-white">
       <div className="container mx-auto px-4">
         {block.title && (
-          <h2 className="text-3xl font-bold text-center text-brand-dark mb-16">
+          <h2 className="text-3xl font-display font-bold text-center text-brand-dark mb-16">
             {block.title}
           </h2>
         )}

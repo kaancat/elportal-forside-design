@@ -73,7 +73,7 @@ const RealPriceComparisonTableComponent: React.FC<RealPriceComparisonTableProps>
   return (
     <section className="bg-gray-50 py-16 lg:py-24">
       <div className="container mx-auto px-6 lg:px-8 max-w-4xl">
-        {title && <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 text-center mb-6">{title}</h2>}
+        {title && <h2 className="text-3xl lg:text-4xl font-display font-bold text-gray-900 text-center mb-6">{title}</h2>}
         {leadingText && <p className="text-lg text-gray-600 text-center mb-12">{leadingText}</p>}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 bg-white p-6 rounded-lg shadow-sm border">

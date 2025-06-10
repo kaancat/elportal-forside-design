@@ -1,5 +1,21 @@
 # Dev Log
 
+## [2024-12-19] – ProviderList Refactoring for Self-Sufficient Data Fetching
+Goal: Refactor ProviderList component to fetch its own data based on references for better architecture
+
+- Refactored `ProviderList` component to be self-sufficient and fetch its own provider data
+- Updated component to handle both reference-based and full object-based provider data
+- Removed dependency on pre-expanded provider data from main GROQ query
+- Added proper error handling and loading states for provider data fetching
+- Enhanced flexibility by detecting whether providers are references (`_ref`) or full objects  
+- Improved performance by allowing main page to load quickly with simple references
+- Fixed imports to use correct Sanity client from `@/lib/sanity`
+- Removed complex debug logging and safety checks in favor of proper loading states
+- NOTE: Component now controls its own data lifecycle and prevents "block is undefined" errors
+- TODO: Test the component with both reference-based and full provider data
+
+---
+
 ## [2024-12-19] – GROQ Query and TypeScript Updates for RealPriceComparisonTable
 Goal: Update GROQ query and TypeScript types to support data-driven RealPriceComparisonTable with complete provider data
 

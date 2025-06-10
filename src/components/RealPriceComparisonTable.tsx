@@ -33,8 +33,8 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
       return { tillæg: 0, subscription: 0, total: 0 };
     }
     
-    const tillæg = provider.displayPrice_kWh || 0;
-    const subscription = provider.displayMonthlyFee || 0;
+    const tillæg = provider.kwhMarkup ? provider.kwhMarkup / 100 : 0;
+    const subscription = provider.monthlySubscription || 0;
     
     const total = (tillæg * monthlyConsumption) + subscription;
     

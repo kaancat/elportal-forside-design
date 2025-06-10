@@ -1,4 +1,3 @@
-
 import { client } from '@/lib/sanity'
 import { HomePage, BlogPost } from '@/types/sanity'
 
@@ -149,6 +148,8 @@ export class SanityService {
             "logoUrl": logo.asset->url,
             "displayPrice_kWh": kwhMarkup,
             "displayMonthlyFee": monthlySubscription,
+            kwhMarkup,  // Include original field for direct access
+            monthlySubscription,  // Include original field for direct access
             "signupLink": signupLink,
             isVindstoedProduct,
             benefits

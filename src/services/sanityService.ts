@@ -1,5 +1,5 @@
 import { client } from '@/lib/sanity'
-import { HomePage, BlogPost } from '@/types/sanity'
+import { HomePage, BlogPost, SiteSettings } from '@/types/sanity'
 
 export class SanityService {
   // Fetch homepage content
@@ -217,6 +217,58 @@ export class SanityService {
       return post
     } catch (error) {
       console.error('Error fetching blog post:', error)
+      return null
+    }
+  }
+
+  // Fetch site settings including navigation data
+  static async getSiteSettings(): Promise<SiteSettings | null> {
+    const query = `*[_type == "siteSettings"][0] {
+      ...,
+      headerLinks[] {
+        ...,
+        _type == 'link' => {
+          ...,
+          internalLink->{ "slug": slug.current, _type }
+        },
+        _type == 'megaMenu' => {
+          ...,
+          content[] {
+            ...,
+            _type == 'megaMenuColumn' => {
+              ...,
+              items[] {
+                ...,
+                link {
+                  ...,
+                  internalLink->{ "slug": slug.current, _type }
+                }
+              }
+            }
+          }
+        }
+      },
+      footer {
+        ...,
+        footerLogo,
+        footerDescription,
+        copyrightText,
+        secondaryCopyrightText,
+        linkGroups[] {
+          ...,
+          links[] {
+            ...,
+            internalLink->{ "slug": slug.current, _type }
+          }
+        }
+      }
+    }`
+    
+    try {
+      const settings = await client.fetch<SiteSettings>(query)
+      return settings
+    } catch (error) {
+      console.error('Error fetching site settings:', error)
       return null
     }
   }

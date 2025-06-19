@@ -224,3 +224,70 @@ export interface BlogPost {
   seoMetaTitle: string
   seoMetaDescription: string
 }
+
+// Navigation and Site Settings Types
+
+interface SanitySlug {
+  current: string;
+  _type: 'slug';
+}
+
+interface InternalLink {
+  slug: string;
+  _type: 'page' | 'blogPost' | 'homePage';
+}
+
+export interface Link {
+  _key: string;
+  _type: 'link';
+  title: string;
+  linkType: 'internal' | 'external';
+  internalLink?: InternalLink;
+  externalUrl?: string;
+  isButton?: boolean;
+}
+
+export interface MegaMenuItem {
+  _key: string;
+  _type: 'megaMenuItem';
+  title: string;
+  description?: string;
+  link: Link;
+}
+
+export interface MegaMenuColumn {
+  _key: string;
+  _type: 'megaMenuColumn';
+  title?: string;
+  items: MegaMenuItem[];
+}
+
+export interface MegaMenu {
+  _key: string;
+  _type: 'megaMenu';
+  title: string;
+  content: MegaMenuColumn[];
+}
+
+export interface FooterLinkGroup {
+    _key: string;
+    title: string;
+    links: Link[];
+}
+
+export interface FooterSettings {
+    footerLogo?: SanityImage;
+    footerDescription?: string;
+    copyrightText?: string;
+    secondaryCopyrightText?: string;
+    linkGroups: FooterLinkGroup[];
+}
+
+export interface SiteSettings {
+  _id: string;
+  _type: 'siteSettings';
+  siteTitle: string;
+  headerLinks: (Link | MegaMenu)[];
+  footer: FooterSettings;
+  // Add other site settings fields as needed
+}

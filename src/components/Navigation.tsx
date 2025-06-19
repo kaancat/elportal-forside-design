@@ -64,7 +64,7 @@ const Navigation = () => {
                     </RouterLink>
                   ) : (
                     <>
-                      <NavigationMenuTrigger className="text-white hover:text-brand-green font-medium bg-transparent hover:bg-transparent data-[state=open]:bg-transparent px-4 py-2">
+                      <NavigationMenuTrigger className="text-white hover:text-brand-green font-medium bg-transparent hover:bg-transparent data-[state=open]:bg-transparent px-4 py-2 text-base">
                         {(item as MegaMenu).title}
                       </NavigationMenuTrigger>
                       <MegaMenuContent menu={item as MegaMenu} />

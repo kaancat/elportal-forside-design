@@ -1,5 +1,138 @@
 # Dev Log
 
+## [2025-01-26] – Added Generic Page Component and Enhanced Mega Menu Styling
+Goal: Fix 404 errors by creating a generic page component for dynamic routes and improve the mega menu design
+
+### Changes Made:
+
+1. **Created GenericPage Component (`src/pages/GenericPage.tsx`)**:
+   - **Dynamic Route Handling**: Fetches page data from Sanity based on URL slug parameter
+   - **Loading States**: Animated skeleton loader while fetching page data
+   - **Error Handling**: Comprehensive error handling with user-friendly 404 page
+   - **Layout Integration**: Includes Navigation and Footer components for consistent layout
+   - **Future-Ready**: Prepared for ContentBlocks component integration
+   - **SEO Support**: Structured to support page titles and meta information
+
+2. **Enhanced SanityService (`src/services/sanityService.ts`)**:
+   - **New Method**: Added `getPageBySlug()` static method for fetching individual pages
+   - **GROQ Query**: Comprehensive query to fetch page data including content blocks
+   - **Error Handling**: Proper error logging and null return handling
+   - **Type Safety**: Returns typed `SanityPage | null` with full TypeScript support
+
+3. **Extended Type Definitions (`src/types/sanity.ts`)**:
+   - **SanityPage Interface**: Defines structure for generic page data
+   - **SanitySlug Export**: Made SanitySlug interface exportable for use in components
+   - **Content Block Support**: Prepared for contentBlocks array with existing ContentBlock types
+   - **SEO Fields**: Included seoMetaTitle and seoMetaDescription fields
+
+4. **Updated App Router (`src/App.tsx`)**:
+   - **Dynamic Route**: Added `/:slug` route for generic page handling
+   - **Route Order**: Positioned dynamic route before 404 catch-all for proper matching
+   - **Component Import**: Added GenericPage import and routing configuration
+
+5. **Enhanced MegaMenuContent Styling (`src/components/MegaMenuContent.tsx`)**:
+   - **Improved Visual Design**: Added border, shadow, and rounded corners
+   - **Better Typography**: Enhanced font weights, spacing, and text hierarchy
+   - **Enhanced Interactivity**: Improved hover effects with `hover:bg-white/10`
+   - **Responsive Layout**: Better mobile and desktop grid layouts
+   - **Professional Styling**: Added brand-green border accent and shadow effects
+
+### Technical Implementation:
+
+**GenericPage Architecture**:
+```tsx
+// State management for page data
+const [pageData, setPageData] = useState<SanityPage | null>(null);
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState<string | null>(null);
+
+// Dynamic route parameter extraction
+const { slug } = useParams<{ slug: string }>();
+
+// Data fetching with error handling
+const data = await SanityService.getPageBySlug(slug);
+```
+
+**GROQ Query for Pages**:
+```groq
+*[_type == "page" && slug.current == $slug][0] {
+  _id,
+  _type,
+  title,
+  slug,
+  seoMetaTitle,
+  seoMetaDescription,
+  contentBlocks[] {
+    ...,
+    // Add content block expansions as needed
+  }
+}
+```
+
+**Enhanced MegaMenu Styling**:
+```tsx
+// Professional styling with brand colors and shadows
+<div className="bg-brand-dark p-8 border border-brand-green/50 rounded-lg shadow-2xl">
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-8 md:w-auto lg:max-w-5xl">
+    // Enhanced typography and spacing
+    <h3 className="text-lg font-bold text-white mb-4 tracking-wide">
+    // Improved hover effects
+    <RouterLink className="block p-2 rounded-md hover:bg-white/10 transition-colors duration-200">
+```
+
+### Architecture Benefits:
+
+**Dynamic Page Handling**:
+- Eliminates 404 errors for CMS-managed pages
+- Automatic page routing based on Sanity CMS slugs
+- SEO-friendly URLs with proper meta tag support
+- Extensible for any page type added to Sanity
+
+**User Experience Improvements**:
+- Loading skeletons prevent layout shifts
+- Clear error messages for missing pages
+- Consistent navigation and footer across all pages
+- Professional mega menu design with smooth animations
+
+**Developer Experience**:
+- Type-safe page data handling
+- Clear error boundaries and logging
+- Prepared for ContentBlocks integration
+- Scalable routing architecture
+
+**CMS Integration Benefits**:
+- Pages can be created/managed entirely in Sanity CMS
+- No code changes needed for new pages
+- SEO metadata controlled through CMS
+- Content blocks ready for rich page layouts
+
+### Implementation Notes:
+
+**Route Ordering**:
+- Dynamic route `/:slug` placed before `*` catch-all route
+- Specific routes should be added above the dynamic route
+- 404 handling preserved for truly missing pages
+
+**Content Block Integration**:
+- Component prepared for ContentBlocks component
+- Type definitions support existing ContentBlock union type
+- Easy to integrate when ContentBlocks component is ready
+
+**Performance Considerations**:
+- Efficient data fetching with proper loading states
+- Error boundaries prevent app crashes
+- React Router Link components for SPA navigation
+
+### Next Steps:
+- Implement ContentBlocks component for rich page layouts
+- Add SEO meta tag handling for better search optimization
+- Consider adding breadcrumb navigation for better UX
+- Test with actual Sanity CMS page data
+
+NOTE: This establishes a complete dynamic page system, allowing content editors to create and manage pages entirely through Sanity CMS while maintaining professional design standards and user experience.
+
+---
+
 ## [2025-01-26] – Refactored Navigation to Data-Driven Architecture with shadcn/ui
 Goal: Refactor the Navigation.tsx component to be data-driven using getSiteSettings and create MegaMenuContent.tsx component for mega menus
 
@@ -1210,7 +1343,7 @@ Goal: Implement Inter and Geist variable fonts for improved typography and brand
 - **Single File**: Each font family in one file instead of multiple weight files
 - **Performance**: Reduced HTTP requests and faster loading
 - **Flexibility**: Support for any weight value (100-900) dynamically
-- **File Size**: More efficient than loading multiple static font files
+- **File Size**: More efficient than loading multiple static files
 
 **Font Usage Pattern**:
 ```tsx

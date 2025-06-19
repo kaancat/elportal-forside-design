@@ -227,7 +227,7 @@ export interface BlogPost {
 
 // Navigation and Site Settings Types
 
-interface SanitySlug {
+export interface SanitySlug {
   current: string;
   _type: 'slug';
 }
@@ -290,4 +290,14 @@ export interface SiteSettings {
   headerLinks: (Link | MegaMenu)[];
   footer: FooterSettings;
   // Add other site settings fields as needed
+}
+
+export interface SanityPage {
+  _id: string;
+  _type: 'page';
+  title: string;
+  slug: SanitySlug;
+  seoMetaTitle?: string;
+  seoMetaDescription?: string;
+  contentBlocks?: ContentBlock[];
 }

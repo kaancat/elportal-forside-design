@@ -4,8 +4,7 @@ import { SanityService } from '@/services/sanityService';
 import { SanityPage } from '@/types/sanity';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
-// We'll need a component to render the blocks, let's assume one exists or create a placeholder.
-// import ContentBlocks from '@/components/ContentBlocks';
+import ContentBlocks from '@/components/ContentBlocks';
 
 const GenericPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -70,13 +69,15 @@ const GenericPage = () => {
       <Navigation />
       <main className="container mx-auto py-12 px-4">
         <h1 className="text-4xl font-bold text-gray-900 mb-8">{pageData.title}</h1>
-        {/* This is where you would render the page's content blocks */}
-        {/* <ContentBlocks blocks={pageData.contentBlocks} /> */}
-        <div className="prose prose-lg max-w-none">
-          <p className="text-gray-600">
-            This is a generic page for "{pageData.title}". Content blocks will be rendered here when the ContentBlocks component is implemented.
-          </p>
-        </div>
+        {pageData.contentBlocks && pageData.contentBlocks.length > 0 ? (
+          <ContentBlocks blocks={pageData.contentBlocks} />
+        ) : (
+          <div className="prose prose-lg max-w-none">
+            <p className="text-gray-600">
+              No content blocks available for this page.
+            </p>
+          </div>
+        )}
       </main>
       <Footer />
     </div>

@@ -284,7 +284,144 @@ export class SanityService {
       seoMetaDescription,
       contentBlocks[] {
         ...,
-        // Add content block expansions as needed
+        _type == "pageSection" => {
+          ...,
+          theme->{ 
+            "background": background.hex,
+            "text": text.hex,
+            "primary": primary.hex
+          },
+          content[]{ 
+            ...,
+            _type == "livePriceGraph" => {
+              _key,
+              _type,
+              title,
+              subtitle,
+              apiRegion
+            },
+            _type == "renewableEnergyForecast" => {
+              _key,
+              _type,
+              title,
+              leadingText
+            },
+            _type == "priceCalculator" => {
+              _key,
+              _type,
+              title
+            }
+          }
+        },
+        _type == "faqItem" => {
+          question,
+          answer
+        },
+        _type == "faqGroup" => {
+          title,
+          faqItems[]{
+            _key,
+            question,
+            answer
+          }
+        },
+        _type == "priceExampleTable" => {
+          title,
+          leadingText,
+          example1_title,
+          example1_kwh_price,
+          example1_subscription,
+          example2_title,
+          example2_kwh_price,
+          example2_subscription
+        },
+        _type == "videoSection" => {
+          title,
+          videoUrl,
+          customThumbnail{
+            asset,
+            alt,
+            hotspot,
+            crop
+          }
+        },
+        _type == "richTextSection" => {
+          content
+        },
+        _type == "callToActionSection" => {
+          title,
+          buttonText,
+          buttonUrl
+        },
+        _type == "livePriceGraph" => {
+          title,
+          subtitle,
+          apiRegion
+        },
+        _type == "realPriceComparisonTable" => {
+          _key,
+          _type,
+          title,
+          leadingText,
+          "allProviders": *[_type == "provider"]{
+            "id": _id,
+            providerName,
+            productName,
+            "logoUrl": logo.asset->url,
+            displayPrice_kWh,
+            displayMonthlyFee,
+            signupLink,
+            isVindstoedProduct,
+            benefits
+          }
+        },
+        _type == "providerList" => {
+          _key,
+          _type,
+          title,
+          'providers': providers[]->{ 
+            "id": _id,
+            providerName,
+            productName,
+            "logoUrl": logo.asset->url,
+            displayPrice_kWh,
+            displayMonthlyFee,
+            signupLink,
+            isVindstoedProduct,
+            benefits
+          }
+        },
+        _type == "featureList" => {
+          _key,
+          _type,
+          title,
+          features[]{
+            _key,
+            _type,
+            title,
+            description,
+            icon
+          }
+        },
+        _type == "valueProposition" => {
+          _key,
+          _type,
+          title,
+          propositions
+        },
+        _type == "monthlyProductionChart" => {
+          _key,
+          _type,
+          title,
+          leadingText,
+          description
+        },
+        _type == "renewableEnergyForecast" => {
+          _key,
+          _type,
+          title,
+          leadingText
+        }
       }
     }`
     

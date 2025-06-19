@@ -61,7 +61,7 @@ const Navigation = () => {
                 ) : (
                   <>
                     <NavigationMenuTrigger className="text-white hover:text-brand-green font-medium bg-transparent hover:bg-transparent data-[state=open]:bg-transparent px-4 py-2">
-                      {item.title}
+                      {(item as MegaMenu).title}
                     </NavigationMenuTrigger>
                     <MegaMenuContent menu={item as MegaMenu} />
                   </>

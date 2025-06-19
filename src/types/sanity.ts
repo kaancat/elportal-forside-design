@@ -253,6 +253,7 @@ export interface MegaMenuItem {
   title: string;
   description?: string;
   link: Link;
+  icon?: string;
 }
 
 export interface MegaMenuColumn {

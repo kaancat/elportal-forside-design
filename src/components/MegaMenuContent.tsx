@@ -2,10 +2,18 @@ import React from 'react';
 import { MegaMenu } from '@/types/sanity';
 import { NavigationMenuContent } from '@/components/ui/navigation-menu';
 import { Link as RouterLink } from 'react-router-dom';
+import * as LucideIcons from 'lucide-react';
 
 interface MegaMenuContentProps {
   menu: MegaMenu;
 }
+
+// Helper to get the icon component from its string name
+const getIcon = (name?: string) => {
+  if (!name) return null;
+  const IconComponent = (LucideIcons as any)[name];
+  return IconComponent ? <IconComponent className="h-5 w-5 mr-4 text-brand-green" /> : null;
+};
 
 const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
   // Helper function to resolve internal links
@@ -18,37 +26,39 @@ const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
   };
 
   return (
-    <NavigationMenuContent className="!bg-brand-dark !border-brand-green/30">
-      {/* Grid layout for the columns - removed extra container to fix layout issues */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6 p-8 w-[800px] max-w-[90vw]">
-        {menu.content.map((column) => (
-          <div key={column._key} className="flex flex-col">
-            {column.title && (
-              <h3 className="text-lg font-bold text-white mb-4 tracking-wide border-b border-brand-green/30 pb-2">
-                {column.title}
-              </h3>
-            )}
-            <ul className="space-y-3">
-              {column.items.map((item) => (
-                <li key={item._key}>
-                  <RouterLink
-                    to={resolveLink(item.link)}
-                    className="block p-3 rounded-md hover:bg-brand-green/20 transition-all duration-200 group"
-                  >
-                    <p className="font-semibold text-white group-hover:text-brand-green transition-colors">
-                      {item.title}
-                    </p>
-                    {item.description && (
-                      <p className="text-sm text-gray-300 mt-1 font-light leading-snug">
-                        {item.description}
-                      </p>
-                    )}
-                  </RouterLink>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+    <NavigationMenuContent>
+      <div className="bg-brand-dark p-6 md:p-8 border border-neutral-700 rounded-lg shadow-2xl">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-2 md:w-auto lg:min-w-[700px] xl:min-w-[800px]">
+          {menu.content.map((column) => (
+            <div key={column._key} className="flex flex-col">
+              {column.title && (
+                <h3 className="text-sm font-semibold text-neutral-400 mb-3 px-3 tracking-wider uppercase">
+                  {column.title}
+                </h3>
+              )}
+              <ul className="space-y-1">
+                {column.items.map((item) => (
+                  <li key={item._key}>
+                    <RouterLink
+                      to={resolveLink(item.link)}
+                      className="flex items-center p-3 rounded-lg hover:bg-neutral-800 transition-colors duration-200"
+                    >
+                      {getIcon(item.icon)}
+                      <div>
+                        <p className="font-semibold text-white leading-tight">{item.title}</p>
+                        {item.description && (
+                          <p className="text-sm text-neutral-400 mt-1 font-normal leading-snug">
+                            {item.description}
+                          </p>
+                        )}
+                      </div>
+                    </RouterLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
       </div>
     </NavigationMenuContent>
   );

@@ -239,6 +239,7 @@ export class SanityService {
               ...,
               items[] {
                 ...,
+                icon,
                 link {
                   ...,
                   internalLink->{ "slug": slug.current, _type }

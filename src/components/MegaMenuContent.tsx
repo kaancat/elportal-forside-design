@@ -2,17 +2,19 @@ import React from 'react';
 import { MegaMenu } from '@/types/sanity';
 import { NavigationMenuContent } from '@/components/ui/navigation-menu';
 import { Link as RouterLink } from 'react-router-dom';
-import * as LucideIcons from 'lucide-react';
+import { icons } from 'lucide-react';
 
 interface MegaMenuContentProps {
   menu: MegaMenu;
 }
 
-// Helper to get the icon component from its string name
-const getIcon = (name?: string) => {
-  if (!name) return null;
-  const IconComponent = (LucideIcons as any)[name];
-  return IconComponent ? <IconComponent className="h-5 w-5 mr-4 text-brand-green" /> : null;
+// A more robust way to get the icon component
+const Icon = ({ name, className }: { name?: string, className?: string }) => {
+  if (!name || !icons[name as keyof typeof icons]) {
+    return null;
+  }
+  const LucideIcon = icons[name as keyof typeof icons];
+  return <LucideIcon className={className} />;
 };
 
 const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
@@ -39,12 +41,12 @@ const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
               <ul className="space-y-1">
                 {column.items.map((item) => (
                   <li key={item._key}>
-                    <RouterLink
-                      to={resolveLink(item.link)}
-                      className="flex items-center p-3 rounded-lg hover:bg-neutral-800 transition-colors duration-200"
-                    >
-                      {getIcon(item.icon)}
-                      <div>
+                                            <RouterLink
+                          to={resolveLink(item.link)}
+                          className="flex items-center p-3 rounded-lg hover:bg-brand-green/20 transition-colors duration-200"
+                        >
+                          <Icon name={item.icon} className="h-5 w-5 mr-4 text-brand-green flex-shrink-0" />
+                          <div>
                         <p className="font-semibold text-white leading-tight">{item.title}</p>
                         {item.description && (
                           <p className="text-sm text-neutral-400 mt-1 font-normal leading-snug">

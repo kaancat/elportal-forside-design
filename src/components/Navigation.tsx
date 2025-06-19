@@ -44,51 +44,50 @@ const Navigation = () => {
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
         
         {/* Left side: Logo */}
-        <RouterLink to="/" className="flex items-center">
-          <img src="/lovable-uploads/97984f7d-d542-490c-9e04-5a0744d1b6a2.png" alt="ElPortal.dk Logo" className="h-8 sm:h-10" />
-        </RouterLink>
+        <div className="flex-shrink-0">
+          <a href="/" className="flex items-center">
+            <img src="/lovable-uploads/97984f7d-d542-490c-9e04-5a0744d1b6a2.png" alt="ElPortal.dk Logo" className="h-8 sm:h-10" />
+          </a>
+        </div>
         
-        {/* Right side: Contains both Desktop and Mobile Nav */}
-        <div className="flex items-center space-x-4">
-        
-          {/* Desktop Navigation (hidden on small screens) */}
-          <nav className="hidden md:flex items-center space-x-2">
-            <NavigationMenu>
-              <NavigationMenuList>
-                {navItems.map((item) => (
-                  <NavigationMenuItem key={item._key}>
-                    {item._type === 'link' ? (
-                      <RouterLink to={resolveLink(item as LinkType)}>
-                        <NavigationMenuLink className="text-white hover:text-brand-green font-medium px-4 py-2 transition-colors">
-                          {item.title}
-                        </NavigationMenuLink>
-                      </RouterLink>
-                    ) : (
-                      <>
-                        <NavigationMenuTrigger className="text-white hover:text-brand-green font-medium bg-transparent hover:bg-transparent data-[state=open]:bg-transparent px-4 py-2">
-                          {(item as MegaMenu).title}
-                        </NavigationMenuTrigger>
-                        <MegaMenuContent menu={item as MegaMenu} />
-                      </>
-                    )}
-                  </NavigationMenuItem>
-                ))}
-              </NavigationMenuList>
-            </NavigationMenu>
+        {/* Center: Desktop Navigation (hidden on small screens) */}
+        <nav className="hidden md:flex flex-grow justify-center">
+          <NavigationMenu>
+            <NavigationMenuList>
+              {navItems.map((item) => (
+                <NavigationMenuItem key={item._key}>
+                  {item._type === 'link' ? (
+                    <RouterLink to={resolveLink(item as LinkType)}>
+                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                        {item.title}
+                      </NavigationMenuLink>
+                    </RouterLink>
+                  ) : (
+                    <>
+                      <NavigationMenuTrigger>{(item as MegaMenu).title}</NavigationMenuTrigger>
+                      <MegaMenuContent menu={item as MegaMenu} />
+                    </>
+                  )}
+                </NavigationMenuItem>
+              ))}
+            </NavigationMenuList>
+          </NavigationMenu>
+        </nav>
 
-            {ctaButton && (
-              <Button asChild className="bg-yellow-400 hover:bg-yellow-500 text-brand-dark font-medium rounded-full px-6">
-                <RouterLink to={resolveLink(ctaButton)}>
-                  {ctaButton.title}
-                </RouterLink>
-              </Button>
-            )}
-          </nav>
+        {/* Right side: CTA Button (hidden on small screens) */}
+        <div className="hidden md:flex flex-shrink-0">
+          {ctaButton && (
+            <Button asChild className="bg-yellow-400 hover:bg-yellow-500 text-brand-dark font-medium rounded-full px-6">
+              <RouterLink to={resolveLink(ctaButton)}>
+                {ctaButton.title}
+              </RouterLink>
+            </Button>
+          )}
+        </div>
 
-          {/* Mobile Navigation (hamburger, visible only on small screens) */}
-          <div className="md:hidden">
-            <MobileNav navItems={settings.headerLinks} resolveLink={resolveLink} />
-          </div>
+        {/* Mobile Navigation (hamburger, visible only on small screens) */}
+        <div className="md:hidden">
+          <MobileNav navItems={settings.headerLinks} resolveLink={resolveLink} />
         </div>
 
       </div>

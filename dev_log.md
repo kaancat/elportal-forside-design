@@ -1,5 +1,215 @@
 # Dev Log
 
+## [2025-01-26] – Refactored Navigation to Data-Driven Architecture with shadcn/ui
+Goal: Refactor the Navigation.tsx component to be data-driven using getSiteSettings and create MegaMenuContent.tsx component for mega menus
+
+### Changes Made:
+
+1. **Created MegaMenuContent Component (`src/components/MegaMenuContent.tsx`)**:
+   - **New Component**: Renders mega menu columns and items using shadcn/ui NavigationMenuContent
+   - **Dark Theme Integration**: Uses `bg-brand-dark` background to match header styling
+   - **Link Resolution**: Helper function to resolve internal/external links appropriately
+   - **React Router Integration**: Uses `Link` from 'react-router-dom' for SPA navigation
+   - **Responsive Design**: Grid layout with 3 columns and responsive width (`md:w-[600px] lg:w-[800px]`)
+   - **Interactive States**: Hover effects with `hover:bg-brand-green/20` for better UX
+
+2. **Completely Refactored Navigation Component (`src/components/Navigation.tsx`)**:
+   - **Data-Driven Architecture**: Replaced hard-coded links with `SanityService.getSiteSettings()` 
+   - **Fixed Static Method Call**: Corrected from `new SanityService()` to `SanityService.getSiteSettings()`
+   - **shadcn/ui Integration**: Implemented `NavigationMenu`, `NavigationMenuList`, `NavigationMenuItem`
+   - **Dynamic Content Rendering**: Supports both simple links and complex mega menus
+   - **CTA Button Logic**: Automatically identifies and renders button-style links separately
+   - **Loading State**: Shows skeleton header while settings are being fetched
+   - **Theme Consistency**: Custom styling for dark header with white text and brand-green hover
+
+### Technical Implementation:
+
+**Component Architecture**:
+```tsx
+// Navigation.tsx structure
+- State management: useState<SiteSettings | null>
+- Data fetching: useEffect with SanityService.getSiteSettings()
+- Link resolution: resolveLink() helper function
+- Item filtering: Separates CTA buttons from nav items
+- Conditional rendering: Different components for Link vs MegaMenu
+```
+
+**MegaMenuContent Features**:
+```tsx
+// MegaMenuContent.tsx structure
+- Props: { menu: MegaMenu }
+- Link resolution: resolveLink() helper function
+- Grid layout: 3-column responsive design
+- Typography: Proper heading and description styling
+- Interactivity: Hover states and transitions
+```
+
+**Styling Enhancements**:
+- **Navigation Links**: `text-white hover:text-brand-green font-medium px-4 py-2 transition-colors`
+- **Navigation Triggers**: Custom styling to override default shadcn/ui theme
+- **Mega Menu Content**: `bg-brand-dark border-gray-700` for consistent dark theme
+- **Mobile Responsiveness**: `hidden md:flex` maintains mobile behavior
+
+### Data Flow Implementation:
+
+**Settings Fetching**:
+```tsx
+useEffect(() => {
+  const fetchSettings = async () => {
+    const data = await SanityService.getSiteSettings();
+    setSettings(data);
+  };
+  fetchSettings();
+}, []);
+```
+
+**Dynamic Navigation Rendering**:
+- Filters items by type: `(Link | MegaMenu)[]`
+- Separates CTA buttons: `link._type === 'link' && link.isButton`
+- Renders appropriate components based on item type
+- Resolves internal/external links automatically
+
+### Architecture Benefits:
+
+**CMS-Driven Navigation**:
+- Navigation structure entirely controlled by Sanity CMS
+- No more hard-coded navigation links
+- Support for complex mega menu structures
+- Dynamic CTA button placement and styling
+
+**Type Safety & Developer Experience**:
+- Full TypeScript support with proper type guards
+- Clear separation of Link vs MegaMenu rendering
+- Autocomplete support for all navigation properties
+- Consistent error handling and null safety
+
+**Performance & UX**:
+- Loading skeleton prevents layout shifts
+- Smooth transitions and hover effects
+- Responsive design with mobile considerations
+- React Router integration for SPA performance
+
+**Future-Ready Design**:
+- Extensible for additional navigation features
+- Support for nested menu structures
+- Easy theming and style customization
+- Scalable component architecture
+
+### Implementation Notes:
+
+**Fixed Issues**:
+- ✅ **Static Method Call**: Corrected `SanityService` usage (methods are static)
+- ✅ **React Router Integration**: Proper `Link` component usage for SPA navigation
+- ✅ **Dark Theme Consistency**: Custom styling to match existing header design
+- ✅ **Type Safety**: Proper type casting for `Link` vs `MegaMenu` items
+
+**Mobile Considerations**:
+- Navigation menu hidden on mobile (`hidden md:flex`)
+- Existing mobile menu behavior preserved
+- TODO: Implement mobile-specific navigation (hamburger menu)
+
+### Next Steps:
+- Test navigation with actual Sanity CMS data
+- Implement mobile navigation menu
+- Add loading states and error handling
+- Update Footer component with similar data-driven approach
+
+NOTE: This establishes a fully CMS-driven navigation system, replacing the previous hard-coded implementation. The navigation is now completely manageable through Sanity CMS while maintaining the existing visual design and user experience.
+
+---
+
+## [2025-01-26] – Added Site Navigation Data Fetching Infrastructure
+Goal: Create the data fetching logic and TypeScript types needed to bring site navigation data into the frontend application
+
+### Changes Made:
+
+1. **Added `getSiteSettings` Function (`src/services/sanityService.ts`)**:
+   - **New Static Method**: Added `getSiteSettings()` to `SanityService` class
+   - **Comprehensive GROQ Query**: Fetches header and footer navigation data including mega menu structure
+   - **Field Resolution**: Resolves internal link references with `internalLink->{ "slug": slug.current, _type }`
+   - **Error Handling**: Includes try-catch with proper error logging
+   - **Return Type**: Returns `SiteSettings | null` with proper TypeScript typing
+
+2. **Navigation TypeScript Types (`src/types/sanity.ts`)**:
+   - **Link Interface**: Defines structure for navigation links with internal/external support
+   - **Mega Menu Types**: `MegaMenu`, `MegaMenuColumn`, `MegaMenuItem` for complex navigation
+   - **Footer Types**: `FooterSettings`, `FooterLinkGroup` for footer navigation
+   - **Site Settings**: `SiteSettings` interface as main container for all site-wide settings
+   - **Type Safety**: All interfaces properly typed with required/optional fields
+
+### Technical Implementation:
+
+**GROQ Query Structure**:
+```groq
+*[_type == "siteSettings"][0] {
+  ...,
+  headerLinks[] {
+    ...,
+    _type == 'link' => {
+      ...,
+      internalLink->{ "slug": slug.current, _type }
+    },
+    _type == 'megaMenu' => {
+      ...,
+      content[] {
+        ...,
+        _type == 'megaMenuColumn' => {
+          ...,
+          items[] {
+            ...,
+            link {
+              ...,
+              internalLink->{ "slug": slug.current, _type }
+            }
+          }
+        }
+      }
+    }
+  },
+  footer { ... }
+}
+```
+
+**TypeScript Type Hierarchy**:
+- `SiteSettings` (main container)
+  - `headerLinks: (Link | MegaMenu)[]` (union type for flexible navigation)
+  - `footer: FooterSettings` (complete footer configuration)
+- `Link` interface supports both internal and external links
+- `MegaMenu` supports multi-column dropdown navigation
+- `FooterSettings` includes logo, description, copyright, and link groups
+
+### Data Architecture Benefits:
+
+**Centralized Navigation Management**:
+- Single source of truth for all site navigation
+- Consistent data structure across header and footer
+- Support for complex mega menu structures
+
+**Type Safety & Developer Experience**:
+- Full TypeScript support with autocomplete
+- Clear interfaces for all navigation components
+- Proper error handling and null safety
+
+**Future-Ready Structure**:
+- Extensible design for additional navigation features
+- Support for button styling (`isButton` flag)
+- Flexible link types (internal CMS pages vs external URLs)
+
+### Updated Service Class:
+- **Import Enhancement**: Added `SiteSettings` to import statement
+- **Method Consistency**: Follows same pattern as existing `getHomePage()` and `getBlogPostBySlug()` methods
+- **Error Handling**: Consistent error logging and null return handling
+
+### Next Steps:
+- Update Navigation component to use `getSiteSettings()` data
+- Replace hard-coded navigation links with CMS-driven content
+- Implement mega menu UI components if needed
+- Update Footer component to use footer settings data
+
+NOTE: This establishes the foundation for a fully CMS-driven navigation system, replacing the current hard-coded implementation in `Navigation.tsx`.
+
+---
+
 ## [2025-01-14] – Debug Implementation for RealPriceComparisonTable Pricing Issue
 Goal: Identify why RealPriceComparisonTable shows "0.00 kr." for all values despite provider selection
 

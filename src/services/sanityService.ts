@@ -1,5 +1,5 @@
 import { client } from '@/lib/sanity'
-import { HomePage, BlogPost, SiteSettings } from '@/types/sanity'
+import { HomePage, BlogPost, SiteSettings, SanityPage } from '@/types/sanity'
 
 export class SanityService {
   // Fetch homepage content
@@ -269,6 +269,30 @@ export class SanityService {
       return settings
     } catch (error) {
       console.error('Error fetching site settings:', error)
+      return null
+    }
+  }
+
+  // Fetch page by slug
+  static async getPageBySlug(slug: string): Promise<SanityPage | null> {
+    const query = `*[_type == "page" && slug.current == $slug][0] {
+      _id,
+      _type,
+      title,
+      slug,
+      seoMetaTitle,
+      seoMetaDescription,
+      contentBlocks[] {
+        ...,
+        // Add content block expansions as needed
+      }
+    }`
+    
+    try {
+      const page = await client.fetch<SanityPage>(query, { slug })
+      return page
+    } catch (error) {
+      console.error('Error fetching page by slug:', error)
       return null
     }
   }

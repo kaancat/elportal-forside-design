@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { MegaMenu, IconPicker } from '@/types/sanity';
 import { NavigationMenuContent } from '@/components/ui/navigation-menu';
 import { Link as RouterLink } from 'react-router-dom';
@@ -16,16 +16,18 @@ const iconLibraries: { [key: string]: any } = {
   hi: HiIcons,
   fi: FiIcons,
   md: MdIcons,
+  mdi: MdIcons,  // Map Material Design Icons (mdi) to Material Design (md)
   si: SiIcons,
 };
 
-// Step 3: Create prefix mapping for each provider (THIS IS THE KEY FIX)
+// Step 3: Create prefix mapping for each provider
 const providerPrefixes: { [key: string]: string } = {
-  fa: 'Fa',  // FontAwesome
-  hi: 'Hi',  // HeroIcons
-  fi: 'Fi',  // Feather Icons
-  md: 'Md',  // Material Design
-  si: 'Si',  // Simple Icons
+  fa: 'Fa',   // FontAwesome
+  hi: 'Hi',   // HeroIcons
+  fi: 'Fi',   // Feather Icons
+  md: 'Md',   // Material Design
+  mdi: 'Md',  // Material Design Icons (alternative naming)
+  si: 'Si',   // Simple Icons
 };
 
 interface IconProps {
@@ -37,9 +39,16 @@ interface MegaMenuContentProps {
   menu: MegaMenu;
 }
 
-// Step 4: Corrected Icon component with proper react-icons naming convention
+// Step 4: Enhanced Icon component with SMART PREFIX STRIPPING
 const Icon: React.FC<IconProps> = ({ iconData, className }) => {
   if (!iconData?.provider || !iconData?.name) {
+    return null;
+  }
+  
+  // Check for unsupported providers
+  const unsupportedProviders = ['f7', 'sa'];
+  if (unsupportedProviders.includes(iconData.provider)) {
+    console.warn(`Icon provider "${iconData.provider}" is not supported. Supported providers: fa, hi, fi, md, mdi, si`);
     return null;
   }
   
@@ -57,7 +66,51 @@ const Icon: React.FC<IconProps> = ({ iconData, className }) => {
     return null;
   }
 
-  // Convert to PascalCase: "trending-up" -> "TrendingUp"
+  // CRITICAL FIX: Smart prefix stripping for double-prefix issue
+  let cleanIconName = iconData.name;
+  
+  // ENHANCED: Handle FontAwesome icons that already have "fa-" prefix
+  if (iconData.provider === 'fa') {
+    // Remove "fa-" prefix if present
+    if (cleanIconName.startsWith('fa-')) {
+      cleanIconName = cleanIconName.substring(3);
+    }
+    // Also handle double prefix issue: "fa-fa-tasks" -> "tasks"
+    while (cleanIconName.startsWith('fa-')) {
+      cleanIconName = cleanIconName.substring(3);
+    }
+  }
+  
+  // Handle other providers that might have their own prefixes
+  if (iconData.provider === 'hi') {
+    while (cleanIconName.startsWith('hi-')) {
+      cleanIconName = cleanIconName.substring(3);
+    }
+  }
+  
+  if (iconData.provider === 'fi') {
+    while (cleanIconName.startsWith('fi-')) {
+      cleanIconName = cleanIconName.substring(3);
+    }
+  }
+  
+  if (iconData.provider === 'md' || iconData.provider === 'mdi') {
+    while (cleanIconName.startsWith('md-') || cleanIconName.startsWith('mdi-')) {
+      if (cleanIconName.startsWith('mdi-')) {
+        cleanIconName = cleanIconName.substring(4);
+      } else {
+        cleanIconName = cleanIconName.substring(3);
+      }
+    }
+  }
+  
+  if (iconData.provider === 'si') {
+    while (cleanIconName.startsWith('si-')) {
+      cleanIconName = cleanIconName.substring(3);
+    }
+  }
+
+  // Convert to PascalCase: "tasks" -> "Tasks" or "balance-scale" -> "BalanceScale"
   const toPascalCase = (str: string) => {
     return str
       .toLowerCase()
@@ -65,12 +118,14 @@ const Icon: React.FC<IconProps> = ({ iconData, className }) => {
       .replace(/^(.)/, (match, chr) => chr.toUpperCase());
   };
   
-  // Build the full component name: "Fi" + "TrendingUp" = "FiTrendingUp"
-  const iconName = prefix + toPascalCase(iconData.name);
+  // Build the full component name: "Fa" + "Tasks" = "FaTasks"
+  const iconName = prefix + toPascalCase(cleanIconName);
+
+  console.log(`DEBUG: Icon transformation: "${iconData.name}" -> "${cleanIconName}" -> "${iconName}"`);
 
   const IconComponent = library[iconName];
   if (!IconComponent) {
-    console.warn(`Icon "${iconName}" not found in provider "${iconData.provider}". Raw name: "${iconData.name}"`);
+    console.warn(`Icon "${iconName}" not found in provider "${iconData.provider}". Raw name: "${iconData.name}", Clean name: "${cleanIconName}"`);
     return null;
   }
 
@@ -126,4 +181,4 @@ const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
   );
 };
 
-export default MegaMenuContent; 
+export default MegaMenuContent;

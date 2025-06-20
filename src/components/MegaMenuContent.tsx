@@ -1,22 +1,12 @@
 import React from 'react';
-import { MegaMenu, IconPicker } from '@/types/sanity'; // <-- Import IconPicker
+import { MegaMenu } from '@/types/sanity';
 import { NavigationMenuContent } from '@/components/ui/navigation-menu';
 import { Link as RouterLink } from 'react-router-dom';
-import { icons } from 'lucide-react';
+import IconRenderer from './IconRenderer'; // <-- Import the new renderer
 
 interface MegaMenuContentProps {
   menu: MegaMenu;
 }
-
-const Icon = ({ iconData, className }: { iconData?: IconPicker; className?: string }) => {
-  // Pass the whole icon object now
-  const name = iconData?.name;
-  if (!name || !icons[name as keyof typeof icons]) {
-    return null;
-  }
-  const LucideIcon = icons[name as keyof typeof icons];
-  return <LucideIcon className={className} />;
-};
 
 const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
   // Helper function to resolve internal links
@@ -46,8 +36,8 @@ const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
                       to={resolveLink(item.link)}
                       className="flex items-start text-left p-3 rounded-lg hover:bg-brand-green/20 transition-colors duration-200"
                     >
-                      {/* CORRECTED: Pass the entire item.icon object */}
-                      <Icon iconData={item.icon} className="h-5 w-5 mt-0.5 mr-4 text-brand-green flex-shrink-0" />
+                      {/* USE THE NEW UNIVERSAL RENDERER */}
+                      <IconRenderer iconData={item.icon} className="h-5 w-5 mt-0.5 mr-4 text-brand-green flex-shrink-0" />
                       <div>
                         <p className="font-semibold text-white leading-tight">{item.title}</p>
                         {item.description && (

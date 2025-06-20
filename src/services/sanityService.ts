@@ -239,7 +239,12 @@ export class SanityService {
               ...,
               items[] {
                 ...,
-                icon,
+                icon {
+                  ...,
+                  metadata {
+                    url
+                  }
+                },
                 link {
                   ...,
                   internalLink->{ "slug": slug.current, _type }

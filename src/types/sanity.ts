@@ -247,10 +247,12 @@ export interface Link {
   isButton?: boolean;
 }
 
-export interface IconPicker {
-  _type: 'iconPicker';
-  name: string;
-  provider: string;
+export interface IconManager {
+  _type: 'icon.manager';
+  icon: string;
+  metadata: {
+    url: string;
+  };
 }
 
 export interface MegaMenuItem {
@@ -259,7 +261,7 @@ export interface MegaMenuItem {
   title: string;
   description?: string;
   link: Link;
-  icon?: IconPicker; // <-- CHANGE THIS from string to IconPicker
+  icon?: IconManager;
 }
 
 export interface MegaMenuColumn {

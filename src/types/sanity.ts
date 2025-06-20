@@ -247,13 +247,19 @@ export interface Link {
   isButton?: boolean;
 }
 
+export interface IconPicker {
+  _type: 'iconPicker';
+  name: string;
+  provider: string;
+}
+
 export interface MegaMenuItem {
   _key: string;
   _type: 'megaMenuItem';
   title: string;
   description?: string;
   link: Link;
-  icon?: string;
+  icon?: IconPicker; // <-- CHANGE THIS from string to IconPicker
 }
 
 export interface MegaMenuColumn {

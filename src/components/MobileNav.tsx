@@ -31,7 +31,7 @@ const RichLinkCard: React.FC<{ item: any, resolveLink: (link: LinkType) => strin
 // This component renders an entire column as a collapsible accordion item
 const MobileNavAccordionGroup: React.FC<{ column: MegaMenuColumn, resolveLink: (link: LinkType) => string }> = ({ column, resolveLink }) => (
   <AccordionItem value={column._key} className="border-b-0">
-    <AccordionTrigger className="text-lg font-semibold py-3 hover:no-underline rounded-md px-3 hover:bg-neutral-800">
+    <AccordionTrigger className="text-lg font-semibold py-3 hover:no-underline rounded-md px-3">
       {column.title}
     </AccordionTrigger>
     <AccordionContent className="pb-1 pl-3">
@@ -63,7 +63,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink }) => {
           <span className="sr-only">Open menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="bg-brand-dark border-l border-neutral-800 text-white w-full max-w-sm p-0 flex flex-col">
+      <SheetContent side="left" className="bg-brand-dark border-l border-neutral-800 text-white w-full max-w-sm p-0 flex flex-col [&>button]:hidden">
         <div className="p-4 flex justify-between items-center border-b border-neutral-800 flex-shrink-0">
           <a href="/" className="flex items-center" onClick={() => setIsOpen(false)}>
             <img src="/lovable-uploads/97984f7d-d542-490c-9e04-5a0744d1b6a2.png" alt="ElPortal.dk Logo" className="h-8" />

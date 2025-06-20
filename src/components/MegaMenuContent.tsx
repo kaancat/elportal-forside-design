@@ -1,8 +1,56 @@
 import React from 'react';
-import { MegaMenu } from '@/types/sanity';
+import { MegaMenu, IconPicker } from '@/types/sanity';
 import { NavigationMenuContent } from '@/components/ui/navigation-menu';
 import { Link as RouterLink } from 'react-router-dom';
-import IconRenderer from './IconRenderer'; // <-- Import the new renderer
+
+// Step 1: Explicitly import every icon set we might need
+import * as FaIcons from 'react-icons/fa';
+import * as F7Icons from 'react-icons/f7';
+import * as HiIcons from 'react-icons/hi';
+import * as FiIcons from 'react-icons/fi';
+import * as MdIcons from 'react-icons/md';
+import * as SiIcons from 'react-icons/si';
+
+// Step 2: Create a static map from the provider code to the imported library
+const iconLibraries: { [key: string]: any } = {
+  fa: FaIcons,
+  f7: F7Icons,
+  hi: HiIcons,
+  fi: FiIcons,
+  md: MdIcons,
+  si: SiIcons, // Note: The provider 'sa' from your data likely maps to 'si' (Simple Icons)
+};
+
+interface IconProps {
+  iconData?: IconPicker;
+  className?: string;
+}
+
+// Step 3: A new, synchronous, reliable Icon component
+const Icon: React.FC<IconProps> = ({ iconData, className }) => {
+  if (!iconData?.provider || !iconData?.name) {
+    return null;
+  }
+  
+  // Look up the library from our static map
+  const library = iconLibraries[iconData.provider];
+  if (!library) {
+    console.warn(`Icon library for provider "${iconData.provider}" not found.`);
+    return null;
+  }
+
+  // Convert icon name to PascalCase for component lookup
+  // e.g., "fa-balance-scale" -> "FaBalanceScale" or "money_dollar" -> "MoneyDollar"
+  const iconName = iconData.name.replace(/(^\w|-\w|_\w)/g, (text) => text.replace(/-|_/, "").toUpperCase());
+
+  const IconComponent = library[iconName];
+  if (!IconComponent) {
+    console.warn(`Icon "${iconName}" not found in provider "${iconData.provider}".`);
+    return null;
+  }
+
+  return <IconComponent className={className} />;
+};
 
 interface MegaMenuContentProps {
   menu: MegaMenu;
@@ -36,8 +84,7 @@ const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
                       to={resolveLink(item.link)}
                       className="flex items-start text-left p-3 rounded-lg hover:bg-brand-green/20 transition-colors duration-200"
                     >
-                      {/* USE THE NEW UNIVERSAL RENDERER */}
-                      <IconRenderer iconData={item.icon} className="h-5 w-5 mt-0.5 mr-4 text-brand-green flex-shrink-0" />
+                      <Icon iconData={item.icon} className="h-5 w-5 mt-0.5 mr-4 text-brand-green flex-shrink-0" />
                       <div>
                         <p className="font-semibold text-white leading-tight">{item.title}</p>
                         {item.description && (

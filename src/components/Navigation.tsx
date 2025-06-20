@@ -91,8 +91,15 @@ const Navigation = () => {
         </div>
 
         {/* Mobile Navigation (hamburger, visible only on small screens) */}
-        <div className="md:hidden">
-          <MobileNav navItems={settings.headerLinks} resolveLink={resolveLink} />
+        <div className="md:hidden flex items-center space-x-2">
+          {ctaButton && (
+            <Button asChild size="sm" className="bg-yellow-400 hover:bg-yellow-500 text-brand-dark font-medium rounded-full px-4">
+              <RouterLink to={resolveLink(ctaButton)}>
+                {ctaButton.title}
+              </RouterLink>
+            </Button>
+          )}
+          <MobileNav navItems={navItems} ctaButton={ctaButton} resolveLink={resolveLink} />
         </div>
 
       </div>

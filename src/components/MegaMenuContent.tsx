@@ -19,8 +19,8 @@ const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
 
   return (
     <NavigationMenuContent>
-      <div className="bg-brand-dark p-6 md:p-8 border border-neutral-700 rounded-lg shadow-2xl">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 min-w-[600px] max-w-[90vw] lg:min-w-[800px] lg:max-w-[1000px]">
+      <div className="bg-brand-dark p-8 border border-neutral-700 rounded-lg shadow-2xl">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 w-auto lg:min-w-[800px] xl:min-w-[950px]">
           {menu.content.map((column) => (
             <div key={column._key} className="flex flex-col">
               {column.title && (

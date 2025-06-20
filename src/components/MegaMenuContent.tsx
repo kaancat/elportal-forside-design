@@ -8,10 +8,12 @@ interface MegaMenuContentProps {
   menu: MegaMenu;
 }
 
-// A more robust way to get the icon component
-const Icon = ({ name, className }: { name?: string, className?: string }) => {
+// NEW, ROBUST ICON COMPONENT
+const Icon = ({ name, className }: { name?: string; className?: string }) => {
+  // Check if a name is provided and if it exists in the 'icons' object
   if (!name || !icons[name as keyof typeof icons]) {
-    return null;
+    // Return null or a placeholder if the icon doesn't exist
+    return null; 
   }
   const LucideIcon = icons[name as keyof typeof icons];
   return <LucideIcon className={className} />;
@@ -41,12 +43,13 @@ const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
               <ul className="space-y-1">
                 {column.items.map((item) => (
                   <li key={item._key}>
-                                            <RouterLink
-                          to={resolveLink(item.link)}
-                          className="flex items-center p-3 rounded-lg hover:bg-brand-green/20 transition-colors duration-200"
-                        >
-                          <Icon name={item.icon} className="h-5 w-5 mr-4 text-brand-green flex-shrink-0" />
-                          <div>
+                    <RouterLink
+                      to={resolveLink(item.link)}
+                      className="flex items-start text-left p-3 rounded-lg hover:bg-brand-green/20 transition-colors duration-200"
+                    >
+                      {/* USE THE NEW ICON COMPONENT */}
+                      <Icon name={item.icon} className="h-5 w-5 mt-0.5 mr-4 text-brand-green flex-shrink-0" />
+                      <div>
                         <p className="font-semibold text-white leading-tight">{item.title}</p>
                         {item.description && (
                           <p className="text-sm text-neutral-400 mt-1 font-normal leading-snug">

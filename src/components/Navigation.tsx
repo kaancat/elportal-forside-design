@@ -20,6 +20,9 @@ const Navigation = () => {
     const fetchSettings = async () => {
       const data = await SanityService.getSiteSettings();
       setSettings(data);
+      
+      // --- DIAGNOSTIC: Verify icon data is arriving ---
+      console.log('Fetched Site Settings:', data);
     };
     fetchSettings();
   }, []);

@@ -24,7 +24,11 @@ interface IconProps {
   className?: string;
 }
 
-// Step 3: A new, synchronous, reliable Icon component
+interface MegaMenuContentProps {
+  menu: MegaMenu;
+}
+
+// Step 3: Enhanced Icon component with robust PascalCase conversion
 const Icon: React.FC<IconProps> = ({ iconData, className }) => {
   if (!iconData?.provider || !iconData?.name) {
     return null;
@@ -37,13 +41,18 @@ const Icon: React.FC<IconProps> = ({ iconData, className }) => {
     return null;
   }
 
-  // Convert icon name to PascalCase for component lookup
-  // e.g., "fa-balance-scale" -> "FaBalanceScale" or "money_dollar" -> "MoneyDollar"
-  const iconName = iconData.name.replace(/(^\w|-\w|_\w)/g, (text) => text.replace(/-|_/, "").toUpperCase());
+  // Step 3: Much more robust PascalCase conversion function
+  const toPascalCase = (str: string) => {
+    return (' ' + str).toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (match, chr) => {
+      return chr.toUpperCase();
+    });
+  };
+  
+  const iconName = toPascalCase(iconData.name);
 
   const IconComponent = library[iconName];
   if (!IconComponent) {
-    console.warn(`Icon "${iconName}" not found in provider "${iconData.provider}".`);
+    console.warn(`Icon "${iconName}" not found in provider "${iconData.provider}". Raw name: "${iconData.name}"`);
     return null;
   }
 

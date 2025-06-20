@@ -1910,3 +1910,41 @@ Goal: Complete mobile navigation redesign to fix UI/UX issues with accordion, sc
 **Impact**: Mobile navigation now provides a professional, accessible, and intuitive experience that matches modern mobile app standards.
 
 ---
+
+## [2024-12-19] – Mega Menu Viewport Positioning Fix
+Goal: Fix desktop mega menu intelligent positioning to prevent cutoff on smaller viewports
+
+### Changes Made:
+1. **Refactored Navigation.tsx Structure**:
+   - Wrapped entire header content within `<NavigationMenu>` provider for proper viewport control
+   - Moved from nested NavigationMenu structure to single parent NavigationMenu
+   - Removed unnecessary NavigationMenuLink import, added NavigationMenuViewport import
+   - Simplified layout structure while maintaining three-column design (logo, nav, button)
+
+2. **NavigationMenu Provider Integration**:
+   - Changed from `<NavigationMenu>` only wrapping nav items to wrapping entire header content
+   - Added `className="w-full max-w-none"` to override default max-width constraints
+   - Added custom CSS selectors to style the built-in NavigationMenuViewport:
+     - `[&>div:last-child]:bg-brand-dark` - Viewport container background
+     - `[&>div:last-child>div]:bg-brand-dark` - Viewport content background  
+     - `[&>div:last-child>div]:border-neutral-700` - Viewport border styling
+
+3. **Intelligent Positioning Benefits**:
+   - NavigationMenuViewport now automatically handles edge detection
+   - Mega menus will reposition themselves to stay within viewport bounds
+   - Responsive width calculations based on content and available space
+   - Smooth animations and transitions maintained
+
+### Technical Notes:
+- The shadcn/ui NavigationMenu component automatically includes NavigationMenuViewport
+- No need to manually add NavigationMenuViewport - it's built into the NavigationMenu root
+- Custom CSS targeting required to override default popover styling with brand colors
+- Structure now follows shadcn/ui best practices for viewport-aware navigation
+
+### Impact:
+- Mega menus no longer get cut off on smaller desktop screens
+- Better user experience on tablet and smaller laptop screens
+- Maintains existing styling and functionality while adding intelligent positioning
+- Follows React/shadcn/ui component composition patterns
+
+---

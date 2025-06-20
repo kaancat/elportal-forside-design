@@ -3,20 +3,29 @@ import { MegaMenu, IconPicker } from '@/types/sanity';
 import { NavigationMenuContent } from '@/components/ui/navigation-menu';
 import { Link as RouterLink } from 'react-router-dom';
 
-// Step 1: Explicitly import every icon set we might need
+// Step 1: Import icon libraries (maintaining verified working imports)
 import * as FaIcons from 'react-icons/fa';
 import * as HiIcons from 'react-icons/hi';
 import * as FiIcons from 'react-icons/fi';
 import * as MdIcons from 'react-icons/md';
 import * as SiIcons from 'react-icons/si';
 
-// Step 2: Create a static map from the provider code to the imported library
+// Step 2: Create library mapping
 const iconLibraries: { [key: string]: any } = {
   fa: FaIcons,
   hi: HiIcons,
   fi: FiIcons,
   md: MdIcons,
-  si: SiIcons, // Note: The provider 'sa' from your data likely maps to 'si' (Simple Icons)
+  si: SiIcons,
+};
+
+// Step 3: Create prefix mapping for each provider (THIS IS THE KEY FIX)
+const providerPrefixes: { [key: string]: string } = {
+  fa: 'Fa',  // FontAwesome
+  hi: 'Hi',  // HeroIcons
+  fi: 'Fi',  // Feather Icons
+  md: 'Md',  // Material Design
+  si: 'Si',  // Simple Icons
 };
 
 interface IconProps {
@@ -28,7 +37,7 @@ interface MegaMenuContentProps {
   menu: MegaMenu;
 }
 
-// Step 3: Enhanced Icon component with robust PascalCase conversion
+// Step 4: Corrected Icon component with proper react-icons naming convention
 const Icon: React.FC<IconProps> = ({ iconData, className }) => {
   if (!iconData?.provider || !iconData?.name) {
     return null;
@@ -41,14 +50,23 @@ const Icon: React.FC<IconProps> = ({ iconData, className }) => {
     return null;
   }
 
-  // Step 3: Much more robust PascalCase conversion function
+  // Get the correct prefix for this provider
+  const prefix = providerPrefixes[iconData.provider];
+  if (!prefix) {
+    console.warn(`No prefix found for provider "${iconData.provider}".`);
+    return null;
+  }
+
+  // Convert to PascalCase: "trending-up" -> "TrendingUp"
   const toPascalCase = (str: string) => {
-    return (' ' + str).toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (match, chr) => {
-      return chr.toUpperCase();
-    });
+    return str
+      .toLowerCase()
+      .replace(/[^a-zA-Z0-9]+(.)/g, (match, chr) => chr.toUpperCase())
+      .replace(/^(.)/, (match, chr) => chr.toUpperCase());
   };
   
-  const iconName = toPascalCase(iconData.name);
+  // Build the full component name: "Fi" + "TrendingUp" = "FiTrendingUp"
+  const iconName = prefix + toPascalCase(iconData.name);
 
   const IconComponent = library[iconName];
   if (!IconComponent) {
@@ -58,10 +76,6 @@ const Icon: React.FC<IconProps> = ({ iconData, className }) => {
 
   return <IconComponent className={className} />;
 };
-
-interface MegaMenuContentProps {
-  menu: MegaMenu;
-}
 
 const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
   // Helper function to resolve internal links

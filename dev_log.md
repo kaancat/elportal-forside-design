@@ -2062,3 +2062,92 @@ The MegaMenuContent component had hardcoded minimum widths that prevented proper
 - Maintains visual hierarchy while being fully responsive
 
 **Result**: Mega menu now displays perfectly on all viewport sizes with intelligent positioning and no cutoff issues.
+
+---
+
+## [2024-12-19] – Complete Mobile Navigation Redesign with Rich Card Layout
+Goal: Completely redesign mobile navigation with structured accordions, rich card-style links, and enhanced visual hierarchy
+
+### Major Redesign Overview:
+Completely replaced the previous functional but visually basic mobile navigation with a modern, rich card-based design featuring structured accordions and enhanced user experience.
+
+### Complete Component Overhaul:
+
+1. **New Component Architecture**:
+   - **RichLinkCard Component**: Renders individual menu items as rich cards with icons, titles, and descriptions
+   - **MobileNavAccordionGroup Component**: Handles each mega menu column as a separate accordion section
+   - **Structured Layout**: Each content category ("Priser", "Guides", "Værktøjer") gets its own accordion
+
+2. **Rich Card Design Implementation**:
+   ```tsx
+   const RichLinkCard = ({ item, resolveLink }) => (
+     <RouterLink className="flex items-start text-left p-3 rounded-lg hover:bg-brand-green/10">
+       {item.icon?.metadata?.url && <img />} // Icon with brand-green filter
+       <div>
+         <p className="font-semibold text-white">{item.title}</p>
+         <p className="text-sm text-neutral-400">{item.description}</p>
+       </div>
+     </RouterLink>
+   );
+   ```
+
+3. **Structured Accordion System**:
+   - **Multiple Accordions**: `type="multiple"` allows multiple sections open simultaneously
+   - **Column-Based Structure**: Each mega menu column becomes its own accordion item
+   - **Rich Content**: Each accordion contains multiple RichLinkCard components
+   - **Visual Hierarchy**: Clear separation between categories and items
+
+### Enhanced Features:
+
+1. **Visual Design Improvements**:
+   - **Rich Cards**: Each link displays as a card with icon, title, and description
+   - **Brand-Green Icons**: SVG icons filtered to brand-green color
+   - **Subtle Hover States**: `hover:bg-brand-green/10` for gentle interaction feedback
+   - **Professional Spacing**: Optimized padding and margins throughout
+
+2. **Improved User Experience**:
+   - **Scrollable Content**: Full scrolling support for long menu lists
+   - **Multiple Open Sections**: Users can expand multiple categories simultaneously
+   - **Clear Visual Hierarchy**: Distinct styling for categories vs. individual items
+   - **Touch-Friendly**: Larger touch targets with proper spacing
+
+3. **Technical Enhancements**:
+   - **Type Safety**: Added `MegaMenuColumn` and `IconManager` imports
+   - **Component Separation**: Clean separation of concerns with dedicated components
+   - **Removed CTA Button**: Simplified interface by removing unused ctaButton prop
+   - **Optimized Rendering**: Efficient mapping and conditional rendering
+
+### Implementation Details:
+
+**Accordion Structure**:
+```tsx
+<Accordion type="multiple">
+  {item.content.map(column => (
+    <MobileNavAccordionGroup column={column} resolveLink={resolveLink} />
+  ))}
+</Accordion>
+```
+
+**Icon Integration**:
+- Uses existing `item.icon?.metadata?.url` from Sanity CMS
+- CSS filter converts icons to brand-green color
+- Proper fallback for items without icons
+
+**Layout Optimization**:
+- `p-2` container padding for optimal spacing
+- `flex-grow overflow-y-auto` for proper scrolling
+- `border-l border-neutral-800` for visual separation
+
+### Benefits Achieved:
+
+- ✅ **Rich Visual Design**: Professional card-based layout with icons and descriptions
+- ✅ **Structured Navigation**: Clear category-based organization with accordions
+- ✅ **Enhanced UX**: Multiple open sections, smooth scrolling, touch-friendly
+- ✅ **Brand Consistency**: Proper brand-green color integration throughout
+- ✅ **Performance**: Optimized component structure and rendering
+- ✅ **Accessibility**: Proper semantic structure and keyboard navigation
+
+### Impact:
+Mobile navigation transformed from basic functional menu to premium, visually rich experience that matches modern mobile app standards. Users now have a structured, intuitive way to explore all navigation options with rich visual cues and professional design.
+
+**Result**: Mobile navigation now provides a premium, structured experience with rich card-based design and intuitive accordion organization.

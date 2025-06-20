@@ -4,10 +4,10 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 import { Link as RouterLink } from 'react-router-dom';
-import { Link as LinkType, MegaMenu, MegaMenuColumn, IconManager } from '@/types/sanity';
+import { Link as LinkType, MegaMenu, MegaMenuColumn } from '@/types/sanity';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
-// Helper to render the rich menu item card
+// Helper for the rich, icon-driven link style
 const RichLinkCard: React.FC<{ item: any, resolveLink: (link: LinkType) => string }> = ({ item, resolveLink }) => (
   <RouterLink
     to={resolveLink(item.link)}
@@ -30,11 +30,11 @@ const RichLinkCard: React.FC<{ item: any, resolveLink: (link: LinkType) => strin
 
 // This component renders an entire column as a collapsible accordion item
 const MobileNavAccordionGroup: React.FC<{ column: MegaMenuColumn, resolveLink: (link: LinkType) => string }> = ({ column, resolveLink }) => (
-  <AccordionItem value={column._key} className="border-b border-neutral-800">
-    <AccordionTrigger className="text-lg font-semibold py-4 hover:no-underline">
+  <AccordionItem value={column._key} className="border-b-0">
+    <AccordionTrigger className="text-lg font-semibold py-3 hover:no-underline rounded-md px-3 hover:bg-neutral-800">
       {column.title}
     </AccordionTrigger>
-    <AccordionContent className="pb-2">
+    <AccordionContent className="pb-1 pl-3">
       <div className="flex flex-col space-y-1">
         {column.items.map(item => (
           <RichLinkCard key={item._key} item={item} resolveLink={resolveLink} />
@@ -51,6 +51,9 @@ interface MobileNavProps {
 
 const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink }) => {
   const [isOpen, setIsOpen] = React.useState(false);
+
+  const simpleLinks = navItems.filter(item => item._type === 'link') as LinkType[];
+  const megaMenu = navItems.find(item => item._type === 'megaMenu') as MegaMenu | undefined;
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -72,23 +75,39 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink }) => {
         </div>
         
         <div className="flex-grow overflow-y-auto">
-          <div className="p-2">
-            {navItems.map((item) => (
-              <div key={item._key} onClick={() => {if(item._type === 'link') setIsOpen(false)}}>
-                {item._type === 'link' && (
-                  <RouterLink to={resolveLink(item)} className="block text-lg font-semibold p-4 rounded-md hover:bg-neutral-800">
-                    {item.title}
-                  </RouterLink>
-                )}
-                {item._type === 'megaMenu' && (
-                  <Accordion type="multiple" className="w-full">
-                    {item.content.map(column => (
-                      <MobileNavAccordionGroup key={column._key} column={column} resolveLink={resolveLink} />
-                    ))}
-                  </Accordion>
-                )}
-              </div>
+          <div className="p-4 space-y-2">
+            {/* Render Simple Links First */}
+            {simpleLinks.map(item => (
+               <div key={item._key} onClick={() => setIsOpen(false)}>
+                 <RouterLink to={resolveLink(item)} className="block text-lg font-semibold p-3 rounded-md hover:bg-neutral-800">
+                   {item.title}
+                 </RouterLink>
+               </div>
             ))}
+            
+            {/* Separator and Category Heading */}
+            {megaMenu && (
+              <>
+                <div className="pt-4">
+                  <div className="h-px bg-brand-green/20" />
+                </div>
+                <div className="px-3 pt-4 pb-2">
+                  <h3 className="text-base font-semibold text-neutral-400 uppercase tracking-wider">{megaMenu.title}</h3>
+                </div>
+                <Accordion type="multiple" className="w-full">
+                  {megaMenu.content.map(column => (
+                     <div key={column._key} onClick={(e) => {
+                       // This prevents the whole accordion from closing when a link inside is clicked
+                       if ((e.target as HTMLElement).closest('a')) {
+                         setIsOpen(false);
+                       }
+                     }}>
+                      <MobileNavAccordionGroup column={column} resolveLink={resolveLink} />
+                     </div>
+                  ))}
+                </Accordion>
+              </>
+            )}
           </div>
         </div>
       </SheetContent>

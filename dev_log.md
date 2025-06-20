@@ -2409,3 +2409,174 @@ onClick={(e) => {
 Final mobile navigation polish delivers a premium, professionally structured experience with clear visual hierarchy, elegant separators, and intuitive interaction patterns that rival top-tier mobile applications.
 
 **Result**: Mobile navigation achieves final design polish with professional structure, elegant separators, and enhanced user experience.
+
+---
+
+## [2025-01-26] – NAVIGATION STYLING FIX: Clean Text Appearance Restored Using asChild Pattern
+Goal: Restore original clean text styling for navigation links while maintaining shadcn/ui structure and functionality
+
+### Problem Analysis:
+
+**Issue Identified**: 
+- Navigation links had unwanted white background from `navigationMenuTriggerStyle()`
+- Mega menu trigger looked like buttons instead of clean text
+- Lost the original `text-white hover:text-brand-green` aesthetic
+
+**Root Cause**:
+```tsx
+// The navigationMenuTriggerStyle() function applies:
+"bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+// This creates unwanted button-like appearance
+```
+
+### Solution Implemented:
+
+#### **🎯 Simple Links - asChild Pattern**
+
+**BEFORE (Button-like appearance)**:
+```tsx
+<RouterLink to={resolveLink(item as LinkType)}>
+  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+    {item.title}
+  </NavigationMenuLink>
+</RouterLink>
+```
+
+**AFTER (Clean text styling)**:
+```tsx
+<NavigationMenuLink asChild>
+  <RouterLink 
+    to={resolveLink(item as LinkType)}
+    className="text-white hover:text-brand-green font-medium px-4 py-2 transition-colors"
+  >
+    {item.title}
+  </RouterLink>
+</NavigationMenuLink>
+```
+
+#### **🎯 Mega Menu Trigger - Style Override**
+
+**BEFORE (Default shadcn/ui styling)**:
+```tsx
+<NavigationMenuTrigger className={navigationMenuTriggerStyle()}>
+  {(item as MegaMenu).title}
+</NavigationMenuTrigger>
+```
+
+**AFTER (Original clean styling)**:
+```tsx
+<NavigationMenuTrigger className="text-white hover:text-brand-green font-medium bg-transparent hover:bg-transparent data-[state=open]:bg-transparent px-4 py-2 text-base border-0">
+  {(item as MegaMenu).title}
+</NavigationMenuTrigger>
+```
+
+#### **🧹 Import Cleanup**
+
+**Removed Unused Import**:
+```tsx
+// REMOVED: No longer needed
+import { navigationMenuTriggerStyle } from '@/components/ui/navigation-menu';
+```
+
+### Technical Implementation Details:
+
+#### **asChild Pattern Benefits**:
+- **Prop Delegation**: `asChild` passes all props to the child component
+- **No Default Styling**: shadcn/ui wrapper doesn't apply its default classes
+- **Clean Composition**: RouterLink gets the styling directly
+- **Accessibility Maintained**: All shadcn/ui accessibility features preserved
+
+#### **Style Override Strategy**:
+- **Targeted Overrides**: Only override necessary default styles
+- **Brand Colors**: Restored `text-white hover:text-brand-green`
+- **Background Removal**: `bg-transparent hover:bg-transparent data-[state=open]:bg-transparent`
+- **Border Cleanup**: `border-0` removes any default borders
+
+#### **CSS Classes Applied**:
+```css
+/* Base brand styling */
+text-white hover:text-brand-green font-medium
+
+/* Spacing and interactions */
+px-4 py-2 transition-colors
+
+/* Background overrides for trigger */
+bg-transparent hover:bg-transparent data-[state=open]:bg-transparent
+
+/* Size and border cleanup */
+text-base border-0
+```
+
+### Architecture Benefits:
+
+#### **🏗️ Idiomatic React Patterns**:
+- **asChild Usage**: Following Radix UI/shadcn/ui best practices
+- **Composition over Inheritance**: Clean component composition
+- **Minimal Overrides**: Only customizing what's necessary
+- **Future-Proof**: Compatible with library updates
+
+#### **🎨 Visual Consistency**:
+- **Original Design Restored**: Matches the intended clean text appearance
+- **Brand Colors**: Proper white text with green hover states
+- **No Visual Artifacts**: Removed unwanted backgrounds and borders
+- **Consistent Interactions**: Uniform hover and focus states
+
+#### **🛠️ Maintainability**:
+- **Less Custom CSS**: Cleaner, more maintainable code
+- **Library Compatibility**: Works with shadcn/ui updates
+- **Clear Intent**: Code clearly shows styling intentions
+- **Reduced Complexity**: Simpler component structure
+
+### Problem Resolution:
+
+#### **Issues Solved**:
+1. **White Background Removal**: No more unwanted `bg-background` styling
+2. **Button-like Appearance**: Restored clean text links
+3. **Brand Color Consistency**: Proper `text-white hover:text-brand-green`
+4. **Visual Noise**: Eliminated distracting background artifacts
+
+#### **Functionality Preserved**:
+- ✅ **Navigation Menu Structure**: All shadcn/ui navigation features work
+- ✅ **Accessibility**: Focus management and keyboard navigation intact
+- ✅ **Mega Menu**: Dropdown functionality fully preserved
+- ✅ **Responsive Behavior**: Mobile/desktop navigation switching works
+- ✅ **Router Integration**: React Router navigation fully functional
+
+### Visual Impact:
+
+**Before Fix**:
+- ❌ White/light backgrounds on navigation links
+- ❌ Button-like appearance instead of clean text
+- ❌ Inconsistent with original brand design
+- ❌ Visual distractions from unwanted styling
+
+**After Fix**:
+- ✅ **Clean Text Links**: Plain text navigation as originally designed
+- ✅ **Brand-Consistent Colors**: White text with green hover states
+- ✅ **No Background Artifacts**: Removed unwanted boxes/borders
+- ✅ **Perfect Visual Match**: Exactly matches original design intent
+- ✅ **Professional Appearance**: Clean, modern navigation styling
+
+### Best Practices Demonstrated:
+
+1. **asChild Pattern**: Proper use of Radix UI composition patterns
+2. **Minimal Overrides**: Only customize what's absolutely necessary
+3. **Brand Consistency**: Maintain visual brand identity
+4. **Library Harmony**: Work with shadcn/ui, not against it
+5. **Clean Code**: Readable, maintainable component structure
+
+### Code Quality Improvements:
+
+**Before**:
+- Complex styling conflicts
+- Fighting library defaults
+- Unused imports
+- Inconsistent patterns
+
+**After**:
+- ✅ **Clean Composition**: Proper asChild usage
+- ✅ **Targeted Styling**: Only necessary overrides
+- ✅ **Import Cleanup**: Removed unused dependencies
+- ✅ **Consistent Patterns**: Uniform styling approach
+
+NOTE: This implementation demonstrates the power of using library patterns correctly (asChild) combined with targeted style overrides to achieve the desired visual result while maintaining all functionality and accessibility benefits.

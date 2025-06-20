@@ -7,7 +7,7 @@ import {
   NavigationMenuList,
   NavigationMenuItem,
   NavigationMenuTrigger,
-  NavigationMenuLink,
+  NavigationMenuViewport,
 } from '@/components/ui/navigation-menu';
 import { Button } from '@/components/ui/button';
 import MegaMenuContent from './MegaMenuContent';
@@ -43,31 +43,24 @@ const Navigation = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-brand-dark shadow-md">
-      <div className="container mx-auto px-4 flex items-center justify-between h-16">
-        
-        {/* Left side: Logo */}
-        <div className="flex-shrink-0">
+      <NavigationMenu className="w-full max-w-none [&>div:last-child]:bg-brand-dark [&>div:last-child>div]:bg-brand-dark [&>div:last-child>div]:border-neutral-700">
+        <div className="container mx-auto px-4 flex items-center justify-between h-16">
+          
           <a href="/" className="flex items-center">
             <img src="/lovable-uploads/97984f7d-d542-490c-9e04-5a0744d1b6a2.png" alt="ElPortal.dk Logo" className="h-8 sm:h-10" />
           </a>
-        </div>
-        
-        {/* Center: Desktop Navigation (hidden on small screens) */}
-        <nav className="hidden md:flex flex-grow justify-center">
-          <NavigationMenu>
+          
+          <nav className="hidden md:flex items-center space-x-6">
             <NavigationMenuList>
               {navItems.map((item) => (
                 <NavigationMenuItem key={item._key}>
                   {item._type === 'link' ? (
-                    <RouterLink 
-                      to={resolveLink(item as LinkType)}
-                      className="text-white hover:text-brand-green font-medium px-4 py-2 transition-colors"
-                    >
+                    <RouterLink to={resolveLink(item as LinkType)} className="text-white hover:text-brand-green font-medium text-base">
                       {item.title}
                     </RouterLink>
                   ) : (
                     <>
-                      <NavigationMenuTrigger className="text-white hover:text-brand-green font-medium bg-transparent hover:bg-transparent data-[state=open]:bg-transparent px-4 py-2 text-base">
+                      <NavigationMenuTrigger className="text-white hover:text-brand-green font-medium text-base bg-transparent">
                         {(item as MegaMenu).title}
                       </NavigationMenuTrigger>
                       <MegaMenuContent menu={item as MegaMenu} />
@@ -76,33 +69,32 @@ const Navigation = () => {
                 </NavigationMenuItem>
               ))}
             </NavigationMenuList>
-          </NavigationMenu>
-        </nav>
+          </nav>
 
-        {/* Right side: CTA Button (hidden on small screens) */}
-        <div className="hidden md:flex flex-shrink-0">
-          {ctaButton && (
-            <Button asChild className="bg-yellow-400 hover:bg-yellow-500 text-brand-dark font-medium rounded-full px-6">
-              <RouterLink to={resolveLink(ctaButton)}>
-                {ctaButton.title}
-              </RouterLink>
-            </Button>
-          )}
+          <div className="hidden md:flex">
+            {ctaButton && (
+              <Button asChild className="bg-yellow-400 hover:bg-yellow-500 text-brand-dark font-medium rounded-full px-6">
+                <RouterLink to={resolveLink(ctaButton)}>
+                  {ctaButton.title}
+                </RouterLink>
+              </Button>
+            )}
+          </div>
+
+          <div className="md:hidden flex items-center space-x-2">
+            {ctaButton && (
+              <Button asChild size="sm" className="bg-yellow-400 hover:bg-yellow-500 text-brand-dark font-medium rounded-full px-4">
+                <RouterLink to={resolveLink(ctaButton)}>
+                  {ctaButton.title}
+                </RouterLink>
+              </Button>
+            )}
+            <MobileNav navItems={navItems} ctaButton={ctaButton} resolveLink={resolveLink} />
+          </div>
+
         </div>
 
-        {/* Mobile Navigation (hamburger, visible only on small screens) */}
-        <div className="md:hidden flex items-center space-x-2">
-          {ctaButton && (
-            <Button asChild size="sm" className="bg-yellow-400 hover:bg-yellow-500 text-brand-dark font-medium rounded-full px-4">
-              <RouterLink to={resolveLink(ctaButton)}>
-                {ctaButton.title}
-              </RouterLink>
-            </Button>
-          )}
-          <MobileNav navItems={navItems} ctaButton={ctaButton} resolveLink={resolveLink} />
-        </div>
-
-      </div>
+      </NavigationMenu>
     </header>
   );
 };

@@ -1378,7 +1378,7 @@ useEffect(() => {
 - Add loading states and error handling
 - Update Footer component with similar data-driven approach
 
-NOTE: This establishes a fully CMS-driven navigation system, replacing the previous hard-coded implementation. The navigation is now completely manageable through Sanity CMS while maintaining the existing visual design and user experience.
+NOTE: This establishes the foundation for a fully CMS-driven navigation system, replacing the previous hard-coded implementation. The navigation is now completely manageable through Sanity CMS while maintaining the existing visual design and user experience.
 
 ---
 
@@ -1664,7 +1664,7 @@ console.warn(`Icon "${iconName}" not found in provider "${iconData.provider}". R
 - ❌ Poor user experience with missing visual cues
 
 **After Fix**:
-- ✅ **Icons Render Correctly**: All CMS-driven icons display properly
+- ✅ **Icons Render Correctly**: All CMS-driven icons should display properly
 - ✅ **Clean Console**: No more icon resolution errors
 - ✅ **Enhanced UX**: Visual icons provide proper navigation cues
 - ✅ **Robust System**: Proper error handling for edge cases
@@ -1703,5 +1703,34 @@ With this critical fix implemented:
 - ✅ **Scalable System**: Easy to add new icon providers in future
 
 NOTE: This demonstrates the critical importance of understanding library-specific naming conventions. The react-icons library's use of prefixed component names is essential for proper tree-shaking and component resolution, and our implementation now correctly follows these established patterns.
+
+---
+
+## [2024-12-28] – Icon Double Prefix Fix (Latest Session)
+Goal: Fix FontAwesome icon rendering issue with double prefixes
+
+**CRITICAL ICON RENDERING FIX**
+
+**Root Cause Identified**:
+- FontAwesome icons from Sanity already have "fa-" prefix (e.g. "fa-tasks")
+- Our code was adding another "Fa" prefix, creating "FaFaTasks" 
+- This caused icon lookup failures
+
+**Solution Implemented**:
+- Enhanced prefix stripping with `while` loops to handle repeated prefixes
+- Added debug console.log to track icon transformations
+- Smart handling for all icon providers (fa, hi, fi, md, mdi, si)
+- Support for "mdi" provider mapping to Material Design icons
+- Better error handling for unsupported providers ("f7", "sa")
+
+**Technical Implementation**:
+- **FontAwesome**: Strips "fa-" prefixes until clean (handles "fa-fa-tasks" → "tasks")
+- **Other Providers**: Similar while-loop approach for all providers
+- **Debug Logging**: Shows full transformation chain for troubleshooting
+- **Enhanced Error Messages**: More detailed warnings with all relevant data
+
+**Impact**: Icons should now render correctly in mega menu with proper react-icons component lookup.
+
+**Testing Required**: Check mega menu to verify icons display properly.
 
 ---

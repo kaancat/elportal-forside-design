@@ -5,7 +5,6 @@ import { Link as RouterLink } from 'react-router-dom';
 
 // Step 1: Explicitly import every icon set we might need
 import * as FaIcons from 'react-icons/fa';
-import * as F7Icons from 'react-icons/f7';
 import * as HiIcons from 'react-icons/hi';
 import * as FiIcons from 'react-icons/fi';
 import * as MdIcons from 'react-icons/md';
@@ -14,7 +13,6 @@ import * as SiIcons from 'react-icons/si';
 // Step 2: Create a static map from the provider code to the imported library
 const iconLibraries: { [key: string]: any } = {
   fa: FaIcons,
-  f7: F7Icons,
   hi: HiIcons,
   fi: FiIcons,
   md: MdIcons,

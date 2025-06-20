@@ -7,6 +7,8 @@ import {
   NavigationMenuList,
   NavigationMenuItem,
   NavigationMenuTrigger,
+  NavigationMenuLink,
+  navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
 import { Button } from '@/components/ui/button';
 import MegaMenuContent from './MegaMenuContent';
@@ -58,15 +60,14 @@ const Navigation = () => {
               {navItems.map((item) => (
                 <NavigationMenuItem key={item._key}>
                   {item._type === 'link' ? (
-                    <RouterLink 
-                      to={resolveLink(item as LinkType)}
-                      className="text-white hover:text-brand-green font-medium px-4 py-2 transition-colors"
-                    >
-                      {item.title}
+                    <RouterLink to={resolveLink(item as LinkType)}>
+                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                        {item.title}
+                      </NavigationMenuLink>
                     </RouterLink>
                   ) : (
                     <>
-                      <NavigationMenuTrigger className="text-white hover:text-brand-green font-medium bg-transparent hover:bg-transparent data-[state=open]:bg-transparent px-4 py-2 text-base">
+                      <NavigationMenuTrigger className={navigationMenuTriggerStyle()}>
                         {(item as MegaMenu).title}
                       </NavigationMenuTrigger>
                       <MegaMenuContent menu={item as MegaMenu} />

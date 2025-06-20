@@ -1,5 +1,186 @@
 # Dev Log
 
+## [2025-01-26] – NAVIGATION SIMPLIFICATION: Embracing shadcn/ui Defaults & CSS-Only Solutions
+Goal: Simplify navigation components by removing complex overrides and embracing shadcn/ui default styles with clean CSS-only solutions
+
+### Philosophy Change:
+
+**From**: Fighting library defaults with complex CSS overrides and JavaScript handlers
+**To**: Embracing shadcn/ui defaults and using clean, maintainable CSS-only solutions
+
+### Changes Applied:
+
+#### **🎯 Step 1: Desktop Navigation Simplification (`Navigation.tsx`)**
+
+**Import Enhancement**:
+```tsx
+// Added missing imports for clean implementation
+import {
+  NavigationMenu,
+  NavigationMenuList,
+  NavigationMenuItem,
+  NavigationMenuTrigger,
+  NavigationMenuLink,
+  navigationMenuTriggerStyle, // ← Added for default styling
+} from '@/components/ui/navigation-menu';
+```
+
+**Simple Links Styling**:
+```tsx
+// BEFORE (Custom styling)
+<RouterLink 
+  to={resolveLink(item as LinkType)}
+  className="text-white hover:text-brand-green font-medium px-4 py-2 transition-colors"
+>
+  {item.title}
+</RouterLink>
+
+// AFTER (shadcn/ui defaults)
+<RouterLink to={resolveLink(item as LinkType)}>
+  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+    {item.title}
+  </NavigationMenuLink>
+</RouterLink>
+```
+
+**Mega Menu Trigger Styling**:
+```tsx
+// BEFORE (Complex overrides)
+<NavigationMenuTrigger className="text-white hover:text-brand-green font-medium bg-transparent hover:bg-transparent data-[state=open]:bg-transparent px-4 py-2 text-base">
+  {(item as MegaMenu).title}
+</NavigationMenuTrigger>
+
+// AFTER (Clean defaults)
+<NavigationMenuTrigger className={navigationMenuTriggerStyle()}>
+  {(item as MegaMenu).title}
+</NavigationMenuTrigger>
+```
+
+#### **🎯 Step 2: Mobile Navigation Simplification (`MobileNav.tsx`)**
+
+**AccordionTrigger Simplification**:
+```tsx
+// BEFORE (Custom hover overrides)
+<AccordionTrigger className="text-lg font-semibold py-3 hover:no-underline rounded-md px-3 hover:bg-neutral-800">
+  {column.title}
+</AccordionTrigger>
+
+// AFTER (Trust library defaults)
+<AccordionTrigger className="text-lg font-semibold py-3 hover:no-underline rounded-md px-3">
+  {column.title}
+</AccordionTrigger>
+```
+
+**Sheet Close Button - CSS-Only Solution**:
+```tsx
+// BEFORE (Custom JavaScript button)
+<SheetContent side="left" className="bg-brand-dark border-l border-neutral-800 text-white w-full max-w-sm p-0 flex flex-col">
+  {/* Custom close button with onClick handlers */}
+  <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
+    <X className="h-6 w-6" />
+    <span className="sr-only">Close menu</span>
+  </Button>
+</SheetContent>
+
+// AFTER (CSS-only duplicate button hiding)
+<SheetContent side="left" className="bg-brand-dark border-l border-neutral-800 text-white w-full max-w-sm p-0 flex flex-col [&>button]:hidden">
+  {/* Custom close button still present but default button hidden via CSS */}
+</SheetContent>
+```
+
+### Technical Benefits:
+
+#### **🧹 Code Simplification**:
+- **Removed Complex Overrides**: No more fighting with `data-[active]:bg-transparent focus:bg-transparent focus-visible:bg-transparent`
+- **Eliminated JavaScript Handlers**: No more `onTouchEnd={(e) => e.currentTarget.blur()}` workarounds
+- **CSS-Only Solutions**: Clean `[&>button]:hidden` selector instead of conditional rendering logic
+- **Default Style Trust**: Let shadcn/ui handle accessible states and interactions
+
+#### **🎨 Visual Consistency**:
+- **shadcn/ui Design System**: Embracing the library's intended visual language
+- **Accessible States**: Default focus, hover, and active states work as designed
+- **Consistent Interactions**: All navigation elements follow the same interaction patterns
+- **Reduced Visual Bugs**: No more state management conflicts or styling race conditions
+
+#### **🛠️ Maintainability Improvements**:
+- **Less Custom CSS**: Fewer classes to maintain and debug
+- **Library Updates**: Changes to shadcn/ui will automatically improve our components
+- **Cleaner Code**: More readable component structure without override complexity
+- **Future-Proof**: Less likely to break with library updates
+
+### CSS-Only Solutions Demonstrated:
+
+#### **`[&>button]:hidden` Technique**:
+```css
+/* This CSS selector targets the first direct child button element */
+/* Perfect for hiding shadcn/ui's automatically rendered close buttons */
+[&>button]:hidden {
+  display: none;
+}
+```
+
+**Benefits**:
+- ✅ **No JavaScript Required**: Pure CSS solution
+- ✅ **Surgical Precision**: Only hides the specific default button
+- ✅ **Maintainable**: No conditional rendering logic to maintain
+- ✅ **Performance**: No additional event handlers or state management
+
+### Architecture Philosophy:
+
+#### **Old Approach (Fighting the Library)**:
+```tsx
+// Complex overrides trying to force custom behavior
+className="hover:bg-neutral-800 focus:bg-transparent focus-visible:bg-transparent data-[active]:bg-transparent"
+onTouchEnd={(e) => e.currentTarget.blur()}
+```
+
+#### **New Approach (Embracing Defaults)**:
+```tsx
+// Clean, simple, trusting the library's design
+className={navigationMenuTriggerStyle()}
+className="[&>button]:hidden" // CSS-only solutions where needed
+```
+
+### Problem Resolution:
+
+#### **Issues Solved**:
+1. **Sticky Active States**: No more persistent white/grey backgrounds on NavigationMenuTrigger
+2. **Touch State Problems**: No more persistent dark backgrounds on AccordionTrigger after touch
+3. **Duplicate UI Elements**: Clean CSS-only solution for hiding default close buttons
+4. **Code Complexity**: Dramatically simplified component code
+
+#### **Approach Benefits**:
+- **Less Code to Debug**: Fewer custom overrides mean fewer potential bugs
+- **Better Accessibility**: Library defaults are thoroughly tested for accessibility
+- **Consistent UX**: All similar components behave the same way
+- **Easier Maintenance**: Updates to shadcn/ui improve our components automatically
+
+### Impact Assessment:
+
+**Before Simplification**:
+- ❌ Complex CSS overrides fighting library behavior
+- ❌ JavaScript handlers for UI state management
+- ❌ Inconsistent styling across similar components
+- ❌ Potential accessibility issues from custom overrides
+
+**After Simplification**:
+- ✅ **Clean Code**: Embracing library defaults with minimal customization
+- ✅ **CSS-Only Solutions**: Elegant solutions without JavaScript complexity
+- ✅ **Better Accessibility**: Library-tested accessible interactions
+- ✅ **Maintainable**: Less custom code to maintain and debug
+- ✅ **Future-Proof**: Compatible with library updates and improvements
+
+### Best Practices Established:
+
+1. **Trust the Library**: shadcn/ui components are designed with accessibility and UX in mind
+2. **CSS-Only When Possible**: Prefer CSS solutions over JavaScript for simple UI adjustments
+3. **Minimal Overrides**: Only customize what's absolutely necessary for brand requirements
+4. **Embrace Defaults**: Library defaults often provide better UX than custom implementations
+
+NOTE: This approach demonstrates the value of working WITH libraries rather than against them, resulting in cleaner, more maintainable, and more accessible code.
+
+---
+
 ## [2025-01-26] – STYLE RESTORATION: Original Navigation Link Styling Restored via Git History
 Goal: Restore original plain text navigation link styling by analyzing git history to remove shadcn/ui white box artifacts
 

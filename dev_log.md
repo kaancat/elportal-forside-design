@@ -1948,3 +1948,64 @@ Goal: Fix desktop mega menu intelligent positioning to prevent cutoff on smaller
 - Follows React/shadcn/ui component composition patterns
 
 ---
+
+## [2024-12-19] – URGENT FIX: Navigation Layout Restoration
+Goal: Fix broken navigation layout caused by incorrect NavigationMenu wrapper scope
+
+### Critical Issues Resolved:
+1. **Broken Three-Column Layout**: Previous changes wrapped entire header in NavigationMenu, destroying the proper layout structure
+2. **Cramped Navigation Links**: Menu items became compressed without proper spacing
+3. **Left-Aligned Mega Menu**: Mega menu positioning was incorrect due to layout disruption
+4. **Over-Engineering**: NavigationMenu scope was too broad, affecting entire header instead of just navigation
+
+### Changes Made:
+1. **Restored Proper Header Structure**:
+   - **Left**: Logo with `flex-shrink-0` (prevents compression)
+   - **Center**: Navigation with `flex-grow justify-center` (takes available space, centers content)
+   - **Right**: CTA Button with `flex-shrink-0` (prevents compression)
+   - **Layout**: `flex items-center justify-between` for proper three-column distribution
+
+2. **Fixed NavigationMenu Scope**:
+   - **Removed**: NavigationMenu wrapper from entire header
+   - **Restored**: NavigationMenu only wrapping NavigationMenuList (correct scope)
+   - **Removed**: NavigationMenuViewport import (not needed - built into NavigationMenu)
+
+3. **Restored Navigation Spacing**:
+   - **Regular Links**: `px-4 py-2` with proper spacing and hover transitions
+   - **Mega Menu Triggers**: Full styling restored with `bg-transparent hover:bg-transparent data-[state=open]:bg-transparent`
+   - **Proper Spacing**: Links now have adequate touch targets and visual separation
+
+4. **Intelligent Mega Menu Positioning**:
+   - NavigationMenu component includes NavigationMenuViewport by default
+   - Automatic viewport-aware positioning prevents cutoff on smaller screens
+   - No additional configuration needed - works out of the box
+
+### Technical Architecture:
+```tsx
+<header>
+  <div className="flex items-center justify-between"> // Three-column layout
+    <div className="flex-shrink-0">Logo</div>           // Left: Fixed width
+    <nav className="flex-grow justify-center">          // Center: Flexible width
+      <NavigationMenu>                                  // Scoped to navigation only
+        <NavigationMenuList>...</NavigationMenuList>
+      </NavigationMenu>
+    </nav>
+    <div className="flex-shrink-0">CTA Button</div>     // Right: Fixed width
+  </div>
+</header>
+```
+
+### Benefits Achieved:
+- ✅ **Professional Layout**: Restored industry-standard three-column header design
+- ✅ **Proper Spacing**: Navigation links have adequate padding and hover states
+- ✅ **Intelligent Positioning**: Mega menus automatically avoid viewport cutoff
+- ✅ **Mobile Responsive**: Maintains mobile navigation functionality
+- ✅ **Performance**: Minimal scope for NavigationMenu reduces unnecessary re-renders
+
+### Impact:
+- Navigation now displays with proper professional layout and spacing
+- Mega menus position intelligently without breaking header structure
+- All existing functionality preserved while fixing layout issues
+- User experience restored to expected professional standards
+
+**Lesson Learned**: Always scope NavigationMenu to only the navigation elements that need viewport positioning, not the entire header structure.

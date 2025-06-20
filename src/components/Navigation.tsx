@@ -98,7 +98,7 @@ const Navigation = () => {
               </RouterLink>
             </Button>
           )}
-          <MobileNav navItems={navItems} ctaButton={ctaButton} resolveLink={resolveLink} />
+          <MobileNav navItems={navItems} resolveLink={resolveLink} />
         </div>
 
       </div>

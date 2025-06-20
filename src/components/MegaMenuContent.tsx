@@ -18,9 +18,9 @@ const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
   };
 
   return (
-            <NavigationMenuContent>
-          <div className="bg-brand-dark p-8 md:p-10 border border-neutral-700 rounded-lg shadow-2xl">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 md:w-auto lg:min-w-[800px] xl:min-w-[900px]">
+    <NavigationMenuContent className="w-screen max-w-md md:max-w-2xl lg:max-w-4xl">
+      <div className="bg-brand-dark p-6 md:p-8 border border-neutral-700 rounded-lg shadow-2xl mx-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 w-full">
           {menu.content.map((column) => (
             <div key={column._key} className="flex flex-col">
               {column.title && (
@@ -31,27 +31,27 @@ const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
               <ul className="space-y-1">
                 {column.items.map((item) => (
                   <li key={item._key}>
-                                            <RouterLink
-                          to={resolveLink(item.link)}
-                          className="flex items-start text-left p-4 rounded-lg hover:bg-brand-green/20 transition-colors duration-200"
-                        >
-                          {item.icon?.metadata?.url && (
-                            <img 
-                              src={item.icon.metadata.url} 
-                              alt="" 
-                              className="h-6 w-6 mr-4 flex-shrink-0"
-                              style={{ filter: 'brightness(0) saturate(100%) invert(68%) sepia(35%) saturate(1067%) hue-rotate(85deg) brightness(98%) contrast(92%)' }}
-                            />
-                          )}
-                          <div>
-                            <p className="font-semibold text-white leading-tight">{item.title}</p>
-                            {item.description && (
-                              <p className="text-sm text-neutral-400 mt-1 font-normal leading-snug">
-                                {item.description}
-                              </p>
-                            )}
-                          </div>
-                        </RouterLink>
+                    <RouterLink
+                      to={resolveLink(item.link)}
+                      className="flex items-start text-left p-3 md:p-4 rounded-lg hover:bg-brand-green/20 transition-colors duration-200"
+                    >
+                      {item.icon?.metadata?.url && (
+                        <img 
+                          src={item.icon.metadata.url} 
+                          alt="" 
+                          className="h-5 w-5 md:h-6 md:w-6 mr-3 md:mr-4 flex-shrink-0"
+                          style={{ filter: 'brightness(0) saturate(100%) invert(68%) sepia(35%) saturate(1067%) hue-rotate(85deg) brightness(98%) contrast(92%)' }}
+                        />
+                      )}
+                      <div>
+                        <p className="font-semibold text-white leading-tight text-sm md:text-base">{item.title}</p>
+                        {item.description && (
+                          <p className="text-xs md:text-sm text-neutral-400 mt-1 font-normal leading-snug">
+                            {item.description}
+                          </p>
+                        )}
+                      </div>
+                    </RouterLink>
                   </li>
                 ))}
               </ul>

@@ -1,5 +1,28 @@
 # Dev Log
 
+## [2024-12-29] – PageSectionComponent: Remove Frame + Add Subtle Animation
+Goal: Remove border frame from images while keeping shadows and adding subtle framer-motion animation
+
+- **VISUAL REFINEMENT**: Removed border frame that didn't look good
+- **Animation Enhancement**: Added subtle framer-motion animation to images
+  - Fade-in effect: `opacity: 0` to `opacity: 1`
+  - Gentle slide-up: `y: 20` to `y: 0`
+  - Smooth easing: `duration: 0.6, ease: "easeOut"`
+  - Performance optimized: `viewport={{ once: true }}`
+- **Styling Improvements**:
+  - Removed border (`border border-neutral-200`) and background wrapper
+  - Removed inner padding (`p-2`) that created frame effect
+  - Applied shadow directly to image (`shadow-xl shadow-black/10`)
+  - Kept rounded corners (`rounded-xl`) for modern look
+- **Code Enhancement**: Added framer-motion import and motion wrapper
+
+**Impact**: Images now have a cleaner, more elegant appearance with engaging subtle animation on scroll.
+
+**BEFORE**: Framed images with border and padding wrapper
+**AFTER**: Clean images with shadows and smooth fade-in animation
+
+---
+
 ## [2024-12-29] – PageSectionComponent: Professional SaaS Styling Refactor
 Goal: Refactor PageSectionComponent to match polished, professional style of modern SaaS websites
 

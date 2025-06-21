@@ -1,5 +1,30 @@
 # Dev Log
 
+## [2024-12-29] – CRITICAL FIX: Icon URL Rendering Bug  
+Goal: Fix application crash caused by incorrect data type passed to Sanity image builder
+
+- **BUG IDENTIFIED**: App crashing with "Unable to resolve image URL from source" error
+- **ROOT CAUSE**: Passing `icon.manager` object to `urlFor()` instead of native Sanity image type
+- **SOLUTION**: Use direct SVG URL from icon metadata, bypass Sanity image builder
+- **ValuePropositionComponent Fix**:
+  - Changed `src={urlFor(item.icon).width(24).height(24).url()}` 
+  - To `src={item.icon.metadata.url}` (direct URL access)
+  - Removed unused `urlFor` import
+- **FeatureListComponent Fix**:
+  - Changed `src={urlFor(feature.icon).width(48).height(48).url()}`
+  - To `src={feature.icon.metadata.url}` (direct URL access)
+  - Removed unused `urlFor` import
+- **Technical Details**:
+  - Icon picker provides `icon.manager` objects with direct URLs
+  - Sanity's `urlFor()` only works with native Sanity image types
+  - Direct URL access prevents type mismatch errors
+
+**Impact**: Eliminates application crashes when rendering custom icons from icon picker.
+
+**CRITICAL**: This fix resolves the "Unable to resolve image URL from source" runtime error that was preventing the app from functioning properly.
+
+---
+
 ## [2024-12-29] – Component Upgrades: New Icon Data Structure Support  
 Goal: Upgrade ValuePropositionComponent and FeatureListComponent to handle new icon data structure from updated Sanity schemas
 

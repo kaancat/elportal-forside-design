@@ -1,5 +1,4 @@
 import React from 'react';
-import { urlFor } from '@/lib/sanity';
 
 interface FeatureListComponentProps {
   block: any;
@@ -22,7 +21,7 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
               <div className="flex items-center justify-center h-20 w-20 mb-6 rounded-full bg-brand-primary-light/10">
                 {feature.icon?.metadata?.url && (
                   <img 
-                    src={urlFor(feature.icon).width(48).height(48).url()}
+                    src={feature.icon.metadata.url}
                     alt=""
                     className="h-12 w-12"
                   />

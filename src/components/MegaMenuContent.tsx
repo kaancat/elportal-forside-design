@@ -1,6 +1,5 @@
 ﻿import React from 'react';
 import { MegaMenu } from '@/types/sanity';
-import { NavigationMenuContent } from '@/components/ui/navigation-menu';
 import { Link as RouterLink } from 'react-router-dom';
 
 interface MegaMenuContentProps {
@@ -18,9 +17,8 @@ const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
   };
 
   return (
-    <NavigationMenuContent>
-      <div className="bg-brand-dark p-8 border border-neutral-700 rounded-lg shadow-2xl">
-        <div className="grid grid-cols-3 gap-x-8 gap-y-4 w-[900px]">
+    <div className="container mx-auto px-4 py-8">
+      <div className="grid grid-cols-3 gap-x-8 gap-y-4">
           {menu.content.map((column) => (
             <div key={column._key} className="flex flex-col">
               {column.title && (
@@ -58,8 +56,7 @@ const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
             </div>
           ))}
         </div>
-      </div>
-    </NavigationMenuContent>
+    </div>
   );
 };
 

@@ -1,5 +1,173 @@
 # Dev Log
 
+## [2025-01-26] – HERO COMPONENT: Strategic Hard Reset with Clean Light Theme
+Goal: Complete replacement of hero component with clean, light-themed design using subtle gradient and reliable flexbox layout
+
+### Strategic Decision: Hard Reset Approach
+**Reason**: Previous dark gradient implementation created a "flashlight" effect and broke image layout
+**Solution**: Complete rewrite with light background and subtle top-down gradient
+
+### Changes Applied:
+
+#### **🎨 Step 1: Light Theme with Subtle Gradient**
+```tsx
+// BEFORE (Dark gradient - problematic)
+const brandDark = '#001a12';
+const brandGreen = '#84db41';
+const backgroundStyle = {
+  background: `radial-gradient(circle at 50% 50%, ${brandGreen}15 0%, ${brandDark} 40%)`
+};
+
+// AFTER (Light theme with subtle gradient)
+const brandGreen = '#A3F596'; 
+const backgroundStyle = {
+  background: `radial-gradient(ellipse 80% 50% at 50% -20%, rgba(163, 245, 150, 0.3), transparent)`
+};
+```
+
+**Visual Improvements**:
+- **Background**: Clean white base with subtle green gradient from top
+- **Gradient Shape**: Elliptical (80% width, 50% height) positioned above section
+- **Opacity**: 30% transparency for subtle effect
+- **Direction**: Top-down fade for natural lighting effect
+
+#### **🎯 Step 2: Typography Restoration**
+```tsx
+// BEFORE (White text for dark background)
+<h1 className="text-white">
+<p className="text-neutral-300">
+
+// AFTER (Dark text for light background)
+<h1 className="text-brand-dark">
+<p className="text-neutral-600">
+```
+
+**Readability Improvements**:
+- **Headlines**: Brand-dark text for maximum contrast
+- **Subheadlines**: Neutral-600 for excellent readability
+- **Consistency**: Matches overall light theme approach
+
+#### **🖼️ Step 3: Reliable Flexbox Layout**
+```tsx
+// BEFORE (Absolute positioning - complex and unreliable)
+<div className="mt-16 relative h-96 flex justify-center items-center">
+  {images.map((image, index) => {
+    let styles = {};
+    if (index === 0) styles = { transform: 'rotate(-6deg) translateY(10px)', zIndex: 10 };
+    return (
+      <motion.div className="absolute" style={styles}>
+
+// AFTER (Flexbox with CSS classes - reliable and maintainable)
+<div className="mt-16 flex justify-center items-center space-x-[-15%]">
+  {images.map((image, index) => {
+    let transformClass = '';
+    if (index === 0) transformClass = '-rotate-6';
+    if (index === 1) transformClass = 'z-10 scale-110';
+    if (index === 2) transformClass = 'rotate-6';
+    return (
+      <motion.div className={`relative ${transformClass}`}>
+```
+
+**Layout Improvements**:
+- **Flexbox Base**: Reliable horizontal centering
+- **Negative Spacing**: `space-x-[-15%]` creates controlled overlap
+- **CSS Classes**: Tailwind transforms instead of inline styles
+- **Relative Positioning**: Simpler than absolute positioning
+- **Maintainable**: Easy to understand and modify
+
+#### **🎬 Step 4: Simplified Animations**
+```tsx
+// BEFORE (Complex staggered animations)
+initial={{ opacity: 0, y: 20 }}
+animate={{ opacity: 1, y: 0 }}
+custom={index}
+variants={{
+  animate: (i) => ({
+    transition: { delay: i * 0.2 },
+  }),
+}}
+
+// AFTER (Clean hover-only animations)
+whileHover={{ scale: 1.15, zIndex: 20, y: -10 }}
+transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+```
+
+**Animation Simplifications**:
+- **Removed**: Complex staggered entry animations
+- **Focus**: Clean hover interactions only
+- **Hover Effects**: Scale, lift, and z-index priority
+- **Performance**: Simpler animation logic
+
+#### **🖼️ Step 5: Enhanced Image Styling**
+```tsx
+// BEFORE (Dark theme styling)
+className="rounded-xl border border-neutral-200/50 shadow-2xl shadow-black/20 w-auto"
+style={{ maxHeight: '320px' }}
+
+// AFTER (Light theme with card-like styling)
+className="rounded-xl border border-neutral-200 bg-white p-1 shadow-2xl shadow-black/10 w-full"
+```
+
+**Styling Improvements**:
+- **Card Effect**: White background with padding creates card appearance
+- **Subtle Border**: Full opacity border for clean definition
+- **Lighter Shadow**: 10% opacity shadow for light background
+- **Responsive Width**: `w-full` for consistent sizing
+
+### Technical Architecture:
+
+#### **🔧 Layout Strategy**:
+- **Base**: Flexbox with justify-center for horizontal alignment
+- **Overlap**: Negative spacing (`space-x-[-15%]`) for controlled overlap
+- **Transforms**: CSS classes for rotations and scaling
+- **Hierarchy**: Z-index management through CSS classes
+
+#### **🎨 Visual Hierarchy**:
+- **Background**: Subtle gradient creates depth without distraction
+- **Images**: Card-like styling with shadows for elevation
+- **Typography**: High contrast dark text on light background
+- **CTA**: Brand-green button with dark text for accessibility
+
+#### **⚡ Performance Benefits**:
+- **Simpler DOM**: No complex absolute positioning
+- **CSS Classes**: Tailwind classes are optimized
+- **Reduced Animations**: Less complex animation logic
+- **Better Rendering**: Flexbox is hardware-accelerated
+
+### Impact Assessment:
+
+**Before Hard Reset**:
+- ❌ "Flashlight" gradient effect
+- ❌ Broken image layout with absolute positioning
+- ❌ Poor contrast with dark background
+- ❌ Complex animation logic
+
+**After Hard Reset**:
+- ✅ **Clean Design**: Subtle light theme with professional gradient
+- ✅ **Reliable Layout**: Flexbox-based overlapping with CSS transforms
+- ✅ **Excellent Readability**: High contrast typography
+- ✅ **Maintainable Code**: Simple, understandable implementation
+- ✅ **Performance**: Optimized animations and layout
+- ✅ **Accessibility**: Proper contrast ratios and readable text
+
+### Strategic Benefits:
+
+#### **🛠️ Maintainability**:
+- **Simpler Code**: Less complex positioning logic
+- **CSS Classes**: Tailwind utilities instead of inline styles
+- **Predictable**: Flexbox behavior is well-understood
+- **Debuggable**: Easier to troubleshoot layout issues
+
+#### **🎯 Reliability**:
+- **Cross-Browser**: Flexbox has excellent support
+- **Responsive**: Adapts well to different screen sizes
+- **Consistent**: Predictable rendering across devices
+- **Future-Proof**: Uses standard web technologies
+
+NOTE: This strategic hard reset prioritizes reliability, maintainability, and visual clarity over complex effects. The result is a professional, accessible hero component that works consistently across all environments.
+
+---
+
 ## [2025-01-26] – HERO COMPONENT: Final Design Polish with Radial Gradient & Staggered Layout
 Goal: Apply final design polish to hero component with radial gradient background and sophisticated staggered overlapping image layout
 

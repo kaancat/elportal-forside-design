@@ -1,5 +1,30 @@
 # Dev Log
 
+## [2024-12-29] – HeroComponent Mobile Fix: Full Background on All Devices
+Goal: Fix mobile responsiveness to match Apollo design with full background image on all screen sizes
+
+- **CRITICAL FIX**: Updated mobile layout to use full background image with overlay (matching Apollo pattern)
+- **Unified Layout**: Both desktop and mobile now use the same immersive background approach
+  - Background image visible on ALL screen sizes (removed `hidden md:block`)
+  - Dark overlay applied on ALL screen sizes (removed `hidden md:block`)
+  - White text on ALL screen sizes (simplified to `text-white`)
+- **Consistent Styling**: 
+  - Full viewport height on all devices: `calc(100vh - 8rem)`
+  - Proper overflow handling with `overflow-hidden`
+  - Responsive padding: `py-16 px-4 md:py-16 md:px-8`
+- **Removed Mobile-Specific Elements**: 
+  - Eliminated separate mobile image display
+  - Removed conditional text colors
+  - Simplified layout structure
+- **Apollo Pattern Match**: Now correctly implements the Apollo mobile design with full background
+
+**Impact**: Mobile experience now matches Apollo's immersive full-background design instead of the previous stacked layout.
+
+**BEFORE**: Mobile had white background with dark text and image below
+**AFTER**: Mobile has full background image with overlay and white text (matches Apollo)
+
+---
+
 ## [2024-12-29] – HeroComponent Refactor: Full Responsive Design
 Goal: Refactor HeroComponent to implement distinct desktop and mobile layouts following Apollo design patterns
 

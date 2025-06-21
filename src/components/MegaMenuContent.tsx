@@ -14,7 +14,7 @@ const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
     if (!link.internalLink?.slug) return '/';
     
     // You might want to expand this based on the _type of internalLink
-    return /;
+    return `/${link.internalLink.slug}`;
   };
 
   return (

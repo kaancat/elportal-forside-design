@@ -67,15 +67,16 @@ const GenericPage = () => {
   return (
     <div className="min-h-screen bg-white">
       <Navigation />
-      <main className="container mx-auto py-12 px-4">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">{pageData.title}</h1>
+      <main>
         {pageData.contentBlocks && pageData.contentBlocks.length > 0 ? (
           <ContentBlocks blocks={pageData.contentBlocks} />
         ) : (
-          <div className="prose prose-lg max-w-none">
-            <p className="text-gray-600">
-              No content blocks available for this page.
-            </p>
+          <div className="container mx-auto py-12 px-4">
+            <div className="prose prose-lg max-w-none">
+              <p className="text-gray-600">
+                No content blocks available for this page.
+              </p>
+            </div>
           </div>
         )}
       </main>

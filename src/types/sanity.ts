@@ -132,6 +132,17 @@ export interface HeroWithCalculator {
   _key: string
 }
 
+export interface HeroBlock {
+  _type: 'hero'
+  _key: string
+  headline: string
+  subheadline?: string
+  cta?: {
+    text: string
+    link: string
+  }
+}
+
 export interface MonthlyProductionChartBlock {
   _type: 'monthlyProductionChart'
   _key: string
@@ -197,6 +208,7 @@ export type ContentBlock =
   | RenewableEnergyForecast 
   | PriceCalculator 
   | HeroWithCalculator 
+  | HeroBlock
   | MonthlyProductionChartBlock
   | ProviderListBlock
   | FeatureListBlock

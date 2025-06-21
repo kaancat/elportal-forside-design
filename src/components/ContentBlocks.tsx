@@ -16,6 +16,7 @@ import MonthlyProductionChart from './MonthlyProductionChart'
 import ProviderList from './ProviderList'
 import { FeatureListComponent } from './FeatureListComponent'
 import { ValuePropositionComponent } from './ValuePropositionComponent'
+import HeroComponent from './HeroComponent'
 
 interface ContentBlocksProps {
   blocks: ContentBlock[]
@@ -96,6 +97,9 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         } else if (block._type === 'heroWithCalculator') {
           console.log('Rendering heroWithCalculator as HeroSection:', block)
           return <HeroSection key={block._key} />
+        } else if (block._type === 'hero') {
+          console.log('Passing hero to HeroComponent:', block)
+          return <HeroComponent key={block._key} block={block} />
         } else if (block._type === 'monthlyProductionChart') {
           console.log('Passing monthlyProductionChart to MonthlyProductionChart:', block)
           return <MonthlyProductionChart key={block._key} block={block as MonthlyProductionChartBlock} />

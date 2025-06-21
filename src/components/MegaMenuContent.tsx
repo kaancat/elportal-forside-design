@@ -19,8 +19,10 @@ const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
 
   return (
     <NavigationMenuContent>
-      <div className="bg-brand-dark p-8 border border-neutral-700 rounded-lg shadow-2xl">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 w-screen max-w-5xl">
+      {/* The outer div no longer needs a border or shadow, as the viewport now has it */}
+      <div className="bg-brand-dark p-8"> 
+        {/* This div no longer needs any width constraints */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
           {menu.content.map((column) => (
             <div key={column._key} className="flex flex-col">
               {column.title && (

@@ -2,8 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { SanityService } from '@/services/sanityService';
 import { SiteSettings, Link as LinkType, MegaMenu } from '@/types/sanity';
+import {
+  NavigationMenu,
+  NavigationMenuList,
+  NavigationMenuItem,
+  NavigationMenuTrigger,
+  NavigationMenuLink,
+} from '@/components/ui/navigation-menu';
 import { Button } from '@/components/ui/button';
-import CustomMegaMenu from './CustomMegaMenu';
+import MegaMenuContent from './MegaMenuContent';
 import MobileNav from './MobileNav';
 
 const Navigation = () => {
@@ -47,22 +54,31 @@ const Navigation = () => {
         
         {/* Center: Desktop Navigation (hidden on small screens) */}
         <nav className="hidden md:flex flex-grow justify-center">
-          <ul className="flex items-center space-x-8">
-            {navItems.map((item) => (
-              <li key={item._key}>
-                {item._type === 'link' ? (
-                  <RouterLink 
-                    to={resolveLink(item as LinkType)}
-                    className="text-white hover:text-brand-green font-medium py-2 transition-colors"
-                  >
-                    {item.title}
-                  </RouterLink>
-                ) : (
-                  <CustomMegaMenu item={item as MegaMenu} />
-                )}
-              </li>
-            ))}
-          </ul>
+          <NavigationMenu>
+            <NavigationMenuList>
+              {navItems.map((item) => (
+                <NavigationMenuItem key={item._key}>
+                  {item._type === 'link' ? (
+                    <NavigationMenuLink asChild>
+                      <RouterLink 
+                        to={resolveLink(item as LinkType)}
+                        className="text-white hover:text-brand-green font-medium px-4 py-2 transition-colors"
+                      >
+                        {item.title}
+                      </RouterLink>
+                    </NavigationMenuLink>
+                  ) : (
+                    <>
+                      <NavigationMenuTrigger className="text-white hover:text-brand-green font-medium bg-transparent hover:bg-transparent data-[state=open]:bg-transparent px-4 py-2 text-base border-0">
+                        {(item as MegaMenu).title}
+                      </NavigationMenuTrigger>
+                      <MegaMenuContent menu={item as MegaMenu} />
+                    </>
+                  )}
+                </NavigationMenuItem>
+              ))}
+            </NavigationMenuList>
+          </NavigationMenu>
         </nav>
 
         {/* Right side: CTA Button (hidden on small screens) */}

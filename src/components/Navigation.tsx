@@ -30,7 +30,7 @@ const Navigation = () => {
   const resolveLink = (link: LinkType) => {
     if (link.linkType === 'external') return link.externalUrl || '#';
     if (!link.internalLink?.slug) return '/';
-    return /;
+    return `/${link.internalLink.slug}`;
   };
 
   if (!settings) {

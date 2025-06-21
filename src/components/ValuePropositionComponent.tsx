@@ -1,13 +1,13 @@
 import React from 'react';
-import type { ValuePropositionBlock } from '@/types/sanity'; // Assuming this type will be created
+import { urlFor } from '@/lib/sanity';
 import { Check, Info } from 'lucide-react';
 
 interface ValuePropositionComponentProps {
-  block: ValuePropositionBlock;
+  block: any;
 }
 
 export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps> = ({ block }) => {
-  if (!block || !block.propositions) return null;
+  if (!block || !block.items) return null;
 
     return (
     <section className="py-16 lg:py-24">
@@ -22,10 +22,18 @@ export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps>
             </div>
           )}
           <ul className="space-y-3 pl-1">
-            {block.propositions.map((proposition, index) => (
-              <li key={index} className="flex items-center">
-                <Check className="h-6 w-6 text-brand-primary mr-3 flex-shrink-0" />
-                <span className="text-lg text-gray-800">{proposition}</span>
+            {block.items.map((item: any, index: number) => (
+              <li key={item._key || index} className="flex items-center">
+                {item.icon?.metadata?.url ? (
+                  <img 
+                    src={urlFor(item.icon).width(24).height(24).url()}
+                    alt=""
+                    className="h-6 w-6 mr-3 flex-shrink-0"
+                  />
+                ) : (
+                  <Check className="h-6 w-6 text-brand-primary mr-3 flex-shrink-0" />
+                )}
+                <span className="text-lg text-gray-800">{item.text}</span>
               </li>
             ))}
           </ul>

@@ -32,23 +32,39 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
           </Button>
         )}
         
-        {/* CLEAN, SIMPLE, AND ROBUST FLEXBOX LAYOUT */}
+        {/* ENHANCED BROWSER FRAME LAYOUT */}
         {images && images.length > 0 && (
           <div className="mt-16">
             <div className="flex justify-center items-center gap-6">
               {images.map((image, index) => (
                 <motion.div
                   key={image.asset._ref || index}
-                  className="flex-shrink-0" // Prevents images from squishing
+                  className="flex-shrink-0"
                   whileHover={{ scale: 1.05, y: -8 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  style={{
+                    // Make the single image larger
+                    maxWidth: images.length === 1 ? "768px" : "400px",
+                    width: "100%",
+                  }}
                 >
-                  <img
-                    src={urlFor(image).width(800).quality(85).url()}
-                    alt={image.alt || `Hero image ${index + 1}`}
-                    className="rounded-xl border border-neutral-200 bg-white p-2 shadow-xl shadow-black/10"
-                    style={{ maxHeight: "400px", width: "auto" }}
-                  />
+                  {/* --- NEW BROWSER FRAME WRAPPER --- */}
+                  <div className="rounded-xl border border-neutral-200 bg-white shadow-2xl shadow-black/10">
+                    {/* Mock browser header */}
+                    <div className="flex items-center p-3 border-b border-neutral-200">
+                      <div className="flex space-x-1.5">
+                        <div className="w-2.5 h-2.5 rounded-full bg-red-400"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-yellow-400"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-green-400"></div>
+                      </div>
+                    </div>
+                    {/* The Image Itself */}
+                    <img
+                      src={urlFor(image).width(1200).quality(85).url()}
+                      alt={image.alt || `Hero image ${index + 1}`}
+                      className="w-full h-auto" // No rounded corners on the image itself anymore
+                    />
+                  </div>
                 </motion.div>
               ))}
             </div>

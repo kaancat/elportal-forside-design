@@ -1,15 +1,8 @@
 import React from 'react';
-import type { FeatureListBlock } from '@/types/sanity'; // Assuming this type will be created
-import * as Icons from 'lucide-react';
-
-// A helper to safely get an icon component by name
-const getIcon = (name: string) => {
-  const IconComponent = (Icons as any)[name];
-  return IconComponent ? <IconComponent className="h-8 w-8 text-brand-green" /> : null;
-};
+import { urlFor } from '@/lib/sanity';
 
 interface FeatureListComponentProps {
-  block: FeatureListBlock;
+  block: any;
 }
 
 export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ block }) => {
@@ -24,15 +17,20 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
           </h2>
         )}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 justify-items-center">
-          {block.features.map((feature, index) => (
+          {block.features.map((feature: any, index: number) => (
             <div key={feature._key} className="flex flex-col items-center text-center max-w-sm">
-              <div className="flex items-center justify-center h-16 w-16 mb-6 rounded-full bg-brand-primary-light/10">
-                {getIcon(feature.icon)}
+              <div className="flex items-center justify-center h-20 w-20 mb-6 rounded-full bg-brand-primary-light/10">
+                {feature.icon?.metadata?.url && (
+                  <img 
+                    src={urlFor(feature.icon).width(48).height(48).url()}
+                    alt=""
+                    className="h-12 w-12"
+                  />
+                )}
               </div>
               <h3 className="text-xl font-bold text-brand-dark mb-3">
-                {`${index + 1}. ${feature.title}`}
+                {feature.title}
               </h3>
-              {/* Constrain the paragraph width for a compact look */}
               <p className="text-gray-600 leading-relaxed">
                 {feature.description}
               </p>

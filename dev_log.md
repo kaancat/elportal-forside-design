@@ -1,5 +1,37 @@
 # Dev Log
 
+## [2024-12-29] – Component Upgrades: New Icon Data Structure Support  
+Goal: Upgrade ValuePropositionComponent and FeatureListComponent to handle new icon data structure from updated Sanity schemas
+
+- **DATA STRUCTURE MIGRATION**: Updated both components for new Sanity icon schema
+- **ValuePropositionComponent Changes**:
+  - Changed from `block.propositions` to `block.items` array structure
+  - Added support for custom icons via `item.icon?.metadata?.url`
+  - Fallback to default `Check` icon when no custom icon provided
+  - Added proper key handling with `item._key || index`
+  - Updated import to use `@/lib/sanity` for `urlFor` function
+- **FeatureListComponent Changes**:
+  - Removed `getIcon` helper function and lucide-react icon imports
+  - Added custom icon support via `feature.icon?.metadata?.url`
+  - Render icons as `<img>` elements with proper sizing (48x48px)
+  - Increased icon container size from 16x16 to 20x20 for better proportion
+  - Removed numbered prefixes from feature titles for cleaner appearance
+  - Updated import to use `@/lib/sanity` for `urlFor` function
+- **Code Improvements**:
+  - Simplified interface types to use `any` for flexibility during schema migration
+  - Better error handling with optional chaining (`?.`)
+  - Consistent sizing and styling across both components
+
+**Impact**: Both components now support the new Sanity icon data structure while maintaining backward compatibility and visual consistency.
+
+**Migration Benefits**:
+- **Flexible Icons**: Support for custom SVG/image icons from Sanity
+- **Better Performance**: Direct image rendering instead of dynamic icon loading
+- **Cleaner Code**: Removed complex icon helper functions
+- **Consistent Styling**: Unified approach to icon rendering across components
+
+---
+
 ## [2024-12-29] – PageSectionComponent: Remove Frame + Add Subtle Animation
 Goal: Remove border frame from images while keeping shadows and adding subtle framer-motion animation
 

@@ -11,9 +11,8 @@ interface HeroProps {
 const HeroComponent: React.FC<HeroProps> = ({ block }) => {
   const { headline, subheadline, cta, images } = block;
 
-  // Enhanced gradient - more pronounced but still professional
   const backgroundStyle = {
-    background: `radial-gradient(ellipse 70% 40% at 50% -10%, rgba(132, 219, 65, 0.12), transparent 60%)`
+    background: `radial-gradient(ellipse 70% 50% at 50% -10%, rgba(132, 219, 65, 0.15), transparent 70%)`
   };
 
   return (
@@ -33,51 +32,26 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
           </Button>
         )}
         
-        {/* Refined Image Layout with Proper Sizing and Single Image Handling */}
+        {/* CLEAN, SIMPLE, AND ROBUST FLEXBOX LAYOUT */}
         {images && images.length > 0 && (
-          <div className={`mt-16 flex justify-center items-center ${images.length > 1 ? "space-x-[-8%]" : ""}`}>
-            {images.map((image, index) => {
-              let transformClass = "";
-              
-              // Only apply transforms for multiple images
-              if (images.length > 1) {
-                if (images.length === 2) {
-                  // Two image layout
-                  if (index === 0) transformClass = "-rotate-3 translate-y-2";
-                  if (index === 1) transformClass = "rotate-3 -translate-y-2 z-10";
-                } else if (images.length === 3) {
-                  // Three image layout (like Seamless.ai)
-                  if (index === 0) transformClass = "-rotate-6 translate-y-3";
-                  if (index === 1) transformClass = "z-10 scale-105";
-                  if (index === 2) transformClass = "rotate-6 translate-y-3";
-                }
-              }
-              // Single image gets no transforms - just centered
-
-              return (
+          <div className="mt-16">
+            <div className="flex justify-center items-center gap-6">
+              {images.map((image, index) => (
                 <motion.div
                   key={image.asset._ref || index}
-                  className={`relative ${transformClass}`}
-                  style={{ 
-                    maxWidth: images.length === 1 ? "400px" : "280px",
-                    width: "100%"
-                  }}
-                  whileHover={{ 
-                    scale: images.length === 1 ? 1.05 : 1.1, 
-                    zIndex: 20, 
-                    y: -8,
-                    rotate: images.length > 1 ? 0 : undefined
-                  }}
+                  className="flex-shrink-0" // Prevents images from squishing
+                  whileHover={{ scale: 1.05, y: -8 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 >
                   <img
-                    src={urlFor(image).width(400).quality(85).url()}
+                    src={urlFor(image).width(800).quality(85).url()}
                     alt={image.alt || `Hero image ${index + 1}`}
-                    className="rounded-xl border border-neutral-200 bg-white p-2 shadow-xl shadow-black/8 w-full h-auto"
+                    className="rounded-xl border border-neutral-200 bg-white p-2 shadow-xl shadow-black/10"
+                    style={{ maxHeight: "400px", width: "auto" }}
                   />
                 </motion.div>
-              );
-            })}
+              ))}
+            </div>
           </div>
         )}
       </div>

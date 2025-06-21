@@ -141,6 +141,7 @@ export interface HeroBlock {
     text: string
     link: string
   }
+  images?: SanityImage[]
 }
 
 export interface MonthlyProductionChartBlock {

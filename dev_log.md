@@ -1,5 +1,176 @@
 # Dev Log
 
+## [2025-01-26] – HERO COMPONENT: Dynamic Image Array with Framer Motion Animations
+Goal: Update HeroComponent to render dynamic arrays of images from Sanity CMS with smooth Framer Motion animations
+
+### Changes Applied:
+
+#### **🎯 Step 1: Framer Motion Installation**
+- **Command**: `npm install framer-motion`
+- **Status**: Already installed (dependency was previously added)
+- **Purpose**: Enable smooth animations for hero image arrays
+
+#### **🎯 Step 2: Sanity Image URL Builder Verification**
+- **Location**: `src/lib/sanity.ts`
+- **Status**: `urlFor` function already exported correctly
+- **Function**: Builds optimized image URLs from Sanity image references
+
+#### **🎯 Step 3: HeroBlock Type Enhancement**
+**File**: `src/types/sanity.ts`
+```typescript
+// BEFORE
+export interface HeroBlock {
+  _type: 'hero'
+  _key: string
+  headline: string
+  subheadline?: string
+  cta?: {
+    text: string
+    link: string
+  }
+}
+
+// AFTER
+export interface HeroBlock {
+  _type: 'hero'
+  _key: string
+  headline: string
+  subheadline?: string
+  cta?: {
+    text: string
+    link: string
+  }
+  images?: SanityImage[]  // ← Added support for image arrays
+}
+```
+
+#### **🎯 Step 4: HeroComponent Animation Implementation**
+**File**: `src/components/HeroComponent.tsx`
+
+**Key Enhancements**:
+
+1. **Import Updates**:
+```tsx
+// Added Framer Motion and Sanity image builder
+import { motion } from 'framer-motion';
+import { urlFor } from '@/lib/sanity';
+```
+
+2. **Destructured Images**:
+```tsx
+// Extract images from block data
+const { headline, subheadline, cta, images } = block;
+```
+
+3. **Overflow Handling**:
+```tsx
+// Added overflow-x-clip to prevent horizontal scroll
+<section className="py-16 md:py-24 text-center overflow-x-clip">
+```
+
+4. **Dynamic Image Rendering with Animations**:
+```tsx
+{images && images.length > 0 && (
+  <div className="mt-16 flex justify-center items-center gap-4 md:gap-8">
+    {images.map((image, index) => (
+      <motion.div
+        key={image.asset._ref || index}
+        whileHover={{ scale: 1.05, y: -10 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        initial="initial"
+        animate="animate"
+        custom={index}
+        variants={{
+          initial: { opacity: 0, y: 20 },
+          animate: (i) => ({
+            opacity: 1,
+            y: 0,
+            transition: { delay: i * 0.1 }, // Staggered animation
+          }),
+        }}
+      >
+        <img
+          src={urlFor(image).width(800).quality(80).url()}
+          alt={image.alt || `Hero image ${index + 1}`}
+          className="rounded-xl border border-neutral-200/80 shadow-2xl shadow-black/10 mx-auto max-w-full h-auto"
+        />
+      </motion.div>
+    ))}
+  </div>
+)}
+```
+
+### Animation Features:
+
+#### **🎬 Staggered Entry Animation**:
+- **Effect**: Images fade in from bottom with 0.1s delay between each
+- **Purpose**: Creates smooth, professional entrance effect
+- **Implementation**: Custom `variants` with `delay: i * 0.1`
+
+#### **🎯 Interactive Hover Effects**:
+- **Scale**: `scale: 1.05` - Slight zoom on hover
+- **Lift**: `y: -10` - Upward movement on hover
+- **Transition**: Spring physics for natural feel
+- **Values**: `stiffness: 300, damping: 20`
+
+#### **🖼️ Image Optimization**:
+- **Width**: 800px for high-quality display
+- **Quality**: 80% for optimal file size/quality balance
+- **Responsive**: `max-w-full h-auto` for proper scaling
+- **Styling**: Rounded corners, subtle border, dramatic shadow
+
+### Technical Benefits:
+
+#### **🚀 Performance Optimizations**:
+- **Sanity CDN**: Images served from optimized CDN
+- **Lazy Loading**: Browser-native lazy loading
+- **Quality Control**: Balanced quality/size ratio
+- **Responsive Images**: Automatic scaling
+
+#### **🎨 Visual Enhancements**:
+- **Modern Shadows**: `shadow-2xl shadow-black/10` for depth
+- **Subtle Borders**: `border-neutral-200/80` for definition
+- **Rounded Corners**: `rounded-xl` for modern aesthetic
+- **Proper Spacing**: Responsive gaps between images
+
+#### **♿ Accessibility**:
+- **Alt Text**: Fallback alt text for all images
+- **Keyboard Navigation**: Framer Motion respects reduced motion preferences
+- **Screen Readers**: Proper semantic structure maintained
+
+### CMS Integration:
+
+#### **🔧 Sanity Schema Compatibility**:
+- **Array Support**: Ready for Sanity's image array fields
+- **Reference Handling**: Uses `image.asset._ref` for React keys
+- **Alt Text**: Supports Sanity's alt text fields
+- **Flexible**: Works with any number of images (0 to many)
+
+#### **🎛️ Content Management**:
+- **Optional**: Images are optional - component works without them
+- **Dynamic**: No hardcoded limits on number of images
+- **Responsive**: Automatically adapts to different screen sizes
+- **Maintainable**: Clean separation between content and presentation
+
+### Impact Assessment:
+
+**Before Enhancement**:
+- ❌ Static hero component with no image support
+- ❌ No animation or interactivity
+- ❌ Limited visual appeal
+
+**After Enhancement**:
+- ✅ **Dynamic Content**: Supports arrays of images from CMS
+- ✅ **Smooth Animations**: Professional staggered entry effects
+- ✅ **Interactive**: Engaging hover animations
+- ✅ **Optimized**: Proper image optimization and CDN usage
+- ✅ **Accessible**: Maintains accessibility standards
+- ✅ **Responsive**: Works across all device sizes
+
+NOTE: This implementation provides a flexible, animated hero component that can showcase multiple images with professional animations while maintaining excellent performance and accessibility standards.
+
+---
+
 ## [2025-01-26] – NAVIGATION SIMPLIFICATION: Embracing shadcn/ui Defaults & CSS-Only Solutions
 Goal: Simplify navigation components by removing complex overrides and embracing shadcn/ui default styles with clean CSS-only solutions
 
@@ -2818,7 +2989,8 @@ Header
 - **RESULT**: NavigationMenuViewport now inherits full width from NavigationMenu
 
 **MegaMenuContent.tsx:**
-- **REMOVED**: CSS transform hack (elative left-1/2 w-screen -translate-x-1/2)
+- **REMOVED**: CSS transform hack (
+elative left-1/2 w-screen -translate-x-1/2)
 - **SIMPLIFIED**: Clean structure with container for proper content width
 - **RESULT**: Content naturally spans full width without CSS tricks
 

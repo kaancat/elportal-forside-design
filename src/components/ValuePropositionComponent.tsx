@@ -1,5 +1,4 @@
 import React from 'react';
-import { urlFor } from '@/lib/sanity';
 import { Check, Info } from 'lucide-react';
 
 interface ValuePropositionComponentProps {
@@ -26,7 +25,7 @@ export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps>
               <li key={item._key || index} className="flex items-center">
                 {item.icon?.metadata?.url ? (
                   <img 
-                    src={urlFor(item.icon).width(24).height(24).url()}
+                    src={item.icon.metadata.url}
                     alt=""
                     className="h-6 w-6 mr-3 flex-shrink-0"
                   />

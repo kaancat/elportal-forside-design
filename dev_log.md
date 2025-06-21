@@ -1,5 +1,154 @@
 # Dev Log
 
+## [2025-01-26] – HERO COMPONENT: Strategic Hard Reset to "Apollo" Layered Design
+Goal: Complete replacement of hero component with correct "Apollo" implementation using layered background image, dark overlay, and centered text content
+
+### Problem Analysis:
+- **Previous Misinterpretation**: Earlier attempts incorrectly implemented "Apollo" as two-column layout
+- **Correct Understanding**: Apollo design uses single layered component with background image, overlay, and centered content
+- **Strategic Decision**: Complete file replacement rather than incremental changes
+
+### New "Apollo" Implementation:
+
+#### **🎯 Step 1: Layered Architecture**
+```tsx
+// Three-layer structure using absolute positioning
+<div className="relative rounded-2xl overflow-hidden">
+  {/* Layer 1: Background Image */}
+  <img className="absolute inset-0 w-full h-full object-cover" />
+  
+  {/* Layer 2: Dark Overlay */}
+  <div className="absolute inset-0 bg-black/50"></div>
+  
+  {/* Layer 3: Text Content */}
+  <div className="relative z-10 flex flex-col items-center justify-center">
+</div>
+```
+
+**Architecture Benefits**:
+- **Clean Separation**: Each layer has distinct responsibility
+- **Proper Stacking**: Z-index management ensures correct layering
+- **Responsive**: Adapts to all screen sizes with flexible content
+- **Accessible**: Maintains proper contrast with overlay
+
+#### **🖼️ Step 2: Background Image Strategy**
+```tsx
+// Use only the FIRST image from array as background
+const backgroundImage = images && images.length > 0 ? images[0] : null;
+
+// High-resolution background with proper sizing
+<img
+  src={urlFor(backgroundImage).width(1400).quality(85).url()}
+  alt={backgroundImage.alt || "Hero background"}
+  className="absolute inset-0 w-full h-full object-cover"
+/>
+```
+
+**Image Handling**:
+- **Single Focus**: Uses first image only for clean, focused design
+- **High Resolution**: 1400px width for crisp display across devices
+- **Object Cover**: Maintains aspect ratio while filling container
+- **Semantic Alt**: Proper accessibility with descriptive alt text
+
+#### **🎨 Step 3: Visual Design System**
+```tsx
+// Dark overlay for text contrast
+<div className="absolute inset-0 bg-black/50"></div>
+
+// White text with proper hierarchy
+<div className="text-white min-h-[400px]">
+  <h1 className="text-4xl md:text-6xl font-bold tracking-tighter mb-4">
+  <p className="text-lg md:text-xl text-neutral-200 mb-8">
+```
+
+**Design Elements**:
+- **Overlay**: 50% black opacity ensures text readability
+- **Typography**: White primary text with neutral-200 secondary
+- **Spacing**: Generous padding (p-8 md:p-16) for breathing room
+- **Minimum Height**: 400px ensures substantial presence
+
+#### **🔧 Step 4: Container Structure**
+```tsx
+// Outer section with generous padding
+<section className="py-20 md:py-32">
+  <div className="container mx-auto px-4">
+    {/* Rounded container with overflow hidden */}
+    <div className="relative rounded-2xl overflow-hidden">
+```
+
+**Layout Benefits**:
+- **Generous Spacing**: py-20/py-32 creates substantial section presence
+- **Container Constraint**: Maintains readable width on large screens
+- **Rounded Corners**: Modern aesthetic with rounded-2xl
+- **Overflow Hidden**: Ensures background image respects rounded corners
+
+### Technical Improvements:
+
+#### **🚀 Performance Optimizations**:
+- **Removed Dependencies**: No longer requires framer-motion for this component
+- **Simplified DOM**: Fewer nested elements than previous browser frame approach
+- **Optimized Images**: Single high-res background vs multiple animated images
+- **CSS Efficiency**: Uses Tailwind utilities for optimal performance
+
+#### **♿ Accessibility Enhancements**:
+- **Proper Contrast**: Dark overlay ensures WCAG compliance
+- **Semantic Structure**: Logical heading hierarchy maintained
+- **Alt Text**: Descriptive alt attributes for background images
+- **Focus Management**: Maintains keyboard navigation compatibility
+
+#### **📱 Responsive Design**:
+- **Mobile First**: Scales typography and spacing appropriately
+- **Flexible Layout**: Content adapts to container without breaking
+- **Touch Friendly**: Button sizing appropriate for mobile interaction
+- **Performance**: Single image loads faster on mobile connections
+
+### Removed Features:
+- ❌ **Browser Frame Wrapper**: No longer needed for layered design
+- ❌ **Multiple Image Display**: Focuses on single background image
+- ❌ **Framer Motion Animations**: Simplified to static layered design
+- ❌ **Complex Hover Effects**: Emphasizes content over interactions
+- ❌ **Gradient Backgrounds**: Replaced with actual image backgrounds
+
+### Strategic Benefits:
+
+#### **🎯 Design Coherence**:
+- **True Apollo Style**: Correctly implements layered hero pattern
+- **Visual Impact**: Full-width background creates dramatic effect
+- **Content Focus**: Text content is primary focus with image support
+- **Brand Consistency**: Maintains brand colors in CTA button
+
+#### **🛠️ Maintainability**:
+- **Simpler Structure**: Easier to understand and modify
+- **Fewer Dependencies**: Reduced complexity and bundle size
+- **Clear Separation**: Distinct layers make debugging straightforward
+- **Flexible Content**: Easy to modify text without affecting layout
+
+#### **⚡ Performance**:
+- **Faster Loading**: Single image vs multiple animated images
+- **Smaller Bundle**: Removed animation dependencies
+- **Better Core Web Vitals**: Simpler DOM structure
+- **Mobile Optimized**: Reduced complexity improves mobile performance
+
+### Impact Assessment:
+
+**Before Apollo Reset**:
+- ❌ Misinterpreted design pattern (browser frames vs layered)
+- ❌ Complex animation logic with performance overhead
+- ❌ Multiple images competing for attention
+- ❌ Inconsistent with true Apollo design principles
+
+**After Apollo Reset**:
+- ✅ **Correct Implementation**: True layered Apollo design pattern
+- ✅ **Dramatic Visual Impact**: Full background image with overlay
+- ✅ **Content Hierarchy**: Clear focus on headline and CTA
+- ✅ **Performance Optimized**: Simpler, faster-loading implementation
+- ✅ **Maintainable**: Clean, understandable code structure
+- ✅ **Accessible**: Proper contrast and semantic structure
+
+NOTE: This strategic hard reset abandons the previous browser frame approach in favor of the correct Apollo layered design. The result is a more impactful, performant, and maintainable hero component that properly implements the intended design pattern.
+
+---
+
 ## [2025-01-26] – HERO COMPONENT: Browser Frame Enhancement for Professional Image Presentation
 Goal: Elevate hero design by wrapping images in styled browser frame containers to eliminate "postcard" look and create professional, substantial appearance
 

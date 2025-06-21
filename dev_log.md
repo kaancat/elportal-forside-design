@@ -1,5 +1,27 @@
 # Dev Log
 
+## [2024-12-29] – HeroComponent Refactor: Full Responsive Design
+Goal: Refactor HeroComponent to implement distinct desktop and mobile layouts following Apollo design patterns
+
+- **MAJOR ARCHITECTURE CHANGE**: Completely refactored HeroComponent.tsx to be fully responsive
+- **Desktop Layout**: Immersive "contained card" layout with full-height background image, dark overlay, and centered white text
+  - Uses `calc(100vh - 8rem)` for full viewport height minus header space
+  - Background image only visible on md+ screens with dark overlay
+  - Rounded corners and padding on desktop (`md:rounded-2xl`, `md:p-4`)
+- **Mobile Layout**: Clean stacked layout with dark text on white background
+  - Background image hidden on mobile (`hidden md:block`)
+  - Image displayed below text content on mobile only (`md:hidden`)
+  - Optimized image sizes: 1600px for desktop background, 800px for mobile
+- **Responsive Text Colors**: `text-brand-dark md:text-white` and `text-neutral-600 md:text-neutral-200`
+- **Import Fix**: Corrected import from `@/services/sanityService` to `@/lib/sanity` for `urlFor` function
+- **Type Simplification**: Changed from `HeroBlock` to `any` for more flexible block handling
+
+**Impact**: This creates a modern, responsive hero component that adapts perfectly to different screen sizes while maintaining visual hierarchy and readability.
+
+NOTE: This follows the Apollo design pattern with sophisticated desktop presentation and mobile-first responsive behavior.
+
+---
+
 ## [2025-01-26] – HERO COMPONENT: Strategic Hard Reset to "Apollo" Layered Design
 Goal: Complete replacement of hero component with correct "Apollo" implementation using layered background image, dark overlay, and centered text content
 

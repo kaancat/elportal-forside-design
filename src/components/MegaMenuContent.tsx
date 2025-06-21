@@ -14,12 +14,12 @@ const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
     if (!link.internalLink?.slug) return '/';
     
     // You might want to expand this based on the _type of internalLink
-    return `/${link.internalLink.slug}`;
+    return /;
   };
 
   return (
     <NavigationMenuContent>
-      <div className="relative left-1/2 w-screen -translate-x-1/2 bg-brand-dark border border-neutral-700 shadow-2xl">
+      <div className="bg-brand-dark border border-neutral-700 shadow-2xl">
         <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
             {menu.content.map((column) => (

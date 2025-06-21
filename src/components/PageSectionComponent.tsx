@@ -1,4 +1,5 @@
 import React from 'react'
+import { motion } from 'framer-motion'
 import { urlFor } from '@/lib/sanity'
 import { PortableText } from '@portabletext/react'
 import LivePriceGraphComponent from './LivePriceGraphComponent'
@@ -68,13 +69,18 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
           {/* Image Column */}
           <div className={`order-1 ${imagePosition === 'right' ? 'md:order-2' : ''}`}>
             {image && (
-              <div className="rounded-xl border border-neutral-200 bg-white shadow-xl shadow-black/10 p-2">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                viewport={{ once: true }}
+              >
                 <img
                   src={urlFor(image).width(1000).quality(85).url()}
                   alt={image.alt || title}
-                  className="rounded-lg w-full h-auto"
+                  className="rounded-xl w-full h-auto shadow-xl shadow-black/10"
                 />
-              </div>
+              </motion.div>
             )}
           </div>
 

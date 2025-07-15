@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Loader2, Map, BarChart3, Download, Filter } from 'lucide-react'
+import { Municipalities } from 'react-denmark-map'
 
 // Types
 interface MunicipalCapacityData {
@@ -65,12 +66,14 @@ const COLORS = {
   conventional: '#6b7280'
 }
 
-// Municipality names mapping (simplified - in production, use a complete mapping)
+// Comprehensive Danish municipality names mapping
 const MUNICIPALITY_NAMES: { [key: number]: string } = {
+  // Capital Region (Region Hovedstaden)
   101: 'København',
   147: 'Frederiksberg',
   151: 'Ballerup',
   153: 'Brøndby',
+  155: 'Dragør',
   157: 'Gentofte',
   159: 'Gladsaxe',
   161: 'Glostrup',
@@ -84,7 +87,91 @@ const MUNICIPALITY_NAMES: { [key: number]: string } = {
   185: 'Tårnby',
   187: 'Vallensbæk',
   190: 'Furesø',
-  // Add more as needed
+  210: 'Fredensborg',
+  217: 'Helsingør',
+  219: 'Hillerød',
+  223: 'Hørsholm',
+  230: 'Rudersdal',
+  240: 'Egedal',
+  250: 'Allerød',
+  253: 'Frederiksborg',
+  259: 'Gribskov',
+  260: 'Halsnæs',
+  
+  // Zealand Region (Region Sjælland)
+  306: 'Odsherred',
+  316: 'Holbæk',
+  320: 'Faxe',
+  326: 'Kalundborg',
+  329: 'Ringsted',
+  330: 'Glostrup',
+  336: 'Stevns',
+  340: 'Sorø',
+  350: 'Lejre',
+  360: 'Lolland',
+  370: 'Næstved',
+  376: 'Guldborgsund',
+  390: 'Vordingborg',
+  400: 'Bornholm',
+  
+  // Southern Denmark Region (Region Syddanmark)
+  410: 'Middelfart',
+  420: 'Assens',
+  430: 'Faaborg-Midtfyn',
+  440: 'Kerteminde',
+  450: 'Nyborg',
+  461: 'Odense',
+  479: 'Svendborg',
+  480: 'Nordfyns',
+  482: 'Langeland',
+  492: 'Ærø',
+  510: 'Haderslev',
+  530: 'Billund',
+  540: 'Sønderborg',
+  550: 'Tønder',
+  561: 'Esbjerg',
+  563: 'Fanø',
+  573: 'Varde',
+  575: 'Vejen',
+  580: 'Aabenraa',
+  607: 'Fredericia',
+  615: 'Horsens',
+  621: 'Kolding',
+  630: 'Vejle',
+  
+  // Central Denmark Region (Region Midtjylland)
+  657: 'Herning',
+  661: 'Holstebro',
+  665: 'Lemvig',
+  671: 'Struer',
+  706: 'Syddjurs',
+  707: 'Norddjurs',
+  710: 'Favrskov',
+  727: 'Odder',
+  730: 'Randers',
+  740: 'Silkeborg',
+  741: 'Samsø',
+  746: 'Skanderborg',
+  751: 'Aarhus',
+  756: 'Ikast-Brande',
+  760: 'Ringkøbing-Skjern',
+  766: 'Hedensted',
+  779: 'Skive',
+  787: 'Viborg',
+  
+  // North Denmark Region (Region Nordjylland)
+  825: 'Brovst',
+  840: 'Rebild',
+  846: 'Mariagerfjord',
+  849: 'Jammerbugt',
+  851: 'Aalborg',
+  860: 'Hjørring',
+  861: 'Frederikshavn',
+  863: 'Vesthimmerlands',
+  865: 'Læsø',
+  
+  // Additional municipalities
+  411: 'Christiansø' // Administered directly by the state
 }
 
 const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
@@ -140,7 +227,7 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
         const result: MunicipalCapacityAPIResponse = await response.json()
 
         if (!result.success) {
-          throw new Error(result.error || 'Failed to fetch data')
+          throw new Error(result.error || 'Kunne ikke hente data')
         }
 
         if (result.data) {
@@ -155,7 +242,7 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
         }
 
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load data')
+        setError(err instanceof Error ? err.message : 'Kunne ikke indlæse data')
       } finally {
         setLoading(false)
       }
@@ -187,7 +274,7 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
   // Chart data preparation
   const chartData = useMemo(() => {
     return topMunicipalities.map(municipality => ({
-      name: MUNICIPALITY_NAMES[municipality.municipalityNo] || `Municipality ${municipality.municipalityNo}`,
+      name: MUNICIPALITY_NAMES[municipality.municipalityNo] || `Kommune ${municipality.municipalityNo}`,
       municipalityNo: municipality.municipalityNo,
       totalCapacity: municipality.totalCapacity,
       renewableCapacity: municipality.renewableCapacity,
@@ -210,9 +297,9 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
     }), { solar: 0, onshoreWind: 0, offshoreWind: 0 })
 
     return [
-      { name: 'Solar', value: totalRenewable.solar, color: COLORS.solar },
-      { name: 'Onshore Wind', value: totalRenewable.onshoreWind, color: COLORS.onshoreWind },
-      { name: 'Offshore Wind', value: totalRenewable.offshoreWind, color: COLORS.offshoreWind }
+      { name: 'Solenergi', value: totalRenewable.solar, color: COLORS.solar },
+      { name: 'Landvind', value: totalRenewable.onshoreWind, color: COLORS.onshoreWind },
+      { name: 'Havvind', value: totalRenewable.offshoreWind, color: COLORS.offshoreWind }
     ].filter(item => item.value > 0)
   }, [data, totalStats])
 
@@ -221,15 +308,15 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
     if (!enableDataExport) return
 
     const csvData = data.map(municipality => ({
-      Municipality: MUNICIPALITY_NAMES[municipality.municipalityNo] || municipality.municipalityNo,
-      Month: municipality.month,
-      'Total Capacity (MW)': municipality.totalCapacity,
-      'Renewable Capacity (MW)': municipality.renewableCapacity,
-      'Solar (MW)': municipality.capacityBreakdown.solar,
-      'Onshore Wind (MW)': municipality.capacityBreakdown.onshoreWind,
-      'Offshore Wind (MW)': municipality.capacityBreakdown.offshoreWind,
-      'Conventional (MW)': municipality.capacityBreakdown.conventional,
-      'Renewable Percentage': municipality.renewablePercentage.toFixed(1)
+      Kommune: MUNICIPALITY_NAMES[municipality.municipalityNo] || municipality.municipalityNo,
+      Måned: municipality.month,
+      'Total Kapacitet (MW)': municipality.totalCapacity,
+      'Vedvarende Kapacitet (MW)': municipality.renewableCapacity,
+      'Solenergi (MW)': municipality.capacityBreakdown.solar,
+      'Landvind (MW)': municipality.capacityBreakdown.onshoreWind,
+      'Havvind (MW)': municipality.capacityBreakdown.offshoreWind,
+      'Konventionel (MW)': municipality.capacityBreakdown.conventional,
+      'Vedvarende Procent': municipality.renewablePercentage.toFixed(1)
     }))
 
     const csvContent = [
@@ -250,7 +337,7 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin mb-4" />
-        <p className="text-gray-600">Loading municipal capacity data...</p>
+        <p className="text-gray-600">Indlæser kommunal kapacitetsdata...</p>
       </div>
     )
   }
@@ -258,7 +345,7 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
   if (error) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-        <h3 className="text-red-800 font-semibold mb-2">Error loading data</h3>
+        <h3 className="text-red-800 font-semibold mb-2">Fejl ved indlæsning af data</h3>
         <p className="text-red-600">{error}</p>
       </div>
     )
@@ -277,11 +364,11 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
             <TabsList>
               <TabsTrigger value="map" className="flex items-center gap-2">
                 <Map className="h-4 w-4" />
-                Map
+                Kort
               </TabsTrigger>
               <TabsTrigger value="chart" className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
-                Charts
+                Diagrammer
               </TabsTrigger>
               <TabsTrigger value="combined">Combined</TabsTrigger>
             </TabsList>
@@ -290,10 +377,10 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
           {showMunicipalityFilter && (
             <Select value={selectedMunicipality?.toString() || ''} onValueChange={(value) => setSelectedMunicipality(value ? parseInt(value) : null)}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="All municipalities" />
+                <SelectValue placeholder="Alle kommuner" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All municipalities</SelectItem>
+                <SelectItem value="">Alle kommuner</SelectItem>
                 {Object.entries(MUNICIPALITY_NAMES).map(([no, name]) => (
                   <SelectItem key={no} value={no}>{name}</SelectItem>
                 ))}
@@ -307,11 +394,11 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All capacity types</SelectItem>
-                <SelectItem value="renewable">Renewable only</SelectItem>
-                <SelectItem value="solar">Solar only</SelectItem>
-                <SelectItem value="onshoreWind">Onshore Wind only</SelectItem>
-                <SelectItem value="offshoreWind">Offshore Wind only</SelectItem>
+                <SelectItem value="all">Alle kapacitetstyper</SelectItem>
+                <SelectItem value="renewable">Kun vedvarende</SelectItem>
+                <SelectItem value="solar">Kun solenergi</SelectItem>
+                <SelectItem value="onshoreWind">Kun landvind</SelectItem>
+                <SelectItem value="offshoreWind">Kun havvind</SelectItem>
               </SelectContent>
             </Select>
           )}
@@ -319,7 +406,7 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
           {enableDataExport && (
             <Button onClick={exportData} variant="outline" className="flex items-center gap-2">
               <Download className="h-4 w-4" />
-              Export CSV
+              Eksportér CSV
             </Button>
           )}
         </div>
@@ -336,7 +423,7 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Capacity</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600">Total Kapacitet</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalStats.totalCapacity.toLocaleString()} MW</div>
@@ -344,7 +431,7 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Renewable Capacity</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600">Vedvarende Kapacitet</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalStats.totalRenewable.toLocaleString()} MW</div>
@@ -352,7 +439,7 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Renewable Share</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600">Vedvarende Andel</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalStats.renewablePercentage.toFixed(1)}%</div>
@@ -372,16 +459,115 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
       {/* Main Content */}
       <Tabs value={activeView} onValueChange={(value) => setActiveView(value as 'map' | 'chart' | 'combined')}>
         <TabsContent value="map" className="space-y-6">
-          {/* Map placeholder - in production, integrate with Denmark SVG map */}
+          {/* Interactive Denmark Municipality Map */}
           <Card>
             <CardHeader>
-              <CardTitle>Municipal Capacity Map</CardTitle>
+              <CardTitle>Kommunalt Kapacitetskort</CardTitle>
+              <p className="text-sm text-gray-600 mt-2">Klik på kommuner for at se detaljerede kapacitetsdata</p>
             </CardHeader>
             <CardContent>
-              <div className="bg-gray-100 rounded-lg p-8 text-center">
-                <Map className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-600">Interactive Denmark map will be implemented here</p>
-                <p className="text-sm text-gray-500 mt-2">Click municipalities to view detailed capacity data</p>
+              <div className="w-full" style={{ height: '500px' }}>
+                <Municipalities
+                  onClick={(municipality) => {
+                    // Find municipality data by matching name or code
+                    const municipalityData = data.find(d => 
+                      d.municipalityNo.toString() === municipality.lau1 ||
+                      MUNICIPALITY_NAMES[d.municipalityNo] === municipality.label_dk
+                    )
+                    if (municipalityData) {
+                      setSelectedMunicipality(municipalityData.municipalityNo)
+                    }
+                  }}
+                  customizeAreas={(municipality) => {
+                    // Find data for this municipality
+                    const municipalityData = data.find(d => 
+                      d.municipalityNo.toString() === municipality.lau1 ||
+                      MUNICIPALITY_NAMES[d.municipalityNo] === municipality.label_dk
+                    )
+                    
+                    if (!municipalityData) {
+                      return {
+                        style: {
+                          fill: '#f3f4f6',
+                          stroke: '#d1d5db',
+                          strokeWidth: 1,
+                          cursor: 'pointer'
+                        }
+                      }
+                    }
+                    
+                    // Color based on renewable percentage
+                    const renewablePercent = municipalityData.renewablePercentage
+                    let fillColor = '#f3f4f6' // Default gray
+                    
+                    if (renewablePercent > 80) {
+                      fillColor = '#10b981' // High renewable - green
+                    } else if (renewablePercent > 60) {
+                      fillColor = '#34d399' // Good renewable - light green
+                    } else if (renewablePercent > 40) {
+                      fillColor = '#fbbf24' // Medium renewable - yellow
+                    } else if (renewablePercent > 20) {
+                      fillColor = '#f59e0b' // Low renewable - orange
+                    } else {
+                      fillColor = '#ef4444' // Very low renewable - red
+                    }
+                    
+                    return {
+                      style: {
+                        fill: selectedMunicipality === municipalityData.municipalityNo ? '#3b82f6' : fillColor,
+                        stroke: '#374151',
+                        strokeWidth: selectedMunicipality === municipalityData.municipalityNo ? 2 : 1,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                      }
+                    }
+                  }}
+                  tooltip={(municipality) => {
+                    const municipalityData = data.find(d => 
+                      d.municipalityNo.toString() === municipality.lau1 ||
+                      MUNICIPALITY_NAMES[d.municipalityNo] === municipality.label_dk
+                    )
+                    
+                    if (!municipalityData) {
+                      return `${municipality.label_dk || municipality.label_en}: Ingen data`
+                    }
+                    
+                    return `${municipality.label_dk || municipality.label_en}
+Vedvarende: ${municipalityData.renewablePercentage.toFixed(1)}%
+Total: ${municipalityData.totalCapacity.toFixed(0)} MW`
+                  }}
+                />
+              </div>
+              
+              {/* Legend */}
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <h4 className="text-sm font-semibold mb-2">Vedvarende Energi Andel:</h4>
+                <div className="flex flex-wrap gap-3 text-xs">
+                  <div className="flex items-center gap-1">
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: '#10b981' }}></div>
+                    <span>80%+ (Høj)</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: '#34d399' }}></div>
+                    <span>60-80% (God)</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: '#fbbf24' }}></div>
+                    <span>40-60% (Mellem)</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: '#f59e0b' }}></div>
+                    <span>20-40% (Lav)</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: '#ef4444' }}></div>
+                    <span>0-20% (Meget lav)</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: '#f3f4f6' }}></div>
+                    <span>Ingen data</span>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -391,7 +577,7 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
           {/* Top Municipalities Chart */}
           <Card>
             <CardHeader>
-              <CardTitle>Top Municipalities by Renewable Capacity</CardTitle>
+              <CardTitle>Top Kommuner efter Vedvarende Kapacitet</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={400}>
@@ -400,9 +586,9 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
                   <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="solar" fill={COLORS.solar} name="Solar" />
-                  <Bar dataKey="onshoreWind" fill={COLORS.onshoreWind} name="Onshore Wind" />
-                  <Bar dataKey="offshoreWind" fill={COLORS.offshoreWind} name="Offshore Wind" />
+                  <Bar dataKey="solar" fill={COLORS.solar} name="Solenergi" />
+                  <Bar dataKey="onshoreWind" fill={COLORS.onshoreWind} name="Landvind" />
+                  <Bar dataKey="offshoreWind" fill={COLORS.offshoreWind} name="Havvind" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -411,7 +597,7 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
           {/* Renewable Energy Breakdown */}
           <Card>
             <CardHeader>
-              <CardTitle>Renewable Energy Breakdown</CardTitle>
+              <CardTitle>Vedvarende Energi Fordeling</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -442,12 +628,12 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Municipal Capacity Map</CardTitle>
+                <CardTitle>Kommunalt Kapacitetskort</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="bg-gray-100 rounded-lg p-6 text-center">
                   <Map className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                  <p className="text-gray-600">Interactive map</p>
+                  <p className="text-gray-600">Interaktivt kort</p>
                 </div>
               </CardContent>
             </Card>
@@ -463,7 +649,7 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
                     <XAxis dataKey="name" angle={-45} textAnchor="end" height={60} />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey="renewableCapacity" fill={COLORS.onshoreWind} name="Renewable Capacity" />
+                    <Bar dataKey="renewableCapacity" fill={COLORS.onshoreWind} name="Vedvarende Kapacitet" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -472,7 +658,7 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
 
           <Card>
             <CardHeader>
-              <CardTitle>Renewable Energy Distribution</CardTitle>
+              <CardTitle>Vedvarende Energi Distribution</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={200}>
@@ -507,9 +693,9 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
 
       {/* Footer */}
       <div className="mt-8 text-sm text-gray-500 text-center">
-        <p>Data source: EnergiDataService.dk</p>
+        <p>Datakilde: EnergiDataService.dk</p>
         {lastUpdated && (
-          <p>Last updated: {new Date(lastUpdated).toLocaleString('da-DK')}</p>
+          <p>Sidst opdateret: {new Date(lastUpdated).toLocaleString('da-DK')}</p>
         )}
       </div>
     </div>

@@ -195,18 +195,6 @@ export interface ValuePropositionBlock {
   propositions: string[]
 }
 
-export interface MunicipalCapacityBlock {
-  _type: 'municipalCapacityMap'
-  _key: string
-  title: string
-  subtitle?: string
-  viewType: 'map' | 'chart' | 'combined'
-  selectedMonth?: string
-  showMunicipalityFilter: boolean
-  showCapacityTypes: boolean
-  enableDataExport: boolean
-  description?: string
-}
 
 // Centralized ContentBlock union type
 export type ContentBlock = 
@@ -227,7 +215,6 @@ export type ContentBlock =
   | ProviderListBlock
   | FeatureListBlock
   | ValuePropositionBlock
-  | MunicipalCapacityBlock
 
 export interface HomePage {
   _id: string

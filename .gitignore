@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 .env
 
+# Claude files with sensitive patterns
+.claude/
+docs/specs/example-feature-specification.md
+

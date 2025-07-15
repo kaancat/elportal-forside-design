@@ -466,9 +466,16 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
               <p className="text-sm text-gray-600 mt-2">Klik på kommuner for at se detaljerede kapacitetsdata</p>
             </CardHeader>
             <CardContent>
-              <div className="w-full" style={{ height: '500px' }}>
-                <Municipalities
-                  onClick={(municipality) => {
+              <div className="w-full max-w-2xl mx-auto px-4">
+                <div style={{ position: 'relative', paddingBottom: '75%' }}>
+                  <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
+                    <Municipalities
+                      style={{ 
+                        width: '100%', 
+                        height: '100%',
+                        maxWidth: '100%'
+                      }}
+                      onClick={(municipality) => {
                     // Find municipality data by matching name or code
                     const municipalityData = data.find(d => 
                       d.municipalityNo.toString() === municipality.lau1 ||
@@ -536,7 +543,9 @@ const MunicipalCapacityComponent: React.FC<MunicipalCapacityComponentProps> = ({
 Vedvarende: ${municipalityData.renewablePercentage.toFixed(1)}%
 Total: ${municipalityData.totalCapacity.toFixed(0)} MW`
                   }}
-                />
+                    />
+                  </div>
+                </div>
               </div>
               
               {/* Legend */}

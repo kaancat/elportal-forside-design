@@ -143,7 +143,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     })
   }
 
-  const clientIP = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.socket.remoteAddress || 'unknown'
+  // Get client IP for rate limiting (Node.js runtime compatible)
+  const clientIP = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.connection?.remoteAddress || 'unknown'
   const ip = Array.isArray(clientIP) ? clientIP[0] : clientIP
 
   // Check rate limiting
@@ -201,11 +202,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     })
 
     if (!response.ok) {
+      console.error(`EnergiDataService API error: ${response.status} ${response.statusText}`)
+      
       // Check if it's a rate limit error
       if (response.status === 429) {
-        throw new Error('EnergiDataService rate limit exceeded')
+        throw new Error('EnergiDataService rate limit exceeded. Please try again later.')
       }
-      throw new Error(`EnergiDataService API error: ${response.status}`)
+      
+      // Try to get error details from response
+      let errorMessage = `EnergiDataService API error: ${response.status}`
+      try {
+        const errorText = await response.text()
+        if (errorText) {
+          errorMessage += ` - ${errorText}`
+        }
+      } catch (e) {
+        // If we can't read the error, just use the status
+      }
+      
+      throw new Error(errorMessage)
     }
 
     const data: EnergiDataServiceResponse = await response.json()
@@ -252,6 +267,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     // Try to return stale cached data
     const staleData = cache.get(cacheKey)
     if (staleData) {
+      console.log('Returning stale cached data due to API error')
       return res.status(200).json({
         success: true,
         data: staleData.data,
@@ -259,16 +275,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       })
     }
 
+    // Return a structured error response
+    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch municipal capacity data'
+    console.error('No cached data available, returning error:', errorMessage)
+    
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch municipal capacity data'
+      error: errorMessage,
+      timestamp: new Date().toISOString()
     })
   }
 }
 
-// Edge runtime configuration for better performance
-export const config = {
-  runtime: 'edge',
-  regions: ['arn1'], // Stockholm region for lower latency to Denmark
-  maxDuration: 10
-}
+// Using Node.js runtime for better compatibility with complex server logic

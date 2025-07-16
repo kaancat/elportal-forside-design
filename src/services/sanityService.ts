@@ -28,13 +28,15 @@ export class SanityService {
               _type,
               title,
               subtitle,
-              apiRegion
+              apiRegion,
+              headerAlignment
             },
             _type == "renewableEnergyForecast" => {
               _key,
               _type,
               title,
-              leadingText
+              leadingText,
+              headerAlignment
             },
             _type == "priceCalculator" => {
               _key,
@@ -87,19 +89,22 @@ export class SanityService {
           _key,
           _type,
           title,
-          leadingText
+          leadingText,
+          headerAlignment
         },
         _type == "livePriceGraph" => {
           title,
           subtitle,
-          apiRegion
+          apiRegion,
+          headerAlignment
         },
         _type == "monthlyProductionChart" => {
           _key,
           _type,
           title,
           leadingText,
-          description
+          description,
+          headerAlignment
         },
         _type == "providerList" => {
           _key,
@@ -301,13 +306,15 @@ export class SanityService {
               _type,
               title,
               subtitle,
-              apiRegion
+              apiRegion,
+              headerAlignment
             },
             _type == "renewableEnergyForecast" => {
               _key,
               _type,
               title,
-              leadingText
+              leadingText,
+              headerAlignment
             },
             _type == "priceCalculator" => {
               _key,
@@ -359,7 +366,8 @@ export class SanityService {
         _type == "livePriceGraph" => {
           title,
           subtitle,
-          apiRegion
+          apiRegion,
+          headerAlignment
         },
         _type == "realPriceComparisonTable" => {
           _key,
@@ -406,13 +414,15 @@ export class SanityService {
           _type,
           title,
           leadingText,
-          description
+          description,
+          headerAlignment
         },
         _type == "renewableEnergyForecast" => {
           _key,
           _type,
           title,
-          leadingText
+          leadingText,
+          headerAlignment
         },
         _type == "co2EmissionsChart" => {
           _key,

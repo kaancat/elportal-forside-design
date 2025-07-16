@@ -111,6 +111,7 @@ export interface LivePriceGraph {
   title: string
   subtitle?: string
   apiRegion: 'DK1' | 'DK2'
+  headerAlignment?: 'left' | 'center' | 'right'
 }
 
 export interface RealPriceComparisonTable {
@@ -125,6 +126,7 @@ export interface RenewableEnergyForecast {
   _key: string
   title: string
   leadingText?: string
+  headerAlignment?: 'left' | 'center' | 'right'
 }
 
 export interface CO2EmissionsChart {
@@ -166,6 +168,7 @@ export interface MonthlyProductionChartBlock {
   title: string
   leadingText?: string
   description?: string
+  headerAlignment?: 'left' | 'center' | 'right'
 }
 
 export interface ProviderProductBlock {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
+import { Municipalities, MunicipalityType } from 'react-denmark-map';
 import { scaleSequential } from 'd3-scale';
 import { interpolateGreens, interpolateBlues, interpolateReds } from 'd3-scale-chromatic';
 import { MapPin, Activity, Zap, Building2, Home, Info, Filter, Download, Calendar } from 'lucide-react';
@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { PortableText } from '@portabletext/react';
-// Removed tooltip imports - using custom implementation
 import type { ConsumptionMap } from '@/types/sanity';
 import type { MunicipalityConsumption, ConsumptionMapResponse } from '@/utils/municipality/types';
 import { 
@@ -19,22 +18,19 @@ import {
   calculateConsumptionStats 
 } from '@/utils/municipality/municipalityMapper';
 import { debug } from '@/utils/debug';
-import { loadAndSimplifyGeoJSON, getRecommendedTolerance } from '@/utils/geojson-simplify';
+import { 
+  getMunicipalityNameFromCode, 
+  getMunicipalityCodeFromName 
+} from '@/utils/municipality/municipalityCodeMapping';
 
 interface ConsumptionMapProps {
   block: ConsumptionMap;
 }
 
-// Official Danish government API for municipality boundaries (2007 reform - 98 municipalities)
-// Using client-side simplification for better performance
-const DENMARK_GEOJSON_URL = 'https://api.dataforsyningen.dk/kommuner?format=geojson';
-
 // Register component for debugging
 debug.component('ConsumptionMap', 'Component file loaded');
 
 const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
-  // Remove per-render logging to reduce console noise
-  
   // Set default values for missing fields
   const title = block.title || 'Elforbrug per kommune';
   const subtitle = block.subtitle || 'Se elforbruget fordelt på private husholdninger og erhverv';
@@ -51,9 +47,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
   const mobileLayout = block.mobileLayout || 'responsive';
 
   const [data, setData] = useState<MunicipalityConsumption[]>([]);
-  const [geoData, setGeoData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [geoLoading, setGeoLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedView, setSelectedView] = useState(defaultView);
   const [selectedConsumerType, setSelectedConsumerType] = useState(consumerType);
@@ -61,9 +55,6 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [mapView, setMapView] = useState<'map' | 'list'>('map');
   const [dateRange, setDateRange] = useState<{ start: string; end: string } | null>(null);
-  const [hoveredMunicipality, setHoveredMunicipality] = useState<string | null>(null);
-  const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  // Removed zoom/pan functionality to fix performance issues
 
   useEffect(() => {
     const checkMobile = () => {
@@ -75,59 +66,6 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-
-  // Get responsive dimensions for the map
-  const getMapDimensions = () => {
-    if (isMobile) {
-      return { width: 400, height: 300 };
-    }
-    return { width: 800, height: 600 };
-  };
-
-  // Load and simplify GeoJSON data
-  useEffect(() => {
-    const loadGeoData = async () => {
-      try {
-        debug.log('Loading and simplifying Denmark GeoJSON data...');
-        
-        // Use optimal tolerance for Danish municipalities
-        const tolerance = 0.001; // About 111 meters - good balance of accuracy vs performance
-        
-        // Load and simplify GeoJSON with caching
-        const simplifiedGeoJson = await loadAndSimplifyGeoJSON(DENMARK_GEOJSON_URL, {
-          tolerance,
-          highQuality: false // Use faster algorithm for better performance
-        });
-        
-        // Filter out any invalid features or non-municipality areas
-        const validFeatures = simplifiedGeoJson.features?.filter((feature: any) => {
-          const kode = feature.properties?.kode;
-          return kode && kode.length >= 3; // Valid municipality codes are 3-4 digits
-        }) || [];
-        
-        const filteredGeoJson = {
-          ...simplifiedGeoJson,
-          features: validFeatures
-        };
-        
-        debug.log('GeoJSON loaded and simplified successfully:', validFeatures.length, 'valid municipalities');
-        
-        // Debug: Log some sample municipality codes to verify data
-        const sampleCodes = validFeatures.slice(0, 5).map((f: any) => f.properties?.kode);
-        debug.log('Sample municipality codes:', sampleCodes);
-        
-        setGeoData(filteredGeoJson);
-      } catch (err: any) {
-        console.error('Failed to load GeoJSON:', err);
-        // Fall back to list view if GeoJSON fails to load
-        setMapView('list');
-      } finally {
-        setGeoLoading(false);
-      }
-    };
-
-    loadGeoData();
-  }, []); // Load once on mount
 
   useEffect(() => {
     const fetchData = async () => {
@@ -147,7 +85,6 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
         const result: ConsumptionMapResponse = await response.json();
         debug.log('API Response:', result);
         
-        // Only log summary info to reduce console noise
         if (result.statistics?.totalConsumption > 0) {
           debug.log(`Loaded data for ${result.data?.length} municipalities, total consumption: ${result.statistics.totalConsumption.toFixed(0)} MWh`);
         }
@@ -218,7 +155,13 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
           break;
         case 'brand':
         default:
-          return (value: number) => getConsumptionColor(value, maxConsumption);
+          // Custom brand color scale (green to blue)
+          interpolator = (t: number) => {
+            const r = Math.round(34 + (59 - 34) * t);
+            const g = Math.round(197 + (130 - 197) * t);
+            const b = Math.round(94 + (246 - 94) * t);
+            return `rgb(${r}, ${g}, ${b})`;
+          };
       }
     }
     
@@ -228,39 +171,73 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
   // Calculate statistics
   const statistics = useMemo(() => {
     if (data.length === 0) return null;
-    return calculateConsumptionStats(data.map(d => ({
-      municipalityCode: d.municipalityCode,
-      municipalityName: d.municipalityName,
-      totalConsumption: d.totalConsumption,
-      privateConsumption: d.totalPrivateConsumption,
-      industryConsumption: d.totalIndustryConsumption,
-      privateShare: d.privateShare,
-      industryShare: d.industryShare,
-      region: getMunicipalityInfo(d.municipalityCode)?.region || 'Unknown',
-      coordinates: getMunicipalityInfo(d.municipalityCode)?.coordinates || [0, 0]
-    })));
+    return calculateConsumptionStats(data);
   }, [data]);
 
-  const handleMunicipalityClick = (municipalityCode: string) => {
+  // Handle municipality click
+  const handleMunicipalityClick = useCallback((municipalityName: string) => {
     if (!enableInteraction) return;
-    setSelectedMunicipality(municipalityCode === selectedMunicipality ? null : municipalityCode);
-  };
+    const code = getMunicipalityCodeFromName(municipalityName);
+    setSelectedMunicipality(code === selectedMunicipality ? null : code);
+  }, [enableInteraction, selectedMunicipality]);
 
-  // Function to get consumption data for a municipality by official API code
-  const getConsumptionByLauCode = (lauCode: string): MunicipalityConsumption | null => {
-    if (!lauCode) return null;
+  // Custom tooltip component
+  const CustomTooltip = useCallback(({ area }: { area: MunicipalityType }) => {
+    const municipalityCode = getMunicipalityCodeFromName(area.name);
+    if (!municipalityCode) return null;
     
-    // Official API provides codes like "0101" but consumption data uses "101" 
-    const municipalityCode = lauCode.replace(/^0+/, ''); // Remove leading zeros
-    return data.find(d => d.municipalityCode === municipalityCode) || null;
-  };
+    const municipalityData = data.find(d => d.municipalityCode === municipalityCode);
+    if (!municipalityData || !showTooltips) return null;
 
-  // Function to get fill color for a municipality
-  const getMunicipalityFillColor = (lauCode: string): string => {
-    const consumption = getConsumptionByLauCode(lauCode);
-    if (!consumption || !colorScale) return '#e5e7eb'; // Default gray
+    return (
+      <div className="bg-white/95 backdrop-blur shadow-xl border border-gray-200 rounded-lg p-4 max-w-xs">
+        <div className="space-y-3">
+          <div>
+            <div className="font-bold text-base">{municipalityData.municipalityName}</div>
+            <div className="text-xs text-gray-500">Kommune</div>
+          </div>
+          
+          <div className="border-t pt-3 space-y-2">
+            <div>
+              <div className="text-xs text-gray-600">Total forbrug</div>
+              <div className="font-semibold">{formatConsumption(municipalityData.totalConsumption)}</div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <div className="text-xs text-gray-600">Private</div>
+                <div className="font-semibold text-green-600">
+                  {formatConsumption(municipalityData.totalPrivateConsumption)}
+                </div>
+                <div className="text-xs text-green-600">({formatPercentage(municipalityData.privateShare)})</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-600">Erhverv</div>
+                <div className="font-semibold text-orange-600">
+                  {formatConsumption(municipalityData.totalIndustryConsumption)}
+                </div>
+                <div className="text-xs text-orange-600">({formatPercentage(municipalityData.industryShare)})</div>
+              </div>
+            </div>
+            
+            <div className="text-xs text-gray-500 pt-2 border-t">
+              Forbrugsniveau: <span className="font-medium">{getConsumptionLevel(municipalityData.totalConsumption, statistics?.maxConsumption || 1)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }, [data, showTooltips, statistics]);
+
+  // Customize municipality areas based on consumption data
+  const customizeMunicipalities = useCallback((municipality: MunicipalityType) => {
+    const municipalityCode = getMunicipalityCodeFromName(municipality.name);
+    if (!municipalityCode || !colorScale) return undefined;
     
-    // Use the appropriate consumption value based on selected filter
+    const consumption = data.find(d => d.municipalityCode === municipalityCode);
+    if (!consumption) return { style: { fill: '#e5e7eb' } };
+    
+    // Get consumption value based on selected filter
     let value: number;
     switch (selectedConsumerType) {
       case 'private':
@@ -273,11 +250,19 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
         value = consumption.totalConsumption;
     }
     
-    return colorScale(value);
-  };
+    const color = colorScale(value);
+    const isSelected = municipalityCode === selectedMunicipality;
+    
+    return {
+      style: {
+        fill: color,
+        stroke: isSelected ? '#3b82f6' : '#ffffff',
+        strokeWidth: isSelected ? 2 : 0.5,
+        cursor: enableInteraction ? 'pointer' : 'default'
+      }
+    };
+  }, [data, colorScale, selectedConsumerType, selectedMunicipality, enableInteraction]);
 
-  // Reset filters function removed as it wasn't providing value
-  
   // Format date range for display
   const formatDateRange = () => {
     if (!dateRange) return null;
@@ -294,28 +279,8 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     return `${formatDate(dateRange.start)} - ${formatDate(dateRange.end)}`;
   };
 
-  // Optimized mouse handling for tooltips
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setMousePosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-  }, []);
-
-  // Debounced mouse enter handler to reduce re-renders
-  const handleMunicipalityMouseEnter = useCallback((municipalityCode: string) => {
-    if (showTooltips) {
-      setHoveredMunicipality(municipalityCode);
-    }
-  }, [showTooltips]);
-
-  // Mouse leave handler
-  const handleMunicipalityMouseLeave = useCallback(() => {
-    if (showTooltips) {
-      setHoveredMunicipality(null);
-    }
-  }, [showTooltips]);
-
   const renderMap = () => {
-    if (!geoData || geoLoading) {
+    if (loading) {
       return (
         <div className="flex items-center justify-center h-[500px]">
           <div className="text-gray-500">Indlæser kort...</div>
@@ -323,133 +288,24 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
       );
     }
 
-    const hoveredData = hoveredMunicipality ? data.find(d => d.municipalityCode === hoveredMunicipality) : null;
-    const mapDimensions = getMapDimensions();
+    if (error) {
+      return (
+        <div className="flex items-center justify-center h-[500px]">
+          <div className="text-red-500">Fejl: {error}</div>
+        </div>
+      );
+    }
 
     return (
-      <div 
-        className="w-full relative bg-gray-50 rounded-lg overflow-hidden"
-        style={{
-          aspectRatio: isMobile ? '4/3' : '4/3'
-        }}
-        onMouseMove={handleMouseMove}
-      >
-          <ComposableMap
-            projection="geoMercator"
-            projectionConfig={{
-              scale: isMobile ? 1000 : 1200, // Much smaller scale to show full Denmark
-              center: [11.5, 56.0] // Centered for full Danish territory including Bornholm
-            }}
-            width={mapDimensions.width}
-            height={mapDimensions.height}
-            className="w-full h-full"
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "block",
-              shapeRendering: "optimizeSpeed" // Optimize SVG rendering for performance
-            }}
-            viewBox={`0 0 ${mapDimensions.width} ${mapDimensions.height}`}
-            preserveAspectRatio="xMidYMid meet"
-          >
-          <Geographies geography={geoData}>
-            {({ geographies }) =>
-              geographies.map((geo) => {
-                const lauCode = geo.properties.kode;
-                const consumption = getConsumptionByLauCode(lauCode);
-                const isSelected = consumption?.municipalityCode === selectedMunicipality;
-                
-                return (
-                  <Geography
-                    key={geo.rsmKey}
-                    geography={geo}
-                    fill={getMunicipalityFillColor(lauCode)}
-                    stroke="#ffffff"
-                    strokeWidth={0.5}
-                    style={{
-                      default: {
-                        outline: 'none',
-                        cursor: enableInteraction && consumption ? 'pointer' : 'default',
-                      },
-                      hover: {
-                        fill: consumption ? '#3b82f6' : '#e5e7eb',
-                        outline: 'none',
-                        filter: consumption ? 'brightness(1.1)' : 'none',
-                      },
-                      pressed: {
-                        outline: 'none',
-                        fill: consumption ? '#2563eb' : '#e5e7eb',
-                      },
-                    }}
-                    className={cn(
-                      isSelected && "stroke-blue-500 stroke-2"
-                    )}
-                    onClick={() => {
-                      if (consumption && enableInteraction) {
-                        handleMunicipalityClick(consumption.municipalityCode);
-                      }
-                    }}
-                    onMouseEnter={() => {
-                      if (consumption) {
-                        handleMunicipalityMouseEnter(consumption.municipalityCode);
-                      }
-                    }}
-                    onMouseLeave={handleMunicipalityMouseLeave}
-                  />
-                );
-              })
-            }
-          </Geographies>
-        </ComposableMap>
-        
-        {/* Optimized custom tooltip */}
-        {showTooltips && hoveredData && hoveredMunicipality && (
-          <div
-            className="absolute z-50 pointer-events-none"
-            style={{
-              left: `${mousePosition.x + 10}px`,
-              top: `${mousePosition.y - 10}px`,
-              transform: 'translate(0, -100%)',
-            }}
-          >
-            <div className="bg-white/95 backdrop-blur shadow-xl border border-gray-200 rounded-lg p-4 max-w-xs">
-              <div className="space-y-3">
-                <div>
-                  <div className="font-bold text-base">{hoveredData.municipalityName}</div>
-                  <div className="text-xs text-gray-500">Kommune</div>
-                </div>
-                
-                <div className="border-t pt-3 space-y-2">
-                  <div>
-                    <div className="text-xs text-gray-600">Total forbrug</div>
-                    <div className="font-semibold">{formatConsumption(hoveredData.totalConsumption)}</div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <div className="text-xs text-gray-600">Private</div>
-                      <div className="font-semibold text-green-600">
-                        {formatConsumption(hoveredData.totalPrivateConsumption)}
-                      </div>
-                      <div className="text-xs text-green-600">({formatPercentage(hoveredData.privateShare)})</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-600">Erhverv</div>
-                      <div className="font-semibold text-orange-600">
-                        {formatConsumption(hoveredData.totalIndustryConsumption)}
-                      </div>
-                      <div className="text-xs text-orange-600">({formatPercentage(hoveredData.industryShare)})</div>
-                    </div>
-                  </div>
-                  
-                  <div className="text-xs text-gray-500 pt-2 border-t">
-                    Forbrugsniveau: <span className="font-medium">{getConsumptionLevel(hoveredData.totalConsumption, data.length > 0 ? Math.max(...data.map(d => d.totalConsumption)) : 1)}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+      <div className="w-full relative bg-gray-50 rounded-lg overflow-hidden">
+        <Municipalities 
+          customTooltip={CustomTooltip}
+          customizeAreas={customizeMunicipalities}
+          onClick={handleMunicipalityClick}
+          showTooltip={showTooltips}
+          zoomable={true}
+          className="w-full h-[500px]"
+        />
       </div>
     );
   };
@@ -476,40 +332,46 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
       <div className="h-[500px] overflow-y-auto">
         <div className="space-y-2 p-4">
           {sortedData.map((municipality) => {
+            const consumption = getConsumptionForSort(municipality);
+            const maxConsumption = Math.max(...sortedData.map(getConsumptionForSort));
+            const percentage = (consumption / maxConsumption) * 100;
             const isSelected = municipality.municipalityCode === selectedMunicipality;
-            const consumptionValue = getConsumptionForSort(municipality);
-            const maxValue = Math.max(...data.map(m => getConsumptionForSort(m)));
-            const percentage = (consumptionValue / maxValue) * 100;
-            
+
             return (
-              <div 
+              <div
                 key={municipality.municipalityCode}
                 className={cn(
-                  "flex items-center gap-4 p-3 rounded-lg cursor-pointer transition-all duration-200",
-                  isSelected ? "bg-blue-100 border-2 border-blue-500" : "bg-gray-50 hover:bg-gray-100"
+                  "p-3 rounded-lg border cursor-pointer transition-all",
+                  isSelected
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                 )}
-                onClick={() => handleMunicipalityClick(municipality.municipalityCode)}
+                onClick={() => handleMunicipalityClick(getMunicipalityNameFromCode(municipality.municipalityCode) || '')}
               >
-                <div className="flex-1">
-                  <div className="flex justify-between items-baseline mb-1">
-                    <div className="font-medium">{municipality.municipalityName}</div>
-                    <div className="text-sm font-semibold">
-                      {formatConsumption(consumptionValue)}
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h4 className="font-semibold">{municipality.municipalityName}</h4>
+                    <p className="text-sm text-gray-600">
+                      Total: {formatConsumption(municipality.totalConsumption)}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-gray-600">
+                      Private: {formatPercentage(municipality.privateShare)}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Erhverv: {formatPercentage(municipality.industryShare)}
                     </div>
                   </div>
-                  <div className="relative h-6 bg-gray-200 rounded-full overflow-hidden">
-                    <div 
-                      className="absolute left-0 top-0 h-full transition-all duration-300"
-                      style={{ 
-                        width: `${percentage}%`,
-                        backgroundColor: colorScale ? colorScale(consumptionValue) : '#3b82f6'
-                      }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-600 mt-1">
-                    <span>Private: {formatPercentage(municipality.privateShare)}</span>
-                    <span>Erhverv: {formatPercentage(municipality.industryShare)}</span>
-                  </div>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="h-2 rounded-full transition-all duration-300"
+                    style={{
+                      width: `${percentage}%`,
+                      backgroundColor: colorScale ? colorScale(consumption) : '#3b82f6'
+                    }}
+                  />
                 </div>
               </div>
             );
@@ -519,304 +381,191 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     );
   };
 
-  const renderLegend = () => {
-    if (!showLegend || !statistics) return null;
-
-    const levels = [
-      { label: 'Lav', range: '0-25%', color: getConsumptionColor(0.1, 1) },
-      { label: 'Moderat', range: '25-50%', color: getConsumptionColor(0.35, 1) },
-      { label: 'Høj', range: '50-75%', color: getConsumptionColor(0.65, 1) },
-      { label: 'Meget høj', range: '75-100%', color: getConsumptionColor(0.9, 1) }
-    ];
-
-    return (
-      <div className="bg-gray-50 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Forbrugsniveau</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {levels.map((level) => (
-            <div key={level.label} className="flex items-center gap-2">
-              <div 
-                className="w-4 h-4 rounded"
-                style={{ backgroundColor: level.color }}
-              />
-              <div>
-                <div className="text-sm font-medium">{level.label}</div>
-                <div className="text-xs text-gray-600">{level.range}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   return (
-    <section className="bg-white py-8 md:py-16 lg:py-24">
-      <div className="container mx-auto px-4 max-w-7xl">
-        {/* Header section with alignment */}
-        <div className={cn(
-          "mb-12",
-          headerAlignment === 'left' && "text-left",
-          headerAlignment === 'center' && "text-center",
-          headerAlignment === 'right' && "text-right"
-        )}>
-          {title && (
-            <h2 className={cn(
-              "text-3xl lg:text-4xl font-display font-bold text-gray-900 mb-4",
-              headerAlignment === 'center' && "mx-auto"
-            )}>
-              {title}
-            </h2>
-          )}
+    <section className="py-8">
+      <div className="container mx-auto px-4">
+        {/* Header */}
+        <div className={cn("mb-8", headerAlignment === 'center' && "text-center")}>
+          <h2 className="text-3xl font-bold text-brand-dark mb-2">{title}</h2>
           {subtitle && (
-            <p className={cn(
-              "text-lg text-gray-600 mb-8",
-              headerAlignment === 'center' && "max-w-3xl mx-auto"
-            )}>
-              {subtitle}
-            </p>
+            <p className="text-lg text-gray-600 mb-4">{subtitle}</p>
           )}
-
-          {leadingText && leadingText.length > 0 && (
-            <div className={cn(
-              "text-base text-gray-700",
-              headerAlignment === 'center' && "max-w-4xl mx-auto"
-            )}>
-              <div className="prose prose-lg max-w-none">
-                <PortableText 
-                  value={leadingText} 
-                  components={{
-                    block: {
-                      normal: ({ children }) => <p className="mb-4 last:mb-0">{children}</p>
-                    }
-                  }}
-                />
-              </div>
+          {leadingText && (
+            <div className="prose prose-gray max-w-none mb-4">
+              <PortableText value={leadingText} />
             </div>
           )}
         </div>
 
         {/* Controls */}
-        <div className="mb-6 md:mb-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-3 md:p-4 bg-gray-50 rounded-lg border">
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-gray-600" />
-              <span className="text-sm font-medium text-gray-700">Filtre:</span>
-            </div>
-            
-            <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full sm:w-auto">
-            <Select value={selectedView} onValueChange={setSelectedView}>
-              <SelectTrigger className="w-full sm:w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="24h">Seneste 24 timer</SelectItem>
-                <SelectItem value="7d">Seneste 7 dage</SelectItem>
-                <SelectItem value="30d">Seneste 30 dage</SelectItem>
-                <SelectItem value="month">Denne måned</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={selectedConsumerType} onValueChange={setSelectedConsumerType}>
-              <SelectTrigger className="w-full sm:w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alle forbrugere</SelectItem>
-                <SelectItem value="private">Private</SelectItem>
-                <SelectItem value="industry">Erhverv</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {!geoLoading && geoData && (
-              <Select value={mapView} onValueChange={(value: 'map' | 'list') => setMapView(value)}>
-                <SelectTrigger className="w-full sm:w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="map">Kort</SelectItem>
-                  <SelectItem value="list">Liste</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-
-            {/* Reset button removed - wasn't providing value to users */}
-            </div>
+        <div className="mb-6 flex flex-wrap gap-4">
+          <div className="flex gap-2">
+            <Button
+              variant={mapView === 'map' ? 'default' : 'outline'}
+              onClick={() => setMapView('map')}
+              size="sm"
+            >
+              <MapPin className="w-4 h-4 mr-2" />
+              Kort
+            </Button>
+            <Button
+              variant={mapView === 'list' ? 'default' : 'outline'}
+              onClick={() => setMapView('list')}
+              size="sm"
+            >
+              <Activity className="w-4 h-4 mr-2" />
+              Liste
+            </Button>
           </div>
-          
-          {/* Date range display */}
+
+          <Select value={selectedView} onValueChange={setSelectedView}>
+            <SelectTrigger className="w-[180px]">
+              <Calendar className="w-4 h-4 mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="24h">Seneste 24 timer</SelectItem>
+              <SelectItem value="7d">Seneste 7 dage</SelectItem>
+              <SelectItem value="30d">Seneste 30 dage</SelectItem>
+              <SelectItem value="month">Seneste måned</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={selectedConsumerType} onValueChange={setSelectedConsumerType}>
+            <SelectTrigger className="w-[180px]">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">
+                <div className="flex items-center">
+                  <Zap className="w-4 h-4 mr-2" />
+                  Alle forbrugere
+                </div>
+              </SelectItem>
+              <SelectItem value="private">
+                <div className="flex items-center">
+                  <Home className="w-4 h-4 mr-2" />
+                  Private
+                </div>
+              </SelectItem>
+              <SelectItem value="industry">
+                <div className="flex items-center">
+                  <Building2 className="w-4 h-4 mr-2" />
+                  Erhverv
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
           {dateRange && (
-            <div className="flex items-center gap-2 text-sm text-gray-600 mt-2">
-              <Calendar className="w-4 h-4" />
-              <span>Viser data for perioden: {formatDateRange()}</span>
+            <div className="text-sm text-gray-600 flex items-center">
+              <Info className="w-4 h-4 mr-1" />
+              Viser data for perioden: {formatDateRange()}
             </div>
           )}
         </div>
 
-        {/* Main content area with side-by-side layout */}
+        {/* Content Layout */}
         <div className={cn(
           "grid gap-6",
-          isMobile ? "grid-cols-1" : "grid-cols-12"
+          showStatistics ? "lg:grid-cols-3" : "lg:grid-cols-1"
         )}>
-          {/* Map visualization - takes 8 columns on desktop */}
-          <div className={cn(
-            "bg-white p-4 rounded-lg border",
-            isMobile ? "col-span-1" : "col-span-8"
-          )}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {mapView === 'map' ? 'Forbrugskort' : 'Kommuneliste'}
-                </h3>
-                <div className="group relative">
-                  <Info className="w-4 h-4 text-gray-500 cursor-help" />
-                  <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-72 p-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg z-50">
-                    <p>
-                      {mapView === 'map' 
-                        ? 'Hold musen over en kommune på kortet for at se detaljerede oplysninger. Brug zoom-knapperne eller musehjulet for at zoome ind/ud. Træk for at panorere.'
-                        : 'Klik på en kommune i listen for at se detaljerede oplysninger. Søjlerne viser forbrugsniveau.'
-                      }
-                    </p>
+          {/* Map/List View */}
+          <div className={showStatistics ? "lg:col-span-2" : ""}>
+            {mapView === 'map' ? renderMap() : renderMunicipalityList()}
+          </div>
+
+          {/* Statistics Panel */}
+          {showStatistics && statistics && (
+            <div className="space-y-4">
+              {/* Summary Stats */}
+              <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="font-semibold text-lg mb-4">Samlet forbrug</h3>
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-3xl font-bold text-blue-600">
+                      {formatConsumption(statistics.totalConsumption)}
+                    </div>
+                    <div className="text-sm text-gray-600">Total forbrug</div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-xl font-semibold text-green-600">
+                        {formatPercentage(statistics.privateShareTotal)}
+                      </div>
+                      <div className="text-sm text-gray-600">Private</div>
+                    </div>
+                    <div>
+                      <div className="text-xl font-semibold text-orange-600">
+                        {formatPercentage(statistics.industryShareTotal)}
+                      </div>
+                      <div className="text-sm text-gray-600">Erhverv</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Consumption Level Legend */}
+              {showLegend && (
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h3 className="font-semibold text-lg mb-4">Forbrugsniveau</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Lav</span>
+                      <div className="w-20 h-4 bg-gradient-to-r from-green-200 to-green-300 rounded" />
+                      <span className="text-sm">0-25%</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Moderat</span>
+                      <div className="w-20 h-4 bg-gradient-to-r from-green-300 to-green-400 rounded" />
+                      <span className="text-sm">25-50%</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Høj</span>
+                      <div className="w-20 h-4 bg-gradient-to-r from-green-400 to-green-500 rounded" />
+                      <span className="text-sm">50-75%</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Meget høj</span>
+                      <div className="w-20 h-4 bg-gradient-to-r from-green-500 to-green-600 rounded" />
+                      <span className="text-sm">75-100%</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Statistics */}
+              <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="font-semibold text-lg mb-4">Statistik</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Kommuner</span>
+                    <span className="font-medium">{statistics.municipalityCount}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Gennemsnit</span>
+                    <span className="font-medium">{formatConsumption(statistics.averageConsumption)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Højeste</span>
+                    <span className="font-medium">{formatConsumption(statistics.maxConsumption)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Laveste</span>
+                    <span className="font-medium">{formatConsumption(statistics.minConsumption)}</span>
                   </div>
                 </div>
               </div>
             </div>
-
-            {loading || geoLoading ? (
-              <div className="flex items-center justify-center h-[500px]">
-                <div className="text-gray-500">
-                  {loading ? 'Indlæser forbrugsdata...' : 'Indlæser kort...'}
-                </div>
-              </div>
-            ) : error ? (
-              <div className="flex items-center justify-center h-[500px]">
-                <div className="text-red-500 flex items-center gap-2">
-                  <Activity className="w-5 h-5" />
-                  {error}
-                </div>
-              </div>
-            ) : data.length === 0 ? (
-              <div className="flex items-center justify-center h-[500px]">
-                <div className="text-gray-500 text-center">
-                  <Activity className="w-10 h-10 mx-auto mb-2 text-gray-400" />
-                  <div>Ingen forbrugsdata tilgængelig</div>
-                </div>
-              </div>
-            ) : (
-              <div className="w-full">
-                {mapView === 'map' && geoData ? renderMap() : renderMunicipalityList()}
-              </div>
-            )}
-          </div>
-          
-          {/* Stats panel - takes 4 columns on desktop */}
-          <div className={cn(
-            "space-y-4",
-            isMobile ? "col-span-1 mt-6" : "col-span-4 sticky top-4 h-fit"
-          )}>
-            {/* Statistics cards */}
-            {showStatistics && statistics && !loading && (
-              <div className={cn(
-                "space-y-3",
-                isMobile ? "grid grid-cols-2 gap-3 space-y-0" : "space-y-3"
-              )}>
-                <div className="bg-blue-50 rounded-lg p-3 md:p-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Activity className="w-4 h-4 text-blue-600" />
-                    <h3 className="text-xs md:text-sm font-semibold text-gray-700">Total forbrug</h3>
-                  </div>
-                  <div className="text-lg md:text-2xl font-bold text-blue-600">
-                    {formatConsumption(statistics.totalConsumption)}
-                  </div>
-                </div>
-
-                <div className="bg-green-50 rounded-lg p-3 md:p-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Home className="w-4 h-4 text-green-600" />
-                    <h3 className="text-xs md:text-sm font-semibold text-gray-700">Private</h3>
-                  </div>
-                  <div className="text-lg md:text-2xl font-bold text-green-600">
-                    {formatPercentage(statistics.privateShareTotal)}
-                  </div>
-                </div>
-
-                <div className="bg-orange-50 rounded-lg p-3 md:p-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Building2 className="w-4 h-4 text-orange-600" />
-                    <h3 className="text-xs md:text-sm font-semibold text-gray-700">Erhverv</h3>
-                  </div>
-                  <div className="text-lg md:text-2xl font-bold text-orange-600">
-                    {formatPercentage(statistics.industryShareTotal)}
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-3 md:p-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <MapPin className="w-4 h-4 text-gray-600" />
-                    <h3 className="text-xs md:text-sm font-semibold text-gray-700">Kommuner</h3>
-                  </div>
-                  <div className="text-lg md:text-2xl font-bold text-gray-700">
-                    {statistics.municipalityCount}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Legend */}
-            {renderLegend()}
-
-            {/* Selected municipality details - now shows hint to hover for details */}
-            {!selectedMunicipality && enableInteraction && (
-              <div className="bg-gray-50 rounded-lg p-4 text-center">
-                <Info className="w-6 h-6 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">
-                  Hold musen over en kommune på kortet for at se detaljeret information.<br />
-                  Brug zoom-knapperne eller musehjulet for at zoome ind/ud.
-                </p>
-              </div>
-            )}
-            
-            {/* Keep selected municipality for mobile where hover doesn't work well */}
-            {selectedMunicipality && enableInteraction && isMobile && (
-              <div className="bg-blue-50 rounded-lg p-4">
-                <h3 className="text-base font-semibold text-gray-900 mb-3">
-                  Valgt kommune
-                </h3>
-                {(() => {
-                  const municipality = data.find(m => m.municipalityCode === selectedMunicipality);
-                  if (!municipality) return <div>Kommune ikke fundet</div>;
-                  
-                  return (
-                    <div className="space-y-3">
-                      <div>
-                        <div className="text-sm text-gray-600">Kommune</div>
-                        <div className="font-semibold">{municipality.municipalityName}</div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-600">Total forbrug</div>
-                        <div className="font-semibold">{formatConsumption(municipality.totalConsumption)}</div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-600">Private</div>
-                        <div className="font-semibold">{formatConsumption(municipality.totalPrivateConsumption)} ({formatPercentage(municipality.privateShare)})</div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-600">Erhverv</div>
-                        <div className="font-semibold">{formatConsumption(municipality.totalIndustryConsumption)} ({formatPercentage(municipality.industryShare)})</div>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
     </section>
   );
 };
 
-// Debug: Component export
+// Register component export
 debug.component('ConsumptionMap', 'Component exported successfully');
 
 export default ConsumptionMapComponent;

@@ -8,9 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { PortableText } from '@portabletext/react';
 import {
-  Tooltip as UITooltip,
-  TooltipContent,
-  TooltipTrigger,
   TooltipProvider,
 } from "@/components/ui/tooltip";
 import type { ConsumptionMap } from '@/types/sanity';
@@ -64,6 +61,8 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [mapView, setMapView] = useState<'map' | 'list'>('map');
   const [dateRange, setDateRange] = useState<{ start: string; end: string } | null>(null);
+  const [hoveredMunicipality, setHoveredMunicipality] = useState<string | null>(null);
+  const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   useEffect(() => {
     const checkMobile = () => {
@@ -276,8 +275,13 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
       );
     }
 
+    const hoveredData = hoveredMunicipality ? data.find(d => d.municipalityCode === hoveredMunicipality) : null;
+
     return (
-      <div className="w-full">
+      <div className="w-full relative" onMouseMove={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        setMousePosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+      }}>
         <ComposableMap
           projection="geoMercator"
           projectionConfig={{
@@ -301,95 +305,101 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
                 const isSelected = consumption?.municipalityCode === selectedMunicipality;
                 
                 return (
-                  <UITooltip key={geo.rsmKey} open={undefined}>
-                    <TooltipTrigger asChild>
-                      <Geography
-                        geography={geo}
-                        fill={getMunicipalityFillColor(lauCode)}
-                        stroke="#ffffff"
-                        strokeWidth={0.5}
-                        style={{
-                          default: {
-                            outline: 'none',
-                            transition: 'all 0.2s ease',
-                          },
-                          hover: {
-                            fill: consumption ? '#3b82f6' : '#e5e7eb',
-                            outline: 'none',
-                            cursor: enableInteraction && consumption ? 'pointer' : 'default',
-                            filter: consumption ? 'brightness(1.1)' : 'none',
-                          },
-                          pressed: {
-                            outline: 'none',
-                            fill: consumption ? '#2563eb' : '#e5e7eb',
-                          },
-                        }}
-                        className={cn(
-                          "transition-all duration-200",
-                          isSelected && "stroke-blue-500 stroke-2",
-                          enableInteraction && consumption && "hover:opacity-80"
-                        )}
-                        onClick={() => {
-                          if (consumption && enableInteraction) {
-                            handleMunicipalityClick(consumption.municipalityCode);
-                          }
-                        }}
-                        onMouseEnter={() => {
-                          if (consumption) {
-                            debug.log('Mouse entered municipality:', geo.properties.label_dk);
-                          }
-                        }}
-                        onMouseLeave={() => {
-                          if (consumption) {
-                            debug.log('Mouse left municipality:', geo.properties.label_dk);
-                          }
-                        }}
-                      />
-                    </TooltipTrigger>
-                    {showTooltips && consumption && (
-                      <TooltipContent className="max-w-xs z-[100] bg-white/95 backdrop-blur shadow-xl border-gray-200 p-4">
-                        <div className="space-y-3">
-                          <div>
-                            <div className="font-bold text-base">{geo.properties.label_dk}</div>
-                            <div className="text-xs text-gray-500">Kommune</div>
-                          </div>
-                          
-                          <div className="border-t pt-3 space-y-2">
-                            <div>
-                              <div className="text-xs text-gray-600">Total forbrug</div>
-                              <div className="font-semibold">{formatConsumption(consumption.totalConsumption)}</div>
-                            </div>
-                            
-                            <div className="grid grid-cols-2 gap-3">
-                              <div>
-                                <div className="text-xs text-gray-600">Private</div>
-                                <div className="font-semibold text-green-600">
-                                  {formatConsumption(consumption.totalPrivateConsumption)}
-                                </div>
-                                <div className="text-xs text-green-600">({formatPercentage(consumption.privateShare)})</div>
-                              </div>
-                              <div>
-                                <div className="text-xs text-gray-600">Erhverv</div>
-                                <div className="font-semibold text-orange-600">
-                                  {formatConsumption(consumption.totalIndustryConsumption)}
-                                </div>
-                                <div className="text-xs text-orange-600">({formatPercentage(consumption.industryShare)})</div>
-                              </div>
-                            </div>
-                            
-                            <div className="text-xs text-gray-500 pt-2 border-t">
-                              Forbrugsniveau: <span className="font-medium">{getConsumptionLevel(consumption.totalConsumption, statistics?.maxConsumption || 1)}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </TooltipContent>
+                  <Geography
+                    key={geo.rsmKey}
+                    geography={geo}
+                    fill={getMunicipalityFillColor(lauCode)}
+                    stroke="#ffffff"
+                    strokeWidth={0.5}
+                    style={{
+                      default: {
+                        outline: 'none',
+                        transition: 'all 0.2s ease',
+                      },
+                      hover: {
+                        fill: consumption ? '#3b82f6' : '#e5e7eb',
+                        outline: 'none',
+                        cursor: enableInteraction && consumption ? 'pointer' : 'default',
+                        filter: consumption ? 'brightness(1.1)' : 'none',
+                      },
+                      pressed: {
+                        outline: 'none',
+                        fill: consumption ? '#2563eb' : '#e5e7eb',
+                      },
+                    }}
+                    className={cn(
+                      "transition-all duration-200",
+                      isSelected && "stroke-blue-500 stroke-2",
+                      enableInteraction && consumption && "hover:opacity-80"
                     )}
-                  </UITooltip>
+                    onClick={() => {
+                      if (consumption && enableInteraction) {
+                        handleMunicipalityClick(consumption.municipalityCode);
+                      }
+                    }}
+                    onMouseEnter={() => {
+                      if (consumption) {
+                        setHoveredMunicipality(consumption.municipalityCode);
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredMunicipality(null);
+                    }}
+                  />
                 );
               })
             }
           </Geographies>
         </ComposableMap>
+        
+        {/* Custom tooltip */}
+        {showTooltips && hoveredData && hoveredMunicipality && (
+          <div
+            className="absolute z-50 pointer-events-none"
+            style={{
+              left: `${mousePosition.x + 10}px`,
+              top: `${mousePosition.y - 10}px`,
+              transform: 'translate(0, -100%)',
+            }}
+          >
+            <div className="bg-white/95 backdrop-blur shadow-xl border border-gray-200 rounded-lg p-4 max-w-xs">
+              <div className="space-y-3">
+                <div>
+                  <div className="font-bold text-base">{hoveredData.municipalityName}</div>
+                  <div className="text-xs text-gray-500">Kommune</div>
+                </div>
+                
+                <div className="border-t pt-3 space-y-2">
+                  <div>
+                    <div className="text-xs text-gray-600">Total forbrug</div>
+                    <div className="font-semibold">{formatConsumption(hoveredData.totalConsumption)}</div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-xs text-gray-600">Private</div>
+                      <div className="font-semibold text-green-600">
+                        {formatConsumption(hoveredData.totalPrivateConsumption)}
+                      </div>
+                      <div className="text-xs text-green-600">({formatPercentage(hoveredData.privateShare)})</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-600">Erhverv</div>
+                      <div className="font-semibold text-orange-600">
+                        {formatConsumption(hoveredData.totalIndustryConsumption)}
+                      </div>
+                      <div className="text-xs text-orange-600">({formatPercentage(hoveredData.industryShare)})</div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-xs text-gray-500 pt-2 border-t">
+                    Forbrugsniveau: <span className="font-medium">{getConsumptionLevel(hoveredData.totalConsumption, statistics?.maxConsumption || 1)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };

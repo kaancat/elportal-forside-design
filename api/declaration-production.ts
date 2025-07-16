@@ -60,6 +60,9 @@ export async function GET(request: Request) {
     // If 'Danmark', no filter (gets both DK1 and DK2)
 
     const apiUrl = `https://api.energidataservice.dk/dataset/DeclarationProduction?start=${apiStart}&end=${apiEnd}${filter}&sort=HourDK ASC`;
+    
+    console.log('DeclarationProduction API URL:', apiUrl);
+    console.log('Date range:', { start: apiStart, end: apiEnd, view });
 
     const externalResponse = await fetch(apiUrl);
 
@@ -78,12 +81,31 @@ export async function GET(request: Request) {
     }
 
     const result = await externalResponse.json();
+    
+    console.log('Raw API response:', { 
+      totalRecords: result.records?.length || 0,
+      firstRecord: result.records?.[0],
+      lastRecord: result.records?.[result.records?.length - 1]
+    });
 
     // Process the data
     let records = result.records || [];
     
-    // Filter for FuelAllocationMethod "125%" which seems to be the standard
-    records = records.filter((r: any) => r.FuelAllocationMethod === '125%' || r.FuelAllocationMethod === 'All');
+    // Check available FuelAllocationMethods
+    const allocationMethods = new Set(records.map((r: any) => r.FuelAllocationMethod));
+    console.log('Available FuelAllocationMethods:', Array.from(allocationMethods));
+    
+    // Filter for FuelAllocationMethod - be more flexible
+    const unfilteredCount = records.length;
+    records = records.filter((r: any) => {
+      // Accept common allocation methods
+      return r.FuelAllocationMethod === '125%' || 
+             r.FuelAllocationMethod === '125pct' ||
+             r.FuelAllocationMethod === 'All' ||
+             r.FuelAllocationMethod === 'Actual' ||
+             !r.FuelAllocationMethod; // Some records might not have this field
+    });
+    console.log(`Filtered records: ${unfilteredCount} -> ${records.length}`);
 
     // Group by hour and aggregate data
     const hourlyData: Record<string, any> = {};

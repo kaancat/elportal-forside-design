@@ -279,7 +279,7 @@ export const DANISH_MUNICIPALITIES: Record<string, MunicipalityInfo> = {
     region: 'Nordjylland',
     coordinates: [9.9187, 57.0488],
     population: 220629,
-    area: 1,137.0
+    area: 1137.0
   },
   '561': {
     code: '561',

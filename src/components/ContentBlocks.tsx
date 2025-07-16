@@ -87,6 +87,7 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         } else if (block._type === 'declarationProduction') {
           return <DeclarationProductionChart key={block._key} block={block as DeclarationProduction} />
         } else if (block._type === 'consumptionMap') {
+          console.log('Rendering consumptionMap block:', block);
           return <ConsumptionMapComponent key={block._key} block={block as ConsumptionMap} />
         } else if (block._type === 'priceCalculator') {
           return <PriceCalculatorWidget key={block._key} block={block as PriceCalculator} />
@@ -107,6 +108,7 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         } else {
           // Handle unknown block types with a clear error message instead of silent fallback
           const unknownBlock = block as ContentBlock & { _type: string; _key?: string }
+          console.error('Unknown content block type:', unknownBlock._type, 'Full block:', unknownBlock);
           return (
             <div key={unknownBlock._key || `unknown-${index}`} className="bg-red-100 border-2 border-red-400 text-red-700 px-6 py-4 rounded-lg mx-4 my-4">
               <h3 className="font-bold text-lg mb-2">⚠️ Unknown Component Type</h3>

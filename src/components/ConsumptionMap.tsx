@@ -24,8 +24,8 @@ interface ConsumptionMapProps {
   block: ConsumptionMap;
 }
 
-// Denmark municipalities GeoJSON URL
-const DENMARK_GEOJSON_URL = 'https://raw.githubusercontent.com/magnuslarsen/geoJSON-Danish-municipalities/master/municipalities/municipalities.geojson';
+// Official Danish government API for municipality boundaries (2007 reform - 98 municipalities)
+const DENMARK_GEOJSON_URL = 'https://api.dataforsyningen.dk/kommuner?format=geojson';
 
 // Register component for debugging
 debug.component('ConsumptionMap', 'Component file loaded');
@@ -226,11 +226,11 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     setSelectedMunicipality(municipalityCode === selectedMunicipality ? null : municipalityCode);
   };
 
-  // Function to get consumption data for a municipality by LAU code
+  // Function to get consumption data for a municipality by official API code
   const getConsumptionByLauCode = (lauCode: string): MunicipalityConsumption | null => {
-    // LAU codes from GeoJSON need to be padded to 3 digits to match our municipality codes
-    const paddedCode = lauCode.padStart(3, '0');
-    return data.find(d => d.municipalityCode === paddedCode) || null;
+    // Official API provides codes like "0101" but consumption data uses "101" 
+    const municipalityCode = lauCode.replace(/^0+/, ''); // Remove leading zeros
+    return data.find(d => d.municipalityCode === municipalityCode) || null;
   };
 
   // Function to get fill color for a municipality
@@ -387,8 +387,8 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
           <ComposableMap
             projection="geoMercator"
             projectionConfig={{
-              scale: isMobile ? 3000 : 3800, // Reduced scale to fit all of Denmark including Bornholm
-              center: [11.5, 56.1] // Adjusted center to better include all Danish territory
+              scale: isMobile ? 2800 : 3600, // Optimized scale for official API boundaries
+              center: [11.8, 56.2] // Centered for official Danish municipality boundaries
             }}
             width={mapDimensions.width}
             height={mapDimensions.height}
@@ -404,7 +404,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
           <Geographies geography={geoData}>
             {({ geographies }) =>
               geographies.map((geo) => {
-                const lauCode = geo.properties.lau_1;
+                const lauCode = geo.properties.kode;
                 const consumption = getConsumptionByLauCode(lauCode);
                 const isSelected = consumption?.municipalityCode === selectedMunicipality;
                 

@@ -35,7 +35,7 @@ const DENMARK_GEOJSON_URL = 'https://raw.githubusercontent.com/magnuslarsen/geoJ
 debug.component('ConsumptionMap', 'Component file loaded');
 
 const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
-  debug.component('ConsumptionMap', 'Rendering with block:', block);
+  // Remove per-render logging to reduce console noise
   
   // Set default values for missing fields
   const title = block.title || 'Elforbrug per kommune';
@@ -78,13 +78,13 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
   useEffect(() => {
     const loadGeoData = async () => {
       try {
-        console.log('Loading Denmark GeoJSON data...');
+        debug.log('Loading Denmark GeoJSON data...');
         const response = await fetch(DENMARK_GEOJSON_URL);
         if (!response.ok) {
           throw new Error(`Failed to load GeoJSON: ${response.status}`);
         }
         const geoJson = await response.json();
-        console.log('GeoJSON loaded successfully:', geoJson.features?.length, 'municipalities');
+        debug.log('GeoJSON loaded successfully:', geoJson.features?.length, 'municipalities');
         setGeoData(geoJson);
       } catch (err: any) {
         console.error('Failed to load GeoJSON:', err);
@@ -104,7 +104,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
       setError(null);
       try {
         const apiUrl = `/api/consumption-map?consumerType=${selectedConsumerType}&aggregation=${dataSource}&view=${selectedView}`;
-        console.log('Fetching consumption data from:', apiUrl);
+        debug.log('Fetching consumption data from:', apiUrl);
         
         const response = await fetch(apiUrl);
         if (!response.ok) {
@@ -114,10 +114,12 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
         }
         
         const result: ConsumptionMapResponse = await response.json();
-        console.log('API Response:', result);
-        console.log('Total consumption in response:', result.statistics?.totalConsumption);
-        console.log('Number of municipalities with data:', result.data?.filter((m: any) => m.totalConsumption > 0).length);
-        console.log('Sample municipality data:', result.data?.[0]);
+        debug.log('API Response:', result);
+        
+        // Only log summary info to reduce console noise
+        if (result.statistics?.totalConsumption > 0) {
+          debug.log(`Loaded data for ${result.data?.length} municipalities, total consumption: ${result.statistics.totalConsumption.toFixed(0)} MWh`);
+        }
         
         if (!result.data || result.data.length === 0) {
           console.warn('No consumption data received from API');

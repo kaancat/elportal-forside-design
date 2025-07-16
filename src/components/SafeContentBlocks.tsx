@@ -1,5 +1,5 @@
 import React from 'react'
-import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, CO2EmissionsChart, DeclarationProduction, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
+import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, CO2EmissionsChart, DeclarationProduction, ConsumptionMap, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
 import PageSectionComponent from './PageSectionComponent'
 import FAQItemComponent from './FAQItemComponent'
 import PriceExampleTableComponent from './PriceExampleTableComponent'
@@ -18,6 +18,7 @@ import MonthlyProductionChart from './MonthlyProductionChart'
 import ProviderList from './ProviderList'
 import { FeatureListComponent } from './FeatureListComponent'
 import { ValuePropositionComponent } from './ValuePropositionComponent'
+import ConsumptionMapComponent from './ConsumptionMap'
 import HeroComponent from './HeroComponent'
 import ErrorBoundary from './ErrorBoundary'
 import { ContentErrorFallback, ChartErrorFallback, CalculatorErrorFallback } from './ErrorFallbacks'
@@ -52,6 +53,7 @@ const SafeContentBlock: React.FC<{
       case 'co2EmissionsChart':
       case 'declarationProduction':
       case 'monthlyProductionChart':
+      case 'consumptionMap':
         return <ChartErrorFallback 
           onRetry={() => window.location.reload()} 
           title="Diagram kunne ikke indlæses"
@@ -165,6 +167,9 @@ const renderContentBlock = (block: ContentBlock) => {
     
     case 'valueProposition':
       return <ValuePropositionComponent block={block as ValuePropositionBlock} />;
+    
+    case 'consumptionMap':
+      return <ConsumptionMapComponent block={block as ConsumptionMap} />;
     
     case 'pageSection':
       return <PageSectionComponent section={block as PageSection} />;

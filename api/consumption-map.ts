@@ -132,11 +132,7 @@ export async function GET(request: Request) {
     // Group by municipality and aggregate consumption
     const municipalityData: Record<string, any> = {};
 
-    // Log first record to see actual field structure
-    if (records.length > 0) {
-      console.log('Sample record structure:', JSON.stringify(records[0], null, 2));
-      console.log('Available fields:', Object.keys(records[0]));
-    }
+    // Debug logging removed - data structure confirmed working
 
     records.forEach((record: any) => {
       const munCode = record.MunicipalityNo;
@@ -170,19 +166,6 @@ export async function GET(request: Request) {
       municipalityData[munCode].totalIndustryConsumption += industryConsumption;
       municipalityData[munCode].totalConsumption += totalConsumption;
       municipalityData[munCode].dataPoints += 1;
-      
-      // Debug log first few consumption values
-      if (municipalityData[munCode].dataPoints <= 3) {
-        console.log(`Municipality ${munCode} data point ${municipalityData[munCode].dataPoints}:`, {
-          consumptionMWh,
-          consumerType,
-          isIndustry,
-          privateConsumption,
-          industryConsumption,
-          totalConsumption,
-          record: JSON.stringify(record)
-        });
-      }
 
       // Store hourly data for detailed analysis
       if (aggregation === 'hourly') {
@@ -241,14 +224,7 @@ export async function GET(request: Request) {
       }))
     };
     
-    console.log('Calculated statistics:', {
-      totalMunicipalities: statistics.totalMunicipalities,
-      totalConsumption,
-      totalPrivateConsumption,
-      totalIndustryConsumption,
-      hasData: totalConsumption > 0,
-      municipalitiesWithData: municipalities.filter(m => m.totalConsumption > 0).length
-    });
+    // Statistics calculated successfully
 
     const responseData = {
       data: sortedMunicipalities,

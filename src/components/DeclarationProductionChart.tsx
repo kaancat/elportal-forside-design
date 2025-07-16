@@ -310,9 +310,15 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
 
         {/* Data delay notice */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <p className="text-sm text-blue-800">
+          <p className="text-sm text-blue-800 mb-2">
             <strong>Bemærk:</strong> Produktionsdata har typisk 10 dages forsinkelse fra Energistyrelsen.
             Viser data frem til {currentStats?.latestDate || '...'}.
+          </p>
+          <p className="text-xs text-blue-700">
+            <strong>Datakilde:</strong> Energinet via EnergiDataService API. Danmark har faktisk meget høj vedvarende energi-andel - ofte over 90% pga. omfattende vindkraft. 
+            <a href="https://www.energidataservice.dk/tso-electricity/DeclarationProduction" className="underline ml-1" target="_blank" rel="noopener noreferrer">
+              Verificér data her
+            </a>
           </p>
         </div>
 
@@ -530,6 +536,22 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
             </div>
           )}
 
+          {/* Legend - moved between charts */}
+          <div className="my-8 bg-gray-50 rounded-lg p-6">
+            <h3 className="text-sm font-semibold text-gray-700 mb-4">Energikilder</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Object.entries(productionTypes).map(([key, config]) => (
+                <div key={key} className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded" style={{ backgroundColor: config.color }} />
+                  <span className="text-sm text-gray-600">{config.name}</span>
+                  {config.renewable && (
+                    <Leaf className="w-3 h-3 text-green-600" />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* CO2 intensity chart */}
           {showCO2Intensity && (
             <div className="bg-white p-4 rounded-lg border">
@@ -540,7 +562,16 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                     <Info className="w-4 h-4 text-gray-500 cursor-help" />
                   </TooltipTrigger>
                   <TooltipContent className="max-w-xs">
-                    <p>Udviklingen i CO₂-udledning per kWh over tid. Lavere værdier indikerer renere elproduktion. Spidserne opstår når fossile kilder bruges mere.</p>
+                    <p className="font-semibold mb-2">Hvad er CO₂-intensitet?</p>
+                    <p className="mb-2">CO₂-intensitet måler hvor mange gram CO₂ der udledes for hver kilowatt-time (kWh) el, der produceres.</p>
+                    <p className="mb-2"><strong>Skala:</strong></p>
+                    <ul className="text-sm space-y-1">
+                      <li>• Under 50 g/kWh: Meget lav (primært vind/sol)</li>
+                      <li>• 50-100 g/kWh: Lav (mest vedvarende)</li>
+                      <li>• 100-200 g/kWh: Moderat (blandet produktion)</li>
+                      <li>• Over 200 g/kWh: Høj (meget fossil energi)</li>
+                    </ul>
+                    <p className="mt-2 text-sm">Danmark har typisk lav CO₂-intensitet pga. høj vindkraft-andel.</p>
                   </TooltipContent>
                 </UITooltip>
               </div>
@@ -587,22 +618,6 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
               )}
             </div>
           )}
-        </div>
-
-        {/* Legend */}
-        <div className="mt-8 bg-gray-50 rounded-lg p-6">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">Energikilder</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Object.entries(productionTypes).map(([key, config]) => (
-              <div key={key} className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded" style={{ backgroundColor: config.color }} />
-                <span className="text-sm text-gray-600">{config.name}</span>
-                {config.renewable && (
-                  <Leaf className="w-3 h-3 text-green-600" />
-                )}
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </section>

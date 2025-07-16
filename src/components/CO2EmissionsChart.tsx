@@ -99,7 +99,7 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
   const title = block.title || 'CO₂-udledning fra elforbrug';
   const subtitle = block.subtitle || 'Realtids CO₂-intensitet målt i gram per kWh';
   const leadingText = block.leadingText;
-  const textAlignment = block.textAlignment || 'center';
+  const headerAlignment = block.headerAlignment || 'center';
   const showGauge = block.showGauge !== undefined ? block.showGauge : true;
 
   const [data, setData] = useState<CO2EmissionRecord[]>([]);
@@ -207,29 +207,41 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
   return (
     <section className="bg-white py-16 lg:py-24">
       <div className="container mx-auto px-4">
-        {title && (
-          <h2 className="text-3xl lg:text-4xl font-display font-bold text-gray-900 text-center mb-4">
-            {title}
-          </h2>
-        )}
-        {subtitle && (
-          <p className="text-lg text-gray-600 text-center mb-8 max-w-3xl mx-auto">
-            {subtitle}
-          </p>
-        )}
-
-        {leadingText && leadingText.length > 0 && (
-          <div className="text-base text-gray-700 mb-12 max-w-4xl mx-auto">
-            <div className={cn(
-              "prose prose-lg max-w-none",
-              textAlignment === 'left' && "text-left",
-              textAlignment === 'center' && "text-center",
-              textAlignment === 'right' && "text-right"
+        {/* Header section with alignment */}
+        <div className={cn(
+          "mb-12",
+          headerAlignment === 'left' && "text-left",
+          headerAlignment === 'center' && "text-center",
+          headerAlignment === 'right' && "text-right"
+        )}>
+          {title && (
+            <h2 className={cn(
+              "text-3xl lg:text-4xl font-display font-bold text-gray-900 mb-4",
+              headerAlignment === 'center' && "mx-auto"
             )}>
-              <PortableText value={leadingText} />
+              {title}
+            </h2>
+          )}
+          {subtitle && (
+            <p className={cn(
+              "text-lg text-gray-600 mb-8",
+              headerAlignment === 'center' && "max-w-3xl mx-auto"
+            )}>
+              {subtitle}
+            </p>
+          )}
+
+          {leadingText && leadingText.length > 0 && (
+            <div className={cn(
+              "text-base text-gray-700",
+              headerAlignment === 'center' && "max-w-4xl mx-auto"
+            )}>
+              <div className="prose prose-lg max-w-none">
+                <PortableText value={leadingText} />
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Controls */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 p-4 bg-gray-50 rounded-lg border">

@@ -13,10 +13,8 @@ interface FaqGroupComponentProps {
 }
 
 const FaqGroupComponent: React.FC<FaqGroupComponentProps> = ({ block }) => {
-  console.log('FaqGroupComponent received block:', block)
 
   if (!block?.faqItems || block.faqItems.length === 0) {
-    console.warn('FaqGroupComponent: No FAQ items provided')
     return null
   }
 

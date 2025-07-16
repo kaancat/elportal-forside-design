@@ -19,6 +19,13 @@ export interface SanityImage {
   }
 }
 
+export interface MarkDef {
+  _key: string
+  _type: string
+  href?: string
+  [key: string]: unknown
+}
+
 export interface BlockContent {
   _type: 'block'
   children: Array<{
@@ -26,7 +33,7 @@ export interface BlockContent {
     text: string
     marks?: string[]
   }>
-  markDefs?: Array<any>
+  markDefs?: MarkDef[]
   style?: string
 }
 
@@ -60,7 +67,7 @@ export interface PriceExampleTable {
   _type: 'priceExampleTable'
   _key: string
   title: string
-  leadingText: any[]
+  leadingText: BlockContent[]
   example1_title: string
   example1_kwh_price: number
   example1_subscription: number
@@ -111,7 +118,6 @@ export interface RealPriceComparisonTable {
   _key: string
   title: string
   leadingText?: string
-  allProviders: ProviderProductBlock[] // Bruger den eksisterende type for et produkt
 }
 
 export interface RenewableEnergyForecast {
@@ -119,6 +125,14 @@ export interface RenewableEnergyForecast {
   _key: string
   title: string
   leadingText?: string
+}
+
+export interface CO2EmissionsChart {
+  _type: 'co2EmissionsChart'
+  _key: string
+  title?: string
+  subtitle?: string
+  showGauge?: boolean
 }
 
 export interface PriceCalculator {
@@ -208,6 +222,7 @@ export type ContentBlock =
   | LivePriceGraph 
   | RealPriceComparisonTable 
   | RenewableEnergyForecast 
+  | CO2EmissionsChart
   | PriceCalculator 
   | HeroWithCalculator 
   | HeroBlock
@@ -222,6 +237,16 @@ export interface HomePage {
   title: string
   seoMetaTitle: string
   seoMetaDescription: string
+  seoKeywords?: string[]
+  ogImage?: {
+    _type: 'image'
+    asset: {
+      _ref: string
+      _type: 'reference'
+    }
+    alt?: string
+  }
+  noIndex?: boolean
   contentBlocks: ContentBlock[]
 }
 
@@ -322,5 +347,15 @@ export interface SanityPage {
   slug: SanitySlug;
   seoMetaTitle?: string;
   seoMetaDescription?: string;
+  seoKeywords?: string[];
+  ogImage?: {
+    _type: 'image'
+    asset: {
+      _ref: string
+      _type: 'reference'
+    }
+    alt?: string
+  };
+  noIndex?: boolean;
   contentBlocks?: ContentBlock[];
 }

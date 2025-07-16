@@ -25,6 +25,8 @@ This hierarchy allows AI agents to load targeted context efficiently while maint
 - **[Deployment Infrastructure](/docs/ai-context/deployment-infrastructure.md)** - *Infrastructure patterns.* Vercel deployment, Sanity hosting, CI/CD, and monitoring
 - **[Task Management](/docs/ai-context/handoff.md)** - *Session continuity.* Current status, technical debt, and prioritized improvements
 - **[API Reference](/docs/ai-context/EnergiDataServiceAPI.md)** - *External API docs.* EnergiDataService endpoints, rate limits, and examples
+- **[Sanity Icon Troubleshooting](/docs/SANITY_ICON_TROUBLESHOOTING.md)** - *Plugin integration guide.* SchemaError fixes, icon picker setup, and common pitfalls
+- **[SEO Page Builder Integration](/docs/SEO_PAGE_BUILDER_INTEGRATION.md)** - *Field conflict resolution.* Handling duplicate fields, schema migration, and workflow integration
 
 ## Tier 2: Component-Level Documentation
 

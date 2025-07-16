@@ -2,37 +2,30 @@ import React, { useEffect, useState } from 'react';
 import Navigation from '@/components/Navigation';
 import HeroSection from '@/components/HeroSection';
 import Footer from '@/components/Footer';
-import ContentBlocks from '@/components/ContentBlocks';
+import SafeContentBlocks from '@/components/SafeContentBlocks';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import ErrorTestComponent from '@/components/ErrorTestComponent';
+import { ApiErrorFallback } from '@/components/ErrorFallbacks';
+import { useApiErrorHandler } from '@/hooks/useErrorHandler';
 import { SanityService } from '@/services/sanityService';
 import { HomePage } from '@/types/sanity';
+import { getSanityImageUrl } from '@/lib/sanityImage';
 
 const Index = () => {
   const [homepageData, setHomepageData] = useState<HomePage | null>(null)
   const [loading, setLoading] = useState(true)
+  const { errorState, clearError, withApiErrorHandling } = useApiErrorHandler()
 
   useEffect(() => {
-    const fetchHomepageData = async () => {
-      try {
-        const data = await SanityService.getHomePage()
-        console.log('Homepage Data fetched from Sanity:', data)
-        setHomepageData(data)
-      } catch (error) {
-        console.error('Error fetching homepage data:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
+    const fetchHomepageData = withApiErrorHandling(async () => {
+      const data = await SanityService.getHomePage()
+      setHomepageData(data)
+      setLoading(false)
+    }, 'homepage-data')
 
     fetchHomepageData()
-  }, [])
+  }, [withApiErrorHandling])
 
-  // Debug log when homepageData changes
-  useEffect(() => {
-    if (homepageData) {
-      console.log('Homepage Data state updated:', homepageData)
-      console.log('Content blocks from homepage data:', homepageData.contentBlocks)
-    }
-  }, [homepageData])
 
   // Update page title and meta description if Sanity data is available
   useEffect(() => {
@@ -44,21 +37,97 @@ const Index = () => {
       if (metaDescription && homepageData.seoMetaDescription) {
         metaDescription.setAttribute('content', homepageData.seoMetaDescription)
       }
+
+      // Update Open Graph image if available
+      if (homepageData.ogImage?.asset) {
+        const ogImageMeta = document.querySelector('meta[property="og:image"]')
+        if (ogImageMeta) {
+          // Construct Sanity image URL with proper dimensions for Open Graph
+          const imageUrl = getSanityImageUrl(homepageData.ogImage.asset._ref, {
+            width: 1200,
+            height: 630,
+            format: 'jpg'
+          })
+          ogImageMeta.setAttribute('content', imageUrl)
+        }
+      }
+
+      // Handle noIndex
+      if (homepageData.noIndex) {
+        const existingRobotsMeta = document.querySelector('meta[name="robots"]')
+        if (existingRobotsMeta) {
+          existingRobotsMeta.setAttribute('content', 'noindex, nofollow')
+        } else {
+          const robotsMeta = document.createElement('meta')
+          robotsMeta.name = 'robots'
+          robotsMeta.content = 'noindex, nofollow'
+          document.head.appendChild(robotsMeta)
+        }
+      }
     }
   }, [homepageData])
 
+  // Show API error if there's an error state
+  if (errorState.hasError && !loading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <ErrorBoundary level="component">
+          <Navigation />
+        </ErrorBoundary>
+        <main className="space-y-8">
+          <ApiErrorFallback 
+            onRetry={() => {
+              clearError()
+              window.location.reload()
+            }}
+            message="Kunne ikke indlæse forsiden"
+          />
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-white">
-      <Navigation />
+      <ErrorBoundary level="component">
+        <Navigation />
+      </ErrorBoundary>
+      
       <main className="space-y-8">
-        <HeroSection />
+        {/* Error Test Component - only in development */}
+        <ErrorTestComponent />
         
-        {/* Render Sanity content blocks */}
+        <ErrorBoundary level="component">
+          <HeroSection />
+        </ErrorBoundary>
+        
+        {/* Loading state */}
+        {loading && (
+          <div className="container mx-auto px-4 py-8 text-center">
+            <div className="animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-1/4 mx-auto mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+            </div>
+          </div>
+        )}
+        
+        {/* Render Sanity content blocks with error boundaries */}
         {!loading && homepageData?.contentBlocks && homepageData.contentBlocks.length > 0 && (
-          <ContentBlocks blocks={homepageData.contentBlocks} />
+          <SafeContentBlocks blocks={homepageData.contentBlocks} />
+        )}
+        
+        {/* No content fallback */}
+        {!loading && (!homepageData?.contentBlocks || homepageData.contentBlocks.length === 0) && (
+          <div className="container mx-auto px-4 py-8 text-center">
+            <p className="text-gray-600">Intet indhold tilgængeligt.</p>
+          </div>
         )}
       </main>
-      <Footer />
+      
+      <ErrorBoundary level="component">
+        <Footer />
+      </ErrorBoundary>
     </div>
   );
 };

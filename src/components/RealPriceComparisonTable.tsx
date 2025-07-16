@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import type { RealPriceComparisonTable, ProviderProductBlock } from '../types/sanity';
+import { SanityService } from '../services/sanityService';
 
 const formatCurrency = (amount: number) => `${amount.toFixed(2)} kr.`;
 
@@ -15,8 +16,25 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
   const [selectedProvider1, setSelectedProvider1] = useState<ProviderProductBlock | null>(null);
   const [selectedProvider2, setSelectedProvider2] = useState<ProviderProductBlock | null>(null);
   const [monthlyConsumption, setMonthlyConsumption] = useState(150);
+  const [allProviders, setAllProviders] = useState<ProviderProductBlock[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const { allProviders, title, leadingText } = block;
+  const { title, leadingText } = block;
+
+  useEffect(() => {
+    const fetchProviders = async () => {
+      try {
+        const providers = await SanityService.getAllProviders();
+        setAllProviders(providers);
+      } catch (error) {
+        console.error('Error fetching providers:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchProviders();
+  }, []);
 
   const handleSelect1 = (providerId: string) => {
     const provider = allProviders.find(p => p.id === providerId) || null;
@@ -43,6 +61,10 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
 
   const details1 = useMemo(() => getPriceDetails(selectedProvider1), [selectedProvider1, monthlyConsumption]);
   const details2 = useMemo(() => getPriceDetails(selectedProvider2), [selectedProvider2, monthlyConsumption]);
+  
+  if (isLoading) {
+    return <div className="text-center py-16">Indlæser udbydere...</div>;
+  }
   
   if (!allProviders || allProviders.length === 0) {
     return <div className="text-center py-16">Konfigurer venligst udbydere i Sanity.</div>;

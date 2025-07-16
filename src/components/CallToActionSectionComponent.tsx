@@ -7,10 +7,8 @@ interface CallToActionSectionComponentProps {
 }
 
 const CallToActionSectionComponent: React.FC<CallToActionSectionComponentProps> = ({ block }) => {
-  console.log('CallToActionSectionComponent received block:', block)
 
   if (!block?.title || !block?.buttonText || !block?.buttonUrl) {
-    console.warn('CallToActionSectionComponent: Missing required fields')
     return null
   }
 
@@ -32,7 +30,7 @@ const CallToActionSectionComponent: React.FC<CallToActionSectionComponentProps> 
           <Button
             onClick={handleButtonClick}
             size="lg"
-            className="bg-[#84db41] hover:bg-[#75c837] text-white font-semibold px-8 py-4 text-lg"
+            className="bg-brand-green hover:bg-brand-green-hover text-white font-semibold px-8 py-4 text-lg"
           >
             {block.buttonText}
           </Button>

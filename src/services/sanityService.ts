@@ -1,5 +1,5 @@
 import { client } from '@/lib/sanity'
-import { HomePage, BlogPost, SiteSettings, SanityPage } from '@/types/sanity'
+import { HomePage, BlogPost, SiteSettings, SanityPage, ProviderProductBlock } from '@/types/sanity'
 
 export class SanityService {
   // Fetch homepage content
@@ -139,19 +139,7 @@ export class SanityService {
           _key,
           _type,
           title,
-          leadingText,
-          // Hent ALLE provider-dokumenter og send dem med i denne blok
-          "allProviders": *[_type == "provider"]{
-            "id": _id,
-            providerName,
-            productName,
-            "logoUrl": logo.asset->url,
-            displayPrice_kWh,
-            displayMonthlyFee,
-            signupLink,
-            isVindstoedProduct,
-            benefits
-          }
+          leadingText
         }
       }
     }`
@@ -368,18 +356,7 @@ export class SanityService {
           _key,
           _type,
           title,
-          leadingText,
-          "allProviders": *[_type == "provider"]{
-            "id": _id,
-            providerName,
-            productName,
-            "logoUrl": logo.asset->url,
-            displayPrice_kWh,
-            displayMonthlyFee,
-            signupLink,
-            isVindstoedProduct,
-            benefits
-          }
+          leadingText
         },
         _type == "providerList" => {
           _key,
@@ -437,6 +414,29 @@ export class SanityService {
     } catch (error) {
       console.error('Error fetching page by slug:', error)
       return null
+    }
+  }
+
+  // Fetch all providers - single query to avoid N+1 problem
+  static async getAllProviders(): Promise<ProviderProductBlock[]> {
+    const query = `*[_type == "provider"]{
+      "id": _id,
+      providerName,
+      productName,
+      "logoUrl": logo.asset->url,
+      displayPrice_kWh,
+      displayMonthlyFee,
+      signupLink,
+      isVindstoedProduct,
+      benefits
+    }`
+    
+    try {
+      const providers = await client.fetch<ProviderProductBlock[]>(query)
+      return providers || []
+    } catch (error) {
+      console.error('Error fetching providers:', error)
+      return []
     }
   }
 }

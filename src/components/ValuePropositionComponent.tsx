@@ -1,12 +1,25 @@
 import React from 'react';
 import { Check, Info } from 'lucide-react';
+import { DynamicIcon, hasValidIcon } from './DynamicIcon';
 
 interface ValuePropositionComponentProps {
   block: any;
 }
 
 export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps> = ({ block }) => {
-  if (!block || !block.items) return null;
+  if (!block) return null;
+  
+  // Handle legacy data structure
+  const items = block.items || (block.propositions ? 
+    block.propositions.map((text: string, index: number) => ({ 
+      _key: `legacy-${index}`, 
+      text, 
+      icon: null 
+    })) : 
+    []
+  );
+  
+  if (!items || items.length === 0) return null;
 
     return (
     <section className="py-16 lg:py-24">
@@ -21,13 +34,13 @@ export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps>
             </div>
           )}
           <ul className="space-y-3 pl-1">
-            {block.items.map((item: any, index: number) => (
+            {items.map((item: any, index: number) => (
               <li key={item._key || index} className="flex items-center">
-                {item.icon?.metadata?.url ? (
-                  <img 
-                    src={item.icon.metadata.url}
-                    alt=""
-                    className="h-6 w-6 mr-3 flex-shrink-0"
+                {hasValidIcon(item.icon) ? (
+                  <DynamicIcon
+                    icon={item.icon}
+                    size={24}
+                    className="text-brand-primary mr-3 flex-shrink-0"
                   />
                 ) : (
                   <Check className="h-6 w-6 text-brand-primary mr-3 flex-shrink-0" />

@@ -11,9 +11,6 @@ interface ProviderListProps {
 }
 
 export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
-  // --- DEBUG LOGGING ---
-  console.log('Data received by ProviderList:', JSON.stringify(block, null, 2));
-  // --- END DEBUG LOGGING ---
   
   // --- SAFETY CHECK ---
   if (!block) {
@@ -28,8 +25,6 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
   const [priceLoading, setPriceLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  console.log('ProviderList render - block:', block);
-  console.log('ProviderList render - annualConsumption:', annualConsumption[0]);
 
   // Fetch live spot price when component mounts
   useEffect(() => {
@@ -44,7 +39,6 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
         if (currentPriceData) {
           setSpotPrice(currentPriceData.SpotPriceKWh);
           setLastUpdated(new Date()); // SET THE TIMESTAMP HERE
-          console.log('Fetched live spot price:', currentPriceData.SpotPriceKWh, 'kr/kWh');
         }
       } catch (error) {
         console.error("Failed to fetch live spot price:", error);
@@ -201,9 +195,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
             )}
           </div>
           {sortedProviders.map(provider => {
-            console.log('Rendering provider:', provider);
             if (!provider || !provider.id) {
-              console.warn('Invalid provider data:', provider);
               return null;
             }
             return (

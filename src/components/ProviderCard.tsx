@@ -18,8 +18,6 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
   const ENERGINET_FEE = 0.11; // Energinet tariff in kr
   const STATEN_ELAFGIFT = 0.76; // State electricity tax in kr
 
-  console.log('ProviderCard render - product:', product);
-  console.log('ProviderCard render - annualConsumption:', annualConsumption);
 
   // Add safety checks
   if (!product) {
@@ -45,8 +43,6 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
 
   const estimatedMonthlyPrice = (finalKwhPriceWithVat * annualConsumption / 12) + (product.displayMonthlyFee || 0);
   
-  console.log('Price breakdown - spot:', baseSpotPrice, 'markup:', markupKr, 'beforeVat:', priceBeforeVat, 'withVat:', finalKwhPriceWithVat);
-  console.log('Calculated monthly price:', estimatedMonthlyPrice, 'for consumption:', annualConsumption);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-200">
@@ -61,7 +57,6 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
                   alt={`${product.supplierName || 'Ukendt'} logo`} 
                   className="max-w-full max-h-full object-contain" 
                   onError={(e) => {
-                    console.warn('Logo failed to load:', product.supplierLogoURL);
                     e.currentTarget.src = '/placeholder.svg';
                   }}
                 />

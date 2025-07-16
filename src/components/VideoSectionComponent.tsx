@@ -9,11 +9,9 @@ interface VideoSectionComponentProps {
 }
 
 const VideoSectionComponent: React.FC<VideoSectionComponentProps> = ({ block }) => {
-  console.log('VideoSectionComponent received block:', block)
   const [isPlaying, setIsPlaying] = useState(false)
 
   if (!block?.videoUrl) {
-    console.warn('VideoSectionComponent: No videoUrl provided')
     return null
   }
 

@@ -26,6 +26,8 @@ interface ContentBlocksProps {
 }
 
 const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
+  // Debug: Log all block types
+  console.log('ContentBlocks received blocks:', blocks.map(b => ({ type: b._type, key: b._key })));
 
   // Group consecutive FAQ items together
   const groupedBlocks: Array<ContentBlock | FAQItem[]> = []
@@ -88,6 +90,10 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
           return <DeclarationProductionChart key={block._key} block={block as DeclarationProduction} />
         } else if (block._type === 'consumptionMap') {
           console.log('Rendering consumptionMap block:', block);
+          return <ConsumptionMapComponent key={block._key} block={block as ConsumptionMap} />
+        } else if (block._type === 'municipalityConsumptionMap') {
+          console.log('Rendering municipalityConsumptionMap block:', block);
+          // For now, render the same component
           return <ConsumptionMapComponent key={block._key} block={block as ConsumptionMap} />
         } else if (block._type === 'priceCalculator') {
           return <PriceCalculatorWidget key={block._key} block={block as PriceCalculator} />

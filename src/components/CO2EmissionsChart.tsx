@@ -237,7 +237,14 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
               headerAlignment === 'center' && "max-w-4xl mx-auto"
             )}>
               <div className="prose prose-lg max-w-none">
-                <PortableText value={leadingText} />
+                <PortableText 
+                  value={leadingText} 
+                  components={{
+                    block: {
+                      normal: ({ children }) => <p className="mb-4 last:mb-0">{children}</p>
+                    }
+                  }}
+                />
               </div>
             </div>
           )}

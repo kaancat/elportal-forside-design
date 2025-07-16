@@ -24,8 +24,8 @@ interface ConsumptionMapProps {
   block: ConsumptionMap;
 }
 
-// Official Danish government API for municipality boundaries (2007 reform - 98 municipalities)
-const DENMARK_GEOJSON_URL = 'https://api.dataforsyningen.dk/kommuner?format=geojson';
+// Using GitHub repository for better performance (simplified boundaries)
+const DENMARK_GEOJSON_URL = 'https://raw.githubusercontent.com/magnuslarsen/geoJSON-Danish-municipalities/master/municipalities/municipalities.geojson';
 
 // Register component for debugging
 debug.component('ConsumptionMap', 'Component file loaded');
@@ -223,11 +223,11 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     setSelectedMunicipality(municipalityCode === selectedMunicipality ? null : municipalityCode);
   };
 
-  // Function to get consumption data for a municipality by official API code
+  // Function to get consumption data for a municipality by LAU code
   const getConsumptionByLauCode = (lauCode: string): MunicipalityConsumption | null => {
-    // Official API provides codes like "0101" but consumption data uses "101" 
-    const municipalityCode = lauCode.replace(/^0+/, ''); // Remove leading zeros
-    return data.find(d => d.municipalityCode === municipalityCode) || null;
+    // LAU codes from GitHub GeoJSON need to be padded to 3 digits to match our municipality codes
+    const paddedCode = lauCode.padStart(3, '0');
+    return data.find(d => d.municipalityCode === paddedCode) || null;
   };
 
   // Function to get fill color for a municipality
@@ -269,11 +269,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     return `${formatDate(dateRange.start)} - ${formatDate(dateRange.end)}`;
   };
 
-  // Simple mouse handler for tooltips only
-  const handleMouseMove = (e: React.MouseEvent) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setMousePosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-  };
+  // Mouse handling removed for performance
 
   const renderMap = () => {
     if (!geoData || geoLoading) {
@@ -293,7 +289,6 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
         style={{
           aspectRatio: isMobile ? '4/3' : '4/3'
         }}
-        onMouseMove={handleMouseMove}
       >
           <ComposableMap
             projection="geoMercator"
@@ -307,7 +302,8 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
             style={{
               width: "100%",
               height: "100%",
-              display: "block"
+              display: "block",
+              shapeRendering: "crispEdges" // Optimize SVG rendering
             }}
             viewBox={`0 0 ${mapDimensions.width} ${mapDimensions.height}`}
             preserveAspectRatio="xMidYMid meet"
@@ -315,7 +311,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
           <Geographies geography={geoData}>
             {({ geographies }) =>
               geographies.map((geo) => {
-                const lauCode = geo.properties.kode;
+                const lauCode = geo.properties.lau_1;
                 const consumption = getConsumptionByLauCode(lauCode);
                 const isSelected = consumption?.municipalityCode === selectedMunicipality;
                 
@@ -329,36 +325,13 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
                     style={{
                       default: {
                         outline: 'none',
-                        transition: 'all 0.2s ease',
                       },
                       hover: {
-                        fill: consumption ? '#3b82f6' : '#e5e7eb',
                         outline: 'none',
-                        cursor: enableInteraction && consumption ? 'pointer' : 'default',
-                        filter: consumption ? 'brightness(1.1)' : 'none',
                       },
                       pressed: {
                         outline: 'none',
-                        fill: consumption ? '#2563eb' : '#e5e7eb',
                       },
-                    }}
-                    className={cn(
-                      "transition-all duration-200",
-                      isSelected && "stroke-blue-500 stroke-2",
-                      enableInteraction && consumption && "hover:opacity-80"
-                    )}
-                    onClick={() => {
-                      if (consumption && enableInteraction) {
-                        handleMunicipalityClick(consumption.municipalityCode);
-                      }
-                    }}
-                    onMouseEnter={() => {
-                      if (consumption) {
-                        setHoveredMunicipality(consumption.municipalityCode);
-                      }
-                    }}
-                    onMouseLeave={() => {
-                      setHoveredMunicipality(null);
                     }}
                   />
                 );
@@ -367,54 +340,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
           </Geographies>
         </ComposableMap>
         
-        {/* Custom tooltip */}
-        {showTooltips && hoveredData && hoveredMunicipality && (
-          <div
-            className="absolute z-50 pointer-events-none"
-            style={{
-              left: `${mousePosition.x + 10}px`,
-              top: `${mousePosition.y - 10}px`,
-              transform: 'translate(0, -100%)',
-            }}
-          >
-            <div className="bg-white/95 backdrop-blur shadow-xl border border-gray-200 rounded-lg p-4 max-w-xs">
-              <div className="space-y-3">
-                <div>
-                  <div className="font-bold text-base">{hoveredData.municipalityName}</div>
-                  <div className="text-xs text-gray-500">Kommune</div>
-                </div>
-                
-                <div className="border-t pt-3 space-y-2">
-                  <div>
-                    <div className="text-xs text-gray-600">Total forbrug</div>
-                    <div className="font-semibold">{formatConsumption(hoveredData.totalConsumption)}</div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <div className="text-xs text-gray-600">Private</div>
-                      <div className="font-semibold text-green-600">
-                        {formatConsumption(hoveredData.totalPrivateConsumption)}
-                      </div>
-                      <div className="text-xs text-green-600">({formatPercentage(hoveredData.privateShare)})</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-600">Erhverv</div>
-                      <div className="font-semibold text-orange-600">
-                        {formatConsumption(hoveredData.totalIndustryConsumption)}
-                      </div>
-                      <div className="text-xs text-orange-600">({formatPercentage(hoveredData.industryShare)})</div>
-                    </div>
-                  </div>
-                  
-                  <div className="text-xs text-gray-500 pt-2 border-t">
-                    Forbrugsniveau: <span className="font-medium">{getConsumptionLevel(hoveredData.totalConsumption, statistics?.maxConsumption || 1)}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Tooltips disabled for performance */}
       </div>
     );
   };

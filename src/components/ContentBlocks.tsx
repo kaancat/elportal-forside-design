@@ -1,5 +1,6 @@
 import React from 'react'
 import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, CO2EmissionsChart, DeclarationProduction, ConsumptionMap, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
+import { debug } from '@/utils/debug'
 import PageSectionComponent from './PageSectionComponent'
 import FAQItemComponent from './FAQItemComponent'
 import PriceExampleTableComponent from './PriceExampleTableComponent'
@@ -25,9 +26,20 @@ interface ContentBlocksProps {
   blocks: ContentBlock[]
 }
 
+// Component registration check
+debug.component('ContentBlocks', 'Component loaded', {
+  ConsumptionMapComponentImported: !!ConsumptionMapComponent,
+  hasDebugUtil: true
+});
+
 const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
   // Debug: Log all block types
-  console.log('ContentBlocks received blocks:', blocks.map(b => ({ type: b._type, key: b._key })));
+  debug.log('ContentBlocks received blocks:', blocks.map(b => ({ 
+    type: b._type, 
+    key: b._key,
+    hasType: '_type' in b,
+    typeValue: b._type
+  })));
 
   // Group consecutive FAQ items together
   const groupedBlocks: Array<ContentBlock | FAQItem[]> = []
@@ -55,6 +67,10 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
   return (
     <div className="space-y-6">
       {groupedBlocks.map((block, index) => {
+        debug.trace(`Rendering block ${index}`, { 
+          isArray: Array.isArray(block),
+          type: Array.isArray(block) ? 'FAQ Group' : (block as any)._type 
+        });
         
         if (Array.isArray(block)) {
           // This is a group of FAQ items
@@ -89,12 +105,29 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         } else if (block._type === 'declarationProduction') {
           return <DeclarationProductionChart key={block._key} block={block as DeclarationProduction} />
         } else if (block._type === 'consumptionMap') {
-          console.log('Rendering consumptionMap block:', block);
-          return <ConsumptionMapComponent key={block._key} block={block as ConsumptionMap} />
+          debug.component('ConsumptionMap', 'Type matched!', block);
+          try {
+            return <ConsumptionMapComponent key={block._key} block={block as ConsumptionMap} />
+          } catch (error) {
+            debug.error('Error rendering ConsumptionMap:', error);
+            return (
+              <div key={block._key} className="bg-red-100 p-4 rounded">
+                <p>Error loading consumption map: {String(error)}</p>
+              </div>
+            )
+          }
         } else if (block._type === 'municipalityConsumptionMap') {
-          console.log('Rendering municipalityConsumptionMap block:', block);
-          // For now, render the same component
-          return <ConsumptionMapComponent key={block._key} block={block as ConsumptionMap} />
+          debug.component('MunicipalityConsumptionMap', 'Type matched!', block);
+          try {
+            return <ConsumptionMapComponent key={block._key} block={block as ConsumptionMap} />
+          } catch (error) {
+            debug.error('Error rendering MunicipalityConsumptionMap:', error);
+            return (
+              <div key={block._key} className="bg-red-100 p-4 rounded">
+                <p>Error loading municipality consumption map: {String(error)}</p>
+              </div>
+            )
+          }
         } else if (block._type === 'priceCalculator') {
           return <PriceCalculatorWidget key={block._key} block={block as PriceCalculator} />
         } else if (block._type === 'heroWithCalculator') {
@@ -114,7 +147,23 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         } else {
           // Handle unknown block types with a clear error message instead of silent fallback
           const unknownBlock = block as ContentBlock & { _type: string; _key?: string }
-          console.error('Unknown content block type:', unknownBlock._type, 'Full block:', unknownBlock);
+          
+          // Log detailed information about the unknown block
+          debug.error('Unknown content block type:', {
+            type: unknownBlock._type,
+            typeLength: unknownBlock._type?.length,
+            typeCharCodes: unknownBlock._type ? Array.from(unknownBlock._type).map(c => c.charCodeAt(0)) : [],
+            hasWhitespace: unknownBlock._type?.includes(' '),
+            trimmedType: unknownBlock._type?.trim(),
+            fullBlock: unknownBlock
+          });
+          
+          // Check if it's a case sensitivity issue
+          const lowerType = unknownBlock._type?.toLowerCase();
+          if (lowerType === 'consumptionmap') {
+            debug.warn('Case sensitivity issue detected! Type is:', unknownBlock._type);
+          }
+          
           return (
             <div key={unknownBlock._key || `unknown-${index}`} className="bg-red-100 border-2 border-red-400 text-red-700 px-6 py-4 rounded-lg mx-4 my-4">
               <h3 className="font-bold text-lg mb-2">⚠️ Unknown Component Type</h3>

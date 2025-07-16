@@ -22,6 +22,7 @@ import {
   formatPercentage,
   calculateConsumptionStats 
 } from '@/utils/municipality/municipalityMapper';
+import { debug } from '@/utils/debug';
 
 interface ConsumptionMapProps {
   block: ConsumptionMap;
@@ -30,7 +31,12 @@ interface ConsumptionMapProps {
 // Denmark municipalities GeoJSON URL
 const DENMARK_GEOJSON_URL = 'https://raw.githubusercontent.com/magnuslarsen/geoJSON-Danish-municipalities/master/municipalities/municipalities.geojson';
 
+// Register component for debugging
+debug.component('ConsumptionMap', 'Component file loaded');
+
 const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
+  debug.component('ConsumptionMap', 'Rendering with block:', block);
+  
   // Set default values for missing fields
   const title = block.title || 'Elforbrug per kommune';
   const subtitle = block.subtitle || 'Se elforbruget fordelt på private husholdninger og erhverv';
@@ -628,5 +634,8 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     </section>
   );
 };
+
+// Debug: Component export
+debug.component('ConsumptionMap', 'Component exported successfully');
 
 export default ConsumptionMapComponent;

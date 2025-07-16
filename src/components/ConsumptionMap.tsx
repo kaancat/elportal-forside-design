@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import { scaleSequential } from 'd3-scale';
 import { interpolateGreens, interpolateBlues, interpolateReds } from 'd3-scale-chromatic';
-import { MapPin, Activity, Zap, Building2, Home, Info, Filter, RotateCcw, Download, Calendar } from 'lucide-react';
+import { MapPin, Activity, Zap, Building2, Home, Info, Filter, Download, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
@@ -72,6 +72,14 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Get responsive dimensions for the map
+  const getMapDimensions = () => {
+    if (isMobile) {
+      return { width: 400, height: 300 };
+    }
+    return { width: 800, height: 600 };
+  };
 
   // Load GeoJSON data
   useEffect(() => {
@@ -242,11 +250,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     return colorScale(value);
   };
 
-  const resetFilters = () => {
-    setSelectedView(defaultView);
-    setSelectedConsumerType(consumerType);
-    setSelectedMunicipality(null);
-  };
+  // Reset filters function removed as it wasn't providing value
   
   // Format date range for display
   const formatDateRange = () => {
@@ -274,26 +278,35 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     }
 
     const hoveredData = hoveredMunicipality ? data.find(d => d.municipalityCode === hoveredMunicipality) : null;
+    const mapDimensions = getMapDimensions();
 
     return (
-      <div className="w-full relative" onMouseMove={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        setMousePosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-      }}>
+      <div 
+        className="w-full relative bg-gray-50 rounded-lg overflow-hidden"
+        style={{
+          aspectRatio: isMobile ? '4/3' : '4/3', // Consistent aspect ratio
+        }}
+        onMouseMove={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          setMousePosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+        }}
+      >
         <ComposableMap
           projection="geoMercator"
           projectionConfig={{
-            scale: 6000, // Increased scale to make map larger
-            center: [11, 56] // Adjusted center for better framing
+            scale: isMobile ? 3000 : 3800, // Reduced scale to fit all of Denmark including Bornholm
+            center: [11.5, 56.1] // Adjusted center to better include all Danish territory
           }}
-          width={800}
-          height={600} // Increased height
-          className="w-full h-auto"
+          width={mapDimensions.width}
+          height={mapDimensions.height}
+          className="w-full h-full"
           style={{
             width: "100%",
-            height: "auto",
-            maxHeight: "600px"
+            height: "100%",
+            display: "block"
           }}
+          viewBox={`0 0 ${mapDimensions.width} ${mapDimensions.height}`}
+          preserveAspectRatio="xMidYMid meet"
         >
           <Geographies geography={geoData}>
             {({ geographies }) =>
@@ -588,15 +601,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
               </Select>
             )}
 
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={resetFilters}
-              className="flex items-center gap-1"
-            >
-              <RotateCcw className="w-3 h-3" />
-              Nulstil
-            </Button>
+            {/* Reset button removed - wasn't providing value to users */}
             </div>
           </div>
           
@@ -659,7 +664,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
                 </div>
               </div>
             ) : (
-              <div className="min-h-[600px]">
+              <div className="w-full">
                 {mapView === 'map' && geoData ? renderMap() : renderMunicipalityList()}
               </div>
             )}

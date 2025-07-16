@@ -1,10 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Activity, Wind, Sun, Flame, Leaf, TrendingDown, Calendar } from 'lucide-react';
+import { Activity, Wind, Sun, Flame, Leaf, TrendingDown, Calendar, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { PortableText } from '@portabletext/react';
+import {
+  Tooltip as UITooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { DeclarationProduction } from '@/types/sanity';
 
 interface ProductionRecord {
@@ -115,6 +121,18 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [selectedView, setSelectedView] = useState<'24h' | '7d' | '30d'>(defaultView as '24h' | '7d' | '30d');
   const [selectedRegion, setSelectedRegion] = useState<'Danmark' | 'DK1' | 'DK2'>('Danmark');
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -152,10 +170,11 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
               minute: '2-digit'
             });
           } else if (selectedView === '7d') {
-            // For 7d view, show day/month
+            // For 7d view, show day/month and hour for hourly data
             timeFormat = date.toLocaleString('da-DK', { 
               day: 'numeric',
-              month: 'short'
+              month: 'short',
+              hour: '2-digit'
             }).replace('.', '');
           } else {
             // For 30d view, show day/month more concise
@@ -217,14 +236,28 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
 
   // Custom tick formatter for x-axis
   const formatXAxisTick = (tickItem: string, index: number) => {
-    // For 30d view, only show every 5th label
-    if (selectedView === '30d' && index % 5 !== 0) {
-      return '';
+    if (isMobile) {
+      // Much more aggressive filtering on mobile
+      if (selectedView === '30d' && index % 10 !== 0) {
+        return '';
+      }
+      if (selectedView === '7d' && index % 12 !== 0) {
+        return '';
+      }
+      if (selectedView === '24h' && index % 6 !== 0) {
+        return '';
+      }
+    } else {
+      // Desktop filtering
+      if (selectedView === '30d' && index % 5 !== 0) {
+        return '';
+      }
+      // For 7d view with hourly data, show every 6 hours
+      if (selectedView === '7d' && index % 6 !== 0) {
+        return '';
+      }
     }
-    // For 7d view, show every other label
-    if (selectedView === '7d' && index % 2 !== 0) {
-      return '';
-    }
+    
     return tickItem;
   };
 
@@ -339,6 +372,16 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Leaf className="w-5 h-5 text-green-600" />
                 <h3 className="text-sm font-semibold text-gray-700">Vedvarende energi</h3>
+                <TooltipProvider>
+                  <UITooltip>
+                    <TooltipTrigger>
+                      <Info className="w-4 h-4 text-gray-500" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>Procentdel af elproduktionen fra vedvarende kilder som vind, sol, vand og biomasse. Højere er bedre for miljøet.</p>
+                    </TooltipContent>
+                  </UITooltip>
+                </TooltipProvider>
               </div>
               <div className="text-3xl font-bold text-green-600">
                 {currentStats.currentRenewable.toFixed(1)}%
@@ -352,6 +395,16 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
               <div className="flex items-center justify-center gap-2 mb-2">
                 <TrendingDown className="w-5 h-5 text-blue-600" />
                 <h3 className="text-sm font-semibold text-gray-700">CO₂-intensitet</h3>
+                <TooltipProvider>
+                  <UITooltip>
+                    <TooltipTrigger>
+                      <Info className="w-4 h-4 text-gray-500" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>Gram CO₂ udledt per kilowatt-time produceret. Lavere værdier betyder renere el. Under 100 g/kWh betragtes som meget lav.</p>
+                    </TooltipContent>
+                  </UITooltip>
+                </TooltipProvider>
               </div>
               <div 
                 className="text-3xl font-bold"
@@ -368,6 +421,16 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Activity className="w-5 h-5 text-gray-600" />
                 <h3 className="text-sm font-semibold text-gray-700">Total produktion</h3>
+                <TooltipProvider>
+                  <UITooltip>
+                    <TooltipTrigger>
+                      <Info className="w-4 h-4 text-gray-500" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>Samlet elproduktion i megawatt (MW) for den valgte periode. Viser produktionskapaciteten i realtid eller gennemsnit.</p>
+                    </TooltipContent>
+                  </UITooltip>
+                </TooltipProvider>
               </div>
               <div className="text-3xl font-bold text-gray-700">
                 {data[data.length - 1]?.totalProduction.toFixed(0)} MW
@@ -384,7 +447,19 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
           {/* Production breakdown chart */}
           {showProductionBreakdown && (
             <div className="bg-white p-4 rounded-lg border">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Produktionsfordeling</h3>
+              <div className="flex items-center gap-2 mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Produktionsfordeling</h3>
+                <TooltipProvider>
+                  <UITooltip>
+                    <TooltipTrigger>
+                      <Info className="w-4 h-4 text-gray-500" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>Viser hvordan elproduktionen fordeles mellem forskellige energikilder. Grønne farver = vedvarende, orange/røde = fossile brændstoffer.</p>
+                    </TooltipContent>
+                  </UITooltip>
+                </TooltipProvider>
+              </div>
               {loading ? (
                 <div className="flex items-center justify-center h-[400px]">
                   <div className="text-gray-500">Indlæser produktionsdata...</div>
@@ -409,10 +484,10 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis 
                       dataKey="time" 
-                      tick={{ fontSize: 10 }}
-                      angle={-45}
+                      tick={{ fontSize: isMobile ? 8 : 10 }}
+                      angle={isMobile ? -90 : -45}
                       textAnchor="end"
-                      height={60}
+                      height={isMobile ? 80 : 60}
                       interval={0}
                       tickFormatter={formatXAxisTick}
                     />
@@ -465,7 +540,19 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
           {/* CO2 intensity chart */}
           {showCO2Intensity && (
             <div className="bg-white p-4 rounded-lg border">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">CO₂-intensitet over tid</h3>
+              <div className="flex items-center gap-2 mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">CO₂-intensitet over tid</h3>
+                <TooltipProvider>
+                  <UITooltip>
+                    <TooltipTrigger>
+                      <Info className="w-4 h-4 text-gray-500" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>Udviklingen i CO₂-udledning per kWh over tid. Lavere værdier indikerer renere elproduktion. Spidserne opstår når fossile kilder bruges mere.</p>
+                    </TooltipContent>
+                  </UITooltip>
+                </TooltipProvider>
+              </div>
               {loading ? (
                 <div className="flex items-center justify-center h-[300px]">
                   <div className="text-gray-500">Indlæser CO₂-data...</div>
@@ -480,10 +567,10 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis 
                       dataKey="time" 
-                      tick={{ fontSize: 10 }}
-                      angle={-45}
+                      tick={{ fontSize: isMobile ? 8 : 10 }}
+                      angle={isMobile ? -90 : -45}
                       textAnchor="end"
-                      height={60}
+                      height={isMobile ? 80 : 60}
                       interval={0}
                       tickFormatter={formatXAxisTick}
                     />

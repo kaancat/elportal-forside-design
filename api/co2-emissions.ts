@@ -16,10 +16,10 @@ export async function GET(request: Request) {
     // Date logic
     const dateParam = searchParams.get('date');
     const baseDate = dateParam ? new Date(dateParam + 'T00:00:00Z') : new Date();
-    const startDate = baseDate.toISOString().split('T')[0] + 'T00:00:00';
+    const startDate = baseDate.toISOString().split('T')[0] + 'T00:00';
     const tomorrow = new Date(baseDate);
     tomorrow.setUTCDate(baseDate.getUTCDate() + 1);
-    const endDate = tomorrow.toISOString().split('T')[0] + 'T00:00:00';
+    const endDate = tomorrow.toISOString().split('T')[0] + 'T00:00';
 
     // Region logic
     const region = searchParams.get('region') || 'Danmark';

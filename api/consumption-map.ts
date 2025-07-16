@@ -27,8 +27,8 @@ export async function GET(request: Request) {
     const municipality = searchParams.get('municipality');
 
     // Calculate date range based on view
-    // Note: PrivIndustryConsumptionHour data has about 8-10 days delay
-    const DATA_DELAY_DAYS = 8;
+    // Note: PrivIndustryConsumptionHour data has about 10-14 days delay
+    const DATA_DELAY_DAYS = 14; // Increased to ensure we get data
     const endDate = new Date();
     endDate.setDate(endDate.getDate() - DATA_DELAY_DAYS); // Account for data delay
     

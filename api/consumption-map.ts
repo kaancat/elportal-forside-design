@@ -16,13 +16,23 @@ export async function GET(request: Request) {
 
     // Get parameters
     const consumerType = searchParams.get('consumerType') || 'all';
-    const aggregation = searchParams.get('aggregation') || 'daily';
+    let aggregation = searchParams.get('aggregation') || 'daily';
+    
+    // Handle 'latest' from Sanity as 'hourly'
+    if (aggregation === 'latest') {
+      aggregation = 'hourly';
+    }
+    
     const view = searchParams.get('view') || '24h';
     const municipality = searchParams.get('municipality');
 
     // Calculate date range based on view
+    // Note: PrivIndustryConsumptionHour data has about 8-10 days delay
+    const DATA_DELAY_DAYS = 8;
     const endDate = new Date();
-    const startDate = new Date();
+    endDate.setDate(endDate.getDate() - DATA_DELAY_DAYS); // Account for data delay
+    
+    const startDate = new Date(endDate);
     
     switch(view) {
       case '7d':
@@ -52,7 +62,14 @@ export async function GET(request: Request) {
 
     const apiUrl = `https://api.energidataservice.dk/dataset/PrivIndustryConsumptionHour?start=${apiStart}&end=${apiEnd}${filter}&sort=HourUTC ASC`;
 
-    console.log('Fetching consumption data from:', apiUrl);
+    console.log('Fetching consumption data:', {
+      url: apiUrl,
+      startDate: apiStart,
+      endDate: apiEnd,
+      view,
+      consumerType,
+      aggregation
+    });
 
     const externalResponse = await fetch(apiUrl);
 
@@ -80,6 +97,35 @@ export async function GET(request: Request) {
     let records = result.records || [];
 
     console.log(`Raw records: ${records.length}`);
+    
+    // If no records, return empty data with proper structure
+    if (records.length === 0) {
+      console.log('No records found for date range:', { start: apiStart, end: apiEnd });
+      return Response.json({
+        data: [],
+        statistics: {
+          totalMunicipalities: 0,
+          totalConsumption: 0,
+          totalPrivateConsumption: 0,
+          totalIndustryConsumption: 0,
+          averageConsumption: 0,
+          privateShareTotal: 0,
+          industryShareTotal: 0,
+          topConsumers: []
+        },
+        metadata: {
+          consumerType,
+          aggregation,
+          view,
+          startDate: apiStart,
+          endDate: apiEnd,
+          municipality,
+          dataPoints: 0,
+          lastUpdated: new Date().toISOString(),
+          message: 'No data available for the selected date range'
+        }
+      }, { status: 200 });
+    }
 
     // Group by municipality and aggregate consumption
     const municipalityData: Record<string, any> = {};

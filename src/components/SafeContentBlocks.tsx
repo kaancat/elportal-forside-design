@@ -1,5 +1,5 @@
 import React from 'react'
-import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
+import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, CO2EmissionsChart, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
 import PageSectionComponent from './PageSectionComponent'
 import FAQItemComponent from './FAQItemComponent'
 import PriceExampleTableComponent from './PriceExampleTableComponent'
@@ -10,6 +10,7 @@ import CallToActionSectionComponent from './CallToActionSectionComponent'
 import LivePriceGraphComponent from './LivePriceGraphComponent'
 import RealPriceComparisonTableComponent from './RealPriceComparisonTable'
 import RenewableEnergyForecastComponent from './RenewableEnergyForecast'
+import CO2EmissionsChartComponent from './CO2EmissionsChart'
 import PriceCalculatorWidget from './PriceCalculatorWidget'
 import HeroSection from './HeroSection'
 import MonthlyProductionChart from './MonthlyProductionChart'
@@ -47,6 +48,7 @@ const SafeContentBlock: React.FC<{
       case 'livePriceGraph':
       case 'realPriceComparisonTable':
       case 'renewableEnergyForecast':
+      case 'co2EmissionsChart':
       case 'monthlyProductionChart':
         return <ChartErrorFallback 
           onRetry={() => window.location.reload()} 
@@ -134,6 +136,9 @@ const renderContentBlock = (block: ContentBlock) => {
     
     case 'renewableEnergyForecast':
       return <RenewableEnergyForecastComponent block={block as RenewableEnergyForecast} />;
+    
+    case 'co2EmissionsChart':
+      return <CO2EmissionsChartComponent block={block as CO2EmissionsChart} />;
     
     case 'priceCalculator':
       return <PriceCalculatorWidget block={block as PriceCalculator} />;

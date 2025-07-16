@@ -21,6 +21,7 @@ interface CO2EmissionsChartProps {
     _key: string;
     title?: string;
     subtitle?: string;
+    leadingText?: string;
     showGauge?: boolean;
   };
 }
@@ -102,6 +103,7 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
   // Set default values for missing fields
   const title = block.title || 'CO₂-udledning fra elforbrug';
   const subtitle = block.subtitle || 'Realtids CO₂-intensitet målt i gram per kWh';
+  const leadingText = block.leadingText;
   const showGauge = block.showGauge !== undefined ? block.showGauge : true;
 
   const [data, setData] = useState<CO2EmissionRecord[]>([]);
@@ -215,9 +217,21 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
           </h2>
         )}
         {subtitle && (
-          <p className="text-lg text-gray-600 text-center mb-12 max-w-3xl mx-auto">
+          <p className="text-lg text-gray-600 text-center mb-8 max-w-3xl mx-auto">
             {subtitle}
           </p>
+        )}
+
+        {leadingText && (
+          <div className="text-base text-gray-700 mb-12 max-w-4xl mx-auto">
+            <div className="prose prose-lg max-w-none text-center">
+              {leadingText.split('\n').map((paragraph, index) => (
+                <p key={index} className="mb-4 last:mb-0">
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+          </div>
         )}
 
         {/* Controls */}

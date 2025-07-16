@@ -90,8 +90,8 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
       try {
         debug.log('Loading and simplifying Denmark GeoJSON data...');
         
-        // Get recommended tolerance based on mobile/desktop
-        const tolerance = getRecommendedTolerance(isMobile ? 5 : 8);
+        // Use optimal tolerance for Danish municipalities
+        const tolerance = 0.001; // About 111 meters - good balance of accuracy vs performance
         
         // Load and simplify GeoJSON with caching
         const simplifiedGeoJson = await loadAndSimplifyGeoJSON(DENMARK_GEOJSON_URL, {
@@ -99,8 +99,24 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
           highQuality: false // Use faster algorithm for better performance
         });
         
-        debug.log('GeoJSON loaded and simplified successfully:', simplifiedGeoJson.features?.length, 'municipalities');
-        setGeoData(simplifiedGeoJson);
+        // Filter out any invalid features or non-municipality areas
+        const validFeatures = simplifiedGeoJson.features?.filter((feature: any) => {
+          const kode = feature.properties?.kode;
+          return kode && kode.length >= 3; // Valid municipality codes are 3-4 digits
+        }) || [];
+        
+        const filteredGeoJson = {
+          ...simplifiedGeoJson,
+          features: validFeatures
+        };
+        
+        debug.log('GeoJSON loaded and simplified successfully:', validFeatures.length, 'valid municipalities');
+        
+        // Debug: Log some sample municipality codes to verify data
+        const sampleCodes = validFeatures.slice(0, 5).map((f: any) => f.properties?.kode);
+        debug.log('Sample municipality codes:', sampleCodes);
+        
+        setGeoData(filteredGeoJson);
       } catch (err: any) {
         console.error('Failed to load GeoJSON:', err);
         // Fall back to list view if GeoJSON fails to load
@@ -111,7 +127,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     };
 
     loadGeoData();
-  }, [isMobile]); // Re-load if mobile state changes
+  }, []); // Load once on mount
 
   useEffect(() => {
     const fetchData = async () => {
@@ -321,8 +337,8 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
           <ComposableMap
             projection="geoMercator"
             projectionConfig={{
-              scale: isMobile ? 2800 : 3600, // Optimized scale for official API boundaries
-              center: [11.8, 56.2] // Centered for official Danish municipality boundaries
+              scale: isMobile ? 1000 : 1200, // Much smaller scale to show full Denmark
+              center: [11.5, 56.0] // Centered for full Danish territory including Bornholm
             }}
             width={mapDimensions.width}
             height={mapDimensions.height}

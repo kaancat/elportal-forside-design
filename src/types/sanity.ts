@@ -227,6 +227,25 @@ export interface DeclarationProduction {
   defaultView?: '24h' | '7d' | '30d'
 }
 
+export interface ConsumptionMap {
+  _type: 'consumptionMap'
+  _key: string
+  title?: string
+  subtitle?: string
+  leadingText?: BlockContent[]
+  headerAlignment?: 'left' | 'center' | 'right'
+  dataSource?: 'latest' | 'daily' | 'monthly' | 'peak'
+  consumerType?: 'all' | 'private' | 'industry' | 'both'
+  colorScheme?: 'green' | 'blue' | 'heat' | 'brand'
+  showLegend?: boolean
+  showTooltips?: boolean
+  enableInteraction?: boolean
+  updateInterval?: number
+  defaultView?: '24h' | '7d' | '30d' | 'month'
+  showStatistics?: boolean
+  mobileLayout?: 'responsive' | 'list' | 'simplified'
+}
+
 
 // Centralized ContentBlock union type
 export type ContentBlock = 
@@ -242,6 +261,7 @@ export type ContentBlock =
   | RenewableEnergyForecast 
   | CO2EmissionsChart
   | DeclarationProduction
+  | ConsumptionMap
   | PriceCalculator 
   | HeroWithCalculator 
   | HeroBlock
@@ -249,6 +269,7 @@ export type ContentBlock =
   | ProviderListBlock
   | FeatureListBlock
   | ValuePropositionBlock
+  | MunicipalityConsumptionMapBlock
 
 export interface HomePage {
   _id: string
@@ -377,4 +398,56 @@ export interface SanityPage {
   };
   noIndex?: boolean;
   contentBlocks?: ContentBlock[];
+}
+
+// Private Industry Consumption API Types
+export interface ConsumptionRecord {
+  HourUTC: string;
+  HourDK: string;
+  MunicipalityNo: string;
+  MunicipalityName?: string;
+  HousingCategory: string;
+  HeatingCategory: string;
+  ConsumptionkWh: number;
+}
+
+export interface AggregatedConsumption {
+  municipalityNo: string;
+  municipalityName: string;
+  totalConsumption: number;
+  averageConsumption: number;
+  housingBreakdown: Record<string, number>;
+  heatingBreakdown: Record<string, number>;
+  recordCount: number;
+}
+
+export interface ConsumptionResponse {
+  data: ConsumptionRecord[] | AggregatedConsumption[];
+  totalRecords: number;
+  aggregationType: 'none' | 'daily' | 'monthly' | 'municipality';
+  period: {
+    start: string;
+    end: string;
+  };
+  filters: {
+    municipality?: string;
+    municipalityName?: string;
+    housingCategory?: string;
+    heatingCategory?: string;
+  };
+  availableCategories: {
+    housing: string[];
+    heating: string[];
+  };
+}
+
+export interface MunicipalityConsumptionMapBlock {
+  _type: 'municipalityConsumptionMap';
+  _key: string;
+  title?: string;
+  subtitle?: string;
+  defaultAggregation?: 'daily' | 'monthly' | 'municipality';
+  showHousingBreakdown?: boolean;
+  showHeatingBreakdown?: boolean;
+  headerAlignment?: 'left' | 'center' | 'right';
 }

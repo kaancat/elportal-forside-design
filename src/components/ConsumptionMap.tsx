@@ -277,9 +277,8 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     }
 
     return (
-      <TooltipProvider delayDuration={0}>
-        <div className="w-full">
-          <ComposableMap
+      <div className="w-full">
+        <ComposableMap
           projection="geoMercator"
           projectionConfig={{
             scale: 6000, // Increased scale to make map larger
@@ -302,7 +301,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
                 const isSelected = consumption?.municipalityCode === selectedMunicipality;
                 
                 return (
-                  <UITooltip key={geo.rsmKey}>
+                  <UITooltip key={geo.rsmKey} open={undefined}>
                     <TooltipTrigger asChild>
                       <Geography
                         geography={geo}
@@ -333,6 +332,16 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
                         onClick={() => {
                           if (consumption && enableInteraction) {
                             handleMunicipalityClick(consumption.municipalityCode);
+                          }
+                        }}
+                        onMouseEnter={() => {
+                          if (consumption) {
+                            debug.log('Mouse entered municipality:', geo.properties.label_dk);
+                          }
+                        }}
+                        onMouseLeave={() => {
+                          if (consumption) {
+                            debug.log('Mouse left municipality:', geo.properties.label_dk);
                           }
                         }}
                       />
@@ -382,7 +391,6 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
           </Geographies>
         </ComposableMap>
       </div>
-      </TooltipProvider>
     );
   };
 
@@ -483,8 +491,9 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
   };
 
   return (
-    <section className="bg-white py-8 md:py-16 lg:py-24">
-      <div className="container mx-auto px-4 max-w-7xl">
+    <TooltipProvider delayDuration={0}>
+      <section className="bg-white py-8 md:py-16 lg:py-24">
+        <div className="container mx-auto px-4 max-w-7xl">
         {/* Header section with alignment */}
         <div className={cn(
           "mb-12",
@@ -752,8 +761,9 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
             )}
           </div>
         </div>
-      </div>
-    </section>
+        </div>
+      </section>
+    </TooltipProvider>
   );
 };
 

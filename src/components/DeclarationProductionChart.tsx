@@ -142,13 +142,28 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
         
         // Transform data for the charts
         const chartData = result.records.map((record: ProductionRecord) => {
-          const transformed: any = {
-            time: new Date(record.HourDK).toLocaleString('da-DK', { 
-              month: 'short',
+          const date = new Date(record.HourDK);
+          let timeFormat: string;
+          
+          if (selectedView === '24h') {
+            // For 24h view, show hour only
+            timeFormat = date.toLocaleString('da-DK', { 
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+          } else if (selectedView === '7d') {
+            // For 7d view, show day/month
+            timeFormat = date.toLocaleString('da-DK', { 
               day: 'numeric',
-              hour: selectedView === '24h' ? '2-digit' : undefined,
-              minute: selectedView === '24h' ? '2-digit' : undefined
-            }).replace(/\./g, ':'),
+              month: 'short'
+            }).replace('.', '');
+          } else {
+            // For 30d view, show day/month more concise
+            timeFormat = `${date.getDate()}/${date.getMonth() + 1}`;
+          }
+          
+          const transformed: any = {
+            time: timeFormat,
             averageCO2: record.averageCO2,
             renewableShare: record.renewableShare,
             totalProduction: record.totalProduction
@@ -198,6 +213,19 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
     if (value < 200) return '#84cc16';
     if (value < 300) return '#eab308';
     return '#dc2626';
+  };
+
+  // Custom tick formatter for x-axis
+  const formatXAxisTick = (tickItem: string, index: number) => {
+    // For 30d view, only show every 5th label
+    if (selectedView === '30d' && index % 5 !== 0) {
+      return '';
+    }
+    // For 7d view, show every other label
+    if (selectedView === '7d' && index % 2 !== 0) {
+      return '';
+    }
+    return tickItem;
   };
 
   return (
@@ -377,12 +405,16 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height={400}>
-                  <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 60 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis 
                       dataKey="time" 
-                      tick={{ fontSize: 12 }}
-                      interval={selectedView === '30d' ? 4 : selectedView === '7d' ? 1 : 0}
+                      tick={{ fontSize: 10 }}
+                      angle={-45}
+                      textAnchor="end"
+                      height={60}
+                      interval={0}
+                      tickFormatter={formatXAxisTick}
                     />
                     <YAxis 
                       tick={{ fontSize: 12 }}
@@ -444,12 +476,16 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <LineChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 60 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis 
                       dataKey="time" 
-                      tick={{ fontSize: 12 }}
-                      interval={selectedView === '30d' ? 4 : selectedView === '7d' ? 1 : 0}
+                      tick={{ fontSize: 10 }}
+                      angle={-45}
+                      textAnchor="end"
+                      height={60}
+                      interval={0}
+                      tickFormatter={formatXAxisTick}
                     />
                     <YAxis 
                       tick={{ fontSize: 12 }}

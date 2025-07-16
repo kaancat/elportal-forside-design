@@ -179,7 +179,6 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
           {/* Last Updated Timestamp with Tooltip */}
           <div className="flex justify-center items-center gap-2 mb-8">
             {lastUpdated && (
-              <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <p className="text-sm text-gray-500 cursor-pointer flex items-center gap-1">
@@ -191,7 +190,6 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
                     <p>De viste priser er estimater baseret på live spotpriser, <br /> som opdateres hver time.</p>
                   </TooltipContent>
                 </Tooltip>
-              </TooltipProvider>
             )}
           </div>
           {sortedProviders.map(provider => {

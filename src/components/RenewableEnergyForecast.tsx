@@ -8,7 +8,14 @@ import { cn } from "@/lib/utils";
 
 // --- TYPES ---
 interface ForecastRecord { HourUTC: string; ForecastType: 'Solar' | 'Onshore Wind' | 'Offshore Wind'; ForecastDayAhead: number; PriceArea: 'DK1' | 'DK2'; }
-interface RenewableEnergyForecastProps { block: { _type: 'renewableEnergyForecast'; title: string; leadingText?: string; }; }
+interface RenewableEnergyForecastProps { 
+  block: { 
+    _type: 'renewableEnergyForecast'; 
+    title: string; 
+    leadingText?: string; 
+    headerAlignment?: 'left' | 'center' | 'right';
+  }; 
+}
 
 const formatDateForApi = (date: Date) => date.toISOString().split('T')[0];
 
@@ -88,8 +95,31 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
   return (
     <section className="bg-white py-16 lg:py-24">
       <div className="container mx-auto px-4">
-        {block.title && <h2 className="text-3xl lg:text-4xl font-display font-bold text-gray-900 text-center mb-4">{block.title}</h2>}
-        {block.leadingText && <p className="text-lg text-gray-600 text-center mb-12 max-w-3xl mx-auto">{block.leadingText}</p>}
+        {/* Header section with alignment */}
+        <div className={cn(
+          "mb-12",
+          block.headerAlignment === 'left' && "text-left",
+          block.headerAlignment === 'center' && "text-center",
+          block.headerAlignment === 'right' && "text-right",
+          !block.headerAlignment && "text-center" // default to center
+        )}>
+          {block.title && (
+            <h2 className={cn(
+              "text-3xl lg:text-4xl font-display font-bold text-gray-900 mb-4",
+              block.headerAlignment === 'center' && "mx-auto"
+            )}>
+              {block.title}
+            </h2>
+          )}
+          {block.leadingText && (
+            <p className={cn(
+              "text-lg text-gray-600",
+              block.headerAlignment === 'center' && "max-w-3xl mx-auto"
+            )}>
+              {block.leadingText}
+            </p>
+          )}
+        </div>
         
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 p-4 bg-gray-50 rounded-lg border">
           <div className="flex items-center gap-2">

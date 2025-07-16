@@ -18,6 +18,7 @@ interface LivePriceGraphProps {
     title: string;
     subtitle?: string;
     apiRegion: 'DK1' | 'DK2';
+    headerAlignment?: 'left' | 'center' | 'right';
   };
 }
 
@@ -164,7 +165,13 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
       <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-lg border border-gray-100 p-6">
         
         {/* SECTION HEADER */}
-        <div className="mb-8">
+        <div className={cn(
+          "mb-8",
+          block.headerAlignment === 'left' && "text-left",
+          block.headerAlignment === 'center' && "text-center",
+          block.headerAlignment === 'right' && "text-right",
+          !block.headerAlignment && "text-left" // default to left for this component
+        )}>
           <h2 className="text-2xl font-display font-bold text-gray-900 mb-2">{block.title}</h2>
           {block.subtitle && <p className="text-gray-600">{block.subtitle}</p>}
         </div>

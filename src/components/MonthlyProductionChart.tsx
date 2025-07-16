@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { cn } from "@/lib/utils";
 
 // --- TYPES VERIFIED FROM YOUR HTML FILE ---
 interface ProductionRecord {
@@ -16,7 +17,15 @@ interface ProductionRecord {
   SolarPowerSelfConMWh: number;
 }
 interface ProcessedMonthData { month: string; Sol: number; Landvind: number; Havvind: number; Decentrale: number; Centrale: number; }
-interface MonthlyProductionChartProps { block: { _type: 'monthlyProductionChart'; title: string; leadingText?: string; description?: string; }; }
+interface MonthlyProductionChartProps { 
+  block: { 
+    _type: 'monthlyProductionChart'; 
+    title: string; 
+    leadingText?: string; 
+    description?: string; 
+    headerAlignment?: 'left' | 'center' | 'right';
+  }; 
+}
 
 const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -89,8 +98,31 @@ const MonthlyProductionChart: React.FC<MonthlyProductionChartProps> = ({ block }
   return (
     <section className="bg-white py-16 lg:py-24">
       <div className="container mx-auto px-4">
-        {block.title && <h2 className="text-3xl lg:text-4xl font-display font-bold text-gray-900 text-center mb-4">{block.title}</h2>}
-        {block.leadingText && <p className="text-lg text-gray-600 text-center mb-12 max-w-3xl mx-auto">{block.leadingText}</p>}
+        {/* Header section with alignment */}
+        <div className={cn(
+          "mb-12",
+          block.headerAlignment === 'left' && "text-left",
+          block.headerAlignment === 'center' && "text-center",
+          block.headerAlignment === 'right' && "text-right",
+          !block.headerAlignment && "text-center" // default to center
+        )}>
+          {block.title && (
+            <h2 className={cn(
+              "text-3xl lg:text-4xl font-display font-bold text-gray-900 mb-4",
+              block.headerAlignment === 'center' && "mx-auto"
+            )}>
+              {block.title}
+            </h2>
+          )}
+          {block.leadingText && (
+            <p className={cn(
+              "text-lg text-gray-600",
+              block.headerAlignment === 'center' && "max-w-3xl mx-auto"
+            )}>
+              {block.leadingText}
+            </p>
+          )}
+        </div>
         
         <div className="w-full h-[500px] bg-white p-4 rounded-lg">
           {loading ? <div className="flex items-center justify-center h-full">Indlæser data...</div> : 
@@ -121,7 +153,17 @@ const MonthlyProductionChart: React.FC<MonthlyProductionChartProps> = ({ block }
             <div className="flex items-center gap-2 text-sm"><div className="w-4 h-4 rounded" style={{backgroundColor: chartColors.centrale}}></div><span>Centrale værker</span></div>
         </div>
         
-        {block.description && <p className="text-center text-sm text-gray-500 mt-8">{block.description}</p>}
+        {block.description && (
+          <p className={cn(
+            "text-sm text-gray-500 mt-8",
+            block.headerAlignment === 'left' && "text-left",
+            block.headerAlignment === 'center' && "text-center",
+            block.headerAlignment === 'right' && "text-right",
+            !block.headerAlignment && "text-center"
+          )}>
+            {block.description}
+          </p>
+        )}
       </div>
     </section>
   );

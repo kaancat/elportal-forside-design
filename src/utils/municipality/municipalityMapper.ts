@@ -58,14 +58,20 @@ export function getConsumptionLevel(consumption: number, maxConsumption: number)
   return 'Meget høj';
 }
 
-export function formatConsumption(consumption: number): string {
+export function formatConsumption(consumption: number | undefined | null): string {
+  if (consumption === undefined || consumption === null || isNaN(consumption)) {
+    return '0.0 MWh';
+  }
   if (consumption >= 1000) {
     return `${(consumption / 1000).toFixed(1)}k MWh`;
   }
   return `${consumption.toFixed(1)} MWh`;
 }
 
-export function formatPercentage(percentage: number): string {
+export function formatPercentage(percentage: number | undefined | null): string {
+  if (percentage === undefined || percentage === null || isNaN(percentage)) {
+    return '0.0%';
+  }
   return `${percentage.toFixed(1)}%`;
 }
 
@@ -95,6 +101,8 @@ export function calculateConsumptionStats(municipalities: ConsumptionData[]) {
     minConsumption,
     privateShare: totalConsumption > 0 ? (totalPrivate / totalConsumption) * 100 : 0,
     industryShare: totalConsumption > 0 ? (totalIndustry / totalConsumption) * 100 : 0,
+    privateShareTotal: totalConsumption > 0 ? (totalPrivate / totalConsumption) * 100 : 0,
+    industryShareTotal: totalConsumption > 0 ? (totalIndustry / totalConsumption) * 100 : 0,
     topConsumers,
     bottomConsumers,
     municipalityCount: municipalities.length

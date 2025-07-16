@@ -282,12 +282,17 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
           <ComposableMap
           projection="geoMercator"
           projectionConfig={{
-            scale: 4000,
-            center: [12, 56] // Center on Denmark
+            scale: 6000, // Increased scale to make map larger
+            center: [11, 56] // Adjusted center for better framing
           }}
           width={800}
-          height={500}
+          height={600} // Increased height
           className="w-full h-auto"
+          style={{
+            width: "100%",
+            height: "auto",
+            maxHeight: "600px"
+          }}
         >
           <Geographies geography={geoData}>
             {({ geographies }) =>
@@ -333,15 +338,38 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
                       />
                     </TooltipTrigger>
                     {showTooltips && consumption && (
-                      <TooltipContent className="max-w-xs z-[100] bg-white/95 backdrop-blur shadow-lg border-gray-200">
-                        <div className="space-y-2">
-                          <div className="font-semibold">{geo.properties.label_dk}</div>
-                          <div className="text-sm space-y-1">
-                            <div>Total forbrug: {formatConsumption(consumption.totalConsumption)}</div>
-                            <div>Private: {formatPercentage(consumption.privateShare)}</div>
-                            <div>Erhverv: {formatPercentage(consumption.industryShare)}</div>
-                            <div className="text-xs text-gray-600">
-                              Niveau: {getConsumptionLevel(consumption.totalConsumption, statistics?.maxConsumption || 1)}
+                      <TooltipContent className="max-w-xs z-[100] bg-white/95 backdrop-blur shadow-xl border-gray-200 p-4">
+                        <div className="space-y-3">
+                          <div>
+                            <div className="font-bold text-base">{geo.properties.label_dk}</div>
+                            <div className="text-xs text-gray-500">Kommune</div>
+                          </div>
+                          
+                          <div className="border-t pt-3 space-y-2">
+                            <div>
+                              <div className="text-xs text-gray-600">Total forbrug</div>
+                              <div className="font-semibold">{formatConsumption(consumption.totalConsumption)}</div>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <div className="text-xs text-gray-600">Private</div>
+                                <div className="font-semibold text-green-600">
+                                  {formatConsumption(consumption.totalPrivateConsumption)}
+                                </div>
+                                <div className="text-xs text-green-600">({formatPercentage(consumption.privateShare)})</div>
+                              </div>
+                              <div>
+                                <div className="text-xs text-gray-600">Erhverv</div>
+                                <div className="font-semibold text-orange-600">
+                                  {formatConsumption(consumption.totalIndustryConsumption)}
+                                </div>
+                                <div className="text-xs text-orange-600">({formatPercentage(consumption.industryShare)})</div>
+                              </div>
+                            </div>
+                            
+                            <div className="text-xs text-gray-500 pt-2 border-t">
+                              Forbrugsniveau: <span className="font-medium">{getConsumptionLevel(consumption.totalConsumption, statistics?.maxConsumption || 1)}</span>
                             </div>
                           </div>
                         </div>
@@ -617,7 +645,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
                 </div>
               </div>
             ) : (
-              <div className="min-h-[500px]">
+              <div className="min-h-[600px]">
                 {mapView === 'map' && geoData ? renderMap() : renderMunicipalityList()}
               </div>
             )}
@@ -679,8 +707,18 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
             {/* Legend */}
             {renderLegend()}
 
-            {/* Selected municipality details */}
-            {selectedMunicipality && enableInteraction && (
+            {/* Selected municipality details - now shows hint to hover for details */}
+            {!selectedMunicipality && enableInteraction && (
+              <div className="bg-gray-50 rounded-lg p-4 text-center">
+                <Info className="w-6 h-6 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-600">
+                  Hold musen over en kommune på kortet for at se detaljeret information
+                </p>
+              </div>
+            )}
+            
+            {/* Keep selected municipality for mobile where hover doesn't work well */}
+            {selectedMunicipality && enableInteraction && isMobile && (
               <div className="bg-blue-50 rounded-lg p-4">
                 <h3 className="text-base font-semibold text-gray-900 mb-3">
                   Valgt kommune

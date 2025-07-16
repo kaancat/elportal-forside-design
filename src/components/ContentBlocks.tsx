@@ -33,13 +33,21 @@ debug.component('ContentBlocks', 'Component loaded', {
 });
 
 const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
-  // Debug: Log all block types
-  debug.log('ContentBlocks received blocks:', blocks.map(b => ({ 
-    type: b._type, 
-    key: b._key,
-    hasType: '_type' in b,
-    typeValue: b._type
-  })));
+  // Debug: Log all block types - use window.console to bypass any build optimizations
+  if (typeof window !== 'undefined') {
+    window.console.log('[ContentBlocks] All blocks:', blocks.map(b => ({ 
+      type: b._type, 
+      key: b._key,
+      typeString: String(b._type),
+      typeLength: b._type?.length
+    })));
+    
+    // Check specifically for consumptionMap
+    const consumptionMapBlocks = blocks.filter(b => b._type?.includes('consumption'));
+    if (consumptionMapBlocks.length > 0) {
+      window.console.log('[ContentBlocks] Found consumption-related blocks:', consumptionMapBlocks);
+    }
+  }
 
   // Group consecutive FAQ items together
   const groupedBlocks: Array<ContentBlock | FAQItem[]> = []
@@ -67,10 +75,10 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
   return (
     <div className="space-y-6">
       {groupedBlocks.map((block, index) => {
-        debug.trace(`Rendering block ${index}`, { 
-          isArray: Array.isArray(block),
-          type: Array.isArray(block) ? 'FAQ Group' : (block as any)._type 
-        });
+        // Use window.console to ensure logging works
+        if (typeof window !== 'undefined' && !Array.isArray(block)) {
+          window.console.log(`[Render] Block ${index} type: "${block._type}" (length: ${block._type?.length})`);
+        }
         
         if (Array.isArray(block)) {
           // This is a group of FAQ items
@@ -104,12 +112,14 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
           return <CO2EmissionsChartComponent key={block._key} block={block as CO2EmissionsChart} />
         } else if (block._type === 'declarationProduction') {
           return <DeclarationProductionChart key={block._key} block={block as DeclarationProduction} />
-        } else if (block._type === 'consumptionMap') {
-          debug.component('ConsumptionMap', 'Type matched!', block);
+        } else if (block._type === 'consumptionMap' || 
+                   block._type?.trim() === 'consumptionMap' ||
+                   (block._type && String(block._type) === 'consumptionMap')) {
+          window.console.log('[ContentBlocks] ConsumptionMap type matched!', block);
           try {
             return <ConsumptionMapComponent key={block._key} block={block as ConsumptionMap} />
           } catch (error) {
-            debug.error('Error rendering ConsumptionMap:', error);
+            window.console.error('[ContentBlocks] Error rendering ConsumptionMap:', error);
             return (
               <div key={block._key} className="bg-red-100 p-4 rounded">
                 <p>Error loading consumption map: {String(error)}</p>
@@ -148,20 +158,28 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
           // Handle unknown block types with a clear error message instead of silent fallback
           const unknownBlock = block as ContentBlock & { _type: string; _key?: string }
           
-          // Log detailed information about the unknown block
-          debug.error('Unknown content block type:', {
-            type: unknownBlock._type,
-            typeLength: unknownBlock._type?.length,
-            typeCharCodes: unknownBlock._type ? Array.from(unknownBlock._type).map(c => c.charCodeAt(0)) : [],
-            hasWhitespace: unknownBlock._type?.includes(' '),
-            trimmedType: unknownBlock._type?.trim(),
-            fullBlock: unknownBlock
-          });
+          // Force logging using window.console
+          if (typeof window !== 'undefined') {
+            window.console.error('[Unknown Block] Detailed info:', {
+              type: unknownBlock._type,
+              typeofType: typeof unknownBlock._type,
+              exactString: `"${unknownBlock._type}"`,
+              charCodes: unknownBlock._type ? Array.from(unknownBlock._type).map(c => `${c}(${c.charCodeAt(0)})`) : [],
+              equals_consumptionMap: unknownBlock._type === 'consumptionMap',
+              includes_consumption: unknownBlock._type?.includes('consumption'),
+              blockKeys: Object.keys(unknownBlock || {}),
+              fullBlock: JSON.stringify(unknownBlock, null, 2)
+            });
+          }
           
-          // Check if it's a case sensitivity issue
-          const lowerType = unknownBlock._type?.toLowerCase();
-          if (lowerType === 'consumptionmap') {
-            debug.warn('Case sensitivity issue detected! Type is:', unknownBlock._type);
+          // TEMPORARY: Force render ConsumptionMap if type contains 'consumptionMap'
+          if (unknownBlock._type && unknownBlock._type.includes('consumptionMap')) {
+            window.console.warn('[ContentBlocks] Forcing ConsumptionMap render for:', unknownBlock._type);
+            try {
+              return <ConsumptionMapComponent key={unknownBlock._key} block={unknownBlock as any} />
+            } catch (error) {
+              window.console.error('[ContentBlocks] Force render failed:', error);
+            }
           }
           
           return (

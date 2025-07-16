@@ -7,6 +7,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { PortableText } from '@portabletext/react';
+import type { CO2EmissionsChart } from '@/types/sanity';
 
 interface CO2EmissionRecord {
   HourUTC: string;
@@ -17,14 +18,7 @@ interface CO2EmissionRecord {
 }
 
 interface CO2EmissionsChartProps {
-  block: {
-    _type: 'co2EmissionsChart';
-    _key: string;
-    title?: string;
-    subtitle?: string;
-    leadingText?: any[];
-    showGauge?: boolean;
-  };
+  block: CO2EmissionsChart;
 }
 
 const formatDateForApi = (date: Date) => date.toISOString().split('T')[0];

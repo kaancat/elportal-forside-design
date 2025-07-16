@@ -140,6 +140,14 @@ export class SanityService {
           _type,
           title,
           leadingText
+        },
+        _type == "co2EmissionsChart" => {
+          _key,
+          _type,
+          title,
+          subtitle,
+          leadingText,
+          showGauge
         }
       }
     }`
@@ -404,6 +412,14 @@ export class SanityService {
           _type,
           title,
           leadingText
+        },
+        _type == "co2EmissionsChart" => {
+          _key,
+          _type,
+          title,
+          subtitle,
+          leadingText,
+          showGauge
         }
       }
     }`

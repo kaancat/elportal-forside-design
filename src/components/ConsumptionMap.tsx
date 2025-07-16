@@ -2,11 +2,17 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Municipalities, MunicipalityType } from 'react-denmark-map';
 import { scaleSequential } from 'd3-scale';
 import { interpolateGreens, interpolateBlues, interpolateReds } from 'd3-scale-chromatic';
-import { MapPin, Activity, Zap, Building2, Home, Info, Filter, Download, Calendar } from 'lucide-react';
+import { MapPin, Activity, Zap, Building2, Home, Info, Filter, RotateCcw, Download, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { PortableText } from '@portabletext/react';
+import {
+  Tooltip as UITooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 import type { ConsumptionMap } from '@/types/sanity';
 import type { MunicipalityConsumption, ConsumptionMapResponse } from '@/utils/municipality/types';
 import { 
@@ -279,25 +285,15 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     return `${formatDate(dateRange.start)} - ${formatDate(dateRange.end)}`;
   };
 
+  const resetFilters = () => {
+    setSelectedView(defaultView);
+    setSelectedConsumerType(consumerType);
+    setSelectedMunicipality(null);
+  };
+
   const renderMap = () => {
-    if (loading) {
-      return (
-        <div className="flex items-center justify-center h-[500px]">
-          <div className="text-gray-500">Indlæser kort...</div>
-        </div>
-      );
-    }
-
-    if (error) {
-      return (
-        <div className="flex items-center justify-center h-[500px]">
-          <div className="text-red-500">Fejl: {error}</div>
-        </div>
-      );
-    }
-
     return (
-      <div className="w-full relative bg-gray-50 rounded-lg overflow-hidden">
+      <div className="w-full relative rounded-lg overflow-hidden">
         <Municipalities 
           customTooltip={CustomTooltip}
           customizeAreas={customizeMunicipalities}
@@ -332,46 +328,41 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
       <div className="h-[500px] overflow-y-auto">
         <div className="space-y-2 p-4">
           {sortedData.map((municipality) => {
-            const consumption = getConsumptionForSort(municipality);
-            const maxConsumption = Math.max(...sortedData.map(getConsumptionForSort));
-            const percentage = (consumption / maxConsumption) * 100;
+            const consumptionValue = getConsumptionForSort(municipality);
+            const maxValue = Math.max(...data.map(m => getConsumptionForSort(m)));
+            const percentage = (consumptionValue / maxValue) * 100;
             const isSelected = municipality.municipalityCode === selectedMunicipality;
-
+            const fillColor = colorScale ? colorScale(consumptionValue) : '#3b82f6';
+            
             return (
-              <div
+              <div 
                 key={municipality.municipalityCode}
                 className={cn(
-                  "p-3 rounded-lg border cursor-pointer transition-all",
-                  isSelected
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                  "flex items-center gap-4 p-3 rounded-lg cursor-pointer transition-all duration-200",
+                  isSelected ? "bg-blue-100 border-2 border-blue-500" : "bg-gray-50 hover:bg-gray-100"
                 )}
-                onClick={() => handleMunicipalityClick(getMunicipalityNameFromCode(municipality.municipalityCode) || '')}
+                onClick={() => setSelectedMunicipality(municipality.municipalityCode === selectedMunicipality ? null : municipality.municipalityCode)}
               >
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h4 className="font-semibold">{municipality.municipalityName}</h4>
-                    <p className="text-sm text-gray-600">
-                      Total: {formatConsumption(municipality.totalConsumption)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm text-gray-600">
-                      Private: {formatPercentage(municipality.privateShare)}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      Erhverv: {formatPercentage(municipality.industryShare)}
+                <div className="flex-1">
+                  <div className="flex justify-between items-baseline mb-1">
+                    <div className="font-medium">{municipality.municipalityName}</div>
+                    <div className="text-sm font-semibold">
+                      {formatConsumption(consumptionValue)}
                     </div>
                   </div>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="h-2 rounded-full transition-all duration-300"
-                    style={{
-                      width: `${percentage}%`,
-                      backgroundColor: colorScale ? colorScale(consumption) : '#3b82f6'
-                    }}
-                  />
+                  <div className="relative h-6 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className="absolute left-0 top-0 h-full transition-all duration-300"
+                      style={{ 
+                        width: `${percentage}%`,
+                        backgroundColor: fillColor
+                      }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-600 mt-1">
+                    <span>Private: {formatPercentage(municipality.privateShare)}</span>
+                    <span>Erhverv: {formatPercentage(municipality.industryShare)}</span>
+                  </div>
                 </div>
               </div>
             );
@@ -381,184 +372,296 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     );
   };
 
+  const renderLegend = () => {
+    if (!showLegend || !statistics) return null;
+
+    const levels = [
+      { label: 'Lav', range: '0-25%', color: getConsumptionColor(0.1, 1) },
+      { label: 'Moderat', range: '25-50%', color: getConsumptionColor(0.35, 1) },
+      { label: 'Høj', range: '50-75%', color: getConsumptionColor(0.65, 1) },
+      { label: 'Meget høj', range: '75-100%', color: getConsumptionColor(0.9, 1) }
+    ];
+
+    return (
+      <div className="bg-gray-50 rounded-lg p-4">
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">Forbrugsniveau</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {levels.map((level) => (
+            <div key={level.label} className="flex items-center gap-2">
+              <div 
+                className="w-4 h-4 rounded"
+                style={{ backgroundColor: level.color }}
+              />
+              <div>
+                <div className="text-sm font-medium">{level.label}</div>
+                <div className="text-xs text-gray-600">{level.range}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <section className="py-8">
-      <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className={cn("mb-8", headerAlignment === 'center' && "text-center")}>
-          <h2 className="text-3xl font-bold text-brand-dark mb-2">{title}</h2>
-          {subtitle && (
-            <p className="text-lg text-gray-600 mb-4">{subtitle}</p>
+    <section className="bg-white py-8 md:py-16 lg:py-24">
+      <div className="container mx-auto px-4 max-w-7xl">
+        {/* Header section with alignment */}
+        <div className={cn(
+          "mb-12",
+          headerAlignment === 'left' && "text-left",
+          headerAlignment === 'center' && "text-center",
+          headerAlignment === 'right' && "text-right"
+        )}>
+          {title && (
+            <h2 className={cn(
+              "text-3xl lg:text-4xl font-display font-bold text-gray-900 mb-4",
+              headerAlignment === 'center' && "mx-auto"
+            )}>
+              {title}
+            </h2>
           )}
-          {leadingText && (
-            <div className="prose prose-gray max-w-none mb-4">
-              <PortableText value={leadingText} />
+          {subtitle && (
+            <p className={cn(
+              "text-lg text-gray-600 mb-8",
+              headerAlignment === 'center' && "max-w-3xl mx-auto"
+            )}>
+              {subtitle}
+            </p>
+          )}
+
+          {leadingText && leadingText.length > 0 && (
+            <div className={cn(
+              "text-base text-gray-700",
+              headerAlignment === 'center' && "max-w-4xl mx-auto"
+            )}>
+              <div className="prose prose-lg max-w-none">
+                <PortableText 
+                  value={leadingText} 
+                  components={{
+                    block: {
+                      normal: ({ children }) => <p className="mb-4 last:mb-0">{children}</p>
+                    }
+                  }}
+                />
+              </div>
             </div>
           )}
         </div>
 
         {/* Controls */}
-        <div className="mb-6 flex flex-wrap gap-4">
-          <div className="flex gap-2">
-            <Button
-              variant={mapView === 'map' ? 'default' : 'outline'}
-              onClick={() => setMapView('map')}
-              size="sm"
+        <div className="mb-6 md:mb-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-3 md:p-4 bg-gray-50 rounded-lg border">
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-gray-600" />
+              <span className="text-sm font-medium text-gray-700">Filtre:</span>
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full sm:w-auto">
+            <Select value={selectedView} onValueChange={setSelectedView}>
+              <SelectTrigger className="w-full sm:w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="24h">Seneste 24 timer</SelectItem>
+                <SelectItem value="7d">Seneste 7 dage</SelectItem>
+                <SelectItem value="30d">Seneste 30 dage</SelectItem>
+                <SelectItem value="month">Denne måned</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedConsumerType} onValueChange={setSelectedConsumerType}>
+              <SelectTrigger className="w-full sm:w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Alle forbrugere</SelectItem>
+                <SelectItem value="private">Private</SelectItem>
+                <SelectItem value="industry">Erhverv</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={mapView} onValueChange={(value: 'map' | 'list') => setMapView(value)}>
+              <SelectTrigger className="w-full sm:w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="map">Kort</SelectItem>
+                <SelectItem value="list">Liste</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={resetFilters}
+              className="flex items-center gap-1"
             >
-              <MapPin className="w-4 h-4 mr-2" />
-              Kort
+              <RotateCcw className="w-3 h-3" />
+              Nulstil
             </Button>
-            <Button
-              variant={mapView === 'list' ? 'default' : 'outline'}
-              onClick={() => setMapView('list')}
-              size="sm"
-            >
-              <Activity className="w-4 h-4 mr-2" />
-              Liste
-            </Button>
+            </div>
           </div>
-
-          <Select value={selectedView} onValueChange={setSelectedView}>
-            <SelectTrigger className="w-[180px]">
-              <Calendar className="w-4 h-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="24h">Seneste 24 timer</SelectItem>
-              <SelectItem value="7d">Seneste 7 dage</SelectItem>
-              <SelectItem value="30d">Seneste 30 dage</SelectItem>
-              <SelectItem value="month">Seneste måned</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={selectedConsumerType} onValueChange={setSelectedConsumerType}>
-            <SelectTrigger className="w-[180px]">
-              <Filter className="w-4 h-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">
-                <div className="flex items-center">
-                  <Zap className="w-4 h-4 mr-2" />
-                  Alle forbrugere
-                </div>
-              </SelectItem>
-              <SelectItem value="private">
-                <div className="flex items-center">
-                  <Home className="w-4 h-4 mr-2" />
-                  Private
-                </div>
-              </SelectItem>
-              <SelectItem value="industry">
-                <div className="flex items-center">
-                  <Building2 className="w-4 h-4 mr-2" />
-                  Erhverv
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-
+          
+          {/* Date range display */}
           {dateRange && (
-            <div className="text-sm text-gray-600 flex items-center">
-              <Info className="w-4 h-4 mr-1" />
-              Viser data for perioden: {formatDateRange()}
+            <div className="flex items-center gap-2 text-sm text-gray-600 mt-2">
+              <Calendar className="w-4 h-4" />
+              <span>Viser data for perioden: {formatDateRange()}</span>
             </div>
           )}
         </div>
 
-        {/* Content Layout */}
+        {/* Main content area with side-by-side layout */}
         <div className={cn(
           "grid gap-6",
-          showStatistics ? "lg:grid-cols-3" : "lg:grid-cols-1"
+          isMobile ? "grid-cols-1" : "grid-cols-12"
         )}>
-          {/* Map/List View */}
-          <div className={showStatistics ? "lg:col-span-2" : ""}>
-            {mapView === 'map' ? renderMap() : renderMunicipalityList()}
-          </div>
-
-          {/* Statistics Panel */}
-          {showStatistics && statistics && (
-            <div className="space-y-4">
-              {/* Summary Stats */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="font-semibold text-lg mb-4">Samlet forbrug</h3>
-                <div className="space-y-3">
-                  <div>
-                    <div className="text-3xl font-bold text-blue-600">
-                      {formatConsumption(statistics.totalConsumption)}
-                    </div>
-                    <div className="text-sm text-gray-600">Total forbrug</div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <div className="text-xl font-semibold text-green-600">
-                        {formatPercentage(statistics.privateShareTotal)}
-                      </div>
-                      <div className="text-sm text-gray-600">Private</div>
-                    </div>
-                    <div>
-                      <div className="text-xl font-semibold text-orange-600">
-                        {formatPercentage(statistics.industryShareTotal)}
-                      </div>
-                      <div className="text-sm text-gray-600">Erhverv</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Consumption Level Legend */}
-              {showLegend && (
-                <div className="bg-white rounded-lg shadow p-6">
-                  <h3 className="font-semibold text-lg mb-4">Forbrugsniveau</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Lav</span>
-                      <div className="w-20 h-4 bg-gradient-to-r from-green-200 to-green-300 rounded" />
-                      <span className="text-sm">0-25%</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Moderat</span>
-                      <div className="w-20 h-4 bg-gradient-to-r from-green-300 to-green-400 rounded" />
-                      <span className="text-sm">25-50%</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Høj</span>
-                      <div className="w-20 h-4 bg-gradient-to-r from-green-400 to-green-500 rounded" />
-                      <span className="text-sm">50-75%</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Meget høj</span>
-                      <div className="w-20 h-4 bg-gradient-to-r from-green-500 to-green-600 rounded" />
-                      <span className="text-sm">75-100%</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Statistics */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="font-semibold text-lg mb-4">Statistik</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Kommuner</span>
-                    <span className="font-medium">{statistics.municipalityCount}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Gennemsnit</span>
-                    <span className="font-medium">{formatConsumption(statistics.averageConsumption)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Højeste</span>
-                    <span className="font-medium">{formatConsumption(statistics.maxConsumption)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Laveste</span>
-                    <span className="font-medium">{formatConsumption(statistics.minConsumption)}</span>
-                  </div>
-                </div>
+          {/* Map visualization - takes 8 columns on desktop */}
+          <div className={cn(
+            "bg-white p-4 rounded-lg border",
+            isMobile ? "col-span-1" : "col-span-8"
+          )}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {mapView === 'map' ? 'Forbrugskort' : 'Kommuneliste'}
+                </h3>
+                <TooltipProvider>
+                  <UITooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="w-4 h-4 text-gray-500 cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>
+                        {mapView === 'map' 
+                          ? 'Klik på en kommune på kortet for at se detaljerede oplysninger. Farver viser forbrugsniveau fra lav (lys) til høj (mørk).'
+                          : 'Klik på en kommune i listen for at se detaljerede oplysninger. Søjlerne viser forbrugsniveau.'
+                        }
+                      </p>
+                    </TooltipContent>
+                  </UITooltip>
+                </TooltipProvider>
               </div>
             </div>
-          )}
+
+            {loading ? (
+              <div className="flex items-center justify-center h-[500px]">
+                <div className="text-gray-500">
+                  Indlæser forbrugsdata...
+                </div>
+              </div>
+            ) : error ? (
+              <div className="flex items-center justify-center h-[500px]">
+                <div className="text-red-500 flex items-center gap-2">
+                  <Activity className="w-5 h-5" />
+                  {error}
+                </div>
+              </div>
+            ) : data.length === 0 ? (
+              <div className="flex items-center justify-center h-[500px]">
+                <div className="text-gray-500 text-center">
+                  <Activity className="w-10 h-10 mx-auto mb-2 text-gray-400" />
+                  <div>Ingen forbrugsdata tilgængelig</div>
+                </div>
+              </div>
+            ) : (
+              <div className="min-h-[500px]">
+                {mapView === 'map' ? renderMap() : renderMunicipalityList()}
+              </div>
+            )}
+          </div>
+          
+          {/* Stats panel - takes 4 columns on desktop */}
+          <div className={cn(
+            "space-y-4",
+            isMobile ? "col-span-1 mt-6" : "col-span-4 sticky top-4 h-fit"
+          )}>
+            {/* Statistics cards */}
+            {showStatistics && statistics && !loading && (
+              <div className={cn(
+                "space-y-3",
+                isMobile ? "grid grid-cols-2 gap-3 space-y-0" : "space-y-3"
+              )}>
+                <div className="bg-blue-50 rounded-lg p-3 md:p-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Activity className="w-4 h-4 text-blue-600" />
+                    <h3 className="text-xs md:text-sm font-semibold text-gray-700">Total forbrug</h3>
+                  </div>
+                  <div className="text-lg md:text-2xl font-bold text-blue-600">
+                    {formatConsumption(statistics.totalConsumption)}
+                  </div>
+                </div>
+
+                <div className="bg-green-50 rounded-lg p-3 md:p-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Home className="w-4 h-4 text-green-600" />
+                    <h3 className="text-xs md:text-sm font-semibold text-gray-700">Private</h3>
+                  </div>
+                  <div className="text-lg md:text-2xl font-bold text-green-600">
+                    {formatPercentage(statistics.privateShareTotal)}
+                  </div>
+                </div>
+
+                <div className="bg-orange-50 rounded-lg p-3 md:p-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Building2 className="w-4 h-4 text-orange-600" />
+                    <h3 className="text-xs md:text-sm font-semibold text-gray-700">Erhverv</h3>
+                  </div>
+                  <div className="text-lg md:text-2xl font-bold text-orange-600">
+                    {formatPercentage(statistics.industryShareTotal)}
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-3 md:p-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <MapPin className="w-4 h-4 text-gray-600" />
+                    <h3 className="text-xs md:text-sm font-semibold text-gray-700">Kommuner</h3>
+                  </div>
+                  <div className="text-lg md:text-2xl font-bold text-gray-700">
+                    {statistics.municipalityCount}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Legend */}
+            {renderLegend()}
+
+            {/* Selected municipality details */}
+            {selectedMunicipality && enableInteraction && (
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h3 className="text-base font-semibold text-gray-900 mb-3">
+                  Valgt kommune
+                </h3>
+                {(() => {
+                  const municipality = data.find(m => m.municipalityCode === selectedMunicipality);
+                  if (!municipality) return <div>Kommune ikke fundet</div>;
+                  
+                  return (
+                    <div className="space-y-3">
+                      <div>
+                        <div className="text-sm text-gray-600">Kommune</div>
+                        <div className="font-semibold">{municipality.municipalityName}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-600">Total forbrug</div>
+                        <div className="font-semibold">{formatConsumption(municipality.totalConsumption)}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-600">Private</div>
+                        <div className="font-semibold">{formatConsumption(municipality.totalPrivateConsumption)} ({formatPercentage(municipality.privateShare)})</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-600">Erhverv</div>
+                        <div className="font-semibold">{formatConsumption(municipality.totalIndustryConsumption)} ({formatPercentage(municipality.industryShare)})</div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>

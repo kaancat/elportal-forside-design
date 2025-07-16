@@ -33,7 +33,7 @@ export const MUNICIPALITY_CODE_TO_NAME: Record<string, string> = {
   '250': 'frederikssund',
   '253': 'greve',
   '259': 'koege',
-  '260': 'halsnæs',
+  '260': 'halsnaes',
   '265': 'roskilde',
   '269': 'solroed',
   '270': 'gribskov',

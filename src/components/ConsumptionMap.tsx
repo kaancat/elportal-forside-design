@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import { scaleSequential } from 'd3-scale';
 import { interpolateGreens, interpolateBlues, interpolateReds } from 'd3-scale-chromatic';
-import { MapPin, Activity, Zap, Building2, Home, Info, Filter, Download, Calendar, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { MapPin, Activity, Zap, Building2, Home, Info, Filter, Download, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
@@ -61,10 +61,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
   const [dateRange, setDateRange] = useState<{ start: string; end: string } | null>(null);
   const [hoveredMunicipality, setHoveredMunicipality] = useState<string | null>(null);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [zoomLevel, setZoomLevel] = useState(1);
-  const [panPosition, setPanPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [lastPanPoint, setLastPanPoint] = useState({ x: 0, y: 0 });
+  // Removed zoom/pan functionality to fix performance issues
 
   useEffect(() => {
     const checkMobile = () => {
@@ -272,49 +269,10 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     return `${formatDate(dateRange.start)} - ${formatDate(dateRange.end)}`;
   };
 
-  // Zoom and pan handlers
-  const handleZoomIn = () => {
-    setZoomLevel(prev => Math.min(prev * 1.5, 5));
-  };
-
-  const handleZoomOut = () => {
-    setZoomLevel(prev => Math.max(prev / 1.5, 0.5));
-  };
-
-  const handleResetZoom = () => {
-    setZoomLevel(1);
-    setPanPosition({ x: 0, y: 0 });
-  };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setLastPanPoint({ x: e.clientX, y: e.clientY });
-  };
-
+  // Simple mouse handler for tooltips only
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging) {
-      const deltaX = e.clientX - lastPanPoint.x;
-      const deltaY = e.clientY - lastPanPoint.y;
-      setPanPosition(prev => ({
-        x: prev.x + deltaX,
-        y: prev.y + deltaY
-      }));
-      setLastPanPoint({ x: e.clientX, y: e.clientY });
-    }
-    
-    // Update mouse position for tooltip
     const rect = e.currentTarget.getBoundingClientRect();
     setMousePosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    setZoomLevel(prev => Math.max(0.5, Math.min(5, prev * delta)));
   };
 
   const renderMap = () => {
@@ -331,59 +289,12 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
 
     return (
       <div 
-        className="w-full relative bg-gray-50 rounded-lg overflow-hidden select-none"
+        className="w-full relative bg-gray-50 rounded-lg overflow-hidden"
         style={{
-          aspectRatio: isMobile ? '4/3' : '4/3', // Consistent aspect ratio
-          cursor: isDragging ? 'grabbing' : 'grab'
+          aspectRatio: isMobile ? '4/3' : '4/3'
         }}
-        onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onWheel={handleWheel}
       >
-        {/* Zoom controls */}
-        <div className="absolute top-2 right-2 z-10 flex flex-col gap-1">
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={handleZoomIn}
-            disabled={zoomLevel >= 5}
-            className="w-8 h-8 p-0 bg-white/90 hover:bg-white shadow-md"
-          >
-            <ZoomIn className="w-4 h-4" />
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={handleZoomOut}
-            disabled={zoomLevel <= 0.5}
-            className="w-8 h-8 p-0 bg-white/90 hover:bg-white shadow-md"
-          >
-            <ZoomOut className="w-4 h-4" />
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={handleResetZoom}
-            className="w-8 h-8 p-0 bg-white/90 hover:bg-white shadow-md"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </Button>
-        </div>
-
-        {/* Zoom level indicator */}
-        <div className="absolute top-2 left-2 z-10 bg-white/90 px-2 py-1 rounded text-xs font-medium shadow-md">
-          {Math.round(zoomLevel * 100)}%
-        </div>
-
-        <div
-          style={{
-            transform: `translate(${panPosition.x}px, ${panPosition.y}px) scale(${zoomLevel})`,
-            transformOrigin: 'center',
-            transition: isDragging ? 'none' : 'transform 0.2s ease'
-          }}
-        >
           <ComposableMap
             projection="geoMercator"
             projectionConfig={{
@@ -455,7 +366,6 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
             }
           </Geographies>
         </ComposableMap>
-        </div>
         
         {/* Custom tooltip */}
         {showTooltips && hoveredData && hoveredMunicipality && (

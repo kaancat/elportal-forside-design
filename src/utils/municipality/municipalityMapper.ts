@@ -1,4 +1,5 @@
 import { DANISH_MUNICIPALITIES, DANISH_REGIONS, MunicipalityInfo } from './municipalityData';
+import type { MunicipalityConsumption } from './types';
 
 export interface ConsumptionData {
   municipalityCode: string;
@@ -75,10 +76,10 @@ export function formatPercentage(percentage: number | undefined | null): string 
   return `${percentage.toFixed(1)}%`;
 }
 
-export function calculateConsumptionStats(municipalities: ConsumptionData[]) {
+export function calculateConsumptionStats(municipalities: MunicipalityConsumption[]) {
   const totalConsumption = municipalities.reduce((sum, m) => sum + m.totalConsumption, 0);
-  const totalPrivate = municipalities.reduce((sum, m) => sum + m.privateConsumption, 0);
-  const totalIndustry = municipalities.reduce((sum, m) => sum + m.industryConsumption, 0);
+  const totalPrivate = municipalities.reduce((sum, m) => sum + m.totalPrivateConsumption, 0);
+  const totalIndustry = municipalities.reduce((sum, m) => sum + m.totalIndustryConsumption, 0);
   
   const averageConsumption = municipalities.length > 0 ? totalConsumption / municipalities.length : 0;
   const maxConsumption = Math.max(...municipalities.map(m => m.totalConsumption));
@@ -109,11 +110,12 @@ export function calculateConsumptionStats(municipalities: ConsumptionData[]) {
   };
 }
 
-export function groupByRegion(municipalities: ConsumptionData[]) {
-  const regions: Record<string, ConsumptionData[]> = {};
+export function groupByRegion(municipalities: MunicipalityConsumption[]) {
+  const regions: Record<string, MunicipalityConsumption[]> = {};
   
   municipalities.forEach(municipality => {
-    const region = municipality.region;
+    const municipalityInfo = getMunicipalityInfo(municipality.municipalityCode);
+    const region = municipalityInfo?.region || 'Unknown';
     if (!regions[region]) {
       regions[region] = [];
     }

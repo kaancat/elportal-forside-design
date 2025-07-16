@@ -133,6 +133,7 @@ export interface CO2EmissionsChart {
   title?: string
   subtitle?: string
   leadingText?: BlockContent[]
+  textAlignment?: 'left' | 'center' | 'right'
   showGauge?: boolean
 }
 

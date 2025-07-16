@@ -99,6 +99,7 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
   const title = block.title || 'CO₂-udledning fra elforbrug';
   const subtitle = block.subtitle || 'Realtids CO₂-intensitet målt i gram per kWh';
   const leadingText = block.leadingText;
+  const textAlignment = block.textAlignment || 'center';
   const showGauge = block.showGauge !== undefined ? block.showGauge : true;
 
   const [data, setData] = useState<CO2EmissionRecord[]>([]);
@@ -219,7 +220,12 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
 
         {leadingText && leadingText.length > 0 && (
           <div className="text-base text-gray-700 mb-12 max-w-4xl mx-auto">
-            <div className="prose prose-lg max-w-none text-center">
+            <div className={cn(
+              "prose prose-lg max-w-none",
+              textAlignment === 'left' && "text-left",
+              textAlignment === 'center' && "text-center",
+              textAlignment === 'right' && "text-right"
+            )}>
               <PortableText value={leadingText} />
             </div>
           </div>

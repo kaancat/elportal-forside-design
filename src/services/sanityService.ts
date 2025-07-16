@@ -147,6 +147,7 @@ export class SanityService {
           title,
           subtitle,
           leadingText,
+          textAlignment,
           showGauge
         }
       }
@@ -419,6 +420,7 @@ export class SanityService {
           title,
           subtitle,
           leadingText,
+          textAlignment,
           showGauge
         }
       }

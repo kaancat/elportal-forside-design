@@ -60,7 +60,8 @@ export async function GET(request: Request) {
       filter = `&filter={"MunicipalityNo":["${municipality}"]}`;
     }
 
-    const apiUrl = `https://api.energidataservice.dk/dataset/PrivIndustryConsumptionHour?start=${apiStart}&end=${apiEnd}${filter}&sort=HourUTC ASC`;
+    // Include limit to ensure we get data and specify columns
+    const apiUrl = `https://api.energidataservice.dk/dataset/PrivIndustryConsumptionHour?start=${apiStart}&end=${apiEnd}${filter}&sort=HourUTC ASC&limit=10000`;
 
     console.log('Fetching consumption data:', {
       url: apiUrl,
@@ -68,7 +69,8 @@ export async function GET(request: Request) {
       endDate: apiEnd,
       view,
       consumerType,
-      aggregation
+      aggregation,
+      dataDelayDays: DATA_DELAY_DAYS
     });
 
     const externalResponse = await fetch(apiUrl);
@@ -168,6 +170,19 @@ export async function GET(request: Request) {
       municipalityData[munCode].totalIndustryConsumption += industryConsumption;
       municipalityData[munCode].totalConsumption += totalConsumption;
       municipalityData[munCode].dataPoints += 1;
+      
+      // Debug log first few consumption values
+      if (municipalityData[munCode].dataPoints <= 3) {
+        console.log(`Municipality ${munCode} data point ${municipalityData[munCode].dataPoints}:`, {
+          consumptionMWh,
+          consumerType,
+          isIndustry,
+          privateConsumption,
+          industryConsumption,
+          totalConsumption,
+          record: JSON.stringify(record)
+        });
+      }
 
       // Store hourly data for detailed analysis
       if (aggregation === 'hourly') {
@@ -225,6 +240,15 @@ export async function GET(request: Request) {
         consumption: m.totalConsumption
       }))
     };
+    
+    console.log('Calculated statistics:', {
+      totalMunicipalities: statistics.totalMunicipalities,
+      totalConsumption,
+      totalPrivateConsumption,
+      totalIndustryConsumption,
+      hasData: totalConsumption > 0,
+      municipalitiesWithData: municipalities.filter(m => m.totalConsumption > 0).length
+    });
 
     const responseData = {
       data: sortedMunicipalities,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import { scaleSequential } from 'd3-scale';
 import { interpolateGreens, interpolateBlues, interpolateReds } from 'd3-scale-chromatic';
@@ -19,13 +19,15 @@ import {
   calculateConsumptionStats 
 } from '@/utils/municipality/municipalityMapper';
 import { debug } from '@/utils/debug';
+import { loadAndSimplifyGeoJSON, getRecommendedTolerance } from '@/utils/geojson-simplify';
 
 interface ConsumptionMapProps {
   block: ConsumptionMap;
 }
 
-// Using GitHub repository for better performance (simplified boundaries)
-const DENMARK_GEOJSON_URL = 'https://raw.githubusercontent.com/magnuslarsen/geoJSON-Danish-municipalities/master/municipalities/municipalities.geojson';
+// Official Danish government API for municipality boundaries (2007 reform - 98 municipalities)
+// Using client-side simplification for better performance
+const DENMARK_GEOJSON_URL = 'https://api.dataforsyningen.dk/kommuner?format=geojson';
 
 // Register component for debugging
 debug.component('ConsumptionMap', 'Component file loaded');
@@ -82,18 +84,23 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     return { width: 800, height: 600 };
   };
 
-  // Load GeoJSON data
+  // Load and simplify GeoJSON data
   useEffect(() => {
     const loadGeoData = async () => {
       try {
-        debug.log('Loading Denmark GeoJSON data...');
-        const response = await fetch(DENMARK_GEOJSON_URL);
-        if (!response.ok) {
-          throw new Error(`Failed to load GeoJSON: ${response.status}`);
-        }
-        const geoJson = await response.json();
-        debug.log('GeoJSON loaded successfully:', geoJson.features?.length, 'municipalities');
-        setGeoData(geoJson);
+        debug.log('Loading and simplifying Denmark GeoJSON data...');
+        
+        // Get recommended tolerance based on mobile/desktop
+        const tolerance = getRecommendedTolerance(isMobile ? 5 : 8);
+        
+        // Load and simplify GeoJSON with caching
+        const simplifiedGeoJson = await loadAndSimplifyGeoJSON(DENMARK_GEOJSON_URL, {
+          tolerance,
+          highQuality: false // Use faster algorithm for better performance
+        });
+        
+        debug.log('GeoJSON loaded and simplified successfully:', simplifiedGeoJson.features?.length, 'municipalities');
+        setGeoData(simplifiedGeoJson);
       } catch (err: any) {
         console.error('Failed to load GeoJSON:', err);
         // Fall back to list view if GeoJSON fails to load
@@ -104,7 +111,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     };
 
     loadGeoData();
-  }, []);
+  }, [isMobile]); // Re-load if mobile state changes
 
   useEffect(() => {
     const fetchData = async () => {
@@ -223,11 +230,13 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     setSelectedMunicipality(municipalityCode === selectedMunicipality ? null : municipalityCode);
   };
 
-  // Function to get consumption data for a municipality by LAU code
+  // Function to get consumption data for a municipality by official API code
   const getConsumptionByLauCode = (lauCode: string): MunicipalityConsumption | null => {
-    // LAU codes from GitHub GeoJSON need to be padded to 3 digits to match our municipality codes
-    const paddedCode = lauCode.padStart(3, '0');
-    return data.find(d => d.municipalityCode === paddedCode) || null;
+    if (!lauCode) return null;
+    
+    // Official API provides codes like "0101" but consumption data uses "101" 
+    const municipalityCode = lauCode.replace(/^0+/, ''); // Remove leading zeros
+    return data.find(d => d.municipalityCode === municipalityCode) || null;
   };
 
   // Function to get fill color for a municipality
@@ -269,7 +278,25 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     return `${formatDate(dateRange.start)} - ${formatDate(dateRange.end)}`;
   };
 
-  // Mouse handling removed for performance
+  // Optimized mouse handling for tooltips
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  }, []);
+
+  // Debounced mouse enter handler to reduce re-renders
+  const handleMunicipalityMouseEnter = useCallback((municipalityCode: string) => {
+    if (showTooltips) {
+      setHoveredMunicipality(municipalityCode);
+    }
+  }, [showTooltips]);
+
+  // Mouse leave handler
+  const handleMunicipalityMouseLeave = useCallback(() => {
+    if (showTooltips) {
+      setHoveredMunicipality(null);
+    }
+  }, [showTooltips]);
 
   const renderMap = () => {
     if (!geoData || geoLoading) {
@@ -289,6 +316,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
         style={{
           aspectRatio: isMobile ? '4/3' : '4/3'
         }}
+        onMouseMove={handleMouseMove}
       >
           <ComposableMap
             projection="geoMercator"
@@ -303,7 +331,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
               width: "100%",
               height: "100%",
               display: "block",
-              shapeRendering: "crispEdges" // Optimize SVG rendering
+              shapeRendering: "optimizeSpeed" // Optimize SVG rendering for performance
             }}
             viewBox={`0 0 ${mapDimensions.width} ${mapDimensions.height}`}
             preserveAspectRatio="xMidYMid meet"
@@ -311,7 +339,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
           <Geographies geography={geoData}>
             {({ geographies }) =>
               geographies.map((geo) => {
-                const lauCode = geo.properties.lau_1;
+                const lauCode = geo.properties.kode;
                 const consumption = getConsumptionByLauCode(lauCode);
                 const isSelected = consumption?.municipalityCode === selectedMunicipality;
                 
@@ -325,14 +353,32 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
                     style={{
                       default: {
                         outline: 'none',
+                        cursor: enableInteraction && consumption ? 'pointer' : 'default',
                       },
                       hover: {
+                        fill: consumption ? '#3b82f6' : '#e5e7eb',
                         outline: 'none',
+                        filter: consumption ? 'brightness(1.1)' : 'none',
                       },
                       pressed: {
                         outline: 'none',
+                        fill: consumption ? '#2563eb' : '#e5e7eb',
                       },
                     }}
+                    className={cn(
+                      isSelected && "stroke-blue-500 stroke-2"
+                    )}
+                    onClick={() => {
+                      if (consumption && enableInteraction) {
+                        handleMunicipalityClick(consumption.municipalityCode);
+                      }
+                    }}
+                    onMouseEnter={() => {
+                      if (consumption) {
+                        handleMunicipalityMouseEnter(consumption.municipalityCode);
+                      }
+                    }}
+                    onMouseLeave={handleMunicipalityMouseLeave}
                   />
                 );
               })
@@ -340,7 +386,54 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
           </Geographies>
         </ComposableMap>
         
-        {/* Tooltips disabled for performance */}
+        {/* Optimized custom tooltip */}
+        {showTooltips && hoveredData && hoveredMunicipality && (
+          <div
+            className="absolute z-50 pointer-events-none"
+            style={{
+              left: `${mousePosition.x + 10}px`,
+              top: `${mousePosition.y - 10}px`,
+              transform: 'translate(0, -100%)',
+            }}
+          >
+            <div className="bg-white/95 backdrop-blur shadow-xl border border-gray-200 rounded-lg p-4 max-w-xs">
+              <div className="space-y-3">
+                <div>
+                  <div className="font-bold text-base">{hoveredData.municipalityName}</div>
+                  <div className="text-xs text-gray-500">Kommune</div>
+                </div>
+                
+                <div className="border-t pt-3 space-y-2">
+                  <div>
+                    <div className="text-xs text-gray-600">Total forbrug</div>
+                    <div className="font-semibold">{formatConsumption(hoveredData.totalConsumption)}</div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-xs text-gray-600">Private</div>
+                      <div className="font-semibold text-green-600">
+                        {formatConsumption(hoveredData.totalPrivateConsumption)}
+                      </div>
+                      <div className="text-xs text-green-600">({formatPercentage(hoveredData.privateShare)})</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-600">Erhverv</div>
+                      <div className="font-semibold text-orange-600">
+                        {formatConsumption(hoveredData.totalIndustryConsumption)}
+                      </div>
+                      <div className="text-xs text-orange-600">({formatPercentage(hoveredData.industryShare)})</div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-xs text-gray-500 pt-2 border-t">
+                    Forbrugsniveau: <span className="font-medium">{getConsumptionLevel(hoveredData.totalConsumption, data.length > 0 ? Math.max(...data.map(d => d.totalConsumption)) : 1)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };

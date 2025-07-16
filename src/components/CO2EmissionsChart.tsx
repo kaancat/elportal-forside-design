@@ -107,7 +107,12 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
   const [data, setData] = useState<CO2EmissionRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(() => {
+    // Default to yesterday to ensure data availability
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    return yesterday;
+  });
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<'Danmark' | 'DK1' | 'DK2'>('Danmark');
 
@@ -116,11 +121,24 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(
-          `/api/co2-emissions?region=${selectedRegion}&date=${formatDateForApi(selectedDate)}&aggregation=hourly`
-        );
-        if (!response.ok) throw new Error('Kunne ikke hente CO₂-data');
+        const apiUrl = `/api/co2-emissions?region=${selectedRegion}&date=${formatDateForApi(selectedDate)}&aggregation=hourly`;
+        console.log('Fetching CO2 data from:', apiUrl);
+        
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('API Error:', response.status, errorText);
+          throw new Error(`API fejl (${response.status}): ${errorText}`);
+        }
+        
         const result = await response.json();
+        console.log('API Response:', result);
+        
+        if (!result.records || result.records.length === 0) {
+          console.warn('No data received from API');
+          setData([]);
+          return;
+        }
         
         // Transform data for the chart
         const chartData = result.records.map((record: CO2EmissionRecord) => ({
@@ -131,8 +149,10 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
           }).replace(/\./g, ':')
         }));
         
+        console.log('Chart data:', chartData);
         setData(chartData);
       } catch (err: any) {
+        console.error('Fetch error:', err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -285,6 +305,18 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
                 <div className="text-red-500 flex items-center gap-2">
                   <AlertCircle size={20} />
                   {error}
+                </div>
+              </div>
+            ) : data.length === 0 ? (
+              <div className="flex items-center justify-center h-[450px]">
+                <div className="text-gray-500 text-center">
+                  <AlertCircle size={40} className="mx-auto mb-4 text-gray-400" />
+                  <div className="text-lg font-medium mb-2">Ingen data tilgængelig</div>
+                  <div className="text-sm">
+                    Der er ingen CO₂-data tilgængelig for {selectedDate.toLocaleDateString('da-DK')} i {selectedRegion}.
+                    <br />
+                    Prøv at vælge en anden dato eller region.
+                  </div>
                 </div>
               </div>
             ) : (

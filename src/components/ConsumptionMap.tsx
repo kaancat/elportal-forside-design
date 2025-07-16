@@ -7,9 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { PortableText } from '@portabletext/react';
-import {
-  TooltipProvider,
-} from "@/components/ui/tooltip";
+// Removed tooltip imports - using custom implementation
 import type { ConsumptionMap } from '@/types/sanity';
 import type { MunicipalityConsumption, ConsumptionMapResponse } from '@/utils/municipality/types';
 import { 
@@ -501,9 +499,8 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
   };
 
   return (
-    <TooltipProvider delayDuration={0}>
-      <section className="bg-white py-8 md:py-16 lg:py-24">
-        <div className="container mx-auto px-4 max-w-7xl">
+    <section className="bg-white py-8 md:py-16 lg:py-24">
+      <div className="container mx-auto px-4 max-w-7xl">
         {/* Header section with alignment */}
         <div className={cn(
           "mb-12",
@@ -627,19 +624,17 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
                 <h3 className="text-lg font-semibold text-gray-900">
                   {mapView === 'map' ? 'Forbrugskort' : 'Kommuneliste'}
                 </h3>
-                <UITooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="w-4 h-4 text-gray-500 cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
+                <div className="group relative">
+                  <Info className="w-4 h-4 text-gray-500 cursor-help" />
+                  <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-64 p-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg z-50">
                     <p>
                       {mapView === 'map' 
-                        ? 'Klik på en kommune på kortet for at se detaljerede oplysninger. Farver viser forbrugsniveau fra lav (lys) til høj (mørk).'
+                        ? 'Hold musen over en kommune på kortet for at se detaljerede oplysninger. Farver viser forbrugsniveau fra lav (lys) til høj (mørk).'
                         : 'Klik på en kommune i listen for at se detaljerede oplysninger. Søjlerne viser forbrugsniveau.'
                       }
                     </p>
-                  </TooltipContent>
-                </UITooltip>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -771,9 +766,8 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
             )}
           </div>
         </div>
-        </div>
-      </section>
-    </TooltipProvider>
+      </div>
+    </section>
   );
 };
 

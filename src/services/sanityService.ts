@@ -166,6 +166,24 @@ export class SanityService {
           showCO2Intensity,
           showRenewableShare,
           defaultView
+        },
+        _type == "consumptionMap" => {
+          _key,
+          _type,
+          title,
+          subtitle,
+          leadingText,
+          headerAlignment,
+          dataSource,
+          consumerType,
+          colorScheme,
+          showLegend,
+          showTooltips,
+          enableInteraction,
+          updateInterval,
+          defaultView,
+          showStatistics,
+          mobileLayout
         }
       }
     }`
@@ -456,6 +474,24 @@ export class SanityService {
           showCO2Intensity,
           showRenewableShare,
           defaultView
+        },
+        _type == "consumptionMap" => {
+          _key,
+          _type,
+          title,
+          subtitle,
+          leadingText,
+          headerAlignment,
+          dataSource,
+          consumerType,
+          colorScheme,
+          showLegend,
+          showTooltips,
+          enableInteraction,
+          updateInterval,
+          defaultView,
+          showStatistics,
+          mobileLayout
         }
       }
     }`

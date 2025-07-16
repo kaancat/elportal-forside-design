@@ -78,6 +78,12 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         // Use window.console to ensure logging works
         if (typeof window !== 'undefined' && !Array.isArray(block)) {
           window.console.log(`[Render] Block ${index} type: "${block._type}" (length: ${block._type?.length})`);
+          
+          // Direct check for consumptionMap
+          if (block._type === 'consumptionMap') {
+            window.console.log('[Direct Check] Found consumptionMap! Rendering it now.');
+            return <ConsumptionMapComponent key={block._key} block={block as ConsumptionMap} />
+          }
         }
         
         if (Array.isArray(block)) {
@@ -112,9 +118,7 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
           return <CO2EmissionsChartComponent key={block._key} block={block as CO2EmissionsChart} />
         } else if (block._type === 'declarationProduction') {
           return <DeclarationProductionChart key={block._key} block={block as DeclarationProduction} />
-        } else if (block._type === 'consumptionMap' || 
-                   block._type?.trim() === 'consumptionMap' ||
-                   (block._type && String(block._type) === 'consumptionMap')) {
+        } else if (block._type === 'consumptionMap') {
           window.console.log('[ContentBlocks] ConsumptionMap type matched!', block);
           try {
             return <ConsumptionMapComponent key={block._key} block={block as ConsumptionMap} />

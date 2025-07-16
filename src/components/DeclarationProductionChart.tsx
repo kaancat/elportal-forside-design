@@ -262,8 +262,9 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
   };
 
   return (
-    <section className="bg-white py-16 lg:py-24">
-      <div className="container mx-auto px-4">
+    <TooltipProvider>
+      <section className="bg-white py-16 lg:py-24">
+        <div className="container mx-auto px-4">
         {/* Header section with alignment */}
         <div className={cn(
           "mb-12",
@@ -372,16 +373,14 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Leaf className="w-5 h-5 text-green-600" />
                 <h3 className="text-sm font-semibold text-gray-700">Vedvarende energi</h3>
-                <TooltipProvider>
-                  <UITooltip>
-                    <TooltipTrigger>
-                      <Info className="w-4 h-4 text-gray-500" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>Procentdel af elproduktionen fra vedvarende kilder som vind, sol, vand og biomasse. Højere er bedre for miljøet.</p>
-                    </TooltipContent>
-                  </UITooltip>
-                </TooltipProvider>
+                <UITooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="w-4 h-4 text-gray-500 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>Andel af elproduktionen fra vedvarende kilder som vind, sol, vand og biomasse. Jo højere procent, jo bedre for miljøet.</p>
+                  </TooltipContent>
+                </UITooltip>
               </div>
               <div className="text-3xl font-bold text-green-600">
                 {currentStats.currentRenewable.toFixed(1)}%
@@ -395,16 +394,14 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
               <div className="flex items-center justify-center gap-2 mb-2">
                 <TrendingDown className="w-5 h-5 text-blue-600" />
                 <h3 className="text-sm font-semibold text-gray-700">CO₂-intensitet</h3>
-                <TooltipProvider>
-                  <UITooltip>
-                    <TooltipTrigger>
-                      <Info className="w-4 h-4 text-gray-500" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>Gram CO₂ udledt per kilowatt-time produceret. Lavere værdier betyder renere el. Under 100 g/kWh betragtes som meget lav.</p>
-                    </TooltipContent>
-                  </UITooltip>
-                </TooltipProvider>
+                <UITooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="w-4 h-4 text-gray-500 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>Gram CO₂ udledt per kilowatt-time produceret. Lavere værdier betyder renere el. Under 100 g/kWh betragtes som meget lav.</p>
+                  </TooltipContent>
+                </UITooltip>
               </div>
               <div 
                 className="text-3xl font-bold"
@@ -421,16 +418,14 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Activity className="w-5 h-5 text-gray-600" />
                 <h3 className="text-sm font-semibold text-gray-700">Total produktion</h3>
-                <TooltipProvider>
-                  <UITooltip>
-                    <TooltipTrigger>
-                      <Info className="w-4 h-4 text-gray-500" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>Samlet elproduktion i megawatt (MW) for den valgte periode. Viser produktionskapaciteten i realtid eller gennemsnit.</p>
-                    </TooltipContent>
-                  </UITooltip>
-                </TooltipProvider>
+                <UITooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="w-4 h-4 text-gray-500 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>Samlet elproduktion i megawatt (MW) for den valgte periode. Viser produktionskapaciteten i realtid eller gennemsnit.</p>
+                  </TooltipContent>
+                </UITooltip>
               </div>
               <div className="text-3xl font-bold text-gray-700">
                 {data[data.length - 1]?.totalProduction.toFixed(0)} MW
@@ -449,16 +444,14 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
             <div className="bg-white p-4 rounded-lg border">
               <div className="flex items-center gap-2 mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Produktionsfordeling</h3>
-                <TooltipProvider>
-                  <UITooltip>
-                    <TooltipTrigger>
-                      <Info className="w-4 h-4 text-gray-500" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>Viser hvordan elproduktionen fordeles mellem forskellige energikilder. Grønne farver = vedvarende, orange/røde = fossile brændstoffer.</p>
-                    </TooltipContent>
-                  </UITooltip>
-                </TooltipProvider>
+                <UITooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="w-4 h-4 text-gray-500 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>Viser hvordan elproduktionen fordeles mellem forskellige energikilder. Grønne farver = vedvarende, orange/røde = fossile brændstoffer.</p>
+                  </TooltipContent>
+                </UITooltip>
               </div>
               {loading ? (
                 <div className="flex items-center justify-center h-[400px]">
@@ -542,16 +535,14 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
             <div className="bg-white p-4 rounded-lg border">
               <div className="flex items-center gap-2 mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">CO₂-intensitet over tid</h3>
-                <TooltipProvider>
-                  <UITooltip>
-                    <TooltipTrigger>
-                      <Info className="w-4 h-4 text-gray-500" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>Udviklingen i CO₂-udledning per kWh over tid. Lavere værdier indikerer renere elproduktion. Spidserne opstår når fossile kilder bruges mere.</p>
-                    </TooltipContent>
-                  </UITooltip>
-                </TooltipProvider>
+                <UITooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="w-4 h-4 text-gray-500 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>Udviklingen i CO₂-udledning per kWh over tid. Lavere værdier indikerer renere elproduktion. Spidserne opstår når fossile kilder bruges mere.</p>
+                  </TooltipContent>
+                </UITooltip>
               </div>
               {loading ? (
                 <div className="flex items-center justify-center h-[300px]">
@@ -615,6 +606,7 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
         </div>
       </div>
     </section>
+    </TooltipProvider>
   );
 };
 

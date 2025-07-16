@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { PortableText } from '@portabletext/react';
 
 interface CO2EmissionRecord {
   HourUTC: string;
@@ -21,7 +22,7 @@ interface CO2EmissionsChartProps {
     _key: string;
     title?: string;
     subtitle?: string;
-    leadingText?: string;
+    leadingText?: any[];
     showGauge?: boolean;
   };
 }
@@ -222,14 +223,10 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
           </p>
         )}
 
-        {leadingText && (
+        {leadingText && leadingText.length > 0 && (
           <div className="text-base text-gray-700 mb-12 max-w-4xl mx-auto">
             <div className="prose prose-lg max-w-none text-center">
-              {leadingText.split('\n').map((paragraph, index) => (
-                <p key={index} className="mb-4 last:mb-0">
-                  {paragraph}
-                </p>
-              ))}
+              <PortableText value={leadingText} />
             </div>
           </div>
         )}

@@ -130,6 +130,12 @@ export async function GET(request: Request) {
     // Group by municipality and aggregate consumption
     const municipalityData: Record<string, any> = {};
 
+    // Log first record to see actual field structure
+    if (records.length > 0) {
+      console.log('Sample record structure:', JSON.stringify(records[0], null, 2));
+      console.log('Available fields:', Object.keys(records[0]));
+    }
+
     records.forEach((record: any) => {
       const munCode = record.MunicipalityNo;
       const hour = record.HourUTC;
@@ -147,9 +153,16 @@ export async function GET(request: Request) {
         };
       }
 
-      const privateConsumption = parseFloat(record.PrivateConsumptionMWh) || 0;
-      const industryConsumption = parseFloat(record.IndustryConsumptionMWh) || 0;
-      const totalConsumption = privateConsumption + industryConsumption;
+      // The actual field names from the API are ConsumptionMWh and ConsumerType_DE35
+      // Check for both possible field names
+      const consumptionMWh = parseFloat(record.ConsumptionMWh || record.ConsumptionkWh || 0) || 0;
+      
+      // The consumer type field is ConsumerType_DE35 with values like "KOD-516" for private, "KOD-431" for industry
+      const consumerType = record.ConsumerType_DE35 || record.HousingCategory || '';
+      const isIndustry = consumerType.includes('431') || consumerType === 'Erhverv';
+      const privateConsumption = isIndustry ? 0 : consumptionMWh;
+      const industryConsumption = isIndustry ? consumptionMWh : 0;
+      const totalConsumption = consumptionMWh;
 
       municipalityData[munCode].totalPrivateConsumption += privateConsumption;
       municipalityData[munCode].totalIndustryConsumption += industryConsumption;

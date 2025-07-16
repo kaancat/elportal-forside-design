@@ -187,7 +187,8 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
       currentCO2: latest.averageCO2,
       currentRenewable: latest.renewableShare,
       avgCO2,
-      avgRenewable
+      avgRenewable,
+      latestDate: latest.time || '...'
     };
   }, [data]);
 
@@ -243,6 +244,14 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
               </div>
             </div>
           )}
+        </div>
+
+        {/* Data delay notice */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <p className="text-sm text-blue-800">
+            <strong>Bemærk:</strong> Produktionsdata har typisk 10 dages forsinkelse fra Energistyrelsen.
+            Viser data frem til {currentStats?.latestDate || '...'}.
+          </p>
         </div>
 
         {/* Controls */}

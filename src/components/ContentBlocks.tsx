@@ -1,5 +1,5 @@
 import React from 'react'
-import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, CO2EmissionsChart, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
+import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, CO2EmissionsChart, DeclarationProduction, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
 import PageSectionComponent from './PageSectionComponent'
 import FAQItemComponent from './FAQItemComponent'
 import PriceExampleTableComponent from './PriceExampleTableComponent'
@@ -11,6 +11,7 @@ import LivePriceGraphComponent from './LivePriceGraphComponent'
 import RealPriceComparisonTableComponent from './RealPriceComparisonTable'
 import RenewableEnergyForecastComponent from './RenewableEnergyForecast'
 import CO2EmissionsChartComponent from './CO2EmissionsChart'
+import DeclarationProductionChart from './DeclarationProductionChart'
 import PriceCalculatorWidget from './PriceCalculatorWidget'
 import HeroSection from './HeroSection'
 import MonthlyProductionChart from './MonthlyProductionChart'
@@ -82,6 +83,8 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
           return <RenewableEnergyForecastComponent key={block._key} block={block as RenewableEnergyForecast} />
         } else if (block._type === 'co2EmissionsChart') {
           return <CO2EmissionsChartComponent key={block._key} block={block as CO2EmissionsChart} />
+        } else if (block._type === 'declarationProduction') {
+          return <DeclarationProductionChart key={block._key} block={block as DeclarationProduction} />
         } else if (block._type === 'priceCalculator') {
           return <PriceCalculatorWidget key={block._key} block={block as PriceCalculator} />
         } else if (block._type === 'heroWithCalculator') {

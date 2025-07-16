@@ -62,11 +62,20 @@ const totalPrice = subtotal * 1.25 // Add 25% VAT
 2. **LivePriceGraphComponent**: Real-time electricity prices
 3. **ProviderList**: Transparent comparison with Vindstød featured
 4. **RenewableEnergyForecast**: Green energy predictions
+5. **CO2EmissionsChart**: Real-time CO2 intensity visualization
+6. **MonthlyProductionChart**: Historical energy production data
+
+### Standard Component Features (REQUIRED for all statistics/chart components)
+- **Header Alignment**: All statistics components MUST include `headerAlignment` field with left/center/right options
+- **Rich Text Support**: Use `array` of `block` type for text fields that need formatting
+- **Paragraph Spacing**: Ensure proper PortableText components for paragraph breaks
+- **Responsive Design**: Mobile-first approach with proper scaling
+- **Danish Language**: All UI text and labels in Danish
 
 ## 5. API Integrations
 
 ### EnergiDataService (Danish Energy Data)
-- **Endpoints**: Elspotprices, ProductionConsumptionSettlement, Forecasts_Hour
+- **Endpoints**: Elspotprices, ProductionConsumptionSettlement, Forecasts_Hour, CO2Emis, DeclarationProduction
 - **Rate Limit**: 40 requests/10 seconds per IP
 - **Caching**: 1-hour edge cache via Vercel functions
 
@@ -330,9 +339,10 @@ const LiveComponent = ({ block }: { block: LiveDataBlock }) => {
 - **Missing lazy loading** - For performance
 
 ### Future Considerations
-- **CO2 emissions data** - API supports but not implemented
 - **User authentication** - For personalized features
 - **PWA capabilities** - Offline functionality
+- **Historical data analysis** - Trends and predictions
+- **Smart energy recommendations** - Based on real-time data
 
 ## 8. Post-Task Completion Protocol
 After completing any coding task, follow this checklist:

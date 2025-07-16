@@ -154,6 +154,18 @@ export class SanityService {
           leadingText,
           headerAlignment,
           showGauge
+        },
+        _type == "declarationProduction" => {
+          _key,
+          _type,
+          title,
+          subtitle,
+          leadingText,
+          headerAlignment,
+          showProductionBreakdown,
+          showCO2Intensity,
+          showRenewableShare,
+          defaultView
         }
       }
     }`
@@ -432,6 +444,18 @@ export class SanityService {
           leadingText,
           headerAlignment,
           showGauge
+        },
+        _type == "declarationProduction" => {
+          _key,
+          _type,
+          title,
+          subtitle,
+          leadingText,
+          headerAlignment,
+          showProductionBreakdown,
+          showCO2Intensity,
+          showRenewableShare,
+          defaultView
         }
       }
     }`

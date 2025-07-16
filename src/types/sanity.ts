@@ -214,6 +214,19 @@ export interface ValuePropositionBlock {
   propositions: string[]
 }
 
+export interface DeclarationProduction {
+  _type: 'declarationProduction'
+  _key: string
+  title?: string
+  subtitle?: string
+  leadingText?: BlockContent[]
+  headerAlignment?: 'left' | 'center' | 'right'
+  showProductionBreakdown?: boolean
+  showCO2Intensity?: boolean
+  showRenewableShare?: boolean
+  defaultView?: '24h' | '7d' | '30d'
+}
+
 
 // Centralized ContentBlock union type
 export type ContentBlock = 
@@ -228,6 +241,7 @@ export type ContentBlock =
   | RealPriceComparisonTable 
   | RenewableEnergyForecast 
   | CO2EmissionsChart
+  | DeclarationProduction
   | PriceCalculator 
   | HeroWithCalculator 
   | HeroBlock

@@ -132,6 +132,7 @@ export interface CO2EmissionsChart {
   _key: string
   title?: string
   subtitle?: string
+  leadingText?: BlockContent[]
   showGauge?: boolean
 }
 

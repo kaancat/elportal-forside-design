@@ -115,6 +115,9 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
         
         const result: ConsumptionMapResponse = await response.json();
         console.log('API Response:', result);
+        console.log('Total consumption in response:', result.statistics?.totalConsumption);
+        console.log('Number of municipalities with data:', result.data?.filter((m: any) => m.totalConsumption > 0).length);
+        console.log('Sample municipality data:', result.data?.[0]);
         
         if (!result.data || result.data.length === 0) {
           console.warn('No consumption data received from API');

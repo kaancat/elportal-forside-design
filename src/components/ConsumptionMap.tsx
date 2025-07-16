@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import { scaleSequential } from 'd3-scale';
 import { interpolateGreens, interpolateBlues, interpolateReds } from 'd3-scale-chromatic';
-import { MapPin, Activity, Zap, Building2, Home, Info, Filter, Download, Calendar } from 'lucide-react';
+import { MapPin, Activity, Zap, Building2, Home, Info, Filter, Download, Calendar, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
@@ -61,6 +61,10 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
   const [dateRange, setDateRange] = useState<{ start: string; end: string } | null>(null);
   const [hoveredMunicipality, setHoveredMunicipality] = useState<string | null>(null);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [panPosition, setPanPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [lastPanPoint, setLastPanPoint] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const checkMobile = () => {
@@ -268,6 +272,51 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     return `${formatDate(dateRange.start)} - ${formatDate(dateRange.end)}`;
   };
 
+  // Zoom and pan handlers
+  const handleZoomIn = () => {
+    setZoomLevel(prev => Math.min(prev * 1.5, 5));
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(prev => Math.max(prev / 1.5, 0.5));
+  };
+
+  const handleResetZoom = () => {
+    setZoomLevel(1);
+    setPanPosition({ x: 0, y: 0 });
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setLastPanPoint({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging) {
+      const deltaX = e.clientX - lastPanPoint.x;
+      const deltaY = e.clientY - lastPanPoint.y;
+      setPanPosition(prev => ({
+        x: prev.x + deltaX,
+        y: prev.y + deltaY
+      }));
+      setLastPanPoint({ x: e.clientX, y: e.clientY });
+    }
+    
+    // Update mouse position for tooltip
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    setZoomLevel(prev => Math.max(0.5, Math.min(5, prev * delta)));
+  };
+
   const renderMap = () => {
     if (!geoData || geoLoading) {
       return (
@@ -282,32 +331,76 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
 
     return (
       <div 
-        className="w-full relative bg-gray-50 rounded-lg overflow-hidden"
+        className="w-full relative bg-gray-50 rounded-lg overflow-hidden select-none"
         style={{
           aspectRatio: isMobile ? '4/3' : '4/3', // Consistent aspect ratio
+          cursor: isDragging ? 'grabbing' : 'grab'
         }}
-        onMouseMove={(e) => {
-          const rect = e.currentTarget.getBoundingClientRect();
-          setMousePosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-        }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onWheel={handleWheel}
       >
-        <ComposableMap
-          projection="geoMercator"
-          projectionConfig={{
-            scale: isMobile ? 3000 : 3800, // Reduced scale to fit all of Denmark including Bornholm
-            center: [11.5, 56.1] // Adjusted center to better include all Danish territory
-          }}
-          width={mapDimensions.width}
-          height={mapDimensions.height}
-          className="w-full h-full"
+        {/* Zoom controls */}
+        <div className="absolute top-2 right-2 z-10 flex flex-col gap-1">
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={handleZoomIn}
+            disabled={zoomLevel >= 5}
+            className="w-8 h-8 p-0 bg-white/90 hover:bg-white shadow-md"
+          >
+            <ZoomIn className="w-4 h-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={handleZoomOut}
+            disabled={zoomLevel <= 0.5}
+            className="w-8 h-8 p-0 bg-white/90 hover:bg-white shadow-md"
+          >
+            <ZoomOut className="w-4 h-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={handleResetZoom}
+            className="w-8 h-8 p-0 bg-white/90 hover:bg-white shadow-md"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* Zoom level indicator */}
+        <div className="absolute top-2 left-2 z-10 bg-white/90 px-2 py-1 rounded text-xs font-medium shadow-md">
+          {Math.round(zoomLevel * 100)}%
+        </div>
+
+        <div
           style={{
-            width: "100%",
-            height: "100%",
-            display: "block"
+            transform: `translate(${panPosition.x}px, ${panPosition.y}px) scale(${zoomLevel})`,
+            transformOrigin: 'center',
+            transition: isDragging ? 'none' : 'transform 0.2s ease'
           }}
-          viewBox={`0 0 ${mapDimensions.width} ${mapDimensions.height}`}
-          preserveAspectRatio="xMidYMid meet"
         >
+          <ComposableMap
+            projection="geoMercator"
+            projectionConfig={{
+              scale: isMobile ? 3000 : 3800, // Reduced scale to fit all of Denmark including Bornholm
+              center: [11.5, 56.1] // Adjusted center to better include all Danish territory
+            }}
+            width={mapDimensions.width}
+            height={mapDimensions.height}
+            className="w-full h-full"
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "block"
+            }}
+            viewBox={`0 0 ${mapDimensions.width} ${mapDimensions.height}`}
+            preserveAspectRatio="xMidYMid meet"
+          >
           <Geographies geography={geoData}>
             {({ geographies }) =>
               geographies.map((geo) => {
@@ -362,6 +455,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
             }
           </Geographies>
         </ComposableMap>
+        </div>
         
         {/* Custom tooltip */}
         {showTooltips && hoveredData && hoveredMunicipality && (
@@ -631,10 +725,10 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
                 </h3>
                 <div className="group relative">
                   <Info className="w-4 h-4 text-gray-500 cursor-help" />
-                  <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-64 p-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg z-50">
+                  <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-72 p-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg z-50">
                     <p>
                       {mapView === 'map' 
-                        ? 'Hold musen over en kommune på kortet for at se detaljerede oplysninger. Farver viser forbrugsniveau fra lav (lys) til høj (mørk).'
+                        ? 'Hold musen over en kommune på kortet for at se detaljerede oplysninger. Brug zoom-knapperne eller musehjulet for at zoome ind/ud. Træk for at panorere.'
                         : 'Klik på en kommune i listen for at se detaljerede oplysninger. Søjlerne viser forbrugsniveau.'
                       }
                     </p>
@@ -731,7 +825,8 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
               <div className="bg-gray-50 rounded-lg p-4 text-center">
                 <Info className="w-6 h-6 text-gray-400 mx-auto mb-2" />
                 <p className="text-sm text-gray-600">
-                  Hold musen over en kommune på kortet for at se detaljeret information
+                  Hold musen over en kommune på kortet for at se detaljeret information.<br />
+                  Brug zoom-knapperne eller musehjulet for at zoome ind/ud.
                 </p>
               </div>
             )}

@@ -66,10 +66,19 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Brand colors
+				// Brand colors with semantic variations
 				brand: {
-					green: '#84db41',
-					dark: '#001a12',
+					green: {
+						DEFAULT: '#84db41',
+						hover: '#75c837',
+						light: '#a5e96d',
+						dark: '#6bc52d',
+					},
+					dark: {
+						DEFAULT: '#001a12',
+						light: '#002a1f',
+						lighter: '#003d2c',
+					},
 				},
 			},
 			borderRadius: {

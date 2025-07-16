@@ -161,6 +161,14 @@ function calculateTotalPrice(spotPrice: number, provider: Provider): number {
 }
 ```
 
+### Sanity CMS Plugin Integration
+- **Field Types Must Match Exactly**: Always use precise field type syntax from plugin documentation (e.g., `'icon.manager'` not `'IconManager'`)
+- **Import Names Matter**: Use exact import names from plugin exports (check node_modules if uncertain)
+- **Schema Validation is Strict**: Run `sanity build` after schema changes to catch validation errors early
+- **Plugin Data Structures**: Frontend components must handle actual plugin output, not assumed formats
+- **Version Management**: Keep plugins updated for compatibility and bug fixes
+- **Documentation First**: Read plugin docs thoroughly - small syntax differences cause critical errors
+
 ### Security First
 - Never trust external inputs - validate everything at the boundaries
 - Keep secrets in environment variables, never in code

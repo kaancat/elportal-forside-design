@@ -5,10 +5,10 @@ import { PortableText } from '@portabletext/react'
 import LivePriceGraphComponent from './LivePriceGraphComponent'
 import RenewableEnergyForecastComponent from './RenewableEnergyForecast'
 import PriceCalculatorWidget from './PriceCalculatorWidget'
+import type { PageSection, LivePriceGraph, RenewableEnergyForecast, PriceCalculator } from '@/types/sanity'
 
-// We'll need to add a 'PageSectionBlock' type to sanity.ts later
 interface PageSectionProps {
-  section: any;
+  section: PageSection;
 }
 
 const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
@@ -17,42 +17,42 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   // Define custom components for embedded blocks in Portable Text
   const customComponents = {
     types: {
-      livePriceGraph: ({ value }: { value: any }) => (
+      livePriceGraph: ({ value }: { value: LivePriceGraph }) => (
         <div className="not-prose -mx-4 sm:-mx-6 lg:-mx-16 my-12">
           <LivePriceGraphComponent block={value} />
         </div>
       ),
-      renewableEnergyForecast: ({ value }: { value: any }) => (
+      renewableEnergyForecast: ({ value }: { value: RenewableEnergyForecast }) => (
         <div className="not-prose -mx-4 sm:-mx-6 lg:-mx-16 my-12">
           <RenewableEnergyForecastComponent block={value} />
         </div>
       ),
-      priceCalculator: ({ value }: { value: any }) => (
+      priceCalculator: ({ value }: { value: PriceCalculator }) => (
          <div className="my-12">
            <PriceCalculatorWidget block={value} variant="standalone" />
          </div>
       ),
     },
     block: {
-      h1: ({ children }: any) => (
+      h1: ({ children }: { children: React.ReactNode }) => (
         <h1 className="text-3xl font-bold mb-4 text-brand-dark">{children}</h1>
       ),
-      h2: ({ children }: any) => (
+      h2: ({ children }: { children: React.ReactNode }) => (
         <h2 className="text-2xl font-bold mb-3 text-brand-dark">{children}</h2>
       ),
-      h3: ({ children }: any) => (
+      h3: ({ children }: { children: React.ReactNode }) => (
         <h3 className="text-xl font-bold mb-2 text-brand-dark">{children}</h3>
       ),
-      blockquote: ({ children }: any) => (
+      blockquote: ({ children }: { children: React.ReactNode }) => (
         <blockquote className="border-l-4 border-brand-green pl-4 italic mb-4 text-neutral-600">{children}</blockquote>
       ),
-      normal: ({ children }: any) => (
+      normal: ({ children }: { children: React.ReactNode }) => (
         <p className="mb-4 text-neutral-600 leading-relaxed">{children}</p>
       ),
     },
     marks: {
-      strong: ({ children }: any) => <strong className="text-brand-dark">{children}</strong>,
-      em: ({ children }: any) => <em>{children}</em>,
+      strong: ({ children }: { children: React.ReactNode }) => <strong className="text-brand-dark">{children}</strong>,
+      em: ({ children }: { children: React.ReactNode }) => <em>{children}</em>,
     },
   }
   

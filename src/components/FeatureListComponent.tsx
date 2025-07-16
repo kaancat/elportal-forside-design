@@ -1,4 +1,5 @@
 import React from 'react';
+import { DynamicIcon, hasValidIcon } from './DynamicIcon';
 
 interface FeatureListComponentProps {
   block: any;
@@ -19,11 +20,11 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
           {block.features.map((feature: any, index: number) => (
             <div key={feature._key} className="flex flex-col items-center text-center max-w-sm">
               <div className="flex items-center justify-center h-20 w-20 mb-6 rounded-full bg-brand-primary-light/10">
-                {feature.icon?.metadata?.url && (
-                  <img 
-                    src={feature.icon.metadata.url}
-                    alt=""
-                    className="h-12 w-12"
+                {hasValidIcon(feature.icon) && (
+                  <DynamicIcon
+                    icon={feature.icon}
+                    size={48}
+                    className="text-brand-primary"
                   />
                 )}
               </div>

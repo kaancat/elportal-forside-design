@@ -8,10 +8,8 @@ interface RichTextSectionComponentProps {
 }
 
 const RichTextSectionComponent: React.FC<RichTextSectionComponentProps> = ({ block }) => {
-  console.log('RichTextSectionComponent received block:', block)
 
   if (!block?.content || block.content.length === 0) {
-    console.warn('RichTextSectionComponent: No content provided')
     return null
   }
 

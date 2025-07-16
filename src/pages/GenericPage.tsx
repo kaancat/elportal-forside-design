@@ -5,6 +5,8 @@ import { SanityPage } from '@/types/sanity';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import ContentBlocks from '@/components/ContentBlocks';
+import { PageBreadcrumb, type BreadcrumbItem } from '@/components/PageBreadcrumb';
+import { getSanityImageUrl } from '@/lib/sanityImage';
 
 const GenericPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -31,6 +33,52 @@ const GenericPage = () => {
 
     fetchPageData();
   }, [slug]);
+
+  // Update page metadata when page data is loaded
+  useEffect(() => {
+    if (pageData) {
+      // Update page title
+      document.title = pageData.seoMetaTitle || pageData.title || 'ElPortal'
+      
+      // Update meta description
+      const metaDescription = document.querySelector('meta[name="description"]')
+      if (metaDescription && pageData.seoMetaDescription) {
+        metaDescription.setAttribute('content', pageData.seoMetaDescription)
+      }
+
+      // Update Open Graph image if available
+      if (pageData.ogImage?.asset) {
+        const ogImageMeta = document.querySelector('meta[property="og:image"]')
+        if (ogImageMeta) {
+          const imageUrl = getSanityImageUrl(pageData.ogImage.asset._ref, {
+            width: 1200,
+            height: 630,
+            format: 'jpg'
+          })
+          ogImageMeta.setAttribute('content', imageUrl)
+        }
+      }
+
+      // Handle noIndex
+      if (pageData.noIndex) {
+        const existingRobotsMeta = document.querySelector('meta[name="robots"]')
+        if (existingRobotsMeta) {
+          existingRobotsMeta.setAttribute('content', 'noindex, nofollow')
+        } else {
+          const robotsMeta = document.createElement('meta')
+          robotsMeta.name = 'robots'
+          robotsMeta.content = 'noindex, nofollow'
+          document.head.appendChild(robotsMeta)
+        }
+      } else {
+        // Remove noindex if it was previously set
+        const existingRobotsMeta = document.querySelector('meta[name="robots"]')
+        if (existingRobotsMeta && existingRobotsMeta.getAttribute('content') === 'noindex, nofollow') {
+          existingRobotsMeta.remove()
+        }
+      }
+    }
+  }, [pageData]);
 
   if (loading) {
     return (
@@ -64,10 +112,28 @@ const GenericPage = () => {
     );
   }
 
+  // Generate breadcrumb items based on page data
+  const breadcrumbItems: BreadcrumbItem[] = [];
+  
+  // Add parent page if exists (you might need to fetch this from Sanity)
+  // For now, we'll just add the current page
+  if (pageData.title) {
+    breadcrumbItems.push({
+      label: pageData.title,
+    });
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <Navigation />
       <main>
+        {/* Add breadcrumbs if not on homepage */}
+        {slug && breadcrumbItems.length > 0 && (
+          <div className="container mx-auto px-4 pt-4">
+            <PageBreadcrumb items={breadcrumbItems} />
+          </div>
+        )}
+        
         {pageData.contentBlocks && pageData.contentBlocks.length > 0 ? (
           <ContentBlocks blocks={pageData.contentBlocks} />
         ) : (

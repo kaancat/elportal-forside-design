@@ -20,7 +20,6 @@ interface PriceExampleTableComponentProps {
 }
 
 const PriceExampleTableComponent: React.FC<PriceExampleTableComponentProps> = ({ block }) => {
-  console.log('PriceExampleTableComponent received block:', block)
 
   // Fixed consumption for calculation (100 kWh per month)
   const monthlyConsumption = 100

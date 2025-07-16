@@ -262,9 +262,8 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
   };
 
   return (
-    <TooltipProvider>
-      <section className="bg-white py-16 lg:py-24">
-        <div className="container mx-auto px-4">
+    <section className="bg-white py-16 lg:py-24">
+      <div className="container mx-auto px-4">
         {/* Header section with alignment */}
         <div className={cn(
           "mb-12",
@@ -621,7 +620,6 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
         </div>
       </div>
     </section>
-    </TooltipProvider>
   );
 };
 

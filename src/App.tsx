@@ -32,7 +32,7 @@ const App = () => {
   return (
     <ErrorBoundary level="app">
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
+        <TooltipProvider delayDuration={0}>
           <div className="min-h-screen w-full">
             <Toaster />
             <Sonner />

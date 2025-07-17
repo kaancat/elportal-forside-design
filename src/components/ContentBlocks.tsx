@@ -1,5 +1,5 @@
 import React from 'react'
-import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, CO2EmissionsChart, DeclarationProduction, ConsumptionMap, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
+import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, CO2EmissionsChart, DeclarationProduction, DeclarationGridmix, ConsumptionMap, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
 import { debug } from '@/utils/debug'
 import PageSectionComponent from './PageSectionComponent'
 import FAQItemComponent from './FAQItemComponent'
@@ -13,6 +13,7 @@ import RealPriceComparisonTableComponent from './RealPriceComparisonTable'
 import RenewableEnergyForecastComponent from './RenewableEnergyForecast'
 import CO2EmissionsChartComponent from './CO2EmissionsChart'
 import DeclarationProductionChart from './DeclarationProductionChart'
+import DeclarationGridmix from './DeclarationGridmix'
 import ConsumptionMapComponent from './ConsumptionMap'
 import PriceCalculatorWidget from './PriceCalculatorWidget'
 import HeroSection from './HeroSection'
@@ -118,6 +119,8 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
           return <CO2EmissionsChartComponent key={block._key} block={block as CO2EmissionsChart} />
         } else if (block._type === 'declarationProduction') {
           return <DeclarationProductionChart key={block._key} block={block as DeclarationProduction} />
+        } else if (block._type === 'declarationGridmix') {
+          return <DeclarationGridmix key={block._key} block={block as DeclarationGridmix} />
         } else if (block._type === 'consumptionMap') {
           window.console.log('[ContentBlocks] ConsumptionMap type matched!', block);
           try {

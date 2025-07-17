@@ -227,6 +227,17 @@ export interface DeclarationProduction {
   defaultView?: '24h' | '7d' | '30d'
 }
 
+export interface DeclarationGridmix {
+  _type: 'declarationGridmix'
+  _key: string
+  title?: string
+  subtitle?: string
+  leadingText?: BlockContent[]
+  headerAlignment?: 'left' | 'center' | 'right'
+  showSummary?: boolean
+  view?: '24h' | '7d' | '30d'
+}
+
 export interface ConsumptionMap {
   _type: 'consumptionMap'
   _key: string
@@ -261,6 +272,7 @@ export type ContentBlock =
   | RenewableEnergyForecast 
   | CO2EmissionsChart
   | DeclarationProduction
+  | DeclarationGridmix
   | ConsumptionMap
   | PriceCalculator 
   | HeroWithCalculator 

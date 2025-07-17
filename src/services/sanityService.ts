@@ -131,7 +131,14 @@ export class SanityService {
             _type,
             title,
             description,
-            icon
+            icon {
+              ...,
+              metadata {
+                inlineSvg,
+                iconName,
+                url
+              }
+            }
           }
         },
         _type == "valueProposition" => {
@@ -274,6 +281,8 @@ export class SanityService {
                 icon {
                   ...,
                   metadata {
+                    inlineSvg,
+                    iconName,
                     url
                   }
                 },
@@ -430,7 +439,14 @@ export class SanityService {
             _type,
             title,
             description,
-            icon
+            icon {
+              ...,
+              metadata {
+                inlineSvg,
+                iconName,
+                url
+              }
+            }
           }
         },
         _type == "valueProposition" => {

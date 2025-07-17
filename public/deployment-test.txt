@@ -1,0 +1,3 @@
+Deployment test file created at: 2025-07-17
+This file verifies that the deployment process is working correctly.
+Bundle should be: index-DJ1aV4hx.js (not the old index-BL22q5Kh.js)

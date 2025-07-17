@@ -221,6 +221,20 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
     return latest;
   }, [data]);
 
+  // Get actual data date range
+  const dataDateRange = useMemo(() => {
+    if (!data || data.length === 0) return null;
+    
+    const firstDate = new Date(data[0].HourDK);
+    const lastDate = new Date(data[data.length - 1].HourDK);
+    
+    return {
+      start: firstDate.toLocaleDateString('da-DK'),
+      end: lastDate.toLocaleDateString('da-DK'),
+      single: firstDate.toDateString() === lastDate.toDateString()
+    };
+  }, [data]);
+
   // Transform data for pie chart
   const pieData = useMemo(() => {
     if (!currentHourData) return [];
@@ -385,6 +399,17 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
           </div>
         </div>
 
+        {/* Data delay notice */}
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="text-amber-600 mt-0.5" size={20} />
+            <div className="text-sm text-amber-800">
+              <p className="font-medium mb-1">Data forsinkelse</p>
+              <p>Energimix data er typisk forsinket med 5-7 dage. De viste data er de senest tilgængelige.</p>
+            </div>
+          </div>
+        </div>
+
         {/* Main content area */}
         <div className="grid lg:grid-cols-4 gap-6">
           {/* Chart */}
@@ -432,9 +457,15 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                 </div>
               </div>
             ) : (
-              <div className="h-[500px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
+              <div>
+                {dataDateRange && (
+                  <div className="text-sm text-gray-600 mb-4 text-center">
+                    Viser data for: {dataDateRange.single ? dataDateRange.start : `${dataDateRange.start} - ${dataDateRange.end}`}
+                  </div>
+                )}
+                <div className="h-[500px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
                     <Pie
                       data={pieData}
                       cx="50%"
@@ -458,7 +489,8 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                       )}
                     />
                   </PieChart>
-                </ResponsiveContainer>
+                  </ResponsiveContainer>
+                </div>
               </div>
             )}
           </div>

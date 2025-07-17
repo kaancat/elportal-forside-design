@@ -31,7 +31,10 @@ import {
 import {
   getMunicipalityByCode,
   getMunicipalityByAsciiName,
-  mapApiDataToMapFormat
+  getMunicipalityByDanishName,
+  mapApiDataToMapFormat,
+  ASCII_NAME_TO_MAPPING,
+  MUNICIPALITY_MAPPINGS
 } from '@/utils/municipality/municipalityMappingFix';
 
 interface ConsumptionMapProps {
@@ -75,6 +78,10 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     
+    // Debug log all expected ASCII names once
+    console.log('DEBUG: Expected ASCII names from mapping:', Array.from(ASCII_NAME_TO_MAPPING.keys()).sort());
+    console.log('DEBUG: Total municipalities in mapping:', ASCII_NAME_TO_MAPPING.size);
+    
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
@@ -106,7 +113,22 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
           return;
         }
         
+        // Debug logging for data
+        console.log('DEBUG: Setting data with', result.data.length, 'municipalities');
+        console.log('DEBUG: Sample data:', result.data.slice(0, 3));
+        console.log('DEBUG: All municipality codes:', result.data.map(d => d.municipalityCode).sort());
+        console.log('DEBUG: All municipality names:', result.data.map(d => d.municipalityName).sort());
+        
         setData(result.data);
+        
+        // Debug: Log all municipality codes and names from API
+        console.log('[DEBUG] Municipality data from API:');
+        console.log('[DEBUG] Total municipalities:', result.data.length);
+        console.log('[DEBUG] First 5 municipalities:', result.data.slice(0, 5).map(m => ({
+          code: m.municipalityCode,
+          name: m.municipalityName
+        })));
+        console.log('[DEBUG] All municipality codes:', result.data.map(m => m.municipalityCode).sort());
         
         // Set date range from metadata
         if (result.metadata?.startDate && result.metadata?.endDate) {
@@ -188,8 +210,11 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
   // Handle municipality click
   const handleMunicipalityClick = useCallback((municipalityName: string) => {
     if (!enableInteraction) return;
-    // municipalityName here is the ASCII name from react-denmark-map
-    const mapping = getMunicipalityByAsciiName(municipalityName);
+    // municipalityName here is actually the lowercase Danish name from react-denmark-map
+    let mapping = getMunicipalityByAsciiName(municipalityName);
+    if (!mapping) {
+      mapping = getMunicipalityByDanishName(municipalityName);
+    }
     if (mapping) {
       setSelectedMunicipality(mapping.code === selectedMunicipality ? null : mapping.code);
     }
@@ -197,8 +222,11 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
 
   // Custom tooltip component
   const CustomTooltip = useCallback(({ area }: { area: MunicipalityType }) => {
-    // area.name is the ASCII name from react-denmark-map
-    const mapping = getMunicipalityByAsciiName(area.name);
+    // area.name is actually the lowercase Danish name from react-denmark-map
+    let mapping = getMunicipalityByAsciiName(area.name);
+    if (!mapping) {
+      mapping = getMunicipalityByDanishName(area.name);
+    }
     if (!mapping) return null;
     
     const municipalityData = data.find(d => d.municipalityCode === mapping.code);
@@ -244,14 +272,85 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     );
   }, [data, showTooltips, statistics]);
 
+  // Log once to see what names react-denmark-map provides
+  useEffect(() => {
+    console.log('[DEBUG] === MUNICIPALITY MAPPING DEBUG INFO ===');
+    console.log('[DEBUG] Expected ASCII names from mapping:', 
+      MUNICIPALITY_MAPPINGS.slice(0, 10).map(m => m.asciiName)
+    );
+    console.log('[DEBUG] Expected Danish names from mapping:', 
+      MUNICIPALITY_MAPPINGS.slice(0, 10).map(m => m.danishName)
+    );
+    
+    // Import and run debug function
+    import('@/utils/testMunicipalityDebug').then(module => {
+      module.debugMunicipalityMapping();
+    });
+  }, []);
+
   // Customize municipality areas based on consumption data
   const customizeMunicipalities = useCallback((municipality: MunicipalityType) => {
-    // municipality.name is the ASCII name from react-denmark-map
-    const mapping = getMunicipalityByAsciiName(municipality.name);
-    if (!mapping || !colorScale) return undefined;
+    // Debug logging - log everything about the municipality object
+    console.log('[DEBUG] react-denmark-map municipality object:', {
+      name: municipality.name,
+      keys: Object.keys(municipality),
+      fullObject: JSON.stringify(municipality, null, 2)
+    });
+
+    // municipality.name is actually the lowercase Danish name from react-denmark-map
+    let mapping = getMunicipalityByAsciiName(municipality.name);
+    
+    if (!mapping) {
+      // Try to find by Danish name (case insensitive)
+      mapping = getMunicipalityByDanishName(municipality.name);
+      
+      if (!mapping) {
+        console.warn('[DEBUG] FAILED TO MAP MUNICIPALITY:', municipality.name);
+        console.log('[DEBUG] Tried ASCII lookup for:', municipality.name);
+        console.log('[DEBUG] Tried Danish lookup for:', municipality.name);
+        
+        // Try to see if it's a close match
+        const possibleMatches = MUNICIPALITY_MAPPINGS.filter(m => 
+          m.asciiName.includes(municipality.name.substring(0, 4)) ||
+          m.danishName.toLowerCase().includes(municipality.name.substring(0, 4))
+        );
+        
+        if (possibleMatches.length > 0) {
+          console.log('[DEBUG] Possible matches:', possibleMatches.map(m => ({
+            ascii: m.asciiName,
+            danish: m.danishName,
+            code: m.code
+          })));
+        }
+        
+        return { style: { fill: '#e5e7eb' } };
+      }
+    }
+    
+    console.log('DEBUG: Found mapping:', {
+      asciiName: mapping.asciiName,
+      danishName: mapping.danishName,
+      code: mapping.code
+    });
+    
+    if (!colorScale) {
+      console.log('DEBUG: No color scale available');
+      return undefined;
+    }
     
     const consumption = data.find(d => d.municipalityCode === mapping.code);
-    if (!consumption) return { style: { fill: '#e5e7eb' } };
+    
+    if (!consumption) {
+      console.log('DEBUG: No consumption data for code:', mapping.code, 'name:', mapping.danishName);
+      console.log('DEBUG: Available codes in data:', data.map(d => d.municipalityCode).sort());
+      return { style: { fill: '#e5e7eb' } };
+    }
+    
+    console.log('DEBUG: Found consumption data:', {
+      code: consumption.municipalityCode,
+      name: consumption.municipalityName,
+      total: consumption.totalConsumption
+    });
     
     // Get consumption value based on selected filter
     let value: number;
@@ -268,6 +367,12 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     
     const color = colorScale(value);
     const isSelected = mapping.code === selectedMunicipality;
+    
+    console.log('DEBUG: Applied color:', {
+      value,
+      color,
+      isSelected
+    });
     
     return {
       style: {

@@ -129,11 +129,24 @@ export const CODE_TO_MAPPING = new Map(
 );
 
 export const ASCII_NAME_TO_MAPPING = new Map(
-  MUNICIPALITY_MAPPINGS.map(m => [m.asciiName, m])
+  MUNICIPALITY_MAPPINGS.map(m => [m.asciiName.toLowerCase(), m])
 );
 
 export const DANISH_NAME_TO_MAPPING = new Map(
   MUNICIPALITY_MAPPINGS.map(m => [m.danishName.toLowerCase(), m])
+);
+
+// Also create a map with normalized Danish names (ASCII converted)
+export const NORMALIZED_NAME_TO_MAPPING = new Map(
+  MUNICIPALITY_MAPPINGS.map(m => [
+    m.danishName.toLowerCase()
+      .replace(/æ/g, 'ae')
+      .replace(/ø/g, 'oe')
+      .replace(/å/g, 'aa')
+      .replace(/ö/g, 'oe')
+      .replace(/ä/g, 'ae'),
+    m
+  ])
 );
 
 /**
@@ -145,9 +158,26 @@ export function getMunicipalityByCode(code: string): MunicipalityMapping | undef
 
 /**
  * Get municipality mapping by ASCII name (from react-denmark-map)
+ * Now case-insensitive and with multiple fallback strategies
  */
 export function getMunicipalityByAsciiName(asciiName: string): MunicipalityMapping | undefined {
-  return ASCII_NAME_TO_MAPPING.get(asciiName);
+  const lowercaseName = asciiName.toLowerCase();
+  
+  // Try direct ASCII lookup first
+  let result = ASCII_NAME_TO_MAPPING.get(lowercaseName);
+  if (result) return result;
+  
+  // Try normalized Danish name lookup
+  result = NORMALIZED_NAME_TO_MAPPING.get(lowercaseName);
+  if (result) return result;
+  
+  // Try Danish name lookup
+  result = DANISH_NAME_TO_MAPPING.get(lowercaseName);
+  if (result) return result;
+  
+  // Log failure for debugging
+  console.warn(`Failed to find municipality mapping for: "${asciiName}" (lowercase: "${lowercaseName}")`);
+  return undefined;
 }
 
 /**

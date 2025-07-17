@@ -119,12 +119,14 @@ AI agent documentation:
 
 ## Component Architecture
 
-### Content Blocks System
-The frontend uses a dynamic content rendering system where:
-- `ContentBlocks.tsx` acts as a router for all content types
+### Content Blocks System (DUAL RENDERER ARCHITECTURE)
+The frontend uses a dynamic content rendering system with TWO renderers:
+- `ContentBlocks.tsx` - Standard router for regular pages
+- `SafeContentBlocks.tsx` - Error-boundary wrapped router used by homepage and critical pages
 - 15+ different block types supported (hero, calculator, charts, etc.)
 - Each block type maps to a specific React component
 - Full TypeScript support with discriminated unions
+- **CRITICAL**: New content blocks MUST be added to BOTH renderers
 
 ### Key Interactive Components
 1. **Price Calculator** - Dynamic electricity price estimation

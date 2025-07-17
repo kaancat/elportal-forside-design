@@ -52,10 +52,12 @@ const totalPrice = subtotal * 1.25 // Add 25% VAT
 
 ## 4. Component Architecture
 
-### Content Block System
-- **ContentBlocks.tsx**: Central router for 15+ content types
+### Content Block System (CRITICAL: Two Renderers!)
+- **ContentBlocks.tsx**: Central router for 15+ content types (used by regular pages)
+- **SafeContentBlocks.tsx**: Error-boundary wrapped renderer (used by homepage and critical pages)
 - **Dynamic Rendering**: Maps Sanity schemas to React components
 - **Type Safety**: Full TypeScript with discriminated unions
+- **IMPORTANT**: When adding new content blocks, you MUST update BOTH ContentBlocks.tsx AND SafeContentBlocks.tsx
 
 ### Key Interactive Components
 1. **PriceCalculatorWidget**: Core conversion tool
@@ -304,8 +306,10 @@ mcp__context7__get_library_docs(
 When adding new content blocks:
 1. Define schema in Sanity CMS
 2. Create corresponding React component
-3. Add to ContentBlocks.tsx switch statement
+3. Add to BOTH ContentBlocks.tsx AND SafeContentBlocks.tsx
 4. Define TypeScript interface matching schema
+5. Add GROQ query fragments for both getHomePage() and getPageBySlug()
+6. Update contentBlocks arrays in both page.ts and homePage.ts schemas
 
 ### API Data Integration
 ```typescript

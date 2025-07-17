@@ -99,6 +99,21 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         if (typeof window !== 'undefined' && !Array.isArray(block)) {
           window.console.log(`[Render] Block ${index} type: "${block._type}" (length: ${block._type?.length})`);
           
+          // Debug declarationGridmix specifically
+          if (block._type && block._type.includes('gridmix')) {
+            window.console.log('[Direct Check] Found gridmix in type!', {
+              type: block._type,
+              exactMatch: block._type === 'declarationGridmix',
+              charCodes: Array.from(block._type).map(c => c.charCodeAt(0))
+            });
+          }
+          
+          // Direct check for declarationGridmix - TEMPORARY FIX
+          if (block._type === 'declarationGridmix') {
+            window.console.log('[Direct Check] Found declarationGridmix! Rendering it now.');
+            return <DeclarationGridmixComp key={block._key} block={block as DeclarationGridmix} />
+          }
+          
           // Direct check for consumptionMap
           if (block._type === 'consumptionMap') {
             window.console.log('[Direct Check] Found consumptionMap! Rendering it now.');

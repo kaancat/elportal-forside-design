@@ -91,9 +91,9 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
     signupLink: provider.signupLink,
     supplierLogoURL: provider.logoUrl,
     // Map benefits to existing boolean properties
-    isVariablePrice: provider.benefits?.find(b => b.text.toLowerCase().includes('variabel'))?.included || true,
-    hasNoBinding: provider.benefits?.find(b => b.text.toLowerCase().includes('binding'))?.included || true,
-    hasFreeSignup: provider.benefits?.find(b => b.text.toLowerCase().includes('gratis'))?.included || true,
+    isVariablePrice: provider.benefits?.find(b => b.text?.toLowerCase().includes('variabel'))?.included || true,
+    hasNoBinding: provider.benefits?.find(b => b.text?.toLowerCase().includes('binding'))?.included || true,
+    hasFreeSignup: provider.benefits?.find(b => b.text?.toLowerCase().includes('gratis'))?.included || true,
     internalNotes: '',
     lastUpdated: new Date().toISOString(),
     sortOrderVindstoed: provider.isVindstoedProduct ? 1 : undefined,

@@ -191,6 +191,16 @@ export class SanityService {
           defaultView,
           showStatistics,
           mobileLayout
+        },
+        _type == "declarationGridmix" => {
+          _key,
+          _type,
+          title,
+          subtitle,
+          leadingText,
+          headerAlignment,
+          showSummary,
+          view
         }
       }
     }`
@@ -508,6 +518,16 @@ export class SanityService {
           defaultView,
           showStatistics,
           mobileLayout
+        },
+        _type == "declarationGridmix" => {
+          _key,
+          _type,
+          title,
+          subtitle,
+          leadingText,
+          headerAlignment,
+          showSummary,
+          view
         }
       }
     }`

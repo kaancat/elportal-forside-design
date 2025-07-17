@@ -291,6 +291,14 @@ export const DANISH_MUNICIPALITIES: Record<string, MunicipalityInfo> = {
   },
   '450': {
     code: '450',
+    name: 'Nyborg',
+    region: 'Syddanmark',
+    coordinates: [10.7894, 55.3123],
+    population: 32009,
+    area: 278.0
+  },
+  '461': {
+    code: '461',
     name: 'Odense',
     region: 'Syddanmark',
     coordinates: [10.4024, 55.4038],

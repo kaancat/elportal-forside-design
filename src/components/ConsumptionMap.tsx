@@ -28,6 +28,11 @@ import {
   getMunicipalityNameFromCode, 
   getMunicipalityCodeFromName 
 } from '@/utils/municipality/municipalityCodeMapping';
+import {
+  getMunicipalityByCode,
+  getMunicipalityByAsciiName,
+  mapApiDataToMapFormat
+} from '@/utils/municipality/municipalityMappingFix';
 
 interface ConsumptionMapProps {
   block: ConsumptionMap;
@@ -183,16 +188,20 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
   // Handle municipality click
   const handleMunicipalityClick = useCallback((municipalityName: string) => {
     if (!enableInteraction) return;
-    const code = getMunicipalityCodeFromName(municipalityName);
-    setSelectedMunicipality(code === selectedMunicipality ? null : code);
+    // municipalityName here is the ASCII name from react-denmark-map
+    const mapping = getMunicipalityByAsciiName(municipalityName);
+    if (mapping) {
+      setSelectedMunicipality(mapping.code === selectedMunicipality ? null : mapping.code);
+    }
   }, [enableInteraction, selectedMunicipality]);
 
   // Custom tooltip component
   const CustomTooltip = useCallback(({ area }: { area: MunicipalityType }) => {
-    const municipalityCode = getMunicipalityCodeFromName(area.name);
-    if (!municipalityCode) return null;
+    // area.name is the ASCII name from react-denmark-map
+    const mapping = getMunicipalityByAsciiName(area.name);
+    if (!mapping) return null;
     
-    const municipalityData = data.find(d => d.municipalityCode === municipalityCode);
+    const municipalityData = data.find(d => d.municipalityCode === mapping.code);
     if (!municipalityData || !showTooltips) return null;
 
     return (
@@ -237,10 +246,11 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
 
   // Customize municipality areas based on consumption data
   const customizeMunicipalities = useCallback((municipality: MunicipalityType) => {
-    const municipalityCode = getMunicipalityCodeFromName(municipality.name);
-    if (!municipalityCode || !colorScale) return undefined;
+    // municipality.name is the ASCII name from react-denmark-map
+    const mapping = getMunicipalityByAsciiName(municipality.name);
+    if (!mapping || !colorScale) return undefined;
     
-    const consumption = data.find(d => d.municipalityCode === municipalityCode);
+    const consumption = data.find(d => d.municipalityCode === mapping.code);
     if (!consumption) return { style: { fill: '#e5e7eb' } };
     
     // Get consumption value based on selected filter
@@ -257,7 +267,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     }
     
     const color = colorScale(value);
-    const isSelected = municipalityCode === selectedMunicipality;
+    const isSelected = mapping.code === selectedMunicipality;
     
     return {
       style: {

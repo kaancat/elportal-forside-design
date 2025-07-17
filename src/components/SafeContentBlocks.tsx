@@ -1,5 +1,5 @@
 import React from 'react'
-import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, CO2EmissionsChart, DeclarationProduction, ConsumptionMap, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
+import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, CO2EmissionsChart, DeclarationProduction, DeclarationGridmix, ConsumptionMap, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
 import PageSectionComponent from './PageSectionComponent'
 import FAQItemComponent from './FAQItemComponent'
 import PriceExampleTableComponent from './PriceExampleTableComponent'
@@ -12,6 +12,7 @@ import RealPriceComparisonTableComponent from './RealPriceComparisonTable'
 import RenewableEnergyForecastComponent from './RenewableEnergyForecast'
 import CO2EmissionsChartComponent from './CO2EmissionsChart'
 import DeclarationProductionChart from './DeclarationProductionChart'
+import DeclarationGridmix from './DeclarationGridmix'
 import PriceCalculatorWidget from './PriceCalculatorWidget'
 import HeroSection from './HeroSection'
 import MonthlyProductionChart from './MonthlyProductionChart'
@@ -52,6 +53,7 @@ const SafeContentBlock: React.FC<{
       case 'renewableEnergyForecast':
       case 'co2EmissionsChart':
       case 'declarationProduction':
+      case 'declarationGridmix':
       case 'monthlyProductionChart':
       case 'consumptionMap':
         return <ChartErrorFallback 
@@ -146,6 +148,9 @@ const renderContentBlock = (block: ContentBlock) => {
     
     case 'declarationProduction':
       return <DeclarationProductionChart block={block as DeclarationProduction} />;
+    
+    case 'declarationGridmix':
+      return <DeclarationGridmix block={block as DeclarationGridmix} />;
     
     case 'priceCalculator':
       return <PriceCalculatorWidget block={block as PriceCalculator} />;

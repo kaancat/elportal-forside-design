@@ -140,6 +140,17 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
           return <DeclarationProductionChart key={block._key} block={block as DeclarationProduction} />
         } else if (block._type === 'declarationGridmix') {
           window.console.log('[ContentBlocks] DeclarationGridmix type matched!', block);
+          window.console.log('[ContentBlocks] DeclarationGridmixComp is:', DeclarationGridmixComp);
+          
+          if (!DeclarationGridmixComp) {
+            window.console.error('[ContentBlocks] DeclarationGridmixComp is undefined!');
+            return (
+              <div key={block._key} className="bg-red-100 p-4 rounded">
+                <p>Error: DeclarationGridmixComp component not loaded</p>
+              </div>
+            );
+          }
+          
           try {
             return <DeclarationGridmixComp key={block._key} block={block as DeclarationGridmix} />
           } catch (error) {

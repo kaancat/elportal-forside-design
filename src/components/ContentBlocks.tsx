@@ -23,6 +23,12 @@ import { FeatureListComponent } from './FeatureListComponent'
 import { ValuePropositionComponent } from './ValuePropositionComponent'
 import HeroComponent from './HeroComponent'
 
+// Debug import
+if (typeof window !== 'undefined') {
+  (window as any).DeclarationGridmixComp = DeclarationGridmixComp;
+  console.log('[ContentBlocks] DeclarationGridmixComp imported:', DeclarationGridmixComp);
+}
+
 interface ContentBlocksProps {
   blocks: ContentBlock[]
 }

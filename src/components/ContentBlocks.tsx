@@ -13,7 +13,7 @@ import RealPriceComparisonTableComponent from './RealPriceComparisonTable'
 import RenewableEnergyForecastComponent from './RenewableEnergyForecast'
 import CO2EmissionsChartComponent from './CO2EmissionsChart'
 import DeclarationProductionChart from './DeclarationProductionChart'
-import DeclarationGridmixComponent from './DeclarationGridmix'
+import DeclarationGridmixComp from './DeclarationGridmix'
 import ConsumptionMapComponent from './ConsumptionMap'
 import PriceCalculatorWidget from './PriceCalculatorWidget'
 import HeroSection from './HeroSection'
@@ -120,7 +120,7 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         } else if (block._type === 'declarationProduction') {
           return <DeclarationProductionChart key={block._key} block={block as DeclarationProduction} />
         } else if (block._type === 'declarationGridmix') {
-          return <DeclarationGridmixComponent key={block._key} block={block as DeclarationGridmix} />
+          return <DeclarationGridmixComp key={block._key} block={block as DeclarationGridmix} />
         } else if (block._type === 'consumptionMap') {
           window.console.log('[ContentBlocks] ConsumptionMap type matched!', block);
           try {

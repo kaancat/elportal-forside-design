@@ -158,7 +158,14 @@ export function getMunicipalityByCode(code: string): MunicipalityMapping | undef
 
 /**
  * Get municipality mapping by ASCII name (from react-denmark-map)
- * Now case-insensitive and with multiple fallback strategies
+ * 
+ * This function handles multiple name formats that react-denmark-map can provide:
+ * - Standard ASCII names (e.g., "koebenhavn", "aeroe")
+ * - Danish names with special characters (e.g., "københavn", "ærø")
+ * - Mixed case variations
+ * 
+ * Uses multiple fallback strategies with Danish character normalization:
+ * æ → ae, ø → oe, å → aa, ö → oe, ä → ae
  */
 export function getMunicipalityByAsciiName(asciiName: string): MunicipalityMapping | undefined {
   const lowercaseName = asciiName.toLowerCase();
@@ -188,8 +195,7 @@ export function getMunicipalityByAsciiName(asciiName: string): MunicipalityMappi
   result = ASCII_NAME_TO_MAPPING.get(normalizedName);
   if (result) return result;
   
-  // Log failure for debugging
-  console.warn(`Failed to find municipality mapping for: "${asciiName}" (lowercase: "${lowercaseName}", normalized: "${normalizedName}")`);
+  // Municipality mapping failed - this indicates a data issue that should be investigated
   return undefined;
 }
 

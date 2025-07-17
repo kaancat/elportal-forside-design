@@ -20,6 +20,9 @@ export async function GET(request: Request) {
     const dateParam = searchParams.get('date'); // Frontend passes this
     
     // Calculate date range based on view and optional date parameter
+    // IMPORTANT: DeclarationGridmix data has approximately 5-7 days delay
+    const DATA_DELAY_DAYS = 7; // Based on empirical observation
+    
     let baseDate = new Date();
     
     // If a specific date is provided, use it as the base
@@ -27,21 +30,25 @@ export async function GET(request: Request) {
       baseDate = new Date(dateParam + 'T12:00:00Z'); // Noon UTC to avoid timezone issues
     }
     
-    const endDate = new Date(baseDate);
-    const startDate = new Date(baseDate);
+    // For all views, we need to go back further to get actual data
+    const adjustedEndDate = new Date(baseDate);
+    adjustedEndDate.setDate(adjustedEndDate.getDate() - DATA_DELAY_DAYS);
+    
+    const endDate = new Date(adjustedEndDate);
+    const startDate = new Date(adjustedEndDate);
     
     switch(view) {
       case '7d':
-        // For 7 days view, show 7 days ending on the selected date
+        // For 7 days view, show 7 days of actual data
         startDate.setDate(startDate.getDate() - 6); // 7 days including the end date
         break;
       case '30d':
-        // For 30 days view, show 30 days ending on the selected date
+        // For 30 days view, show 30 days of actual data
         startDate.setDate(startDate.getDate() - 29); // 30 days including the end date
         break;
       case '24h':
       default:
-        // For 24h view, show just the selected date
+        // For 24h view, show just one day of data
         // Start date is already set to the same as end date
         break;
     }

@@ -40,8 +40,21 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
       type: b._type, 
       key: b._key,
       typeString: String(b._type),
-      typeLength: b._type?.length
+      typeLength: b._type?.length,
+      typeCharCodes: b._type ? Array.from(b._type).map(c => c.charCodeAt(0)) : []
     })));
+    
+    // Check specifically for declarationGridmix
+    const declarationGridmixBlocks = blocks.filter(b => b._type === 'declarationGridmix');
+    if (declarationGridmixBlocks.length > 0) {
+      window.console.log('[ContentBlocks] Found declarationGridmix blocks:', declarationGridmixBlocks);
+    }
+    
+    // Also check for any blocks containing 'gridmix' in the type
+    const gridmixBlocks = blocks.filter(b => b._type?.includes('gridmix'));
+    if (gridmixBlocks.length > 0) {
+      window.console.log('[ContentBlocks] Found gridmix-related blocks:', gridmixBlocks);
+    }
     
     // Check specifically for consumptionMap
     const consumptionMapBlocks = blocks.filter(b => b._type?.includes('consumption'));
@@ -120,7 +133,17 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         } else if (block._type === 'declarationProduction') {
           return <DeclarationProductionChart key={block._key} block={block as DeclarationProduction} />
         } else if (block._type === 'declarationGridmix') {
-          return <DeclarationGridmixComp key={block._key} block={block as DeclarationGridmix} />
+          window.console.log('[ContentBlocks] DeclarationGridmix type matched!', block);
+          try {
+            return <DeclarationGridmixComp key={block._key} block={block as DeclarationGridmix} />
+          } catch (error) {
+            window.console.error('[ContentBlocks] Error rendering DeclarationGridmix:', error);
+            return (
+              <div key={block._key} className="bg-red-100 p-4 rounded">
+                <p>Error loading declaration gridmix: {String(error)}</p>
+              </div>
+            )
+          }
         } else if (block._type === 'consumptionMap') {
           window.console.log('[ContentBlocks] ConsumptionMap type matched!', block);
           try {
@@ -177,6 +200,16 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
               blockKeys: Object.keys(unknownBlock || {}),
               fullBlock: JSON.stringify(unknownBlock, null, 2)
             });
+          }
+          
+          // TEMPORARY: Force render for gridmix if type contains 'gridmix'
+          if (unknownBlock._type && unknownBlock._type.includes('gridmix')) {
+            window.console.warn('[ContentBlocks] Forcing DeclarationGridmix render for:', unknownBlock._type);
+            try {
+              return <DeclarationGridmixComp key={unknownBlock._key} block={unknownBlock as any} />
+            } catch (error) {
+              window.console.error('[ContentBlocks] Force render DeclarationGridmix failed:', error);
+            }
           }
           
           // TEMPORARY: Force render ConsumptionMap if type contains 'consumptionMap'

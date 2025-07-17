@@ -175,8 +175,21 @@ export function getMunicipalityByAsciiName(asciiName: string): MunicipalityMappi
   result = DANISH_NAME_TO_MAPPING.get(lowercaseName);
   if (result) return result;
   
+  // Special handling for react-denmark-map providing Danish characters
+  // Convert Danish characters to ASCII and try again
+  const normalizedName = lowercaseName
+    .replace(/æ/g, 'ae')
+    .replace(/ø/g, 'oe')
+    .replace(/å/g, 'aa')
+    .replace(/ö/g, 'oe')
+    .replace(/ä/g, 'ae');
+  
+  // Try ASCII lookup with normalized name
+  result = ASCII_NAME_TO_MAPPING.get(normalizedName);
+  if (result) return result;
+  
   // Log failure for debugging
-  console.warn(`Failed to find municipality mapping for: "${asciiName}" (lowercase: "${lowercaseName}")`);
+  console.warn(`Failed to find municipality mapping for: "${asciiName}" (lowercase: "${lowercaseName}", normalized: "${normalizedName}")`);
   return undefined;
 }
 

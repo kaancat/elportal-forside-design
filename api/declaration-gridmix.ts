@@ -19,24 +19,33 @@ export async function GET(request: Request) {
     const view = searchParams.get('view') || '24h';
     
     // Calculate date range based on view
-    // Note: DeclarationGridmix data has a 1-2 day delay based on observations
+    // Note: DeclarationGridmix data has a 2-3 day delay based on observations
     const endDate = new Date();
-    endDate.setDate(endDate.getDate() - 1); // End 1 day ago to account for data delay
     
-    const startDate = new Date(endDate);
+    // For different views, we need different strategies due to data availability
+    const startDate = new Date();
     
     switch(view) {
       case '7d':
-        startDate.setDate(startDate.getDate() - 7);
+        // For 7 days, go back 10 days to ensure we get some data
+        startDate.setDate(startDate.getDate() - 10);
+        endDate.setDate(endDate.getDate() - 2); // Data usually 2 days behind
         break;
       case '30d':
-        startDate.setDate(startDate.getDate() - 30);
+        // For 30 days, go back 35 days
+        startDate.setDate(startDate.getDate() - 35);
+        endDate.setDate(endDate.getDate() - 2);
         break;
       case '24h':
       default:
-        startDate.setDate(startDate.getDate() - 1); // Full day, not just 24 hours
+        // For 24 hours, get the most recent complete day
+        startDate.setDate(startDate.getDate() - 3);
+        endDate.setDate(endDate.getDate() - 2);
         break;
     }
+    
+    startDate.setHours(0, 0, 0, 0); // Start of day
+    endDate.setHours(23, 59, 59, 999); // End of day
 
     // Allow override with explicit dates
     const startParam = searchParams.get('start');
@@ -64,6 +73,9 @@ export async function GET(request: Request) {
 
     const apiUrl = `https://api.energidataservice.dk/dataset/DeclarationGridmix?start=${apiStart}&end=${apiEnd}${filter}&sort=HourDK ASC`;
 
+    console.log(`[DeclarationGridmix API] Fetching data from: ${apiUrl}`);
+    console.log(`[DeclarationGridmix API] Date range: ${apiStart} to ${apiEnd}`);
+
     const externalResponse = await fetch(apiUrl);
 
     if (!externalResponse.ok) {
@@ -84,6 +96,11 @@ export async function GET(request: Request) {
 
     // Process the data
     let records = result.records || [];
+    
+    console.log(`[DeclarationGridmix API] Received ${records.length} records for view=${view}`);
+    if (records.length === 0) {
+      console.log(`[DeclarationGridmix API] No data available for date range: ${apiStart} to ${apiEnd}`);
+    }
     
     // Filter for latest version (prefer Final over Preliminary)
     const versionPriority = records.reduce((acc: any, record: any) => {
@@ -183,13 +200,36 @@ export async function GET(request: Request) {
       new Date(a.HourDK).getTime() - new Date(b.HourDK).getTime()
     );
 
+    // Filter data to match the requested view period
+    const now = new Date();
+    const viewStartDate = new Date();
+    
+    switch(view) {
+      case '7d':
+        viewStartDate.setDate(now.getDate() - 7);
+        break;
+      case '30d':
+        viewStartDate.setDate(now.getDate() - 30);
+        break;
+      case '24h':
+      default:
+        viewStartDate.setDate(now.getDate() - 1);
+        break;
+    }
+    
+    // Filter aggregated data to only include the requested period
+    const filteredData = aggregatedData.filter((hour: any) => {
+      const hourDate = new Date(hour.HourDK);
+      return hourDate >= viewStartDate;
+    });
+
     // For longer time periods, we might want to aggregate to daily averages
-    let finalData = aggregatedData;
-    if (view === '30d' && aggregatedData.length > 240) { // More than 10 days of hourly data
+    let finalData = filteredData;
+    if (view === '30d' && filteredData.length > 168) { // More than 7 days of hourly data
       // Aggregate to daily averages
       const dailyData: Record<string, any> = {};
       
-      aggregatedData.forEach((hour: any) => {
+      filteredData.forEach((hour: any) => {
         const date = hour.HourDK.split('T')[0];
         
         if (!dailyData[date]) {
@@ -269,7 +309,7 @@ export async function GET(request: Request) {
         startDate: apiStart,
         endDate: apiEnd,
         dataPoints: finalData.length,
-        aggregation: view === '30d' && aggregatedData.length > 240 ? 'daily' : 'hourly'
+        aggregation: view === '30d' && filteredData.length > 168 ? 'daily' : 'hourly'
       }
     };
 

@@ -19,7 +19,8 @@ All three components are production-ready and deployed. Frontend delivers real-t
 
 ### Frontend Application (`elportal-forside-design/src/`)
 - **components/** - React components with TypeScript interfaces
-  - **ContentBlocks.tsx** - Central content router for dynamic sections
+  - **ContentBlocks.tsx** - Central content router for regular pages
+  - **SafeContentBlocks.tsx** - Error-wrapped router for homepage/critical pages
   - **PriceCalculatorWidget.tsx** - Interactive price calculation tool
   - **LivePriceGraphComponent.tsx** - Real-time spot price visualization
   - **ProviderList.tsx** - Provider comparison with Vindstød prioritization
@@ -54,11 +55,14 @@ All three components are production-ready and deployed. Frontend delivers real-t
 
 ## Implementation Highlights
 
-### Dynamic Content Blocks
+### Dynamic Content Blocks (DUAL RENDERER SYSTEM)
 - **Technical Implementation**: Discriminated unions with TypeScript for type-safe content rendering
-- **Architecture Decision**: Single ContentBlocks component routes to specialized block renderers
+- **Architecture Decision**: TWO content block renderers:
+  - `ContentBlocks.tsx` - Standard renderer for regular pages
+  - `SafeContentBlocks.tsx` - Error-boundary wrapped for homepage/critical pages
 - **Performance Considerations**: Lazy loading for complex components, efficient re-renders
 - **Integration Points**: Direct mapping to Sanity CMS schemas with 1:1 correspondence
+- **CRITICAL**: New blocks MUST be added to BOTH renderers to avoid "Unknown content block type" errors
 
 ### Provider Ranking Algorithm
 - **Implementation Pattern**: Vindstød-first sorting with price-based secondary ranking
@@ -97,17 +101,11 @@ function rankProviders(providers: Provider[]) {
 }
 ```
 
-### Content Block Routing
-**Dynamic Rendering**: Type-safe content block rendering with discriminated unions
+### Content Block Routing (DUAL RENDERER PATTERN)
+**Dynamic Rendering**: Type-safe content block rendering with TWO renderers
 
 ```typescript
-interface ContentBlockProps {
-  block: 
-    | { _type: 'providerList'; providers: Provider[] }
-    | { _type: 'priceCalculator'; config: CalculatorConfig }
-    | { _type: 'heroWithCalculator'; title: string; calculator: CalculatorConfig }
-}
-
+// ContentBlocks.tsx - Regular pages
 const ContentBlocks: React.FC<ContentBlockProps> = ({ block }) => {
   switch (block._type) {
     case 'providerList':
@@ -120,6 +118,19 @@ const ContentBlocks: React.FC<ContentBlockProps> = ({ block }) => {
       return null
   }
 }
+
+// SafeContentBlocks.tsx - Homepage/critical pages with error boundaries
+const SafeContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
+  return (
+    <ErrorBoundary>
+      {blocks.map(block => (
+        <SafeContentBlock key={block._key} block={block} />
+      ))}
+    </ErrorBoundary>
+  )
+}
+
+// CRITICAL: Add new blocks to BOTH renderers!
 ```
 
 ### EnergiDataService Integration

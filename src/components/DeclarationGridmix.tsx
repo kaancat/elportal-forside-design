@@ -409,9 +409,25 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                   <AlertCircle size={40} className="mx-auto mb-4 text-gray-400" />
                   <div className="text-lg font-medium mb-2">Ingen data tilgængelig</div>
                   <div className="text-sm">
-                    Der er ingen energimix data tilgængelig for {selectedDate.toLocaleDateString('da-DK')} i {selectedRegion}.
-                    <br />
-                    Prøv at vælge en anden dato eller region.
+                    {selectedView === '7d' ? (
+                      <>
+                        Der er ingen energimix data tilgængelig for de seneste 7 dage i {selectedRegion}.
+                        <br />
+                        Data opdateres typisk med 1-2 dages forsinkelse.
+                      </>
+                    ) : selectedView === '30d' ? (
+                      <>
+                        Der er ingen energimix data tilgængelig for de seneste 30 dage i {selectedRegion}.
+                        <br />
+                        Data opdateres typisk med 1-2 dages forsinkelse.
+                      </>
+                    ) : (
+                      <>
+                        Der er ingen energimix data tilgængelig for {selectedDate.toLocaleDateString('da-DK')} i {selectedRegion}.
+                        <br />
+                        Prøv at vælge en tidligere dato eller anden region.
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

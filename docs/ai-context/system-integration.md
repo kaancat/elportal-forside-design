@@ -207,3 +207,22 @@ npm run dev  # http://localhost:3000
 - API changes need type updates
 - New features need documentation
 - Breaking changes need migration plans
+
+## Critical Integration Lessons
+
+### Dual Content Renderer System
+The frontend uses TWO content block renderers:
+- **ContentBlocks.tsx**: Used by regular pages via `getPageBySlug()`
+- **SafeContentBlocks.tsx**: Used by homepage via `getHomePage()` with error boundaries
+
+**When adding new content blocks, you MUST:**
+1. Add schema to Sanity CMS (`/sanityelpriscms/schemaTypes/`)
+2. Export schema in index.ts
+3. Add to contentBlocks arrays in BOTH page.ts AND homePage.ts
+4. Add TypeScript interface to `/src/types/sanity.ts`
+5. Update ContentBlock union type
+6. Add GROQ fragments to BOTH getHomePage() AND getPageBySlug()
+7. Add component imports and cases to BOTH ContentBlocks.tsx AND SafeContentBlocks.tsx
+8. Create the React component
+
+**Common Error**: "Unknown content block type" usually means the block is missing from SafeContentBlocks.tsx

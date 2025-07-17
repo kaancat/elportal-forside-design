@@ -36,9 +36,14 @@ export const DynamicIcon: React.FC<DynamicIconProps> = ({
 
   // Fallback to URL-based icon if available
   if (icon.metadata?.url) {
+    // Add color parameter to Iconify URLs to make them white
+    const iconUrl = icon.metadata.url.includes('api.iconify.design') 
+      ? `${icon.metadata.url}&color=white`
+      : icon.metadata.url;
+    
     return (
       <img
-        src={icon.metadata.url}
+        src={iconUrl}
         alt={icon.metadata?.iconName || 'Icon'}
         className={className}
         style={{ width: size, height: size }}

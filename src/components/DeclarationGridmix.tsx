@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend, Cell } from 'recharts';
 import { CalendarDays, ChevronLeft, ChevronRight, Zap, AlertCircle, Leaf } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -77,61 +77,25 @@ const energySourceColors = {
   'Andet': '#6b7280'
 };
 
-// Custom content for treemap cells
-const CustomTreemapContent = (props: any) => {
-  const { x, y, width, height, name, value, fill, payload } = props;
-  
-  // Don't render anything for invalid dimensions
-  if (!width || !height) return null;
-  
-  // Get the actual data from payload
-  const actualName = payload?.name || name || 'Ukendt';
-  const percentage = payload?.percentage || payload?.value || value || 0;
-  const actualFill = payload?.fill || fill || '#6b7280';
-  
-  // Always show the cell rectangle, even for small cells
-  const showText = width > 40 && height > 25;
-  const fontSize = Math.min(width / Math.max(actualName.length, 1) * 1.5, height / 3, 14);
-  const showPercentage = width > 60 && height > 40 && showText;
-  
+// Custom X-axis tick component
+const CustomXAxisTick = ({ x, y, payload }: any) => {
+  const lines = payload.value.split('\n');
   return (
-    <g>
-      <rect
-        x={x}
-        y={y}
-        width={width}
-        height={height}
-        style={{
-          fill: actualFill,
-          stroke: '#fff',
-          strokeWidth: 2,
-          strokeOpacity: 1,
-        }}
-      />
-      {showText && (
-        <text
-          x={x + width / 2}
-          y={y + height / 2 - (showPercentage ? 8 : 0)}
-          textAnchor="middle"
-          fill="#fff"
-          fontSize={fontSize}
-          fontWeight="600"
-        >
-          {actualName}
-        </text>
-      )}
-      {showPercentage && percentage && (
-        <text
-          x={x + width / 2}
-          y={y + height / 2 + fontSize}
-          textAnchor="middle"
-          fill="#fff"
-          fontSize={fontSize * 0.9}
-          opacity={0.9}
-        >
-          {percentage.toFixed(1)}%
-        </text>
-      )}
+    <g transform={`translate(${x},${y})`}>
+      <text 
+        x={0} 
+        y={0} 
+        dy={16} 
+        textAnchor="middle" 
+        fill="#666"
+        fontSize={12}
+      >
+        {lines.map((line: string, index: number) => (
+          <tspan x={0} dy={index === 0 ? 0 : 14} key={index}>
+            {line}
+          </tspan>
+        ))}
+      </text>
     </g>
   );
 };
@@ -139,34 +103,28 @@ const CustomTreemapContent = (props: any) => {
 // Custom tooltip component
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    
-    // Handle both direct properties and nested payload
-    const name = data.name || '';
-    const percentage = data.percentage || data.value || 0;
-    const shareMWh = data.shareMWh || 0;
-    const co2Emission = data.co2Emission || 0;
+    const total = payload.reduce((sum: number, entry: any) => sum + (entry.value || 0), 0);
     
     return (
       <div className="bg-gray-800 text-white p-4 rounded-lg shadow-lg border min-w-[280px]">
-        <p className="font-semibold mb-3">{name}</p>
+        <p className="font-semibold mb-3">{label}</p>
         <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <span>Andel:</span>
-            <span className="font-mono font-semibold">{percentage.toFixed(1)}%</span>
+          <div className="flex justify-between items-center border-b pb-2">
+            <span>Total:</span>
+            <span className="font-mono font-semibold">{total.toFixed(1)}%</span>
           </div>
-          {shareMWh > 0 && (
-            <div className="flex justify-between items-center">
-              <span>MWh:</span>
-              <span className="font-mono font-semibold">{shareMWh.toFixed(0)} MWh</span>
+          {payload.map((entry: any, index: number) => (
+            <div key={index} className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <div 
+                  className="w-3 h-3 rounded" 
+                  style={{ backgroundColor: entry.fill }}
+                />
+                <span>{entry.name}:</span>
+              </div>
+              <span className="font-mono">{entry.value.toFixed(1)}%</span>
             </div>
-          )}
-          {co2Emission > 0 && (
-            <div className="flex justify-between items-center">
-              <span>CO₂-udledning:</span>
-              <span className="font-mono font-semibold">{co2Emission.toFixed(0)} g/kWh</span>
-            </div>
-          )}
+          ))}
         </div>
       </div>
     );
@@ -315,8 +273,8 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
     };
   }, [data]);
 
-  // Transform data for treemap
-  const treemapData = useMemo(() => {
+  // Transform data for bar chart
+  const barChartData = useMemo(() => {
     if (!currentHourData) return { name: 'Energimix', children: [] };
     
     // Create proper display names
@@ -356,37 +314,54 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
       'DK2': ''
     };
     
-    const children = Object.entries(currentHourData.mixByType)
-      .filter(([_, value]) => value.percentage > 0) // Show all sources with any contribution
-      .map(([key, value]) => {
-        // Extract base type and origin from key (e.g., "Nuclear_SE" -> "Nuclear" and "SE")
+    // Group by base energy type
+    const groupedData: Record<string, any[]> = {};
+    
+    Object.entries(currentHourData.mixByType)
+      .filter(([_, value]) => value.percentage > 0)
+      .forEach(([key, value]) => {
         const baseType = value.baseType || key;
         const origin = value.origin;
         const isImport = value.isImport || false;
         
-        // Create display name with origin for imports
-        let displayName = nameMapping[baseType] || baseType.replace(/([A-Z])/g, ' $1').trim() || 'Ukendt';
-        if (isImport && origin && countryMapping[origin]) {
-          displayName = `${displayName} (fra ${countryMapping[origin]})`;
+        if (!groupedData[baseType]) {
+          groupedData[baseType] = [];
         }
         
-        return {
-          name: displayName,
-          value: value.percentage,
+        groupedData[baseType].push({
+          origin: origin,
           percentage: value.percentage,
           shareMWh: value.shareMWh,
           co2Emission: value.co2Emission,
-          fill: energySourceColors[baseType as keyof typeof energySourceColors] || energySourceColors.Other,
           isImport: isImport,
-          origin: origin
-        };
-      })
-      .sort((a, b) => b.value - a.value);
+          country: isImport && origin && countryMapping[origin] ? countryMapping[origin] : 'Danmark'
+        });
+      });
     
-    return {
-      name: 'Energimix',
-      children
-    };
+    // Create bar chart data with stacked origins
+    const chartData = Object.entries(groupedData)
+      .map(([baseType, origins]) => {
+        const totalPercentage = origins.reduce((sum, o) => sum + o.percentage, 0);
+        const typeName = nameMapping[baseType] || baseType.replace(/([A-Z])/g, ' $1').trim();
+        
+        const dataPoint: any = {
+          name: typeName,
+          total: totalPercentage,
+          baseType: baseType
+        };
+        
+        // Add each origin as a separate field
+        origins.forEach(origin => {
+          const key = origin.isImport ? origin.country : 'Danmark';
+          dataPoint[key] = (dataPoint[key] || 0) + origin.percentage;
+        });
+        
+        return dataPoint;
+      })
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 15); // Limit to top 15 energy types
+    
+    return chartData;
   }, [currentHourData]);
 
   // Check if selected date is in the future
@@ -572,7 +547,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                   {error}
                 </div>
               </div>
-            ) : treemapData.children.length === 0 ? (
+            ) : barChartData.length === 0 ? (
               <div className="flex items-center justify-center h-[500px]">
                 <div className="text-gray-500 text-center">
                   <AlertCircle size={40} className="mx-auto mb-4 text-gray-400" />
@@ -603,15 +578,49 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                 )}
                 <div className="h-[500px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <Treemap
-                      data={[treemapData]}
-                      dataKey="value"
-                      aspectRatio={16/9}
-                      stroke="#fff"
-                      content={CustomTreemapContent}
+                    <BarChart
+                      data={barChartData}
+                      margin={{ top: 20, right: 30, left: 40, bottom: 80 }}
                     >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="name" 
+                        tick={<CustomXAxisTick />}
+                        height={100}
+                      />
+                      <YAxis 
+                        label={{ value: 'Procentdel (%)', angle: -90, position: 'insideLeft' }}
+                      />
                       <Tooltip content={<CustomTooltip />} />
-                    </Treemap>
+                      <Legend 
+                        verticalAlign="top" 
+                        height={36}
+                        wrapperStyle={{ paddingBottom: '20px' }}
+                      />
+                      {/* Dynamic bars for each country */}
+                      {['Danmark', 'Sverige', 'Norge', 'Storbritannien', 'Holland', 'Tyskland'].map((country, index) => {
+                        const hasData = barChartData.some(d => d[country] > 0);
+                        if (!hasData) return null;
+                        
+                        const colors: Record<string, string> = {
+                          'Danmark': '#059669',
+                          'Sverige': '#3b82f6',
+                          'Norge': '#8b5cf6',
+                          'Storbritannien': '#ef4444',
+                          'Holland': '#f59e0b',
+                          'Tyskland': '#6b7280'
+                        };
+                        
+                        return (
+                          <Bar 
+                            key={country}
+                            dataKey={country} 
+                            stackId="a" 
+                            fill={colors[country] || '#6b7280'}
+                          />
+                        );
+                      })}
+                    </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
@@ -626,24 +635,41 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
           )}
         </div>
 
-        {/* Energy Sources Legend */}
-        {treemapData.children.length > 0 && (
+        {/* Energy Sources Table */}
+        {barChartData.length > 0 && (
           <div className="mt-8">
             <div className="bg-gray-50 rounded-lg p-6">
-              <h3 className="text-base font-semibold text-gray-700 mb-4 text-center">Aktuel energifordeling</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                {treemapData.children.map((entry, index) => (
-                  <div key={index} className="flex items-start gap-2 min-w-0">
-                    <div 
-                      className="w-4 h-4 rounded-sm flex-shrink-0 mt-0.5" 
-                      style={{ backgroundColor: entry.fill }}
-                    />
-                    <div className="text-sm min-w-0">
-                      <div className="font-medium text-gray-700 truncate">{entry.name}</div>
-                      <div className="text-gray-500 font-mono">{entry.percentage.toFixed(1)}%</div>
-                    </div>
-                  </div>
-                ))}
+              <h3 className="text-base font-semibold text-gray-700 mb-4 text-center">Detaljeret energifordeling</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2">Energikilde</th>
+                      <th className="text-right py-2">Total (%)</th>
+                      <th className="text-right py-2">Danmark</th>
+                      <th className="text-right py-2">Import</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {barChartData.map((entry, index) => {
+                      const domesticPercentage = entry.Danmark || 0;
+                      const importPercentage = entry.total - domesticPercentage;
+                      
+                      return (
+                        <tr key={index} className="border-b">
+                          <td className="py-2 font-medium">{entry.name}</td>
+                          <td className="text-right font-mono">{entry.total.toFixed(1)}%</td>
+                          <td className="text-right font-mono text-green-600">
+                            {domesticPercentage > 0 ? `${domesticPercentage.toFixed(1)}%` : '-'}
+                          </td>
+                          <td className="text-right font-mono text-blue-600">
+                            {importPercentage > 0 ? `${importPercentage.toFixed(1)}%` : '-'}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>

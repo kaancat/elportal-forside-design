@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, LabelList } from 'recharts';
 import { CalendarDays, ChevronLeft, ChevronRight, Zap, AlertCircle, Leaf } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -64,6 +64,52 @@ const energySourceColors = {
   
   // Default/Other
   'Other': '#6b7280'
+};
+
+// Custom label rendering function
+const renderCustomizedLabel = ({
+  cx,
+  cy,
+  midAngle,
+  innerRadius,
+  outerRadius,
+  percent,
+  index,
+  name,
+  percentage
+}: any) => {
+  const RADIAN = Math.PI / 180;
+  const radius = outerRadius + 30;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  // Only show label for slices > 5%
+  if (percentage < 5) return null;
+
+  return (
+    <g>
+      <text
+        x={x}
+        y={y}
+        fill="#374151"
+        textAnchor={x > cx ? 'start' : 'end'}
+        dominantBaseline="central"
+        className="text-sm font-medium"
+      >
+        {name}
+      </text>
+      <text
+        x={x}
+        y={y + 16}
+        fill="#6b7280"
+        textAnchor={x > cx ? 'start' : 'end'}
+        dominantBaseline="central"
+        className="text-sm"
+      >
+        {`${percentage.toFixed(1)}%`}
+      </text>
+    </g>
+  );
 };
 
 // Custom tooltip component
@@ -276,7 +322,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
       }));
     
     // Group small percentages into "Other"
-    const threshold = 2; // Show items with at least 2%
+    const threshold = 3; // Show items with at least 3%
     const mainEntries = entries.filter(e => e.percentage >= threshold);
     const smallEntries = entries.filter(e => e.percentage < threshold && e.percentage > 0);
     
@@ -497,16 +543,19 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                     Viser data for: {dataDateRange.single ? dataDateRange.start : `${dataDateRange.start} - ${dataDateRange.end}`}
                   </div>
                 )}
-                <div className="h-[600px]">
+                <div className="h-[700px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart margin={{ top: 20, right: 20, bottom: 80, left: 20 }}>
+                    <PieChart margin={{ top: 80, right: 80, bottom: 80, left: 80 }}>
                     <Pie
                       data={pieData}
                       cx="50%"
-                      cy="45%"
-                      labelLine={false}
-                      label={false}
-                      outerRadius={150}
+                      cy="50%"
+                      labelLine={{
+                        stroke: '#6b7280',
+                        strokeWidth: 1
+                      }}
+                      label={renderCustomizedLabel}
+                      outerRadius={120}
                       fill="#8884d8"
                       dataKey="percentage"
                     >

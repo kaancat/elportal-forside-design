@@ -339,7 +339,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
     };
     
     const children = Object.entries(currentHourData.mixByType)
-      .filter(([_, value]) => value.percentage > 0.1) // Only show sources > 0.1%
+      .filter(([_, value]) => value.percentage > 0) // Show all sources with any contribution
       .map(([name, value]) => ({
         name: nameMapping[name] || name.replace(/([A-Z])/g, ' $1').trim(),
         value: value.percentage,
@@ -599,15 +599,6 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                   </div>
                 ))}
               </div>
-              
-              {/* Show details for "Andet" category if it exists */}
-              {treemapData.children.find(e => e.name === 'Andet') && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <p className="text-xs text-gray-600 text-center">
-                    "Andet" inkluderer energikilder under 1%
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         )}

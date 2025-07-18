@@ -68,61 +68,73 @@ interface CustomTooltipProps {
   payload: any[];
   label?: string;
   groupedData: any;
+  hoveredSegment: string | null;
 }
 
-const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label, groupedData }) => {
-  if (active && payload && payload.length > 0) {
-    // Get mouse position from the event
-    const activePayload = payload.filter(entry => entry.value > 0);
+const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label, groupedData, hoveredSegment }) => {
+  if (active && payload && payload.length > 0 && hoveredSegment) {
+    // Find the specific segment that matches the hovered one
+    const segmentData = payload.find(entry => entry.dataKey === hoveredSegment);
     
-    if (activePayload.length === 0) return null;
+    if (!segmentData || segmentData.value === 0) return null;
     
-    // For a stacked bar, show all segments with their values
+    const energyType = segmentData.dataKey;
+    const groupInfo = groupedData[energyType];
+    
     return (
       <div className="bg-white p-4 rounded-lg shadow-lg border" style={{ minWidth: '250px', maxWidth: '350px' }}>
-        <div className="space-y-2">
-          {activePayload
-            .sort((a, b) => b.value - a.value)
-            .map((entry: any, idx: number) => {
-              const energyType = entry.dataKey;
-              const groupInfo = groupedData[energyType];
-              
-              return (
-                <div key={idx} className="pb-2 border-b last:border-b-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-3 h-3 rounded" 
-                        style={{ backgroundColor: entry.fill || entry.color }}
-                      />
-                      <p className="font-semibold text-sm">{energyType}</p>
-                      {groupInfo?.isRenewable && (
-                        <Leaf size={12} className="text-green-600" />
-                      )}
-                    </div>
-                    <p className="text-sm font-mono font-semibold">
-                      {entry.value.toFixed(1)}%
-                    </p>
-                  </div>
-                  
-                  {groupInfo && groupInfo.details.length > 1 && (
-                    <div className="ml-5 mt-1 space-y-0.5">
-                      {groupInfo.details.map((detail: any, detailIdx: number) => (
-                        <div key={detailIdx} className="flex justify-between items-center text-xs text-gray-600">
-                          <span>
-                            {detail.isImport ? `Fra ${detail.origin}` : detail.origin}:
-                          </span>
-                          <span className="font-mono">
-                            {detail.percentage.toFixed(1)}%
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div 
+              className="w-4 h-4 rounded" 
+              style={{ backgroundColor: segmentData.fill || segmentData.color }}
+            />
+            <p className="font-semibold text-base">{energyType}</p>
+            {groupInfo?.isRenewable && (
+              <Leaf size={14} className="text-green-600" />
+            )}
+          </div>
+          <p className="text-base font-mono font-semibold">
+            {segmentData.value.toFixed(1)}%
+          </p>
         </div>
+        
+        {groupInfo && groupInfo.details.length > 0 && (
+          <div className="border-t pt-3 space-y-1">
+            <p className="text-xs text-gray-600 mb-2 font-medium">Fordeling:</p>
+            {groupInfo.details.map((detail: any, idx: number) => (
+              <div key={idx} className="flex justify-between items-center text-sm">
+                <span className="text-gray-700">
+                  {detail.isImport ? (
+                    <>
+                      <span className="text-blue-600">Fra {detail.origin}</span>
+                    </>
+                  ) : (
+                    detail.origin
+                  )}:
+                </span>
+                <span className="font-mono text-gray-900 font-medium">
+                  {detail.percentage.toFixed(1)}%
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {groupInfo?.isRenewable !== undefined && groupInfo.details.length <= 1 && (
+          <div className="mt-3 pt-3 border-t">
+            <span className="text-xs flex items-center gap-1">
+              {groupInfo.isRenewable ? (
+                <>
+                  <Leaf size={12} className="text-green-600" />
+                  <span className="text-green-600">Vedvarende energi</span>
+                </>
+              ) : (
+                <span className="text-gray-600">Ikke-vedvarende energi</span>
+              )}
+            </span>
+          </div>
+        )}
       </div>
     );
   }
@@ -211,6 +223,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
   const [selectedView, setSelectedView] = useState<'7d' | '30d'>(view === '24h' ? '7d' : view);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [hoveredSegment, setHoveredSegment] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -681,7 +694,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                       />
                       <YAxis type="category" hide={true} />
                       <Tooltip 
-                        content={<CustomTooltip groupedData={groupedData} />} 
+                        content={<CustomTooltip groupedData={groupedData} hoveredSegment={hoveredSegment} />} 
                         cursor={{ fill: 'rgba(0,0,0,0.05)' }}
                         wrapperStyle={{ outline: 'none' }}
                         isAnimationActive={false}
@@ -692,7 +705,9 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                           key={key} 
                           dataKey={key} 
                           stackId="a" 
-                          fill={getColorForSegment(key, groupedData)} 
+                          fill={getColorForSegment(key, groupedData)}
+                          onMouseEnter={() => setHoveredSegment(key)}
+                          onMouseLeave={() => setHoveredSegment(null)}
                         />
                       ))}
                     </BarChart>

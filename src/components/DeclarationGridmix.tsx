@@ -76,12 +76,17 @@ const energySourceColors = {
 
 // Custom content for treemap cells
 const CustomTreemapContent = (props: any) => {
-  const { x, y, width, height, name, percentage, fill } = props;
+  const { x, y, width, height, name, value, fill, payload } = props;
   
-  // Don't render text for very small cells
-  if (width < 50 || height < 30) return null;
+  // Don't render anything for invalid dimensions
+  if (!width || !height || width < 50 || height < 30) return null;
   
-  const fontSize = Math.min(width / name.length * 1.5, height / 3, 14);
+  // Get the actual data from payload
+  const actualName = payload?.name || name || '';
+  const percentage = payload?.percentage || payload?.value || value || 0;
+  const actualFill = payload?.fill || fill || '#6b7280';
+  
+  const fontSize = Math.min(width / Math.max(actualName.length, 1) * 1.5, height / 3, 14);
   const showPercentage = width > 60 && height > 40;
   
   return (
@@ -92,7 +97,7 @@ const CustomTreemapContent = (props: any) => {
         width={width}
         height={height}
         style={{
-          fill,
+          fill: actualFill,
           stroke: '#fff',
           strokeWidth: 2,
           strokeOpacity: 1,
@@ -106,9 +111,9 @@ const CustomTreemapContent = (props: any) => {
         fontSize={fontSize}
         fontWeight="600"
       >
-        {name}
+        {actualName}
       </text>
-      {showPercentage && (
+      {showPercentage && percentage && (
         <text
           x={x + width / 2}
           y={y + height / 2 + fontSize}
@@ -129,22 +134,32 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     
+    // Handle both direct properties and nested payload
+    const name = data.name || '';
+    const percentage = data.percentage || data.value || 0;
+    const shareMWh = data.shareMWh || 0;
+    const co2Emission = data.co2Emission || 0;
+    
     return (
       <div className="bg-gray-800 text-white p-4 rounded-lg shadow-lg border min-w-[280px]">
-        <p className="font-semibold mb-3">{data.name}</p>
+        <p className="font-semibold mb-3">{name}</p>
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <span>Andel:</span>
-            <span className="font-mono font-semibold">{data.percentage.toFixed(1)}%</span>
+            <span className="font-mono font-semibold">{percentage.toFixed(1)}%</span>
           </div>
-          <div className="flex justify-between items-center">
-            <span>MWh:</span>
-            <span className="font-mono font-semibold">{data.shareMWh.toFixed(0)} MWh</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span>CO₂-udledning:</span>
-            <span className="font-mono font-semibold">{data.co2Emission.toFixed(0)} g/kWh</span>
-          </div>
+          {shareMWh > 0 && (
+            <div className="flex justify-between items-center">
+              <span>MWh:</span>
+              <span className="font-mono font-semibold">{shareMWh.toFixed(0)} MWh</span>
+            </div>
+          )}
+          {co2Emission > 0 && (
+            <div className="flex justify-between items-center">
+              <span>CO₂-udledning:</span>
+              <span className="font-mono font-semibold">{co2Emission.toFixed(0)} g/kWh</span>
+            </div>
+          )}
         </div>
       </div>
     );

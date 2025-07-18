@@ -16,7 +16,7 @@ export async function GET(request: Request) {
 
     // Get parameters
     const region = searchParams.get('region') || 'Danmark';
-    const view = searchParams.get('view') || '24h';
+    const view = searchParams.get('view') || '7d';
     const dateParam = searchParams.get('date'); // Frontend passes this
     
     // Calculate date range based on view and optional date parameter
@@ -38,18 +38,14 @@ export async function GET(request: Request) {
     const startDate = new Date(adjustedEndDate);
     
     switch(view) {
-      case '7d':
-        // For 7 days view, show 7 days of actual data
-        startDate.setDate(startDate.getDate() - 6); // 7 days including the end date
-        break;
       case '30d':
         // For 30 days view, show 30 days of actual data
         startDate.setDate(startDate.getDate() - 29); // 30 days including the end date
         break;
-      case '24h':
+      case '7d':
       default:
-        // For 24h view, show just one day of data
-        // Start date is already set to the same as end date
+        // For 7 days view, show 7 days of actual data
+        startDate.setDate(startDate.getDate() - 6); // 7 days including the end date
         break;
     }
     

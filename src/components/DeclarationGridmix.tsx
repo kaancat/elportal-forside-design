@@ -160,7 +160,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
   const leadingText = block.leadingText;
   const headerAlignment = block.headerAlignment || 'center';
   const showSummary = block.showSummary !== undefined ? block.showSummary : true;
-  const view = block.view || '24h';
+  const view = block.view || '7d';
 
   const [data, setData] = useState<GridmixRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -173,7 +173,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
   });
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<'Danmark' | 'DK1' | 'DK2'>('Danmark');
-  const [selectedView, setSelectedView] = useState<'24h' | '7d' | '30d'>(view);
+  const [selectedView, setSelectedView] = useState<'7d' | '30d'>(view === '24h' ? '7d' : view);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -352,25 +352,18 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
           
           <div className="flex items-center gap-2">
             <Button 
-              onClick={() => setSelectedView('24h')} 
-              variant={selectedView === '24h' ? 'default' : 'outline'}
-              size="sm"
-            >
-              24t
-            </Button>
-            <Button 
               onClick={() => setSelectedView('7d')} 
               variant={selectedView === '7d' ? 'default' : 'outline'}
               size="sm"
             >
-              7d
+              7 dage
             </Button>
             <Button 
               onClick={() => setSelectedView('30d')} 
               variant={selectedView === '30d' ? 'default' : 'outline'}
               size="sm"
             >
-              30d
+              30 dage
             </Button>
           </div>
           
@@ -405,7 +398,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
             <AlertCircle className="text-amber-600 mt-0.5" size={20} />
             <div className="text-sm text-amber-800">
               <p className="font-medium mb-1">Data forsinkelse</p>
-              <p>Energimix data er typisk forsinket med 5-7 dage. De viste data er de senest tilgængelige.</p>
+              <p>Energimix data er typisk forsinket med 7-10 dage. De viste data er de senest tilgængelige fra Energinet.</p>
             </div>
           </div>
         </div>
@@ -436,21 +429,15 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                   <div className="text-sm">
                     {selectedView === '7d' ? (
                       <>
-                        Der er ingen energimix data tilgængelig for de seneste 7 dage i {selectedRegion}.
+                        Der er ingen energimix data tilgængelig for de valgte 7 dage i {selectedRegion}.
                         <br />
-                        Data opdateres typisk med 1-2 dages forsinkelse.
-                      </>
-                    ) : selectedView === '30d' ? (
-                      <>
-                        Der er ingen energimix data tilgængelig for de seneste 30 dage i {selectedRegion}.
-                        <br />
-                        Data opdateres typisk med 1-2 dages forsinkelse.
+                        Prøv at vælge en tidligere dato.
                       </>
                     ) : (
                       <>
-                        Der er ingen energimix data tilgængelig for {selectedDate.toLocaleDateString('da-DK')} i {selectedRegion}.
+                        Der er ingen energimix data tilgængelig for de valgte 30 dage i {selectedRegion}.
                         <br />
-                        Prøv at vælge en tidligere dato eller anden region.
+                        Prøv at vælge en tidligere dato.
                       </>
                     )}
                   </div>

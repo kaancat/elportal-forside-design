@@ -235,7 +235,7 @@ export interface DeclarationGridmix {
   leadingText?: BlockContent[]
   headerAlignment?: 'left' | 'center' | 'right'
   showSummary?: boolean
-  view?: '24h' | '7d' | '30d'
+  view?: '7d' | '30d'
 }
 
 export interface ConsumptionMap {

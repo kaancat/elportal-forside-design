@@ -19,6 +19,9 @@ interface GridmixRecord {
     shareMWh: number;
     co2Emission: number;
     percentage: number;
+    origin?: string;
+    isImport?: boolean;
+    baseType?: string;
   }>;
   renewableShare: number;
   fossilShare: number;
@@ -333,6 +336,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
       'Coal': 'Kul',
       'Oil': 'Olie',
       'Fossil Oil': 'Olie',
+      'Fossil gas': 'Naturgas',
       'Import': 'Import',
       'Export': 'Eksport',
       'Other': 'Andet',
@@ -342,16 +346,41 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
       'Offshore': 'Hav'
     };
     
+    // Country name mapping
+    const countryMapping: Record<string, string> = {
+      'SE': 'Sverige',
+      'GB': 'Storbritannien',
+      'NL': 'Holland',
+      'NO2': 'Norge',
+      'DK1': '',
+      'DK2': ''
+    };
+    
     const children = Object.entries(currentHourData.mixByType)
       .filter(([_, value]) => value.percentage > 0) // Show all sources with any contribution
-      .map(([name, value]) => ({
-        name: nameMapping[name] || name.replace(/([A-Z])/g, ' $1').trim() || 'Ukendt',
-        value: value.percentage,
-        percentage: value.percentage,
-        shareMWh: value.shareMWh,
-        co2Emission: value.co2Emission,
-        fill: energySourceColors[name as keyof typeof energySourceColors] || energySourceColors.Other
-      }))
+      .map(([key, value]) => {
+        // Extract base type and origin from key (e.g., "Nuclear_SE" -> "Nuclear" and "SE")
+        const baseType = value.baseType || key;
+        const origin = value.origin;
+        const isImport = value.isImport || false;
+        
+        // Create display name with origin for imports
+        let displayName = nameMapping[baseType] || baseType.replace(/([A-Z])/g, ' $1').trim() || 'Ukendt';
+        if (isImport && origin && countryMapping[origin]) {
+          displayName = `${displayName} (fra ${countryMapping[origin]})`;
+        }
+        
+        return {
+          name: displayName,
+          value: value.percentage,
+          percentage: value.percentage,
+          shareMWh: value.shareMWh,
+          co2Emission: value.co2Emission,
+          fill: energySourceColors[baseType as keyof typeof energySourceColors] || energySourceColors.Other,
+          isImport: isImport,
+          origin: origin
+        };
+      })
       .sort((a, b) => b.value - a.value);
     
     return {
@@ -511,6 +540,19 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
             </div>
           </div>
         </div>
+
+        {/* Import info - only show if there are imports */}
+        {data.length > 0 && currentHourData && currentHourData.importPercentage > 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <Zap className="text-blue-600 mt-0.5" size={20} />
+              <div className="text-sm text-blue-800">
+                <p className="font-medium mb-1">Vidste du det?</p>
+                <p>Danmark har ingen atomkraftværker, men importerer el fra nabolande. Se i visualiseringen hvilke energityper der kommer fra Sverige, Norge, Tyskland og andre lande!</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Main content area */}
         <div className="grid lg:grid-cols-4 gap-6">

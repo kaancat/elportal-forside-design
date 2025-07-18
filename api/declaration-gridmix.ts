@@ -148,32 +148,43 @@ export async function GET(request: Request) {
       const hour = hourlyData[hourKey];
       const shareMWh = record.ShareMWh || 0;
       const co2 = record.CO2Emission || 0;
+      
+      // Check if this is imported energy
+      const isImport = record.ConnectedArea !== record.PriceArea;
+      
+      // Create a key that includes origin for imports
+      const typeKey = isImport ? `${record.ReportGrp}_${record.ConnectedArea}` : record.ReportGrp;
 
-      // Aggregate mix by type
-      if (!hour.mixByType[record.ReportGrp]) {
-        hour.mixByType[record.ReportGrp] = {
+      // Aggregate mix by type and origin
+      if (!hour.mixByType[typeKey]) {
+        hour.mixByType[typeKey] = {
           shareMWh: 0,
           co2Emission: 0,
-          percentage: 0
+          percentage: 0,
+          origin: record.ConnectedArea,
+          isImport: isImport,
+          baseType: record.ReportGrp
         };
       }
 
-      hour.mixByType[record.ReportGrp].shareMWh += shareMWh;
-      hour.mixByType[record.ReportGrp].co2Emission += co2;
+      hour.mixByType[typeKey].shareMWh += shareMWh;
+      hour.mixByType[typeKey].co2Emission += co2;
       hour.totalShare += shareMWh;
       hour.totalCO2 += co2;
+
+      // Track imports separately
+      if (isImport) {
+        hour.importShare += shareMWh;
+      }
 
       // Categorize energy types
       const renewableTypes = ['Wind', 'Solar', 'Hydro', 'BioGas', 'Straw', 'Wood', 'WasteIncineration'];
       const fossilTypes = ['FossilGas', 'Coal', 'Oil'];
-      const importTypes = ['Import'];
       
       if (renewableTypes.some(type => record.ReportGrp.includes(type))) {
         hour.renewableShare += shareMWh;
       } else if (fossilTypes.some(type => record.ReportGrp.includes(type))) {
         hour.fossilShare += shareMWh;
-      } else if (importTypes.some(type => record.ReportGrp.includes(type))) {
-        hour.importShare += shareMWh;
       }
     });
 

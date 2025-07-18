@@ -239,16 +239,63 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
   const pieData = useMemo(() => {
     if (!currentHourData) return [];
     
-    return Object.entries(currentHourData.mixByType)
-      .filter(([_, value]) => value.percentage > 0.1) // Only show sources with > 0.1%
+    // Create proper display names
+    const nameMapping: Record<string, string> = {
+      'WindOnshore': 'Vind (land)',
+      'WindOffshore': 'Vind (hav)',
+      'Wind': 'Vind',
+      'Solar': 'Sol',
+      'SolarPV': 'Sol',
+      'Hydro': 'Vandkraft',
+      'Nuclear': 'Atomkraft',
+      'BioGas': 'Biogas',
+      'Straw': 'Halm',
+      'Wood': 'Træ',
+      'WasteIncineration': 'Affaldsforbrænding',
+      'FossilGas': 'Naturgas',
+      'Coal': 'Kul',
+      'Oil': 'Olie',
+      'Fossil Oil': 'Olie',
+      'Import': 'Import',
+      'Export': 'Eksport',
+      'Other': 'Andet',
+      'Waste': 'Affald',
+      'Biomass': 'Biomasse',
+      'Onshore': 'Land',
+      'Offshore': 'Hav'
+    };
+    
+    const entries = Object.entries(currentHourData.mixByType)
       .map(([name, value]) => ({
-        name: name.replace(/([A-Z])/g, ' $1').trim(), // Add spaces to camelCase
+        originalName: name,
+        name: nameMapping[name] || name.replace(/([A-Z])/g, ' $1').trim(),
         percentage: value.percentage,
         shareMWh: value.shareMWh,
         co2Emission: value.co2Emission,
         fill: energySourceColors[name as keyof typeof energySourceColors] || energySourceColors.Other
-      }))
-      .sort((a, b) => b.percentage - a.percentage);
+      }));
+    
+    // Group small percentages into "Other"
+    const threshold = 2; // Show items with at least 2%
+    const mainEntries = entries.filter(e => e.percentage >= threshold);
+    const smallEntries = entries.filter(e => e.percentage < threshold && e.percentage > 0);
+    
+    if (smallEntries.length > 0) {
+      const otherTotal = smallEntries.reduce((sum, e) => sum + e.percentage, 0);
+      const otherMWh = smallEntries.reduce((sum, e) => sum + e.shareMWh, 0);
+      const otherCO2 = smallEntries.reduce((sum, e) => sum + e.co2Emission * e.shareMWh, 0) / (otherMWh || 1);
+      
+      mainEntries.push({
+        originalName: 'Other',
+        name: 'Andet',
+        percentage: otherTotal,
+        shareMWh: otherMWh,
+        co2Emission: otherCO2,
+        fill: energySourceColors.Other
+      });
+    }
+    
+    return mainEntries.sort((a, b) => b.percentage - a.percentage);
   }, [currentHourData]);
 
   // Check if selected date is in the future
@@ -407,7 +454,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
         <div className="grid lg:grid-cols-4 gap-6">
           {/* Chart */}
           <div className={cn(
-            "bg-white p-4 rounded-lg border",
+            "bg-white p-6 rounded-lg border",
             showSummary ? "lg:col-span-3" : "lg:col-span-4"
           )}>
             {loading ? (
@@ -450,16 +497,16 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                     Viser data for: {dataDateRange.single ? dataDateRange.start : `${dataDateRange.start} - ${dataDateRange.end}`}
                   </div>
                 )}
-                <div className="h-[500px]">
+                <div className="h-[600px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
+                    <PieChart margin={{ top: 20, right: 20, bottom: 80, left: 20 }}>
                     <Pie
                       data={pieData}
                       cx="50%"
-                      cy="50%"
+                      cy="45%"
                       labelLine={false}
-                      label={({ name, percentage }) => `${name}: ${percentage.toFixed(1)}%`}
-                      outerRadius={120}
+                      label={false}
+                      outerRadius={150}
                       fill="#8884d8"
                       dataKey="percentage"
                     >
@@ -468,13 +515,6 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                       ))}
                     </Pie>
                     <Tooltip content={<CustomTooltip />} />
-                    <Legend 
-                      verticalAlign="bottom" 
-                      height={36}
-                      formatter={(value, entry) => (
-                        <span style={{ color: entry.color }}>{value}</span>
-                      )}
-                    />
                   </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -490,10 +530,33 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
           )}
         </div>
 
-        {/* Legend */}
-        <div className="mt-8 flex justify-center">
-          <div className="bg-gray-50 rounded-lg p-4 max-w-4xl">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 text-center">Energikilder</h3>
+        {/* Energy Sources Legend */}
+        {pieData.length > 0 && (
+          <div className="mt-8">
+            <div className="bg-gray-50 rounded-lg p-6">
+              <h3 className="text-base font-semibold text-gray-700 mb-4 text-center">Energifordeling</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {pieData.map((entry, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <div 
+                      className="w-4 h-4 rounded-sm flex-shrink-0" 
+                      style={{ backgroundColor: entry.fill }}
+                    />
+                    <div className="text-sm">
+                      <div className="font-medium text-gray-700">{entry.name}</div>
+                      <div className="text-gray-500">{entry.percentage.toFixed(1)}%</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Static Legend for all energy types */}
+        <div className="mt-6 flex justify-center">
+          <div className="bg-gray-50 rounded-lg p-4 max-w-5xl">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3 text-center">Alle energikilder</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <h4 className="text-xs font-medium text-gray-600 uppercase">Vedvarende</h4>

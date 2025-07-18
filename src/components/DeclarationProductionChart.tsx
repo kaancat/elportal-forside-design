@@ -217,12 +217,25 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
     const avgCO2 = data.reduce((sum, d) => sum + d.averageCO2, 0) / data.length;
     const avgRenewable = data.reduce((sum, d) => sum + d.renewableShare, 0) / data.length;
     
+    // Find the time with lowest CO2 intensity
+    let greenestTime = data[0];
+    let greenestIndex = 0;
+    data.forEach((record, index) => {
+      if (record.averageCO2 < greenestTime.averageCO2) {
+        greenestTime = record;
+        greenestIndex = index;
+      }
+    });
+    
     return {
       currentCO2: latest.averageCO2,
       currentRenewable: latest.renewableShare,
       avgCO2,
       avgRenewable,
-      latestDate: latest.time || '...'
+      latestDate: latest.time || '...',
+      greenestTime: greenestTime.time,
+      greenestCO2: greenestTime.averageCO2,
+      greenestIndex
     };
   }, [data]);
 
@@ -232,6 +245,38 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
     if (value < 200) return '#84cc16';
     if (value < 300) return '#eab308';
     return '#dc2626';
+  };
+
+  // Get CO2 status for live indicator
+  const getCO2Status = (value: number) => {
+    if (value <= 50) {
+      return {
+        color: 'bg-green-500',
+        borderColor: 'border-green-600',
+        textColor: 'text-white',
+        icon: '⚡',
+        text: `Strømmen er meget grøn lige nu – ${value.toFixed(0)} g CO₂/kWh`,
+        glow: 'shadow-lg shadow-green-500/50'
+      };
+    } else if (value <= 100) {
+      return {
+        color: 'bg-yellow-500',
+        borderColor: 'border-yellow-600',
+        textColor: 'text-white',
+        icon: '🌥',
+        text: `Moderat CO₂ i elnettet nu – ${value.toFixed(0)} g CO₂/kWh`,
+        glow: 'shadow-lg shadow-yellow-500/50'
+      };
+    } else {
+      return {
+        color: 'bg-red-500',
+        borderColor: 'border-red-600',
+        textColor: 'text-white',
+        icon: '🔥',
+        text: `Høj CO₂ i elnettet nu – ${value.toFixed(0)} g CO₂/kWh`,
+        glow: 'shadow-lg shadow-red-500/50'
+      };
+    }
   };
 
   // Custom tick formatter for x-axis
@@ -371,6 +416,18 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
           </div>
         </div>
 
+        {/* Greenest time highlight */}
+        {currentStats && !loading && showCO2Intensity && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 flex items-center justify-center gap-2">
+            <Leaf className="w-5 h-5 text-green-600" />
+            <p className="text-green-800 font-semibold">
+              Grønneste tidspunkt {selectedView === '24h' ? 'i dag' : selectedView === '7d' ? 'denne uge' : 'denne måned'}: 
+              <span className="font-bold ml-2">{currentStats.greenestTime}</span>
+              <span className="text-green-700 ml-2">({currentStats.greenestCO2.toFixed(0)} g CO₂/kWh)</span>
+            </p>
+          </div>
+        )}
+
         {/* Current statistics cards */}
         {showRenewableShare && currentStats && !loading && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -438,6 +495,22 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
               <div className="text-xs text-gray-600 mt-1">
                 {selectedRegion} • {selectedView}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Live CO2 indicator */}
+        {currentStats && !loading && showCO2Intensity && (
+          <div className="flex justify-center mb-6">
+            <div className={cn(
+              "inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm border-2 transition-all duration-300 animate-pulse",
+              getCO2Status(currentStats.currentCO2).color,
+              getCO2Status(currentStats.currentCO2).borderColor,
+              getCO2Status(currentStats.currentCO2).textColor,
+              getCO2Status(currentStats.currentCO2).glow
+            )}>
+              <span className="text-lg">{getCO2Status(currentStats.currentCO2).icon}</span>
+              <span>{getCO2Status(currentStats.currentCO2).text}</span>
             </div>
           </div>
         )}
@@ -610,7 +683,21 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                       dataKey="averageCO2" 
                       stroke="#059669"
                       strokeWidth={2}
-                      dot={false}
+                      dot={(props: any) => {
+                        const { cx, cy, index } = props;
+                        if (index === currentStats.greenestIndex) {
+                          return (
+                            <g>
+                              {/* Glow effect */}
+                              <circle cx={cx} cy={cy} r={12} fill="#10b981" opacity={0.2} />
+                              <circle cx={cx} cy={cy} r={8} fill="#10b981" opacity={0.3} />
+                              {/* Main dot */}
+                              <circle cx={cx} cy={cy} r={5} fill="#059669" stroke="#fff" strokeWidth={2} />
+                            </g>
+                          );
+                        }
+                        return null;
+                      }}
                     />
                   </LineChart>
                 </ResponsiveContainer>

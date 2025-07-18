@@ -55,29 +55,80 @@ const energyTypeColors: Record<string, string> = {
   'Andet': '#d9d9d9'
 };
 
-// Function to get color for a segment
-const getColorForSegment = (segmentName: string): string => {
-  for (const type in energyTypeColors) {
-    if (segmentName.includes(type)) {
-      return energyTypeColors[type];
-    }
-  }
-  return '#8884d8'; // Fallback color
+// Function to get color for a segment using grouped data
+const getColorForSegment = (segmentName: string, groupedData: any): string => {
+  const group = groupedData[segmentName];
+  return group ? group.color : '#8884d8'; // Fallback color
 };
 
 
-// Custom tooltip component for 100% stacked bar
-const CustomTooltip = ({ active, payload }: any) => {
+// Custom tooltip component with detailed breakdown
+interface CustomTooltipProps {
+  active: boolean;
+  payload: any[];
+  groupedData: any;
+}
+
+const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, groupedData }) => {
   if (active && payload && payload.length) {
     const data = payload[0];
+    const energyType = data.name;
+    const groupInfo = groupedData[energyType];
+    
+    if (!groupInfo || groupInfo.details.length === 0) {
+      return (
+        <div className="bg-white p-3 rounded-lg shadow-lg border" style={{ minWidth: '200px' }}>
+          <p className="font-semibold mb-2" style={{ color: data.color }}>
+            {energyType}
+          </p>
+          <p className="text-sm font-mono">
+            {data.value.toFixed(1)}%
+          </p>
+        </div>
+      );
+    }
+    
     return (
-      <div className="bg-white p-3 rounded-lg shadow-lg border" style={{ minWidth: '200px' }}>
-        <p className="font-semibold mb-2" style={{ color: data.color }}>
-          {data.name}
-        </p>
-        <p className="text-sm">
-          {data.value.toFixed(1)}%
-        </p>
+      <div className="bg-white p-4 rounded-lg shadow-lg border" style={{ minWidth: '250px', maxWidth: '350px' }}>
+        <div className="flex items-center justify-between mb-3">
+          <p className="font-semibold" style={{ color: data.color }}>
+            {energyType}
+          </p>
+          <p className="text-sm font-mono font-semibold">
+            {data.value.toFixed(1)}%
+          </p>
+        </div>
+        
+        {groupInfo.details.length > 1 && (
+          <div className="border-t pt-2 space-y-1">
+            <p className="text-xs text-gray-600 mb-2">Fordeling:</p>
+            {groupInfo.details.map((detail: any, idx: number) => (
+              <div key={idx} className="flex justify-between items-center text-xs">
+                <span className="text-gray-700">
+                  {detail.isImport ? `Fra ${detail.origin}` : detail.origin}:
+                </span>
+                <span className="font-mono text-gray-900">
+                  {detail.percentage.toFixed(1)}%
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {groupInfo.isRenewable !== undefined && (
+          <div className="mt-2 pt-2 border-t">
+            <span className="text-xs flex items-center gap-1">
+              {groupInfo.isRenewable ? (
+                <>
+                  <Leaf size={12} className="text-green-600" />
+                  <span className="text-green-600">Vedvarende energi</span>
+                </>
+              ) : (
+                <span className="text-gray-600">Ikke-vedvarende</span>
+              )}
+            </span>
+          </div>
+        )}
       </div>
     );
   }
@@ -164,6 +215,8 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<'Danmark' | 'DK1' | 'DK2'>('Danmark');
   const [selectedView, setSelectedView] = useState<'7d' | '30d'>(view === '24h' ? '7d' : view);
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -225,50 +278,115 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
     };
   }, [data]);
 
-  // Transform data for 100% stacked bar chart
-  const barChartData = useMemo(() => {
-    if (!currentHourData) return {};
+  // Transform data with smart grouping
+  const { barChartData, groupedData } = useMemo(() => {
+    if (!currentHourData) return { barChartData: {}, groupedData: {} };
     
-    // Create proper display names
-    const nameMapping: Record<string, string> = {
-      'WindOnshore': 'Vind (land)',
-      'WindOffshore': 'Vind (hav)',
-      'Wind': 'Vind',
-      'Solar': 'Sol',
-      'SolarPV': 'Sol',
-      'Hydro': 'Vandkraft',
-      'Nuclear': 'Atomkraft',
-      'BioGas': 'Biogas',
-      'Straw': 'Halm',
-      'Wood': 'Træ',
-      'WasteIncineration': 'Affaldsforbrænding',
-      'FossilGas': 'Naturgas',
-      'Coal': 'Kul',
-      'Oil': 'Olie',
-      'Fossil Oil': 'Olie',
-      'Fossil gas': 'Naturgas',
-      'Import': 'Import',
-      'Export': 'Eksport',
-      'Other': 'Andet',
-      'Waste': 'Affald',
-      'Biomass': 'Biomasse',
-      'Onshore': 'Land',
-      'Offshore': 'Hav'
+    // Define main energy categories and their mappings
+    const energyCategories: Record<string, { 
+      name: string; 
+      color: string; 
+      patterns: string[];
+      isRenewable: boolean;
+    }> = {
+      'Wind': { 
+        name: 'Vind', 
+        color: '#75c7f0', 
+        patterns: ['Wind', 'Onshore', 'Offshore'], 
+        isRenewable: true 
+      },
+      'Solar': { 
+        name: 'Sol', 
+        color: '#ffda77', 
+        patterns: ['Solar', 'SolarPV'], 
+        isRenewable: true 
+      },
+      'Hydro': { 
+        name: 'Vandkraft', 
+        color: '#61a0ff', 
+        patterns: ['Hydro'], 
+        isRenewable: true 
+      },
+      'Nuclear': { 
+        name: 'Atomkraft', 
+        color: '#ff8c61', 
+        patterns: ['Nuclear'], 
+        isRenewable: false 
+      },
+      'BioEnergy': { 
+        name: 'Bioenergi', 
+        color: '#a9d18e', 
+        patterns: ['BioGas', 'Biomass', 'Straw', 'Wood'], 
+        isRenewable: true 
+      },
+      'Waste': { 
+        name: 'Affald', 
+        color: '#b2b2b2', 
+        patterns: ['Waste', 'WasteIncineration'], 
+        isRenewable: false 
+      },
+      'FossilGas': { 
+        name: 'Naturgas', 
+        color: '#dc2626', 
+        patterns: ['FossilGas', 'Fossil gas'], 
+        isRenewable: false 
+      },
+      'Coal': { 
+        name: 'Kul', 
+        color: '#991b1b', 
+        patterns: ['Coal'], 
+        isRenewable: false 
+      },
+      'Oil': { 
+        name: 'Olie', 
+        color: '#b91c1c', 
+        patterns: ['Oil', 'Fossil Oil'], 
+        isRenewable: false 
+      }
     };
     
     // Country name mapping
     const countryMapping: Record<string, string> = {
       'SE': 'Sverige',
-      'GB': 'Storbritannien',
-      'NL': 'Holland',
       'NO2': 'Norge',
-      'DK1': 'Danmark',
-      'DK2': 'Danmark'
+      'GB': 'Storbritannien', 
+      'NL': 'Holland',
+      'DE': 'Tyskland',
+      'DK1': 'Vest-DK',
+      'DK2': 'Øst-DK'
     };
     
-    // Create single object with "Type fra Country" keys
-    const transformedData: Record<string, number> = {};
+    // Group data by main categories
+    const groupedData: Record<string, {
+      total: number;
+      color: string;
+      isRenewable: boolean;
+      details: Array<{
+        origin: string;
+        percentage: number;
+        isImport: boolean;
+      }>;
+    }> = {};
     
+    // Initialize categories
+    Object.entries(energyCategories).forEach(([key, config]) => {
+      groupedData[config.name] = {
+        total: 0,
+        color: config.color,
+        isRenewable: config.isRenewable,
+        details: []
+      };
+    });
+    
+    // Add "Andet" category for unmatched types
+    groupedData['Andet'] = {
+      total: 0,
+      color: '#d9d9d9',
+      isRenewable: false,
+      details: []
+    };
+    
+    // Process all energy sources
     Object.entries(currentHourData.mixByType)
       .filter(([_, value]) => value.percentage > 0)
       .forEach(([key, value]) => {
@@ -276,20 +394,71 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
         const origin = value.origin;
         const isImport = value.isImport || false;
         
-        // Create display name
-        const typeName = nameMapping[baseType] || baseType.replace(/([A-Z])/g, ' $1').trim();
-        const countryName = countryMapping[origin] || origin;
-        
-        // Create unique key
-        const segmentKey = isImport ? `${typeName} fra ${countryName}` : typeName;
-        
-        if (!transformedData[segmentKey]) {
-          transformedData[segmentKey] = 0;
+        // Find matching category
+        let categoryFound = false;
+        for (const [catKey, catConfig] of Object.entries(energyCategories)) {
+          if (catConfig.patterns.some(pattern => baseType.includes(pattern))) {
+            const categoryName = catConfig.name;
+            groupedData[categoryName].total += value.percentage;
+            groupedData[categoryName].details.push({
+              origin: countryMapping[origin] || origin,
+              percentage: value.percentage,
+              isImport
+            });
+            categoryFound = true;
+            break;
+          }
         }
-        transformedData[segmentKey] += value.percentage;
+        
+        // If no category matched, add to "Andet"
+        if (!categoryFound) {
+          groupedData['Andet'].total += value.percentage;
+          groupedData['Andet'].details.push({
+            origin: countryMapping[origin] || origin,
+            percentage: value.percentage,
+            isImport
+          });
+        }
       });
     
-    return transformedData;
+    // Sort details within each group
+    Object.values(groupedData).forEach(group => {
+      group.details.sort((a, b) => b.percentage - a.percentage);
+    });
+    
+    // Create bar chart data from grouped data, including only top 8 + "Andet"
+    const sortedCategories = Object.entries(groupedData)
+      .filter(([name, data]) => data.total > 0)
+      .sort(([, a], [, b]) => b.total - a.total);
+    
+    const topCategories = sortedCategories.slice(0, 8);
+    const remainingCategories = sortedCategories.slice(8);
+    
+    // If there are remaining categories, add them to "Andet"
+    if (remainingCategories.length > 0) {
+      const andetTotal = remainingCategories.reduce((sum, [, data]) => sum + data.total, 0);
+      const andetEntry = topCategories.find(([name]) => name === 'Andet');
+      if (andetEntry) {
+        andetEntry[1].total += andetTotal;
+      } else if (andetTotal > 0) {
+        topCategories.push(['Andet', {
+          total: andetTotal,
+          color: '#d9d9d9',
+          isRenewable: false,
+          details: []
+        }]);
+      }
+    }
+    
+    // Create simplified bar chart data
+    const barChartData: Record<string, number> = {};
+    topCategories.forEach(([name, data]) => {
+      if (data.total > 0) {
+        barChartData[name] = data.total;
+      }
+    });
+    
+    return { barChartData, groupedData };
   }, [currentHourData]);
 
   // Check if selected date is in the future
@@ -504,12 +673,12 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                     Viser data for: {dataDateRange.single ? dataDateRange.start : `${dataDateRange.start} - ${dataDateRange.end}`}
                   </div>
                 )}
-                <div className="h-[250px]">
+                <div className="h-[450px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       layout="vertical"
                       data={[barChartData]}
-                      margin={{ top: 20, right: 20, left: 20, bottom: 80 }}
+                      margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
                     >
                       <XAxis 
                         type="number" 
@@ -517,23 +686,9 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                         tickFormatter={(tick) => `${tick}%`}
                       />
                       <YAxis type="category" hide={true} />
-                      <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
-                      <Legend
-                        verticalAlign="bottom"
-                        wrapperStyle={{ bottom: 0, left: 0, right: 0 }}
-                        content={(props) => {
-                          const { payload } = props;
-                          return (
-                            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px 20px', marginTop: '20px' }}>
-                              {payload?.map((entry: any, index: number) => (
-                                <div key={`item-${index}`} style={{ display: 'flex', alignItems: 'center' }}>
-                                  <div style={{ width: 10, height: 10, backgroundColor: entry.color, marginRight: 5 }}></div>
-                                  <span className="text-sm">{entry.value}</span>
-                                </div>
-                              ))}
-                            </div>
-                          );
-                        }}
+                      <Tooltip 
+                        content={<CustomTooltip groupedData={groupedData} />} 
+                        cursor={{ fill: 'rgba(0,0,0,0.05)' }} 
                       />
                       {/* Create bars for each segment */}
                       {Object.keys(barChartData).sort((a, b) => barChartData[b] - barChartData[a]).map((key) => (
@@ -541,7 +696,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                           key={key} 
                           dataKey={key} 
                           stackId="a" 
-                          fill={getColorForSegment(key)} 
+                          fill={getColorForSegment(key, groupedData)} 
                         />
                       ))}
                     </BarChart>
@@ -559,28 +714,103 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
           )}
         </div>
 
-        {/* Energy Sources Summary */}
+        {/* Clean Legend with Click to Expand */}
         {Object.keys(barChartData).length > 0 && (
-          <div className="mt-8">
+          <div className="mt-6 space-y-4">
             <div className="bg-gray-50 rounded-lg p-6">
-              <h3 className="text-base font-semibold text-gray-700 mb-4 text-center">Energifordeling efter type og oprindelse</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-gray-700">Energifordeling</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowDetails(!showDetails)}
+                  className="text-xs"
+                >
+                  {showDetails ? 'Skjul detaljer' : 'Vis detaljer'}
+                </Button>
+              </div>
+              
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {Object.entries(barChartData)
                   .sort(([, a], [, b]) => b - a)
-                  .map(([key, value]) => (
-                    <div key={key} className="flex items-center gap-2">
+                  .map(([key, value]) => {
+                    const groupInfo = groupedData[key];
+                    const isExpanded = expandedCategory === key;
+                    return (
                       <div 
-                        className="w-4 h-4 rounded" 
-                        style={{ backgroundColor: getColorForSegment(key) }}
-                      />
-                      <div className="text-sm">
-                        <div className="font-medium">{key}</div>
-                        <div className="text-gray-500 font-mono">{value.toFixed(1)}%</div>
+                        key={key} 
+                        className={cn(
+                          "flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer",
+                          isExpanded ? "bg-white shadow-sm ring-2 ring-gray-300" : "hover:bg-gray-100"
+                        )}
+                        onClick={() => setExpandedCategory(isExpanded ? null : key)}
+                      >
+                        <div 
+                          className="w-5 h-5 rounded flex-shrink-0" 
+                          style={{ backgroundColor: groupInfo?.color || '#d9d9d9' }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm truncate">{key}</div>
+                          <div className="text-gray-600 font-mono text-xs">{value.toFixed(1)}%</div>
+                        </div>
+                        {groupInfo?.isRenewable && (
+                          <Leaf size={14} className="text-green-600 flex-shrink-0" />
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             </div>
+            
+            {/* Expandable Detail View */}
+            {showDetails && expandedCategory && groupedData[expandedCategory] && (
+              <div className="bg-white rounded-lg border p-6 shadow-sm">
+                <div className="flex items-center gap-3 mb-4">
+                  <div 
+                    className="w-6 h-6 rounded" 
+                    style={{ backgroundColor: groupedData[expandedCategory].color }}
+                  />
+                  <h4 className="font-semibold text-lg">{expandedCategory}</h4>
+                  <span className="text-gray-600 font-mono text-sm">
+                    {groupedData[expandedCategory].total.toFixed(1)}% af total
+                  </span>
+                  {groupedData[expandedCategory].isRenewable && (
+                    <Badge variant="outline" className="ml-auto text-green-600 border-green-600">
+                      <Leaf size={12} className="mr-1" />
+                      Vedvarende
+                    </Badge>
+                  )}
+                </div>
+                
+                {groupedData[expandedCategory].details.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 mb-3">Detaljeret fordeling:</p>
+                    <div className="space-y-2">
+                      {groupedData[expandedCategory].details.map((detail, idx) => (
+                        <div 
+                          key={idx} 
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded"
+                        >
+                          <div className="flex items-center gap-2">
+                            {detail.isImport && (
+                              <Badge variant="secondary" className="text-xs">
+                                Import
+                              </Badge>
+                            )}
+                            <span className="text-sm">
+                              {detail.isImport ? `Fra ${detail.origin}` : detail.origin}
+                            </span>
+                          </div>
+                          <span className="font-mono text-sm font-medium">
+                            {detail.percentage.toFixed(1)}%
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 

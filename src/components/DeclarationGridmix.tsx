@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, LabelList } from 'recharts';
+import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
 import { CalendarDays, ChevronLeft, ChevronRight, Zap, AlertCircle, Leaf } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -72,6 +72,56 @@ const energySourceColors = {
   // Default/Other
   'Other': '#6b7280',
   'Andet': '#6b7280'
+};
+
+// Custom content for treemap cells
+const CustomTreemapContent = (props: any) => {
+  const { x, y, width, height, name, percentage, fill } = props;
+  
+  // Don't render text for very small cells
+  if (width < 50 || height < 30) return null;
+  
+  const fontSize = Math.min(width / name.length * 1.5, height / 3, 14);
+  const showPercentage = width > 60 && height > 40;
+  
+  return (
+    <g>
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        style={{
+          fill,
+          stroke: '#fff',
+          strokeWidth: 2,
+          strokeOpacity: 1,
+        }}
+      />
+      <text
+        x={x + width / 2}
+        y={y + height / 2 - (showPercentage ? 8 : 0)}
+        textAnchor="middle"
+        fill="#fff"
+        fontSize={fontSize}
+        fontWeight="600"
+      >
+        {name}
+      </text>
+      {showPercentage && (
+        <text
+          x={x + width / 2}
+          y={y + height / 2 + fontSize}
+          textAnchor="middle"
+          fill="#fff"
+          fontSize={fontSize * 0.9}
+          opacity={0.9}
+        >
+          {percentage.toFixed(1)}%
+        </text>
+      )}
+    </g>
+  );
 };
 
 // Custom tooltip component
@@ -243,9 +293,9 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
     };
   }, [data]);
 
-  // Transform data for pie chart
-  const pieData = useMemo(() => {
-    if (!currentHourData) return [];
+  // Transform data for treemap
+  const treemapData = useMemo(() => {
+    if (!currentHourData) return { name: 'Energimix', children: [] };
     
     // Create proper display names
     const nameMapping: Record<string, string> = {
@@ -273,37 +323,22 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
       'Offshore': 'Hav'
     };
     
-    const entries = Object.entries(currentHourData.mixByType)
+    const children = Object.entries(currentHourData.mixByType)
+      .filter(([_, value]) => value.percentage > 0.1) // Only show sources > 0.1%
       .map(([name, value]) => ({
-        originalName: name,
         name: nameMapping[name] || name.replace(/([A-Z])/g, ' $1').trim(),
+        value: value.percentage,
         percentage: value.percentage,
         shareMWh: value.shareMWh,
         co2Emission: value.co2Emission,
         fill: energySourceColors[name as keyof typeof energySourceColors] || energySourceColors.Other
-      }));
+      }))
+      .sort((a, b) => b.value - a.value);
     
-    // Group small percentages into "Other"
-    const threshold = 1; // Show items with at least 1%
-    const mainEntries = entries.filter(e => e.percentage >= threshold);
-    const smallEntries = entries.filter(e => e.percentage < threshold && e.percentage > 0);
-    
-    if (smallEntries.length > 0) {
-      const otherTotal = smallEntries.reduce((sum, e) => sum + e.percentage, 0);
-      const otherMWh = smallEntries.reduce((sum, e) => sum + e.shareMWh, 0);
-      const otherCO2 = smallEntries.reduce((sum, e) => sum + e.co2Emission * e.shareMWh, 0) / (otherMWh || 1);
-      
-      mainEntries.push({
-        originalName: 'Other',
-        name: 'Andet',
-        percentage: otherTotal,
-        shareMWh: otherMWh,
-        co2Emission: otherCO2,
-        fill: energySourceColors.Other
-      });
-    }
-    
-    return mainEntries.sort((a, b) => b.percentage - a.percentage);
+    return {
+      name: 'Energimix',
+      children
+    };
   }, [currentHourData]);
 
   // Check if selected date is in the future
@@ -476,7 +511,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                   {error}
                 </div>
               </div>
-            ) : pieData.length === 0 ? (
+            ) : treemapData.children.length === 0 ? (
               <div className="flex items-center justify-center h-[500px]">
                 <div className="text-gray-500 text-center">
                   <AlertCircle size={40} className="mx-auto mb-4 text-gray-400" />
@@ -507,23 +542,15 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                 )}
                 <div className="h-[500px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={false}
-                      outerRadius={150}
-                      fill="#8884d8"
-                      dataKey="percentage"
+                    <Treemap
+                      data={[treemapData]}
+                      dataKey="value"
+                      aspectRatio={16/9}
+                      stroke="#fff"
+                      content={CustomTreemapContent}
                     >
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<CustomTooltip />} />
-                  </PieChart>
+                      <Tooltip content={<CustomTooltip />} />
+                    </Treemap>
                   </ResponsiveContainer>
                 </div>
               </div>
@@ -539,12 +566,12 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
         </div>
 
         {/* Energy Sources Legend */}
-        {pieData.length > 0 && (
+        {treemapData.children.length > 0 && (
           <div className="mt-8">
             <div className="bg-gray-50 rounded-lg p-6">
               <h3 className="text-base font-semibold text-gray-700 mb-4 text-center">Aktuel energifordeling</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                {pieData.map((entry, index) => (
+                {treemapData.children.map((entry, index) => (
                   <div key={index} className="flex items-start gap-2 min-w-0">
                     <div 
                       className="w-4 h-4 rounded-sm flex-shrink-0 mt-0.5" 
@@ -559,7 +586,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
               </div>
               
               {/* Show details for "Andet" category if it exists */}
-              {pieData.find(e => e.name === 'Andet') && (
+              {treemapData.children.find(e => e.name === 'Andet') && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <p className="text-xs text-gray-600 text-center">
                     "Andet" inkluderer energikilder under 1%

@@ -79,15 +79,17 @@ const CustomTreemapContent = (props: any) => {
   const { x, y, width, height, name, value, fill, payload } = props;
   
   // Don't render anything for invalid dimensions
-  if (!width || !height || width < 50 || height < 30) return null;
+  if (!width || !height) return null;
   
   // Get the actual data from payload
-  const actualName = payload?.name || name || '';
+  const actualName = payload?.name || name || 'Ukendt';
   const percentage = payload?.percentage || payload?.value || value || 0;
   const actualFill = payload?.fill || fill || '#6b7280';
   
+  // Always show the cell rectangle, even for small cells
+  const showText = width > 40 && height > 25;
   const fontSize = Math.min(width / Math.max(actualName.length, 1) * 1.5, height / 3, 14);
-  const showPercentage = width > 60 && height > 40;
+  const showPercentage = width > 60 && height > 40 && showText;
   
   return (
     <g>
@@ -103,16 +105,18 @@ const CustomTreemapContent = (props: any) => {
           strokeOpacity: 1,
         }}
       />
-      <text
-        x={x + width / 2}
-        y={y + height / 2 - (showPercentage ? 8 : 0)}
-        textAnchor="middle"
-        fill="#fff"
-        fontSize={fontSize}
-        fontWeight="600"
-      >
-        {actualName}
-      </text>
+      {showText && (
+        <text
+          x={x + width / 2}
+          y={y + height / 2 - (showPercentage ? 8 : 0)}
+          textAnchor="middle"
+          fill="#fff"
+          fontSize={fontSize}
+          fontWeight="600"
+        >
+          {actualName}
+        </text>
+      )}
       {showPercentage && percentage && (
         <text
           x={x + width / 2}
@@ -331,7 +335,6 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
       'Fossil Oil': 'Olie',
       'Import': 'Import',
       'Export': 'Eksport',
-      'Other': 'Andet',
       'Waste': 'Affald',
       'Biomass': 'Biomasse',
       'Onshore': 'Land',
@@ -339,9 +342,9 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
     };
     
     const children = Object.entries(currentHourData.mixByType)
-      .filter(([_, value]) => value.percentage > 0) // Show all sources with any contribution
+      .filter(([name, value]) => value.percentage > 0 && name !== 'Other') // Show all sources except 'Other'
       .map(([name, value]) => ({
-        name: nameMapping[name] || name.replace(/([A-Z])/g, ' $1').trim(),
+        name: nameMapping[name] || name.replace(/([A-Z])/g, ' $1').trim() || 'Ukendt',
         value: value.percentage,
         percentage: value.percentage,
         shareMWh: value.shareMWh,

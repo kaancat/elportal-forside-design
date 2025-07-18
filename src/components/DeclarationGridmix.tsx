@@ -102,22 +102,27 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label, g
         {groupInfo && groupInfo.details.length > 0 && (
           <div className="border-t pt-3 space-y-1">
             <p className="text-xs text-gray-600 mb-2 font-medium">Fordeling:</p>
-            {groupInfo.details.map((detail: any, idx: number) => (
-              <div key={idx} className="flex justify-between items-center text-sm">
-                <span className="text-gray-700">
-                  {detail.isImport ? (
-                    <>
-                      <span className="text-blue-600">Fra {detail.origin}</span>
-                    </>
-                  ) : (
-                    detail.origin
-                  )}:
-                </span>
-                <span className="font-mono text-gray-900 font-medium">
-                  {detail.percentage.toFixed(1)}%
-                </span>
-              </div>
-            ))}
+            {groupInfo.details.map((detail: any, idx: number) => {
+              // Only show if there's a valid origin
+              if (!detail.origin || detail.origin.trim() === '') return null;
+              
+              return (
+                <div key={idx} className="flex justify-between items-center text-sm">
+                  <span className="text-gray-700">
+                    {detail.isImport ? (
+                      <>
+                        <span className="text-blue-600">Fra {detail.origin}</span>
+                      </>
+                    ) : (
+                      detail.origin
+                    )}:
+                  </span>
+                  <span className="font-mono text-gray-900 font-medium">
+                    {detail.percentage.toFixed(1)}%
+                  </span>
+                </div>
+              );
+            })}
           </div>
         )}
         
@@ -729,16 +734,8 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
         {Object.keys(barChartData).length > 0 && (
           <div className="mt-6 space-y-4">
             <div className="bg-gray-50 rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="mb-4">
                 <h3 className="text-sm font-semibold text-gray-700">Energifordeling</h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowDetails(!showDetails)}
-                  className="text-xs"
-                >
-                  {showDetails ? 'Skjul detaljer' : 'Vis detaljer'}
-                </Button>
               </div>
               
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">

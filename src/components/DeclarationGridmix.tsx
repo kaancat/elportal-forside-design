@@ -41,19 +41,22 @@ const energySourceColors = {
   'Wind': '#16a34a',
   'WindOffshore': '#059669',
   'WindOnshore': '#10b981',
-  'Solar': '#84cc16',
-  'SolarPV': '#84cc16',
+  'Solar': '#fbbf24',
+  'SolarPV': '#fbbf24',
   'Hydro': '#0ea5e9',
   'BioGas': '#22c55e',
-  'Straw': '#65a30d',
+  'Straw': '#a3e635',
   'Wood': '#166534',
   'WasteIncineration': '#15803d',
+  'Waste': '#15803d',
+  'Biomass': '#365314',
   
   // Fossil - Red/Orange shades
   'FossilGas': '#dc2626',
   'Coal': '#991b1b',
   'Oil': '#b91c1c',
   'Fossil Oil': '#b91c1c',
+  'Fossil gas': '#ef4444',
   
   // Nuclear - Purple
   'Nuclear': '#7c3aed',
@@ -62,54 +65,13 @@ const energySourceColors = {
   'Import': '#3b82f6',
   'Export': '#64748b',
   
+  // Land/Sea categories
+  'Onshore': '#4ade80',
+  'Offshore': '#06b6d4',
+  
   // Default/Other
-  'Other': '#6b7280'
-};
-
-// Custom label rendering function
-const renderCustomizedLabel = ({
-  cx,
-  cy,
-  midAngle,
-  innerRadius,
-  outerRadius,
-  percent,
-  index,
-  name,
-  percentage
-}: any) => {
-  const RADIAN = Math.PI / 180;
-  const radius = outerRadius + 30;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-  // Only show label for slices > 5%
-  if (percentage < 5) return null;
-
-  return (
-    <g>
-      <text
-        x={x}
-        y={y}
-        fill="#374151"
-        textAnchor={x > cx ? 'start' : 'end'}
-        dominantBaseline="central"
-        className="text-sm font-medium"
-      >
-        {name}
-      </text>
-      <text
-        x={x}
-        y={y + 16}
-        fill="#6b7280"
-        textAnchor={x > cx ? 'start' : 'end'}
-        dominantBaseline="central"
-        className="text-sm"
-      >
-        {`${percentage.toFixed(1)}%`}
-      </text>
-    </g>
-  );
+  'Other': '#6b7280',
+  'Andet': '#6b7280'
 };
 
 // Custom tooltip component
@@ -322,7 +284,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
       }));
     
     // Group small percentages into "Other"
-    const threshold = 3; // Show items with at least 3%
+    const threshold = 1; // Show items with at least 1%
     const mainEntries = entries.filter(e => e.percentage >= threshold);
     const smallEntries = entries.filter(e => e.percentage < threshold && e.percentage > 0);
     
@@ -543,19 +505,16 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                     Viser data for: {dataDateRange.single ? dataDateRange.start : `${dataDateRange.start} - ${dataDateRange.end}`}
                   </div>
                 )}
-                <div className="h-[700px]">
+                <div className="h-[500px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart margin={{ top: 80, right: 80, bottom: 80, left: 80 }}>
+                    <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                     <Pie
                       data={pieData}
                       cx="50%"
                       cy="50%"
-                      labelLine={{
-                        stroke: '#6b7280',
-                        strokeWidth: 1
-                      }}
-                      label={renderCustomizedLabel}
-                      outerRadius={120}
+                      labelLine={false}
+                      label={false}
+                      outerRadius={150}
                       fill="#8884d8"
                       dataKey="percentage"
                     >
@@ -583,21 +542,30 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
         {pieData.length > 0 && (
           <div className="mt-8">
             <div className="bg-gray-50 rounded-lg p-6">
-              <h3 className="text-base font-semibold text-gray-700 mb-4 text-center">Energifordeling</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              <h3 className="text-base font-semibold text-gray-700 mb-4 text-center">Aktuel energifordeling</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                 {pieData.map((entry, index) => (
-                  <div key={index} className="flex items-center gap-2">
+                  <div key={index} className="flex items-start gap-2 min-w-0">
                     <div 
-                      className="w-4 h-4 rounded-sm flex-shrink-0" 
+                      className="w-4 h-4 rounded-sm flex-shrink-0 mt-0.5" 
                       style={{ backgroundColor: entry.fill }}
                     />
-                    <div className="text-sm">
-                      <div className="font-medium text-gray-700">{entry.name}</div>
-                      <div className="text-gray-500">{entry.percentage.toFixed(1)}%</div>
+                    <div className="text-sm min-w-0">
+                      <div className="font-medium text-gray-700 truncate">{entry.name}</div>
+                      <div className="text-gray-500 font-mono">{entry.percentage.toFixed(1)}%</div>
                     </div>
                   </div>
                 ))}
               </div>
+              
+              {/* Show details for "Andet" category if it exists */}
+              {pieData.find(e => e.name === 'Andet') && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-xs text-gray-600 text-center">
+                    "Andet" inkluderer energikilder under 1%
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}

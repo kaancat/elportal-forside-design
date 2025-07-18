@@ -38,94 +38,46 @@ interface DeclarationGridmixProps {
 
 const formatDateForApi = (date: Date) => date.toISOString().split('T')[0];
 
-// Energy source color mapping
-const energySourceColors = {
-  // Renewable - Green shades
-  'Wind': '#16a34a',
-  'WindOffshore': '#059669',
-  'WindOnshore': '#10b981',
-  'Solar': '#fbbf24',
-  'SolarPV': '#fbbf24',
-  'Hydro': '#0ea5e9',
-  'BioGas': '#22c55e',
-  'Straw': '#a3e635',
-  'Wood': '#166534',
-  'WasteIncineration': '#15803d',
-  'Waste': '#15803d',
-  'Biomass': '#365314',
-  
-  // Fossil - Red/Orange shades
-  'FossilGas': '#dc2626',
-  'Coal': '#991b1b',
-  'Oil': '#b91c1c',
-  'Fossil Oil': '#b91c1c',
-  'Fossil gas': '#ef4444',
-  
-  // Nuclear - Purple
-  'Nuclear': '#7c3aed',
-  
-  // Import/Export - Blue/Gray shades
-  'Import': '#3b82f6',
-  'Export': '#64748b',
-  
-  // Land/Sea categories
-  'Onshore': '#4ade80',
-  'Offshore': '#06b6d4',
-  
-  // Default/Other
-  'Other': '#6b7280',
-  'Andet': '#6b7280'
+// Energy type color mapping - simplified for the new visualization
+const energyTypeColors: Record<string, string> = {
+  'Atomkraft': '#ff8c61',
+  'Vind': '#75c7f0',
+  'Sol': '#ffda77',
+  'Vandkraft': '#61a0ff',
+  'Biomasse': '#a9d18e',
+  'Biogas': '#22c55e',
+  'Affald': '#b2b2b2',
+  'Halm': '#a3e635',
+  'Træ': '#166534',
+  'Naturgas': '#dc2626',
+  'Kul': '#991b1b',
+  'Olie': '#b91c1c',
+  'Andet': '#d9d9d9'
 };
 
-// Custom X-axis tick component
-const CustomXAxisTick = ({ x, y, payload }: any) => {
-  const lines = payload.value.split('\n');
-  return (
-    <g transform={`translate(${x},${y})`}>
-      <text 
-        x={0} 
-        y={0} 
-        dy={16} 
-        textAnchor="middle" 
-        fill="#666"
-        fontSize={12}
-      >
-        {lines.map((line: string, index: number) => (
-          <tspan x={0} dy={index === 0 ? 0 : 14} key={index}>
-            {line}
-          </tspan>
-        ))}
-      </text>
-    </g>
-  );
+// Function to get color for a segment
+const getColorForSegment = (segmentName: string): string => {
+  for (const type in energyTypeColors) {
+    if (segmentName.includes(type)) {
+      return energyTypeColors[type];
+    }
+  }
+  return '#8884d8'; // Fallback color
 };
 
-// Custom tooltip component
-const CustomTooltip = ({ active, payload, label }: any) => {
+
+// Custom tooltip component for 100% stacked bar
+const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
-    const total = payload.reduce((sum: number, entry: any) => sum + (entry.value || 0), 0);
-    
+    const data = payload[0];
     return (
-      <div className="bg-gray-800 text-white p-4 rounded-lg shadow-lg border min-w-[280px]">
-        <p className="font-semibold mb-3">{label}</p>
-        <div className="space-y-2">
-          <div className="flex justify-between items-center border-b pb-2">
-            <span>Total:</span>
-            <span className="font-mono font-semibold">{total.toFixed(1)}%</span>
-          </div>
-          {payload.map((entry: any, index: number) => (
-            <div key={index} className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <div 
-                  className="w-3 h-3 rounded" 
-                  style={{ backgroundColor: entry.fill }}
-                />
-                <span>{entry.name}:</span>
-              </div>
-              <span className="font-mono">{entry.value.toFixed(1)}%</span>
-            </div>
-          ))}
-        </div>
+      <div className="bg-white p-3 rounded-lg shadow-lg border" style={{ minWidth: '200px' }}>
+        <p className="font-semibold mb-2" style={{ color: data.color }}>
+          {data.name}
+        </p>
+        <p className="text-sm">
+          {data.value.toFixed(1)}%
+        </p>
       </div>
     );
   }
@@ -273,9 +225,9 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
     };
   }, [data]);
 
-  // Transform data for bar chart
+  // Transform data for 100% stacked bar chart
   const barChartData = useMemo(() => {
-    if (!currentHourData) return { name: 'Energimix', children: [] };
+    if (!currentHourData) return {};
     
     // Create proper display names
     const nameMapping: Record<string, string> = {
@@ -310,12 +262,12 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
       'GB': 'Storbritannien',
       'NL': 'Holland',
       'NO2': 'Norge',
-      'DK1': '',
-      'DK2': ''
+      'DK1': 'Danmark',
+      'DK2': 'Danmark'
     };
     
-    // Group by base energy type
-    const groupedData: Record<string, any[]> = {};
+    // Create single object with "Type fra Country" keys
+    const transformedData: Record<string, number> = {};
     
     Object.entries(currentHourData.mixByType)
       .filter(([_, value]) => value.percentage > 0)
@@ -324,44 +276,20 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
         const origin = value.origin;
         const isImport = value.isImport || false;
         
-        if (!groupedData[baseType]) {
-          groupedData[baseType] = [];
-        }
+        // Create display name
+        const typeName = nameMapping[baseType] || baseType.replace(/([A-Z])/g, ' $1').trim();
+        const countryName = countryMapping[origin] || origin;
         
-        groupedData[baseType].push({
-          origin: origin,
-          percentage: value.percentage,
-          shareMWh: value.shareMWh,
-          co2Emission: value.co2Emission,
-          isImport: isImport,
-          country: isImport && origin && countryMapping[origin] ? countryMapping[origin] : 'Danmark'
-        });
+        // Create unique key
+        const segmentKey = isImport ? `${typeName} fra ${countryName}` : typeName;
+        
+        if (!transformedData[segmentKey]) {
+          transformedData[segmentKey] = 0;
+        }
+        transformedData[segmentKey] += value.percentage;
       });
     
-    // Create bar chart data with stacked origins
-    const chartData = Object.entries(groupedData)
-      .map(([baseType, origins]) => {
-        const totalPercentage = origins.reduce((sum, o) => sum + o.percentage, 0);
-        const typeName = nameMapping[baseType] || baseType.replace(/([A-Z])/g, ' $1').trim();
-        
-        const dataPoint: any = {
-          name: typeName,
-          total: totalPercentage,
-          baseType: baseType
-        };
-        
-        // Add each origin as a separate field
-        origins.forEach(origin => {
-          const key = origin.isImport ? origin.country : 'Danmark';
-          dataPoint[key] = (dataPoint[key] || 0) + origin.percentage;
-        });
-        
-        return dataPoint;
-      })
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 15); // Limit to top 15 energy types
-    
-    return chartData;
+    return transformedData;
   }, [currentHourData]);
 
   // Check if selected date is in the future
@@ -547,7 +475,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                   {error}
                 </div>
               </div>
-            ) : barChartData.length === 0 ? (
+            ) : Object.keys(barChartData).length === 0 ? (
               <div className="flex items-center justify-center h-[500px]">
                 <div className="text-gray-500 text-center">
                   <AlertCircle size={40} className="mx-auto mb-4 text-gray-400" />
@@ -576,50 +504,46 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                     Viser data for: {dataDateRange.single ? dataDateRange.start : `${dataDateRange.start} - ${dataDateRange.end}`}
                   </div>
                 )}
-                <div className="h-[500px]">
+                <div className="h-[250px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
-                      data={barChartData}
-                      margin={{ top: 20, right: 30, left: 40, bottom: 80 }}
+                      layout="vertical"
+                      data={[barChartData]}
+                      margin={{ top: 20, right: 20, left: 20, bottom: 80 }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" />
                       <XAxis 
-                        dataKey="name" 
-                        tick={<CustomXAxisTick />}
-                        height={100}
+                        type="number" 
+                        domain={[0, 100]} 
+                        tickFormatter={(tick) => `${tick}%`}
                       />
-                      <YAxis 
-                        label={{ value: 'Procentdel (%)', angle: -90, position: 'insideLeft' }}
+                      <YAxis type="category" hide={true} />
+                      <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
+                      <Legend
+                        verticalAlign="bottom"
+                        wrapperStyle={{ bottom: 0, left: 0, right: 0 }}
+                        content={(props) => {
+                          const { payload } = props;
+                          return (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px 20px', marginTop: '20px' }}>
+                              {payload?.map((entry: any, index: number) => (
+                                <div key={`item-${index}`} style={{ display: 'flex', alignItems: 'center' }}>
+                                  <div style={{ width: 10, height: 10, backgroundColor: entry.color, marginRight: 5 }}></div>
+                                  <span className="text-sm">{entry.value}</span>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        }}
                       />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Legend 
-                        verticalAlign="top" 
-                        height={36}
-                        wrapperStyle={{ paddingBottom: '20px' }}
-                      />
-                      {/* Dynamic bars for each country */}
-                      {['Danmark', 'Sverige', 'Norge', 'Storbritannien', 'Holland', 'Tyskland'].map((country, index) => {
-                        const hasData = barChartData.some(d => d[country] > 0);
-                        if (!hasData) return null;
-                        
-                        const colors: Record<string, string> = {
-                          'Danmark': '#059669',
-                          'Sverige': '#3b82f6',
-                          'Norge': '#8b5cf6',
-                          'Storbritannien': '#ef4444',
-                          'Holland': '#f59e0b',
-                          'Tyskland': '#6b7280'
-                        };
-                        
-                        return (
-                          <Bar 
-                            key={country}
-                            dataKey={country} 
-                            stackId="a" 
-                            fill={colors[country] || '#6b7280'}
-                          />
-                        );
-                      })}
+                      {/* Create bars for each segment */}
+                      {Object.keys(barChartData).sort((a, b) => barChartData[b] - barChartData[a]).map((key) => (
+                        <Bar 
+                          key={key} 
+                          dataKey={key} 
+                          stackId="a" 
+                          fill={getColorForSegment(key)} 
+                        />
+                      ))}
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -635,93 +559,31 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
           )}
         </div>
 
-        {/* Energy Sources Table */}
-        {barChartData.length > 0 && (
+        {/* Energy Sources Summary */}
+        {Object.keys(barChartData).length > 0 && (
           <div className="mt-8">
             <div className="bg-gray-50 rounded-lg p-6">
-              <h3 className="text-base font-semibold text-gray-700 mb-4 text-center">Detaljeret energifordeling</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-2">Energikilde</th>
-                      <th className="text-right py-2">Total (%)</th>
-                      <th className="text-right py-2">Danmark</th>
-                      <th className="text-right py-2">Import</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {barChartData.map((entry, index) => {
-                      const domesticPercentage = entry.Danmark || 0;
-                      const importPercentage = entry.total - domesticPercentage;
-                      
-                      return (
-                        <tr key={index} className="border-b">
-                          <td className="py-2 font-medium">{entry.name}</td>
-                          <td className="text-right font-mono">{entry.total.toFixed(1)}%</td>
-                          <td className="text-right font-mono text-green-600">
-                            {domesticPercentage > 0 ? `${domesticPercentage.toFixed(1)}%` : '-'}
-                          </td>
-                          <td className="text-right font-mono text-blue-600">
-                            {importPercentage > 0 ? `${importPercentage.toFixed(1)}%` : '-'}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <h3 className="text-base font-semibold text-gray-700 mb-4 text-center">Energifordeling efter type og oprindelse</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {Object.entries(barChartData)
+                  .sort(([, a], [, b]) => b - a)
+                  .map(([key, value]) => (
+                    <div key={key} className="flex items-center gap-2">
+                      <div 
+                        className="w-4 h-4 rounded" 
+                        style={{ backgroundColor: getColorForSegment(key) }}
+                      />
+                      <div className="text-sm">
+                        <div className="font-medium">{key}</div>
+                        <div className="text-gray-500 font-mono">{value.toFixed(1)}%</div>
+                      </div>
+                    </div>
+                  ))}
               </div>
             </div>
           </div>
         )}
 
-        {/* Static Legend for all energy types */}
-        <div className="mt-6 flex justify-center">
-          <div className="bg-gray-50 rounded-lg p-4 max-w-5xl">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 text-center">Alle energikilder</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <h4 className="text-xs font-medium text-gray-600 uppercase">Vedvarende</h4>
-                <div className="space-y-1">
-                  {Object.entries(energySourceColors)
-                    .filter(([key]) => ['Wind', 'Solar', 'Hydro', 'BioGas', 'Straw', 'Wood'].includes(key))
-                    .map(([key, color]) => (
-                      <div key={key} className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded" style={{ backgroundColor: color }}></div>
-                        <span className="text-xs">{key}</span>
-                      </div>
-                    ))}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <h4 className="text-xs font-medium text-gray-600 uppercase">Fossil</h4>
-                <div className="space-y-1">
-                  {Object.entries(energySourceColors)
-                    .filter(([key]) => ['FossilGas', 'Coal', 'Oil'].includes(key))
-                    .map(([key, color]) => (
-                      <div key={key} className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded" style={{ backgroundColor: color }}></div>
-                        <span className="text-xs">{key}</span>
-                      </div>
-                    ))}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <h4 className="text-xs font-medium text-gray-600 uppercase">Andre</h4>
-                <div className="space-y-1">
-                  {Object.entries(energySourceColors)
-                    .filter(([key]) => ['Nuclear', 'Import', 'WasteIncineration'].includes(key))
-                    .map(([key, color]) => (
-                      <div key={key} className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded" style={{ backgroundColor: color }}></div>
-                        <span className="text-xs">{key}</span>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   );

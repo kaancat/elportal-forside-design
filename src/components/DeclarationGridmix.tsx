@@ -335,6 +335,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
       'Fossil Oil': 'Olie',
       'Import': 'Import',
       'Export': 'Eksport',
+      'Other': 'Andet',
       'Waste': 'Affald',
       'Biomass': 'Biomasse',
       'Onshore': 'Land',
@@ -342,7 +343,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
     };
     
     const children = Object.entries(currentHourData.mixByType)
-      .filter(([name, value]) => value.percentage > 0 && name !== 'Other') // Show all sources except 'Other'
+      .filter(([_, value]) => value.percentage > 0) // Show all sources with any contribution
       .map(([name, value]) => ({
         name: nameMapping[name] || name.replace(/([A-Z])/g, ' $1').trim() || 'Ukendt',
         value: value.percentage,

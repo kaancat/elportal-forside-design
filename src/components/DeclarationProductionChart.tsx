@@ -183,6 +183,7 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
           
           const transformed: any = {
             time: timeFormat,
+            timestamp: record.HourDK, // Keep original timestamp for current time marker
             averageCO2: record.averageCO2,
             renewableShare: record.renewableShare,
             totalProduction: record.totalProduction
@@ -227,6 +228,23 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
       }
     });
     
+    // Find current time position (if within data range)
+    const now = new Date();
+    let currentTimeIndex = -1;
+    let currentTimeData = null;
+    
+    // For 24h view, find the closest hour
+    if (selectedView === '24h') {
+      data.forEach((record, index) => {
+        const recordTime = new Date(record.timestamp);
+        if (recordTime.getHours() === now.getHours() && 
+            recordTime.getDate() === now.getDate()) {
+          currentTimeIndex = index;
+          currentTimeData = record;
+        }
+      });
+    }
+    
     return {
       currentCO2: latest.averageCO2,
       currentRenewable: latest.renewableShare,
@@ -235,9 +253,11 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
       latestDate: latest.time || '...',
       greenestTime: greenestTime.time,
       greenestCO2: greenestTime.averageCO2,
-      greenestIndex
+      greenestIndex,
+      currentTimeIndex,
+      currentTimeData
     };
-  }, [data]);
+  }, [data, selectedView]);
 
   // Get CO2 color based on intensity
   const getCO2Color = (value: number) => {
@@ -251,30 +271,27 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
   const getCO2Status = (value: number) => {
     if (value <= 50) {
       return {
-        color: 'bg-green-500',
-        borderColor: 'border-green-600',
-        textColor: 'text-white',
+        color: 'bg-green-100',
+        borderColor: 'border-green-300',
+        textColor: 'text-green-800',
         icon: '⚡',
-        text: `Strømmen er meget grøn lige nu – ${value.toFixed(0)} g CO₂/kWh`,
-        glow: 'shadow-lg shadow-green-500/50'
+        text: `Strømmen er meget grøn lige nu – ${value.toFixed(0)} g CO₂/kWh`
       };
     } else if (value <= 100) {
       return {
-        color: 'bg-yellow-500',
-        borderColor: 'border-yellow-600',
-        textColor: 'text-white',
+        color: 'bg-yellow-100',
+        borderColor: 'border-yellow-300',
+        textColor: 'text-yellow-800',
         icon: '🌥',
-        text: `Moderat CO₂ i elnettet nu – ${value.toFixed(0)} g CO₂/kWh`,
-        glow: 'shadow-lg shadow-yellow-500/50'
+        text: `Moderat CO₂ i elnettet nu – ${value.toFixed(0)} g CO₂/kWh`
       };
     } else {
       return {
-        color: 'bg-red-500',
-        borderColor: 'border-red-600',
-        textColor: 'text-white',
+        color: 'bg-red-100',
+        borderColor: 'border-red-300',
+        textColor: 'text-red-800',
         icon: '🔥',
-        text: `Høj CO₂ i elnettet nu – ${value.toFixed(0)} g CO₂/kWh`,
-        glow: 'shadow-lg shadow-red-500/50'
+        text: `Høj CO₂ i elnettet nu – ${value.toFixed(0)} g CO₂/kWh`
       };
     }
   };
@@ -501,15 +518,14 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
 
         {/* Live CO2 indicator */}
         {currentStats && !loading && showCO2Intensity && (
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-4">
             <div className={cn(
-              "inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm border-2 transition-all duration-300 animate-pulse",
+              "inline-flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-xs border transition-all duration-300",
               getCO2Status(currentStats.currentCO2).color,
               getCO2Status(currentStats.currentCO2).borderColor,
-              getCO2Status(currentStats.currentCO2).textColor,
-              getCO2Status(currentStats.currentCO2).glow
+              getCO2Status(currentStats.currentCO2).textColor
             )}>
-              <span className="text-lg">{getCO2Status(currentStats.currentCO2).icon}</span>
+              <span>{getCO2Status(currentStats.currentCO2).icon}</span>
               <span>{getCO2Status(currentStats.currentCO2).text}</span>
             </div>
           </div>
@@ -684,7 +700,9 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                       stroke="#059669"
                       strokeWidth={2}
                       dot={(props: any) => {
-                        const { cx, cy, index } = props;
+                        const { cx, cy, index, payload } = props;
+                        
+                        // Greenest point marker
                         if (index === currentStats.greenestIndex) {
                           return (
                             <g>
@@ -696,6 +714,28 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                             </g>
                           );
                         }
+                        
+                        // Current time marker (only for 24h view)
+                        if (selectedView === '24h' && index === currentStats.currentTimeIndex) {
+                          return (
+                            <g>
+                              {/* Animated pulse effect */}
+                              <circle cx={cx} cy={cy} r={15} fill="#3b82f6" opacity={0.2}>
+                                <animate attributeName="r" values="10;20;10" dur="2s" repeatCount="indefinite" />
+                                <animate attributeName="opacity" values="0.3;0.1;0.3" dur="2s" repeatCount="indefinite" />
+                              </circle>
+                              {/* Main marker */}
+                              <circle cx={cx} cy={cy} r={6} fill="#3b82f6" stroke="#fff" strokeWidth={2} />
+                              {/* Tooltip */}
+                              <foreignObject x={cx - 60} y={cy - 45} width={120} height={35}>
+                                <div className="bg-gray-800 text-white px-2 py-1 rounded text-xs font-medium text-center shadow-lg">
+                                  Nu: {payload.time} → {payload.averageCO2.toFixed(0)} g/kWh
+                                </div>
+                              </foreignObject>
+                            </g>
+                          );
+                        }
+                        
                         return null;
                       }}
                     />

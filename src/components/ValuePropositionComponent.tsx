@@ -53,7 +53,8 @@ export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps>
                   <DynamicIcon
                     icon={item.icon}
                     size={24}
-                    className="text-brand-primary mr-3 flex-shrink-0"
+                    className="mr-3 flex-shrink-0"
+                    color="rgb(59, 130, 246)" // brand-primary color
                   />
                 ) : (
                   <Check className="h-6 w-6 text-brand-primary mr-3 flex-shrink-0" />

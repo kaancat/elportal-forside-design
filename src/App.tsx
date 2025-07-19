@@ -9,6 +9,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import GenericPage from "./pages/GenericPage";
 import NotFound from "./pages/NotFound";
+import { EnergyTips } from "./pages/EnergyTips";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,6 +42,7 @@ const App = () => {
                 <Routes>
                   <Route path="/" element={<Index />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="/energispareraad" element={<EnergyTips />} />
                   
                   {/* Dynamic route for generic pages - must be before the 404 catch-all */}
                   <Route path="/:slug" element={<GenericPage />} />

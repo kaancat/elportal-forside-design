@@ -342,7 +342,9 @@ export interface IconManager {
   _type: 'icon.manager';
   icon: string;
   metadata: {
-    url: string;
+    inlineSvg?: string;
+    iconName?: string;
+    url?: string;
   };
 }
 

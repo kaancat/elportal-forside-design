@@ -1,12 +1,31 @@
-import React from 'react';
-import { DynamicIcon, hasValidIcon } from './DynamicIcon';
+import React, { useEffect } from 'react';
+import { DynamicIcon, hasValidIcon, preloadIcons } from './DynamicIcon';
+import { IconManager } from '@/types/sanity';
+
+interface Feature {
+  _key: string;
+  title: string;
+  description: string;
+  icon?: IconManager;
+}
+
+interface FeatureListBlock {
+  title?: string;
+  features: Feature[];
+}
 
 interface FeatureListComponentProps {
-  block: any;
+  block: FeatureListBlock;
 }
 
 export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ block }) => {
   if (!block || !block.features) return null;
+
+  // Preload all feature icons on component mount
+  useEffect(() => {
+    const icons = block.features.map(f => f.icon).filter(Boolean);
+    preloadIcons(icons);
+  }, [block.features]);
 
   return (
     <section className="py-16 lg:py-24 bg-white">
@@ -17,7 +36,7 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
           </h2>
         )}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 justify-items-center">
-          {block.features.map((feature: any, index: number) => (
+          {block.features.map((feature, index) => (
             <div key={feature._key} className="flex flex-col items-center text-center max-w-sm">
               <div className="flex items-center justify-center h-20 w-20 mb-6 rounded-full bg-brand-primary-light/10">
                 {hasValidIcon(feature.icon) && (

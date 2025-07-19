@@ -22,6 +22,8 @@ import ProviderList from './ProviderList'
 import { FeatureListComponent } from './FeatureListComponent'
 import { ValuePropositionComponent } from './ValuePropositionComponent'
 import HeroComponent from './HeroComponent'
+import { ApplianceCalculatorSection } from './ApplianceCalculatorSection'
+import { EnergyTipsSection } from './EnergyTipsSection'
 
 // Debug import
 if (typeof window !== 'undefined') {
@@ -216,6 +218,10 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
           return <ValuePropositionComponent key={block._key} block={block as ValuePropositionBlock} />
         } else if (block._type === 'pageSection') {
           return <PageSectionComponent key={block._key} section={block as PageSection} />
+        } else if (block._type === 'applianceCalculator') {
+          return <ApplianceCalculatorSection key={block._key} block={block} />
+        } else if (block._type === 'energyTipsSection') {
+          return <EnergyTipsSection key={block._key} block={block} />
         } else {
           // Handle unknown block types with a clear error message instead of silent fallback
           const unknownBlock = block as ContentBlock & { _type: string; _key?: string }

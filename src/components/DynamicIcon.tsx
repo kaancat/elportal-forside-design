@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { HelpCircle } from 'lucide-react';
 import { IconManager } from '@/types/sanity';
 
@@ -30,37 +30,68 @@ export const DynamicIcon: React.FC<DynamicIconProps> = ({
 }) => {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const imgRef = useRef<HTMLImageElement>(null);
 
-  // COMPREHENSIVE DEBUG LOGGING
-  console.log('[DynamicIcon] Received icon prop:', {
-    raw: icon,
-    stringified: JSON.stringify(icon, null, 2),
-    hasIcon: !!icon,
-    hasMetadata: !!icon?.metadata,
-    hasInlineSvg: !!icon?.metadata?.inlineSvg,
-    hasUrl: !!icon?.metadata?.url,
-    iconName: icon?.metadata?.iconName
-  });
+  // Get the icon URL if available
+  const iconUrl = icon?.metadata?.url && !imageError
+    ? (icon.metadata.url.includes('api.iconify.design') 
+        ? `${icon.metadata.url}&color=white`
+        : icon.metadata.url)
+    : null;
 
-  // Reset error state when icon changes
+  // Reset states when icon changes
   useEffect(() => {
     setImageError(false);
     setIsLoading(true);
   }, [icon?.metadata?.url, icon?.metadata?.iconName]);
 
-  // Log icon loading issues for debugging in development
+  // Handle image loading with race condition fix
+  useEffect(() => {
+    if (!imgRef.current || !iconUrl) return;
+
+    const img = imgRef.current;
+
+    // CRITICAL FIX: Check if image is already loaded from cache
+    if (img.complete && img.naturalWidth > 0) {
+      setIsLoading(false);
+      iconCache.set(iconUrl, true);
+      return;
+    }
+
+    const handleLoad = () => {
+      setIsLoading(false);
+      iconCache.set(iconUrl, true);
+    };
+
+    const handleError = () => {
+      setImageError(true);
+      setIsLoading(false);
+      logIconError(`Failed to load icon from URL: ${iconUrl}`);
+      iconCache.set(iconUrl, false);
+    };
+
+    img.addEventListener('load', handleLoad);
+    img.addEventListener('error', handleError);
+
+    return () => {
+      img.removeEventListener('load', handleLoad);
+      img.removeEventListener('error', handleError);
+    };
+  }, [iconUrl]);
+
+  // Log icon loading issues for debugging
   const logIconError = (error: string) => {
-    console.warn(`[DynamicIcon] ${error}`, {
-      iconName: icon?.metadata?.iconName,
-      url: icon?.metadata?.url,
-      hasInlineSvg: !!icon?.metadata?.inlineSvg,
-      fullIcon: icon
-    });
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`[DynamicIcon] ${error}`, {
+        iconName: icon?.metadata?.iconName,
+        url: icon?.metadata?.url,
+        hasInlineSvg: !!icon?.metadata?.inlineSvg
+      });
+    }
   };
 
   // If no icon data, show fallback
   if (!icon || !icon.metadata) {
-    console.warn('[DynamicIcon] No icon data provided, using fallback', { icon, fallbackIcon });
     return fallbackIcon || <HelpCircle size={size} className={className} />;
   }
 
@@ -82,17 +113,11 @@ export const DynamicIcon: React.FC<DynamicIconProps> = ({
     );
   }
 
-  // Priority 2: Use URL-based icon if available (requires network request)
-  if (icon.metadata.url && !imageError) {
-    // Add color parameter to Iconify URLs to make them white
-    const iconUrl = icon.metadata.url.includes('api.iconify.design') 
-      ? `${icon.metadata.url}&color=white`
-      : icon.metadata.url;
-    
-    // Check cache
+  // Priority 2: Use URL-based icon if available
+  if (iconUrl) {
+    // Check cache for known failed icons
     const isCached = iconCache.get(iconUrl);
     if (isCached === false) {
-      // Known failed icon, skip to fallback
       return fallbackIcon || <HelpCircle size={size} className={className} />;
     }
     
@@ -105,6 +130,7 @@ export const DynamicIcon: React.FC<DynamicIconProps> = ({
           </div>
         )}
         <img
+          ref={imgRef}
           src={iconUrl}
           alt={icon.metadata.iconName || 'Icon'}
           className={className}
@@ -115,18 +141,8 @@ export const DynamicIcon: React.FC<DynamicIconProps> = ({
             display: isLoading ? 'none' : 'inline-block',
             objectFit: 'contain'
           }}
-          loading="lazy"
+          loading="eager" // Changed from lazy to ensure immediate loading
           decoding="async"
-          onLoad={() => {
-            setIsLoading(false);
-            iconCache.set(iconUrl, true);
-          }}
-          onError={(e) => {
-            setImageError(true);
-            setIsLoading(false);
-            logIconError(`Failed to load icon from URL: ${iconUrl}`);
-            iconCache.set(iconUrl, false);
-          }}
         />
       </>
     );

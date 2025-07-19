@@ -21,6 +21,8 @@ import { FeatureListComponent } from './FeatureListComponent'
 import { ValuePropositionComponent } from './ValuePropositionComponent'
 import ConsumptionMapComponent from './ConsumptionMap'
 import HeroComponent from './HeroComponent'
+import { ApplianceCalculatorSection } from './ApplianceCalculatorSection'
+import { EnergyTipsSection } from './EnergyTipsSection'
 import ErrorBoundary from './ErrorBoundary'
 import { ContentErrorFallback, ChartErrorFallback, CalculatorErrorFallback } from './ErrorFallbacks'
 import { reportError } from '@/lib/errorReporting'
@@ -63,6 +65,7 @@ const SafeContentBlock: React.FC<{
       
       case 'priceCalculator':
       case 'heroWithCalculator':
+      case 'applianceCalculator':
         return <CalculatorErrorFallback 
           onRetry={() => window.location.reload()}
           onReset={() => window.location.reload()}
@@ -168,11 +171,9 @@ const renderContentBlock = (block: ContentBlock) => {
       return <ProviderList block={block as ProviderListBlock} />;
     
     case 'featureList':
-      console.log('[SafeContentBlocks] Rendering featureList block:', block);
       return <FeatureListComponent block={block as FeatureListBlock} />;
     
     case 'valueProposition':
-      console.log('[SafeContentBlocks] Rendering valueProposition block:', block);
       return <ValuePropositionComponent block={block as ValuePropositionBlock} />;
     
     case 'consumptionMap':
@@ -180,6 +181,12 @@ const renderContentBlock = (block: ContentBlock) => {
     
     case 'pageSection':
       return <PageSectionComponent section={block as PageSection} />;
+    
+    case 'applianceCalculator':
+      return <ApplianceCalculatorSection block={block} />;
+    
+    case 'energyTipsSection':
+      return <EnergyTipsSection block={block} />;
     
     default:
       // Handle unknown block types

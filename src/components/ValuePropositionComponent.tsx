@@ -54,7 +54,7 @@ export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps>
                     icon={item.icon}
                     size={24}
                     className="mr-3 flex-shrink-0"
-                    color="rgb(59, 130, 246)" // brand-primary color
+                    color="black"
                   />
                 ) : (
                   <Check className="h-6 w-6 text-brand-primary mr-3 flex-shrink-0" />

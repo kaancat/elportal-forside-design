@@ -399,11 +399,9 @@ export function ApplianceCalculatorSection({ block }: ApplianceCalculatorSection
     : APPLIANCES_DATA
 
   return (
-    <div className="py-0"> {/* Remove extra padding as ApplianceCalculator has its own */}
-      <ApplianceCalculator
-        appliances={filteredAppliances}
-        defaultElectricityPrice={block.defaultElectricityPrice}
-      />
-    </div>
+    <ApplianceCalculator
+      appliances={filteredAppliances}
+      defaultElectricityPrice={block.defaultElectricityPrice}
+    />
   )
 }

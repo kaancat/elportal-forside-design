@@ -86,8 +86,8 @@ export function ApplianceCalculator({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <div className="container mx-auto px-4 py-8">
+    <div className="bg-gradient-to-b from-gray-50 to-white py-12">
+      <div className="container mx-auto px-4">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -108,9 +108,9 @@ export function ApplianceCalculator({
         </motion.div>
 
         {/* Main Layout */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
           {/* Left Column - Appliance List */}
-          <div className="xl:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-6">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -127,6 +127,9 @@ export function ApplianceCalculator({
 
             {applianceSummaries.length > 0 ? (
               <div className="space-y-4">
+                <div className="text-sm text-gray-600 mb-2">
+                  {applianceSummaries.length} apparater tilføjet
+                </div>
                 {applianceSummaries.map((appliance) => (
                   <ApplianceCard
                     key={appliance.instanceId}
@@ -173,7 +176,7 @@ export function ApplianceCalculator({
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
-            className="xl:sticky xl:top-8 h-fit"
+            className="lg:sticky lg:top-8 h-fit"
           >
             <ConsumptionDashboard
               appliances={applianceSummaries}

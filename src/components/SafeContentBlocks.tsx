@@ -168,9 +168,11 @@ const renderContentBlock = (block: ContentBlock) => {
       return <ProviderList block={block as ProviderListBlock} />;
     
     case 'featureList':
+      console.log('[SafeContentBlocks] Rendering featureList block:', block);
       return <FeatureListComponent block={block as FeatureListBlock} />;
     
     case 'valueProposition':
+      console.log('[SafeContentBlocks] Rendering valueProposition block:', block);
       return <ValuePropositionComponent block={block as ValuePropositionBlock} />;
     
     case 'consumptionMap':

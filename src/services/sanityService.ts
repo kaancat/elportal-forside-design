@@ -4,6 +4,7 @@ import { HomePage, BlogPost, SiteSettings, SanityPage, ProviderProductBlock } fr
 export class SanityService {
   // Fetch homepage content
   static async getHomePage(): Promise<HomePage | null> {
+    console.log('[SanityService] Fetching homepage data...');
     const query = `*[_type == "homePage"][0]{
       _id,
       _type,
@@ -219,6 +220,20 @@ export class SanityService {
     
     try {
       const homePage = await client.fetch<HomePage>(query)
+      console.log('[SanityService] Homepage data received:', {
+        hasData: !!homePage,
+        contentBlocksCount: homePage?.contentBlocks?.length || 0,
+        blockTypes: homePage?.contentBlocks?.map(b => b._type),
+        rawData: homePage
+      });
+      
+      // Log specific blocks with icons
+      homePage?.contentBlocks?.forEach((block, index) => {
+        if (block._type === 'featureList' || block._type === 'valueProposition') {
+          console.log(`[SanityService] ${block._type} block at index ${index}:`, JSON.stringify(block, null, 2));
+        }
+      });
+      
       return homePage
     } catch (error) {
       console.error('Error fetching homepage:', error)
@@ -335,6 +350,27 @@ export class SanityService {
     
     try {
       const settings = await client.fetch<SiteSettings>(query)
+      console.log('[SanityService] Site settings received:', {
+        hasSettings: !!settings,
+        headerLinksCount: settings?.headerLinks?.length || 0,
+        megaMenus: settings?.headerLinks?.filter(l => l._type === 'megaMenu').length || 0
+      });
+      
+      // Log mega menu icons
+      settings?.headerLinks?.forEach((link) => {
+        if (link._type === 'megaMenu') {
+          console.log(`[SanityService] MegaMenu "${link.title}" icons:`, 
+            link.content?.flatMap(col => 
+              col.items?.map(item => ({
+                title: item.title,
+                hasIcon: !!item.icon,
+                iconData: item.icon
+              })) || []
+            )
+          );
+        }
+      });
+      
       return settings
     } catch (error) {
       console.error('Error fetching site settings:', error)

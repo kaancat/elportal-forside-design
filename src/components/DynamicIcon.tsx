@@ -31,6 +31,17 @@ export const DynamicIcon: React.FC<DynamicIconProps> = ({
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // COMPREHENSIVE DEBUG LOGGING
+  console.log('[DynamicIcon] Received icon prop:', {
+    raw: icon,
+    stringified: JSON.stringify(icon, null, 2),
+    hasIcon: !!icon,
+    hasMetadata: !!icon?.metadata,
+    hasInlineSvg: !!icon?.metadata?.inlineSvg,
+    hasUrl: !!icon?.metadata?.url,
+    iconName: icon?.metadata?.iconName
+  });
+
   // Reset error state when icon changes
   useEffect(() => {
     setImageError(false);
@@ -39,20 +50,17 @@ export const DynamicIcon: React.FC<DynamicIconProps> = ({
 
   // Log icon loading issues for debugging in development
   const logIconError = (error: string) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn(`[DynamicIcon] ${error}`, {
-        iconName: icon?.metadata?.iconName,
-        url: icon?.metadata?.url,
-        hasInlineSvg: !!icon?.metadata?.inlineSvg
-      });
-    }
+    console.warn(`[DynamicIcon] ${error}`, {
+      iconName: icon?.metadata?.iconName,
+      url: icon?.metadata?.url,
+      hasInlineSvg: !!icon?.metadata?.inlineSvg,
+      fullIcon: icon
+    });
   };
 
   // If no icon data, show fallback
   if (!icon || !icon.metadata) {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('DynamicIcon: No icon data provided');
-    }
+    console.warn('[DynamicIcon] No icon data provided, using fallback', { icon, fallbackIcon });
     return fallbackIcon || <HelpCircle size={size} className={className} />;
   }
 

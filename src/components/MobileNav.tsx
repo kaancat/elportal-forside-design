@@ -18,7 +18,8 @@ const RichLinkCard: React.FC<{ item: any, resolveLink: (link: LinkType) => strin
       <DynamicIcon
         icon={item.icon}
         size={24}
-        className="mr-4 mt-1 flex-shrink-0 text-brand-green"
+        className="mr-4 mt-1 flex-shrink-0"
+        color="rgb(74, 222, 128)" // brand-green color
       />
     )}
     <div>

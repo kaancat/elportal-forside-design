@@ -46,7 +46,7 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
               <DynamicIcon
                 icon={block.features[0].icon}
                 size={48}
-                className="text-brand-primary"
+                color="white"
               />
             </div>
           )}
@@ -65,7 +65,7 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
                     <DynamicIcon
                       icon={feature.icon}
                       size={48}
-                      className="text-brand-primary"
+                      color="white"
                     />
                   );
                 })()}

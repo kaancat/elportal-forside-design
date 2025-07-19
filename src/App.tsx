@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import GenericPage from "./pages/GenericPage";
 import NotFound from "./pages/NotFound";
 import { EnergyTips } from "./pages/EnergyTips";
+import IconTest from "./pages/IconTest";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,6 +44,7 @@ const App = () => {
                   <Route path="/" element={<Index />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="/energispareraad" element={<EnergyTips />} />
+                  <Route path="/icon-test" element={<IconTest />} />
                   
                   {/* Dynamic route for generic pages - must be before the 404 catch-all */}
                   <Route path="/:slug" element={<GenericPage />} />

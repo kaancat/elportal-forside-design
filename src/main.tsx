@@ -6,7 +6,7 @@ import { registerIconCacheServiceWorker } from './utils/registerIconCache'
 
 // Deployment verification
 console.log('[ElPortal] App initialized - Build timestamp:', new Date().toISOString());
-console.log('[ElPortal] Build version: 2025-07-17-icon-reliability-fix');
+console.log('[ElPortal] Build version: 2025-07-19-icon-race-condition-fix');
 
 // Register icon cache service worker
 registerIconCacheServiceWorker();

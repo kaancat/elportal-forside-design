@@ -213,6 +213,26 @@ export class SanityService {
           headerAlignment,
           showSummary,
           view
+        },
+        _type == "applianceCalculator" => {
+          _key,
+          _type,
+          title,
+          subtitle,
+          showCategories,
+          showSavingsCallToAction,
+          defaultElectricityPrice
+        },
+        _type == "energyTipsSection" => {
+          _key,
+          _type,
+          title,
+          subtitle,
+          showCategories,
+          displayMode,
+          showDifficultyBadges,
+          showSavingsPotential,
+          maxTipsPerCategory
         }
       }
     }`
@@ -552,6 +572,26 @@ export class SanityService {
           headerAlignment,
           showSummary,
           view
+        },
+        _type == "applianceCalculator" => {
+          _key,
+          _type,
+          title,
+          subtitle,
+          showCategories,
+          showSavingsCallToAction,
+          defaultElectricityPrice
+        },
+        _type == "energyTipsSection" => {
+          _key,
+          _type,
+          title,
+          subtitle,
+          showCategories,
+          displayMode,
+          showDifficultyBadges,
+          showSavingsPotential,
+          maxTipsPerCategory
         }
       }
     }`

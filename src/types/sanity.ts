@@ -214,6 +214,28 @@ export interface ValuePropositionBlock {
   propositions: string[]
 }
 
+export interface ApplianceCalculator {
+  _type: 'applianceCalculator'
+  _key: string
+  title?: string
+  subtitle?: string
+  showCategories?: string[]
+  showSavingsCallToAction?: boolean
+  defaultElectricityPrice?: number
+}
+
+export interface EnergyTipsSection {
+  _type: 'energyTipsSection'
+  _key: string
+  title?: string
+  subtitle?: string
+  showCategories?: string[]
+  displayMode?: 'tabs' | 'grid' | 'list'
+  showDifficultyBadges?: boolean
+  showSavingsPotential?: boolean
+  maxTipsPerCategory?: number
+}
+
 export interface DeclarationProduction {
   _type: 'declarationProduction'
   _key: string
@@ -282,6 +304,8 @@ export type ContentBlock =
   | FeatureListBlock
   | ValuePropositionBlock
   | MunicipalityConsumptionMapBlock
+  | ApplianceCalculator
+  | EnergyTipsSection
 
 export interface HomePage {
   _id: string

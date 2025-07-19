@@ -32,6 +32,14 @@ export const DynamicIcon: React.FC<DynamicIconProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const imgRef = useRef<HTMLImageElement>(null);
 
+  // Debug log
+  console.log('[DynamicIcon] Rendered with:', { 
+    hasIcon: !!icon, 
+    hasMetadata: !!icon?.metadata,
+    url: icon?.metadata?.url,
+    inlineSvg: !!icon?.metadata?.inlineSvg 
+  });
+
   // Get the icon URL if available
   const iconUrl = icon?.metadata?.url && !imageError
     ? (icon.metadata.url.includes('api.iconify.design') 
@@ -47,12 +55,21 @@ export const DynamicIcon: React.FC<DynamicIconProps> = ({
 
   // Handle image loading with race condition fix
   useEffect(() => {
-    if (!imgRef.current || !iconUrl) return;
+    if (!imgRef.current || !iconUrl) {
+      console.log('[DynamicIcon] useEffect skipped:', { hasRef: !!imgRef.current, iconUrl });
+      return;
+    }
 
     const img = imgRef.current;
+    console.log('[DynamicIcon] Checking image:', { 
+      complete: img.complete, 
+      naturalWidth: img.naturalWidth,
+      src: img.src 
+    });
 
     // CRITICAL FIX: Check if image is already loaded from cache
     if (img.complete && img.naturalWidth > 0) {
+      console.log('[DynamicIcon] Image already loaded from cache');
       setIsLoading(false);
       iconCache.set(iconUrl, true);
       return;
@@ -81,13 +98,11 @@ export const DynamicIcon: React.FC<DynamicIconProps> = ({
 
   // Log icon loading issues for debugging
   const logIconError = (error: string) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn(`[DynamicIcon] ${error}`, {
-        iconName: icon?.metadata?.iconName,
-        url: icon?.metadata?.url,
-        hasInlineSvg: !!icon?.metadata?.inlineSvg
-      });
-    }
+    console.warn(`[DynamicIcon] ${error}`, {
+      iconName: icon?.metadata?.iconName,
+      url: icon?.metadata?.url,
+      hasInlineSvg: !!icon?.metadata?.inlineSvg
+    });
   };
 
   // If no icon data, show fallback

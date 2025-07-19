@@ -125,50 +125,47 @@ export function ApplianceCalculator({
               />
             </motion.div>
 
-            <AnimatePresence mode="popLayout">
-              {applianceSummaries.length > 0 ? (
-                <motion.div className="space-y-4">
-                  {applianceSummaries.map((appliance) => (
-                    <ApplianceCard
-                      key={appliance.instanceId}
-                      appliance={appliance}
-                      onUpdateUsage={(instanceId, usage) =>
-                        dispatch({
-                          type: 'UPDATE_USAGE',
-                          payload: { instanceId, usage },
-                        })
-                      }
-                      onUpdateWatts={
-                        appliance.powerRangeMin && appliance.powerRangeMax
-                          ? (instanceId, watts) =>
-                              dispatch({
-                                type: 'UPDATE_WATTS',
-                                payload: { instanceId, watts },
-                              })
-                          : undefined
-                      }
-                      onRemove={(instanceId) =>
-                        dispatch({
-                          type: 'REMOVE_APPLIANCE',
-                          payload: { instanceId },
-                        })
-                      }
-                    />
-                  ))}
-                </motion.div>
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="text-center py-16 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200"
-                >
-                  <p className="text-gray-500 text-lg">
-                    Klik på "Tilføj apparat" for at komme i gang
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {applianceSummaries.length > 0 ? (
+              <div className="space-y-4">
+                {applianceSummaries.map((appliance) => (
+                  <ApplianceCard
+                    key={appliance.instanceId}
+                    appliance={appliance}
+                    onUpdateUsage={(instanceId, usage) =>
+                      dispatch({
+                        type: 'UPDATE_USAGE',
+                        payload: { instanceId, usage },
+                      })
+                    }
+                    onUpdateWatts={
+                      appliance.powerRangeMin && appliance.powerRangeMax
+                        ? (instanceId, watts) =>
+                            dispatch({
+                              type: 'UPDATE_WATTS',
+                              payload: { instanceId, watts },
+                            })
+                        : undefined
+                    }
+                    onRemove={(instanceId) =>
+                      dispatch({
+                        type: 'REMOVE_APPLIANCE',
+                        payload: { instanceId },
+                      })
+                    }
+                  />
+                ))}
+              </div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-16 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200"
+              >
+                <p className="text-gray-500 text-lg">
+                  Klik på "Tilføj apparat" for at komme i gang
+                </p>
+              </motion.div>
+            )}
           </div>
 
           {/* Right Column - Dashboard */}

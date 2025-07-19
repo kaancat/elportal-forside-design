@@ -19,11 +19,14 @@ interface FeatureListComponentProps {
 }
 
 export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ block }) => {
+  console.log('[FeatureListComponent] Rendered with block:', block);
+  
   if (!block || !block.features) return null;
 
   // Preload all feature icons on component mount
   useEffect(() => {
     const icons = block.features.map(f => f.icon).filter(Boolean);
+    console.log('[FeatureListComponent] Icons to preload:', icons);
     preloadIcons(icons);
   }, [block.features]);
 
@@ -36,16 +39,36 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
           </h2>
         )}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 justify-items-center">
+          {/* TEMPORARY TEST: Force render first icon without validation */}
+          {block.features.length > 0 && (
+            <div className="border-4 border-red-500 p-4">
+              <h3>TEST ICON (bypassing validation):</h3>
+              <DynamicIcon
+                icon={block.features[0].icon}
+                size={48}
+                className="text-brand-primary"
+              />
+            </div>
+          )}
+          
           {block.features.map((feature, index) => (
             <div key={feature._key} className="flex flex-col items-center text-center max-w-sm">
               <div className="flex items-center justify-center h-20 w-20 mb-6 rounded-full bg-brand-primary-light/10">
-                {hasValidIcon(feature.icon) && (
-                  <DynamicIcon
-                    icon={feature.icon}
-                    size={48}
-                    className="text-brand-primary"
-                  />
-                )}
+                {(() => {
+                  const isValid = hasValidIcon(feature.icon);
+                  console.log('[FeatureListComponent] Icon check for feature:', { 
+                    feature: feature.title, 
+                    icon: feature.icon, 
+                    isValid 
+                  });
+                  return isValid && (
+                    <DynamicIcon
+                      icon={feature.icon}
+                      size={48}
+                      className="text-brand-primary"
+                    />
+                  );
+                })()}
               </div>
               <h3 className="text-xl font-bold text-brand-dark mb-3">
                 {feature.title}

@@ -6,7 +6,7 @@ import { Menu, X } from 'lucide-react';
 import { Link as RouterLink } from 'react-router-dom';
 import { Link as LinkType, MegaMenu, MegaMenuColumn } from '@/types/sanity';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { DynamicIcon, hasValidIcon } from './DynamicIcon';
+import { Icon, hasValidIcon } from './Icon';
 
 // Helper for the rich, icon-driven link style
 const RichLinkCard: React.FC<{ item: any, resolveLink: (link: LinkType) => string }> = ({ item, resolveLink }) => (
@@ -15,11 +15,11 @@ const RichLinkCard: React.FC<{ item: any, resolveLink: (link: LinkType) => strin
     className="flex items-start text-left p-3 rounded-lg hover:bg-brand-green/10 transition-colors duration-200"
   >
     {hasValidIcon(item.icon) && (
-      <DynamicIcon
+      <Icon
         icon={item.icon}
+        color={item.iconColor?.hex || 'rgb(74, 222, 128)'} // brand-green default
         size={24}
         className="mr-4 mt-1 flex-shrink-0"
-        color="rgb(74, 222, 128)" // brand-green color
       />
     )}
     <div>

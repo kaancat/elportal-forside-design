@@ -1,12 +1,13 @@
 import React from 'react';
 import { Check, Info } from 'lucide-react';
-import { DynamicIcon, hasValidIcon } from './DynamicIcon';
+import { Icon, hasValidIcon } from './Icon';
 import { IconManager } from '@/types/sanity';
 
 interface ValuePropositionItem {
   _key: string;
   text: string;
   icon?: IconManager;
+  iconColor?: { hex: string; alpha?: number };
 }
 
 interface ValuePropositionBlock {
@@ -50,11 +51,11 @@ export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps>
             {items.map((item, index) => (
               <li key={item._key || index} className="flex items-center">
                 {hasValidIcon(item.icon) ? (
-                  <DynamicIcon
+                  <Icon
                     icon={item.icon}
+                    color={item.iconColor?.hex || 'black'}
                     size={24}
                     className="mr-3 flex-shrink-0"
-                    color="black"
                   />
                 ) : (
                   <Check className="h-6 w-6 text-brand-primary mr-3 flex-shrink-0" />

@@ -1,5 +1,5 @@
 import React from 'react';
-import { DynamicIcon } from '@/components/DynamicIcon';
+import { Icon } from '@/components/Icon';
 import { IconManager } from '@/types/sanity';
 import { HelpCircle, Check, X } from 'lucide-react';
 
@@ -83,10 +83,10 @@ const IconTest = () => {
               <div key={index} className="border rounded-lg p-4">
                 <h3 className="font-medium mb-2">{test.label}</h3>
                 <div className="flex items-center justify-center h-16 bg-gray-100 rounded">
-                  <DynamicIcon 
+                  <Icon 
                     icon={test.icon} 
                     size={32} 
-                    className="text-brand-primary"
+                    color="rgb(59, 130, 246)"
                   />
                 </div>
                 <details className="mt-2">

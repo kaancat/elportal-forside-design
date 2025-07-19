@@ -138,7 +138,8 @@ export class SanityService {
                 iconName,
                 url
               }
-            }
+            },
+            iconColor { hex, alpha }
           }
         },
         _type == "valueProposition" => {
@@ -156,7 +157,9 @@ export class SanityService {
                 iconName,
                 url
               }
-            }
+            },
+            iconColor { hex, alpha },
+            iconColor { hex, alpha }
           }
         },
         _type == "realPriceComparisonTable" => {
@@ -328,6 +331,7 @@ export class SanityService {
                     url
                   }
                 },
+                iconColor { hex, alpha },
                 link {
                   ...,
                   internalLink->{ "slug": slug.current, _type }
@@ -488,7 +492,8 @@ export class SanityService {
                 iconName,
                 url
               }
-            }
+            },
+            iconColor { hex, alpha }
           }
         },
         _type == "valueProposition" => {
@@ -506,7 +511,9 @@ export class SanityService {
                 iconName,
                 url
               }
-            }
+            },
+            iconColor { hex, alpha },
+            iconColor { hex, alpha }
           }
         },
         _type == "monthlyProductionChart" => {

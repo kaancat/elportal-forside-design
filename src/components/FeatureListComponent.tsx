@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { DynamicIcon, hasValidIcon, preloadIcons } from './DynamicIcon';
+import { Icon, hasValidIcon, preloadIcons } from './Icon';
 import { IconManager } from '@/types/sanity';
 
 interface Feature {
@@ -7,6 +7,7 @@ interface Feature {
   title: string;
   description: string;
   icon?: IconManager;
+  iconColor?: { hex: string; alpha?: number };
 }
 
 interface FeatureListBlock {
@@ -42,10 +43,10 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
                 {(() => {
                   const isValid = hasValidIcon(feature.icon);
                   return isValid && (
-                    <DynamicIcon
+                    <Icon
                       icon={feature.icon}
+                      color={feature.iconColor?.hex || 'black'}
                       size={48}
-                      color="rgb(59, 130, 246)"
                     />
                   );
                 })()}

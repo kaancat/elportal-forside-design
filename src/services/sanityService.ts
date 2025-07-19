@@ -145,7 +145,19 @@ export class SanityService {
           _key,
           _type,
           title,
-          propositions
+          propositions,
+          items[]{
+            _key,
+            text,
+            icon {
+              ...,
+              metadata {
+                inlineSvg,
+                iconName,
+                url
+              }
+            }
+          }
         },
         _type == "realPriceComparisonTable" => {
           _key,
@@ -463,7 +475,19 @@ export class SanityService {
           _key,
           _type,
           title,
-          propositions
+          propositions,
+          items[]{
+            _key,
+            text,
+            icon {
+              ...,
+              metadata {
+                inlineSvg,
+                iconName,
+                url
+              }
+            }
+          }
         },
         _type == "monthlyProductionChart" => {
           _key,

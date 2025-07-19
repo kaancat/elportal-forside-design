@@ -1,9 +1,22 @@
 import React from 'react';
 import { Check, Info } from 'lucide-react';
 import { DynamicIcon, hasValidIcon } from './DynamicIcon';
+import { IconManager } from '@/types/sanity';
+
+interface ValuePropositionItem {
+  _key: string;
+  text: string;
+  icon?: IconManager;
+}
+
+interface ValuePropositionBlock {
+  title?: string;
+  items?: ValuePropositionItem[];
+  propositions?: string[]; // Legacy support
+}
 
 interface ValuePropositionComponentProps {
-  block: any;
+  block: ValuePropositionBlock;
 }
 
 export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps> = ({ block }) => {
@@ -34,7 +47,7 @@ export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps>
             </div>
           )}
           <ul className="space-y-3 pl-1">
-            {items.map((item: any, index: number) => (
+            {items.map((item, index) => (
               <li key={item._key || index} className="flex items-center">
                 {hasValidIcon(item.icon) ? (
                   <DynamicIcon

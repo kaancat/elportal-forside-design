@@ -87,28 +87,29 @@ export function ConsumptionDashboard({
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="p-6 bg-gradient-to-br from-brand-green/5 to-brand-green/10 border-brand-green/20">
-            <div className="flex items-center justify-between mb-2">
-              <Calendar className="h-5 w-5 text-brand-green" />
-              <Badge className="bg-brand-green/20 text-brand-green border-0">
-                Månedlig
-              </Badge>
+          <Card className="p-4 bg-gradient-to-br from-brand-green/5 to-brand-green/10 border-brand-green/20">
+            <div className="flex items-center gap-2 mb-2">
+              <Calendar className="h-4 w-4 text-brand-green flex-shrink-0" />
+              <span className="text-xs font-medium text-brand-green">Månedlig</span>
             </div>
-            <p className="text-3xl font-bold text-gray-900">
-              {formatCost(totalMonthlyCost)} kr
+            <p className="text-2xl font-bold text-gray-900 leading-tight">
+              {formatCost(totalMonthlyCost)}
             </p>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-900 font-medium">
+              kr
+            </p>
+            <p className="text-xs text-gray-600 mt-2">
               {formatKwh(totalMonthlyKwh)} kWh
             </p>
-            {hasAppliances && (
-              <p className="text-xs text-gray-500 mt-2">
-                ≈ {costComparison} om måneden
+            {hasAppliances && costComparison && (
+              <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                ≈ en biografbillet om måneden
               </p>
             )}
           </Card>
@@ -119,19 +120,22 @@ export function ConsumptionDashboard({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <TrendingUp className="h-5 w-5 text-blue-600" />
-              <Badge variant="secondary">Årlig</Badge>
+          <Card className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className="h-4 w-4 text-blue-600 flex-shrink-0" />
+              <span className="text-xs font-medium text-gray-700">Årlig</span>
             </div>
-            <p className="text-3xl font-bold text-gray-900">
-              {formatCost(totalYearlyCost)} kr
+            <p className="text-2xl font-bold text-gray-900 leading-tight">
+              {formatCost(totalYearlyCost)}
             </p>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-900 font-medium">
+              kr
+            </p>
+            <p className="text-xs text-gray-600 mt-2">
               {formatKwh(totalMonthlyKwh * 12)} kWh/år
             </p>
             {hasAppliances && (
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-green-600 font-medium mt-1">
                 Kunne spare op til {formatCost(potentialSavings)} kr
               </p>
             )}
@@ -143,19 +147,22 @@ export function ConsumptionDashboard({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <Zap className="h-5 w-5 text-yellow-600" />
-              <Badge variant="outline">Daglig</Badge>
+          <Card className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Zap className="h-4 w-4 text-yellow-600 flex-shrink-0" />
+              <span className="text-xs font-medium text-gray-700">Daglig</span>
             </div>
-            <p className="text-3xl font-bold text-gray-900">
-              {formatCost(totalDailyCost)} kr
+            <p className="text-2xl font-bold text-gray-900 leading-tight">
+              {formatCost(totalDailyCost)}
             </p>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-900 font-medium">
+              kr
+            </p>
+            <p className="text-xs text-gray-600 mt-2">
               {formatKwh(totalMonthlyKwh / 30.44)} kWh
             </p>
             {hasAppliances && (
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-gray-500 mt-1">
                 Ved {formatCost(electricityPrice)} kr/kWh
               </p>
             )}
@@ -171,7 +178,7 @@ export function ConsumptionDashboard({
           transition={{ delay: 0.4 }}
         >
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-display font-semibold mb-4 flex items-center gap-2">
               <Lightbulb className="h-5 w-5 text-yellow-500" />
               Dine største strømforbrugere
             </h3>
@@ -227,21 +234,21 @@ export function ConsumptionDashboard({
           transition={{ delay: 0.5 }}
         >
           <Card className="p-6 bg-gradient-to-r from-brand-green to-green-600 text-white">
-            <div className="flex items-center justify-between">
+            <div className="space-y-4">
               <div>
-                <h3 className="text-xl font-bold mb-2">
+                <h3 className="text-xl font-display font-bold mb-2">
                   Klar til at spare på elregningen?
                 </h3>
-                <p className="text-white/90">
-                  Baseret på dit årlige forbrug på {formatKwh(totalMonthlyKwh * 12)} kWh,
-                  kan du potentielt spare op til {formatCost(potentialSavings)} kr om året.
+                <p className="text-white/90 text-sm leading-relaxed">
+                  Baseret på dit årlige forbrug på <span className="font-semibold">{formatKwh(totalMonthlyKwh * 12)} kWh</span>,
+                  kan du potentielt spare op til <span className="font-semibold">{formatCost(potentialSavings)} kr</span> om året.
                 </p>
               </div>
               <Button
                 size="lg"
                 variant="secondary"
                 onClick={onNavigateToComparison}
-                className="bg-white text-brand-green hover:bg-gray-100"
+                className="w-full sm:w-auto bg-white text-brand-green hover:bg-gray-100 font-medium"
               >
                 Sammenlign elaftaler
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -261,7 +268,7 @@ export function ConsumptionDashboard({
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
             <ShoppingCart className="h-8 w-8 text-gray-400" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <h3 className="text-lg font-display font-semibold text-gray-900 mb-2">
             Ingen apparater tilføjet endnu
           </h3>
           <p className="text-gray-600 max-w-sm mx-auto">

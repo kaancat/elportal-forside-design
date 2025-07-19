@@ -589,6 +589,40 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                     />
                     <Tooltip content={<ProductionTooltip />} />
                     
+                    {/* Current time marker overlay */}
+                    {selectedView === '24h' && currentStats.currentTimeIndex !== -1 && (
+                      <Line
+                        type="monotone"
+                        dataKey="totalProduction"
+                        stroke="transparent"
+                        strokeWidth={0}
+                        isAnimationActive={false}
+                        dot={(props: any) => {
+                          const { cx, cy, index, payload } = props;
+                          if (index === currentStats.currentTimeIndex) {
+                            return (
+                              <g>
+                                {/* Animated pulse effect */}
+                                <circle cx={cx} cy={cy} r={15} fill="#3b82f6" opacity={0.2}>
+                                  <animate attributeName="r" values="10;20;10" dur="2s" repeatCount="indefinite" />
+                                  <animate attributeName="opacity" values="0.3;0.1;0.3" dur="2s" repeatCount="indefinite" />
+                                </circle>
+                                {/* Main marker */}
+                                <circle cx={cx} cy={cy} r={6} fill="#3b82f6" stroke="#fff" strokeWidth={2} />
+                                {/* Tooltip */}
+                                <foreignObject x={cx - 60} y={cy - 45} width={120} height={35}>
+                                  <div className="bg-gray-800 text-white px-2 py-1 rounded text-xs font-medium text-center shadow-lg">
+                                    Nu: {payload.time} → {payload.totalProduction.toFixed(0)} MW
+                                  </div>
+                                </foreignObject>
+                              </g>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                    )}
+                    
                     {/* Stack renewable sources first */}
                     {Object.entries(productionTypes)
                       .filter(([_, config]) => config.renewable)

@@ -32,13 +32,12 @@ export const DynamicIcon: React.FC<DynamicIconProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const imgRef = useRef<HTMLImageElement>(null);
 
-  // Debug log
-  console.log('[DynamicIcon] Rendered with:', { 
-    hasIcon: !!icon, 
-    hasMetadata: !!icon?.metadata,
-    url: icon?.metadata?.url,
-    inlineSvg: !!icon?.metadata?.inlineSvg 
-  });
+  // Debug log - expand the object to see actual values
+  if (icon) {
+    console.log('[DynamicIcon] Rendered with icon:', JSON.stringify(icon, null, 2));
+  } else {
+    console.log('[DynamicIcon] Rendered with no icon');
+  }
 
   // Get the icon URL if available
   const iconUrl = icon?.metadata?.url && !imageError

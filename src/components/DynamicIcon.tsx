@@ -28,6 +28,11 @@ export const DynamicIcon: React.FC<DynamicIconProps> = ({
   className = "",
   fallbackIcon
 }) => {
+  console.log('[DynamicIcon] Component rendered!', { icon, size, className });
+  
+  // TEMPORARY: Simple test to verify component renders
+  return <div style={{ width: `${size}px`, height: `${size}px`, backgroundColor: 'red', color: 'white', fontSize: '12px' }}>ICON</div>;
+  
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -154,9 +159,19 @@ export const DynamicIcon: React.FC<DynamicIconProps> = ({
 
 // Helper function to check if icon data is valid
 export const hasValidIcon = (iconData: any): iconData is IconManager => {
-  return iconData && 
+  const result = iconData && 
     iconData.metadata && 
     (iconData.metadata.inlineSvg || iconData.metadata.url);
+  
+  console.log('[hasValidIcon] Checking:', { 
+    iconData, 
+    hasMetadata: !!iconData?.metadata,
+    inlineSvg: iconData?.metadata?.inlineSvg,
+    url: iconData?.metadata?.url,
+    result 
+  });
+  
+  return result;
 };
 
 // Helper to preload multiple icons

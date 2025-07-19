@@ -63,7 +63,9 @@ export const DynamicIcon: React.FC<DynamicIconProps> = ({
     console.log('[DynamicIcon] Checking image:', { 
       complete: img.complete, 
       naturalWidth: img.naturalWidth,
-      src: img.src 
+      src: img.src,
+      iconUrl: iconUrl,
+      isLoading: isLoading
     });
 
     // CRITICAL FIX: Check if image is already loaded from cache
@@ -75,11 +77,13 @@ export const DynamicIcon: React.FC<DynamicIconProps> = ({
     }
 
     const handleLoad = () => {
+      console.log('[DynamicIcon] Image loaded successfully:', iconUrl);
       setIsLoading(false);
       iconCache.set(iconUrl, true);
     };
 
     const handleError = () => {
+      console.log('[DynamicIcon] Image failed to load:', iconUrl);
       setImageError(true);
       setIsLoading(false);
       logIconError(`Failed to load icon from URL: ${iconUrl}`);
@@ -129,9 +133,12 @@ export const DynamicIcon: React.FC<DynamicIconProps> = ({
 
   // Priority 2: Use URL-based icon if available
   if (iconUrl) {
+    console.log('[DynamicIcon] Rendering URL-based icon:', { iconUrl, isLoading });
+    
     // Check cache for known failed icons
     const isCached = iconCache.get(iconUrl);
     if (isCached === false) {
+      console.log('[DynamicIcon] Icon known to fail, using fallback');
       return fallbackIcon || <HelpCircle size={size} className={className} />;
     }
     

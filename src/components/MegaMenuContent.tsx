@@ -1,7 +1,7 @@
 import React from 'react';
 import { MegaMenu } from '@/types/sanity';
 import { Link as RouterLink } from 'react-router-dom';
-import { DynamicIcon, hasValidIcon } from './DynamicIcon';
+import { Icon, hasValidIcon } from './Icon';
 
 interface MegaMenuContentProps {
   menu: MegaMenu;
@@ -25,11 +25,11 @@ const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
                 <li key={item._key}>
                   <RouterLink to={resolveLink(item.link)} className="flex items-start p-2 rounded-lg hover:bg-brand-green/10">
                     {hasValidIcon(item.icon) && (
-                      <DynamicIcon
+                      <Icon
                         icon={item.icon}
+                        color={item.iconColor?.hex || 'rgb(74, 222, 128)'} // brand-green default
                         size={24}
                         className="mr-4 flex-shrink-0"
-                        color="rgb(74, 222, 128)" // brand-green color
                       />
                     )}
                     <div>

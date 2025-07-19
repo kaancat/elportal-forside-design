@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend, Cell } from 'recharts';
-import { CalendarDays, ChevronLeft, ChevronRight, Zap, AlertCircle, Leaf } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight, Zap, AlertCircle, Leaf, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -226,8 +226,6 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<'Danmark' | 'DK1' | 'DK2'>('Danmark');
   const [selectedView, setSelectedView] = useState<'7d' | '30d'>(view === '24h' ? '7d' : view);
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
-  const [showDetails, setShowDetails] = useState(false);
   const [hoveredSegment, setHoveredSegment] = useState<string | null>(null);
 
   useEffect(() => {
@@ -614,29 +612,43 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
           </div>
         </div>
 
-        {/* Data delay notice */}
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="text-amber-600 mt-0.5" size={20} />
-            <div className="text-sm text-amber-800">
-              <p className="font-medium mb-1">Data forsinkelse</p>
-              <p>Energimix data er typisk forsinket med 7-10 dage. De viste data er de senest tilgængelige fra Energinet.</p>
-            </div>
+        {/* Compact info badges */}
+        <div className="flex flex-wrap gap-3 mb-6">
+          {/* Data delay notice */}
+          <div className="inline-flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-full px-4 py-2 text-xs">
+            <AlertCircle className="text-amber-600" size={16} />
+            <span className="text-amber-800 font-medium">Data forsinket 7-10 dage</span>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="text-amber-600 hover:text-amber-700">
+                  <Info size={14} />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="text-sm">
+                <p>Energimix data er typisk forsinket med 7-10 dage. De viste data er de senest tilgængelige fra Energinet.</p>
+              </PopoverContent>
+            </Popover>
           </div>
-        </div>
 
-        {/* Import info - only show if there are imports */}
-        {data.length > 0 && currentHourData && currentHourData.importPercentage > 0 && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <div className="flex items-start gap-3">
-              <Zap className="text-blue-600 mt-0.5" size={20} />
-              <div className="text-sm text-blue-800">
-                <p className="font-medium mb-1">Vidste du det?</p>
-                <p>Danmark har ingen atomkraftværker, men importerer el fra nabolande. Se i visualiseringen hvilke energityper der kommer fra Sverige, Norge, Tyskland og andre lande!</p>
-              </div>
+          {/* Import info - only show if there are imports */}
+          {data.length > 0 && currentHourData && currentHourData.importPercentage > 0 && (
+            <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-full px-4 py-2 text-xs">
+              <Zap className="text-blue-600" size={16} />
+              <span className="text-blue-800 font-medium">Import: {currentHourData.importPercentage.toFixed(0)}%</span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="text-blue-600 hover:text-blue-700">
+                    <Info size={14} />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="text-sm">
+                  <p className="font-medium mb-1">Vidste du det?</p>
+                  <p>Danmark har ingen atomkraftværker, men importerer el fra nabolande. Se i visualiseringen hvilke energityper der kommer fra Sverige, Norge, Tyskland og andre lande!</p>
+                </PopoverContent>
+              </Popover>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Main content area */}
         <div className="grid lg:grid-cols-4 gap-6">
@@ -743,15 +755,10 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                   .sort(([, a], [, b]) => b - a)
                   .map(([key, value]) => {
                     const groupInfo = groupedData[key];
-                    const isExpanded = expandedCategory === key;
                     return (
                       <div 
                         key={key} 
-                        className={cn(
-                          "flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer",
-                          isExpanded ? "bg-white shadow-sm ring-2 ring-gray-300" : "hover:bg-gray-100"
-                        )}
-                        onClick={() => setExpandedCategory(isExpanded ? null : key)}
+                        className="flex items-center gap-3 p-3 rounded-lg bg-white"
                       >
                         <div 
                           className="w-5 h-5 rounded flex-shrink-0" 
@@ -769,56 +776,6 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                   })}
               </div>
             </div>
-            
-            {/* Expandable Detail View */}
-            {showDetails && expandedCategory && groupedData[expandedCategory] && (
-              <div className="bg-white rounded-lg border p-6 shadow-sm">
-                <div className="flex items-center gap-3 mb-4">
-                  <div 
-                    className="w-6 h-6 rounded" 
-                    style={{ backgroundColor: groupedData[expandedCategory].color }}
-                  />
-                  <h4 className="font-semibold text-lg">{expandedCategory}</h4>
-                  <span className="text-gray-600 font-mono text-sm">
-                    {groupedData[expandedCategory].total.toFixed(1)}% af total
-                  </span>
-                  {groupedData[expandedCategory].isRenewable && (
-                    <Badge variant="outline" className="ml-auto text-green-600 border-green-600">
-                      <Leaf size={12} className="mr-1" />
-                      Vedvarende
-                    </Badge>
-                  )}
-                </div>
-                
-                {groupedData[expandedCategory].details.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-600 mb-3">Detaljeret fordeling:</p>
-                    <div className="space-y-2">
-                      {groupedData[expandedCategory].details.map((detail, idx) => (
-                        <div 
-                          key={idx} 
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded"
-                        >
-                          <div className="flex items-center gap-2">
-                            {detail.isImport && (
-                              <Badge variant="secondary" className="text-xs">
-                                Import
-                              </Badge>
-                            )}
-                            <span className="text-sm">
-                              {detail.isImport ? `Fra ${detail.origin}` : detail.origin}
-                            </span>
-                          </div>
-                          <span className="font-mono text-sm font-medium">
-                            {detail.percentage.toFixed(1)}%
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         )}
 

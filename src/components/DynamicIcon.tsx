@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import { HelpCircle } from 'lucide-react';
 import { IconManager } from '@/types/sanity';
 
@@ -9,179 +9,182 @@ interface DynamicIconProps {
   fallbackIcon?: React.ReactNode;
 }
 
-// Cache for preloaded icons to prevent re-fetching
-const iconCache = new Map<string, boolean>();
+// Simple component to handle image loading errors
+const IconWithFallback: React.FC<{
+  url: string;
+  alt: string;
+  size: number;
+  className: string;
+  fallback: React.ReactNode;
+}> = ({ url, alt, size, className, fallback }) => {
+  const [hasError, setHasError] = React.useState(false);
+  const DEBUG_MODE = true;
 
-// Preload critical icons to improve perceived performance
-export const preloadIcon = (url: string) => {
-  if (!iconCache.has(url)) {
-    const img = new Image();
-    img.src = url;
-    img.onload = () => iconCache.set(url, true);
-    img.onerror = () => iconCache.set(url, false);
+  if (hasError) {
+    if (DEBUG_MODE) {
+      return (
+        <div 
+          style={{ 
+            width: `${size}px`, 
+            height: `${size}px`, 
+            backgroundColor: 'purple', 
+            color: 'white', 
+            fontSize: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          title={`Failed to load: ${url}`}
+        >
+          ERROR
+        </div>
+      );
+    }
+    return <>{fallback}</>;
   }
+
+  return (
+    <img
+      src={url}
+      alt={alt}
+      className={className}
+      style={{ 
+        width: `${size}px`, 
+        height: `${size}px`, 
+        objectFit: 'contain',
+        ...(DEBUG_MODE ? { border: '2px solid blue' } : {})
+      }}
+      onError={() => setHasError(true)}
+      title={DEBUG_MODE ? `URL: ${url}` : undefined}
+    />
+  );
 };
 
+/**
+ * Simplified, bulletproof icon component for Sanity icon-manager
+ * No complex state management, just render what we have
+ */
 export const DynamicIcon: React.FC<DynamicIconProps> = ({ 
   icon,
   size = 24, 
   className = "",
   fallbackIcon
 }) => {
-  console.log('[DynamicIcon] Component rendered!', { icon, size, className });
+  // Debug mode - set to true to see visual indicators
+  const DEBUG_MODE = true;
   
-  // TEMPORARY: Simple test to verify component renders
-  return <div style={{ width: `${size}px`, height: `${size}px`, backgroundColor: 'red', color: 'white', fontSize: '12px' }}>ICON</div>;
-  
-  const [imageError, setImageError] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const imgRef = useRef<HTMLImageElement>(null);
-
-
-  // Get the icon URL if available
-  const iconUrl = icon?.metadata?.url && !imageError
-    ? (icon.metadata.url.includes('api.iconify.design') 
-        ? `${icon.metadata.url}&color=white`
-        : icon.metadata.url)
-    : null;
-
-  // Reset states when icon changes
-  useEffect(() => {
-    setImageError(false);
-    setIsLoading(true);
-  }, [icon?.metadata?.url, icon?.metadata?.iconName]);
-
-  // Handle image loading with race condition fix
-  useEffect(() => {
-    if (!imgRef.current || !iconUrl) return;
-
-    const img = imgRef.current;
-
-    // CRITICAL FIX: Check if image is already loaded from cache
-    if (img.complete && img.naturalWidth > 0) {
-      setIsLoading(false);
-      iconCache.set(iconUrl, true);
-      return;
-    }
-
-    const handleLoad = () => {
-      setIsLoading(false);
-      iconCache.set(iconUrl, true);
-    };
-
-    const handleError = () => {
-      setImageError(true);
-      setIsLoading(false);
-      logIconError(`Failed to load icon from URL: ${iconUrl}`);
-      iconCache.set(iconUrl, false);
-    };
-
-    img.addEventListener('load', handleLoad);
-    img.addEventListener('error', handleError);
-
-    return () => {
-      img.removeEventListener('load', handleLoad);
-      img.removeEventListener('error', handleError);
-    };
-  }, [iconUrl]);
-
-  // Log icon loading issues for debugging
-  const logIconError = (error: string) => {
-    console.warn(`[DynamicIcon] ${error}`, {
-      iconName: icon?.metadata?.iconName,
+  // Debug log to verify component is being called
+  if (DEBUG_MODE) {
+    console.log('[DynamicIcon] Rendering with:', { 
+      hasIcon: !!icon,
+      hasMetadata: !!icon?.metadata,
       url: icon?.metadata?.url,
-      hasInlineSvg: !!icon?.metadata?.inlineSvg
+      inlineSvg: !!icon?.metadata?.inlineSvg 
     });
-  };
+  }
 
-  // If no icon data, show fallback
-  if (!icon || !icon.metadata) {
+  // If no icon data, show fallback immediately
+  if (!icon?.metadata) {
+    if (DEBUG_MODE) {
+      return (
+        <div 
+          style={{ 
+            width: `${size}px`, 
+            height: `${size}px`, 
+            backgroundColor: 'red', 
+            color: 'white', 
+            fontSize: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          title="No icon metadata"
+        >
+          NO DATA
+        </div>
+      );
+    }
     return fallbackIcon || <HelpCircle size={size} className={className} />;
   }
 
-  // Priority 1: Use inline SVG if available (most reliable, no network request)
-  if (icon.metadata.inlineSvg) {
+  const { inlineSvg, url, iconName } = icon.metadata;
+
+  // Priority 1: Inline SVG (most reliable, no network request)
+  if (inlineSvg) {
     return (
       <div
         className={className}
         style={{ 
           width: `${size}px`, 
           height: `${size}px`, 
-          flexShrink: 0,
           display: 'inline-flex',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
+          ...(DEBUG_MODE ? { border: '2px solid green' } : {})
         }}
-        dangerouslySetInnerHTML={{ __html: icon.metadata.inlineSvg }}
+        dangerouslySetInnerHTML={{ __html: inlineSvg }}
+        title={DEBUG_MODE ? 'Inline SVG' : undefined}
       />
     );
   }
 
-  // Priority 2: Use URL-based icon if available
-  if (iconUrl) {
-    // Check cache for known failed icons
-    const isCached = iconCache.get(iconUrl);
-    if (isCached === false) {
-      return fallbackIcon || <HelpCircle size={size} className={className} />;
-    }
-    
-    return (
-      <>
-        {/* Show fallback while loading */}
-        {isLoading && (
-          <div style={{ width: `${size}px`, height: `${size}px` }} className={className}>
-            {fallbackIcon || <HelpCircle size={size} className={className} />}
-          </div>
-        )}
-        <img
-          ref={imgRef}
-          src={iconUrl}
-          alt={icon.metadata.iconName || 'Icon'}
-          className={className}
-          style={{ 
-            width: `${size}px`, 
-            height: `${size}px`, 
-            flexShrink: 0,
-            display: isLoading ? 'none' : 'inline-block',
-            objectFit: 'contain'
-          }}
-          loading="eager" // Changed from lazy to ensure immediate loading
-          decoding="async"
-        />
-      </>
-    );
+  // Priority 2: URL-based icon (simple img tag with React state for errors)
+  if (url) {
+    const iconUrl = url.includes('api.iconify.design') 
+      ? `${url}&color=white`
+      : url;
+
+    return <IconWithFallback 
+      url={iconUrl}
+      alt={iconName || 'Icon'}
+      size={size}
+      className={className}
+      fallback={fallbackIcon || <HelpCircle size={size} className={className} />}
+    />;
   }
 
-  // Final fallback to help circle
-  logIconError('No valid icon data found, using fallback');
+  // No valid icon data
+  if (DEBUG_MODE) {
+    return (
+      <div 
+        style={{ 
+          width: `${size}px`, 
+          height: `${size}px`, 
+          backgroundColor: 'orange', 
+          color: 'white', 
+          fontSize: '10px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+        title="No URL or SVG"
+      >
+        NO URL
+      </div>
+    );
+  }
   return fallbackIcon || <HelpCircle size={size} className={className} />;
 };
 
-// Helper function to check if icon data is valid
+// Simple validation - just check if we have the required data
 export const hasValidIcon = (iconData: any): iconData is IconManager => {
-  const result = iconData && 
-    iconData.metadata && 
-    (iconData.metadata.inlineSvg || iconData.metadata.url);
-  
-  console.log('[hasValidIcon] Checking:', { 
-    iconData, 
-    hasMetadata: !!iconData?.metadata,
-    inlineSvg: iconData?.metadata?.inlineSvg,
-    url: iconData?.metadata?.url,
-    result 
-  });
-  
-  return result;
+  return !!iconData?.metadata && !!(iconData.metadata.inlineSvg || iconData.metadata.url);
 };
 
-// Helper to preload multiple icons
+// Simplified preload - let browser handle caching
 export const preloadIcons = (icons: Array<IconManager | undefined>) => {
   icons.forEach(icon => {
-    if (icon?.metadata?.url && !icon.metadata.inlineSvg) {
-      const url = icon.metadata.url.includes('api.iconify.design') 
+    if (icon?.metadata?.url) {
+      const img = new Image();
+      img.src = icon.metadata.url.includes('api.iconify.design') 
         ? `${icon.metadata.url}&color=white`
         : icon.metadata.url;
-      preloadIcon(url);
     }
   });
+};
+
+// Export for backwards compatibility
+export const preloadIcon = (url: string) => {
+  const img = new Image();
+  img.src = url;
 };

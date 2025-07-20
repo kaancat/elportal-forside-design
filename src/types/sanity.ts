@@ -369,6 +369,7 @@ export interface IconManager {
     inlineSvg?: string;
     iconName?: string;
     url?: string;
+    color?: string; // Color from plugin's color picker (e.g. "#e34234")
   };
 }
 

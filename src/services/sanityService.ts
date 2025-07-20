@@ -136,7 +136,8 @@ export class SanityService {
               metadata {
                 inlineSvg,
                 iconName,
-                url
+                url,
+                color
               }
             },
             iconColor { hex, alpha }
@@ -155,7 +156,8 @@ export class SanityService {
               metadata {
                 inlineSvg,
                 iconName,
-                url
+                url,
+                color
               }
             },
             iconColor { hex, alpha },
@@ -328,7 +330,8 @@ export class SanityService {
                   metadata {
                     inlineSvg,
                     iconName,
-                    url
+                    url,
+                    color
                   }
                 },
                 iconColor { hex, alpha },
@@ -490,7 +493,8 @@ export class SanityService {
               metadata {
                 inlineSvg,
                 iconName,
-                url
+                url,
+                color
               }
             },
             iconColor { hex, alpha }
@@ -509,7 +513,8 @@ export class SanityService {
               metadata {
                 inlineSvg,
                 iconName,
-                url
+                url,
+                color
               }
             },
             iconColor { hex, alpha },

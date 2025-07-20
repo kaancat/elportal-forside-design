@@ -23,6 +23,11 @@ export const Icon: React.FC<IconProps> = ({
   className = "",
   fallbackIcon
 }) => {
+  // TEMPORARY: Log full icon data to see plugin structure
+  if (icon) {
+    console.log('[Icon Debug] Full icon data:', JSON.stringify(icon, null, 2));
+  }
+
   // If no icon data, show fallback
   if (!icon?.metadata) {
     return fallbackIcon || <HelpCircle size={size} className={className} />;
@@ -30,8 +35,9 @@ export const Icon: React.FC<IconProps> = ({
 
   const { inlineSvg, url, iconName } = icon.metadata;
 
-  // Extract color string from color prop (handles both string and Sanity color object)
-  const colorValue = typeof color === 'string' ? color : color?.hex;
+  // Get color from: 1) plugin metadata, 2) color prop, 3) default
+  // Plugin stores color as hex string (e.g. "#e34234")
+  const colorValue = icon.metadata.color || (typeof color === 'string' ? color : color?.hex);
 
   // Priority 1: Inline SVG (most reliable, no network request)
   if (inlineSvg) {

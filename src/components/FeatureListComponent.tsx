@@ -7,7 +7,6 @@ interface Feature {
   title: string;
   description: string;
   icon?: IconManager;
-  iconColor?: { hex: string; alpha?: number };
 }
 
 interface FeatureListBlock {

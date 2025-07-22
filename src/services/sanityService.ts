@@ -30,14 +30,14 @@ export class SanityService {
               subtitle,
               apiRegion,
               headerAlignment
-            }
+            },
             _type == "renewableEnergyForecast" => {
               _key,
               _type,
               title,
               leadingText,
               headerAlignment
-            }
+            },
             _type == "priceCalculator" => {
               _key,
               _type,
@@ -159,7 +159,6 @@ export class SanityService {
                 color
               }
             }
-            iconColor { hex, alpha },
           }
         },
         _type == "realPriceComparisonTable" => {
@@ -513,7 +512,6 @@ export class SanityService {
                 color
               }
             }
-            iconColor { hex, alpha },
           }
         },
         _type == "monthlyProductionChart" => {

@@ -36,18 +36,29 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
           </h2>
         )}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 justify-items-center">
-          {block.features.map((feature, index) => (
-            <div key={feature._key} className="flex flex-col items-center text-center max-w-sm">
-              <div className="flex items-center justify-center h-20 w-20 mb-6 rounded-full bg-brand-primary-light/10">
-                {(() => {
-                  const isValid = hasValidIcon(feature.icon);
-                  return isValid && (
-                    <Icon
-                      icon={feature.icon}
-                      size={48}
-                    />
-                  );
-                })()}
+          {block.features.map((feature, index) => {
+            // Debug logging
+            if (process.env.NODE_ENV === 'development' && feature.icon) {
+              console.log('[FeatureList] Item icon data:', {
+                title: feature.title,
+                icon: feature.icon,
+                hasMetadata: !!feature.icon?.metadata,
+                url: feature.icon?.metadata?.url
+              });
+            }
+            
+            return (
+              <div key={feature._key} className="flex flex-col items-center text-center max-w-sm">
+                <div className="flex items-center justify-center h-20 w-20 mb-6 rounded-full bg-brand-primary-light/10">
+                  {(() => {
+                    const isValid = hasValidIcon(feature.icon);
+                    return isValid && (
+                      <Icon
+                        icon={feature.icon}
+                        size={48}
+                      />
+                    );
+                  })()}
               </div>
               <h3 className="text-xl font-bold text-brand-dark mb-3">
                 {feature.title}
@@ -56,7 +67,8 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
                 {feature.description}
               </p>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

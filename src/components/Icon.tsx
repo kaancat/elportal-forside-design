@@ -23,11 +23,12 @@ export const Icon: React.FC<IconProps> = ({
 }) => {
   // Debug logging in development
   if (icon && process.env.NODE_ENV === 'development') {
-    console.log('[Icon] Rendering with data:', {
-      hasMetadata: !!icon.metadata,
+    console.log('[Icon] Full icon data:', {
+      icon: icon.icon,
+      metadata: icon.metadata,
       url: icon.metadata?.url,
-      colorType: typeof icon.metadata?.color,
-      colorValue: icon.metadata?.color
+      colorInMetadata: icon.metadata?.color,
+      colorType: typeof icon.metadata?.color
     });
   }
 

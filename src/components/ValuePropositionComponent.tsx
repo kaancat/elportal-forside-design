@@ -7,7 +7,6 @@ interface ValuePropositionItem {
   _key: string;
   text: string;
   icon?: IconManager;
-  iconColor?: { hex: string; alpha?: number };
 }
 
 interface ValuePropositionBlock {

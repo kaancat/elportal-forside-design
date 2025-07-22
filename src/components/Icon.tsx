@@ -4,48 +4,40 @@ import { IconManager } from '@/types/sanity';
 
 interface IconProps {
   icon?: IconManager;
-  color?: string | { hex: string }; // Can be a string or Sanity color object
   size?: number;
   className?: string;
-  hoverColor?: string; // Future: for hover states
-  darkModeColor?: string; // Future: for dark mode
   fallbackIcon?: React.ReactNode;
+  color?: string;
 }
 
 /**
- * Robust icon component that handles Sanity icon-manager icons with proper URL construction
- * and flexible color management
+ * Simple icon component that displays icons from sanity-plugin-icon-manager
+ * The plugin handles all URL construction including color, size, and transformations
  */
 export const Icon: React.FC<IconProps> = ({ 
   icon,
-  color,
   size = 24, 
   className = "",
-  fallbackIcon
+  fallbackIcon,
+  color
 }) => {
-  // TEMPORARY: Log full icon data to see plugin structure
-  if (icon) {
-    console.log('[Icon Debug] Full icon data:', JSON.stringify(icon, null, 2));
+  // Debug logging in development
+  if (icon && process.env.NODE_ENV === 'development') {
+    console.log('[Icon] Rendering with data:', {
+      hasMetadata: !!icon.metadata,
+      url: icon.metadata?.url,
+      colorType: typeof icon.metadata?.color,
+      colorValue: icon.metadata?.color
+    });
   }
 
-  // If no icon data, show fallback
-  if (!icon?.metadata) {
+  // If no icon URL, show fallback
+  if (!icon?.metadata?.url) {
     return fallbackIcon || <HelpCircle size={size} className={className} />;
   }
 
-  const { inlineSvg, url, iconName } = icon.metadata;
-
-  // Get color from: 1) plugin metadata, 2) color prop, 3) default
-  // Plugin stores color as hex string (e.g. "#e34234")
-  const colorValue = icon.metadata.color || (typeof color === 'string' ? color : color?.hex);
-
-  // Priority 1: Inline SVG (most reliable, no network request)
-  if (inlineSvg) {
-    // Replace currentColor with the specified color
-    const coloredSvg = colorValue 
-      ? inlineSvg.replace(/currentColor/g, colorValue)
-      : inlineSvg;
-    
+  // For inline SVG (if plugin provides it)
+  if (icon.metadata.inlineSvg) {
     return (
       <div
         className={className}
@@ -54,52 +46,32 @@ export const Icon: React.FC<IconProps> = ({
           height: `${size}px`, 
           display: 'inline-flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          color: colorValue || 'currentColor'
+          justifyContent: 'center'
         }}
-        dangerouslySetInnerHTML={{ __html: coloredSvg }}
+        dangerouslySetInnerHTML={{ __html: icon.metadata.inlineSvg }}
       />
     );
   }
 
-  // Priority 2: URL-based icon with proper parameter handling
-  if (url) {
-    try {
-      // Use URL class for robust query parameter handling
-      const iconUrl = new URL(url);
-      
-      // If color is specified and this is an Iconify URL, add color parameter
-      if (colorValue && url.includes('api.iconify.design')) {
-        // Remove the # from hex colors
-        const cleanColor = colorValue.startsWith('#') 
-          ? colorValue.substring(1) 
-          : colorValue;
-        iconUrl.searchParams.set('color', cleanColor);
-      }
-
-      return (
-        <img
-          src={iconUrl.toString()}
-          alt={iconName || 'Icon'}
-          className={className}
-          style={{ 
-            width: `${size}px`, 
-            height: `${size}px`, 
-            objectFit: 'contain'
-          }}
-          // Hide broken images
-          onError={(e) => {
-            e.currentTarget.style.display = 'none';
-          }}
-        />
-      );
-    } catch (error) {
-      console.error('Invalid icon URL:', url, error);
-    }
-  }
-
-  // No valid icon data
-  return fallbackIcon || <HelpCircle size={size} className={className} />;
+  // For URL-based icons - just use the URL as-is from the plugin
+  // The plugin already includes color parameters in the URL
+  return (
+    <img
+      src={icon.metadata.url}
+      alt={icon.metadata.iconName || 'Icon'}
+      className={className}
+      style={{ 
+        width: `${size}px`, 
+        height: `${size}px`, 
+        objectFit: 'contain'
+      }}
+      onError={(e) => {
+        console.error('[Icon] Failed to load:', icon.metadata.url);
+        // Hide broken images
+        e.currentTarget.style.display = 'none';
+      }}
+    />
+  );
 };
 
 // Re-export helper functions for compatibility

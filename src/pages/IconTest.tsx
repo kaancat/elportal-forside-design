@@ -85,8 +85,7 @@ const IconTest = () => {
                 <div className="flex items-center justify-center h-16 bg-gray-100 rounded">
                   <Icon 
                     icon={test.icon} 
-                    size={32} 
-                    color="rgb(59, 130, 246)"
+                    size={32}
                   />
                 </div>
                 <details className="mt-2">

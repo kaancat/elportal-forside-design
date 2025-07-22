@@ -17,7 +17,6 @@ const RichLinkCard: React.FC<{ item: any, resolveLink: (link: LinkType) => strin
     {hasValidIcon(item.icon) && (
       <Icon
         icon={item.icon}
-        color={item.iconColor?.hex || 'rgb(74, 222, 128)'} // brand-green default
         size={24}
         className="mr-4 mt-1 flex-shrink-0"
       />

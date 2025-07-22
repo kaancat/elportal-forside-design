@@ -53,7 +53,6 @@ export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps>
                 {hasValidIcon(item.icon) ? (
                   <Icon
                     icon={item.icon}
-                    color={item.iconColor?.hex || 'black'}
                     size={24}
                     className="mr-3 flex-shrink-0"
                   />

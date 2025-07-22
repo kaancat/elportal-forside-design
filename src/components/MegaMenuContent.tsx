@@ -27,7 +27,6 @@ const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
                     {hasValidIcon(item.icon) && (
                       <Icon
                         icon={item.icon}
-                        color={item.iconColor?.hex || 'rgb(74, 222, 128)'} // brand-green default
                         size={24}
                         className="mr-4 flex-shrink-0"
                       />

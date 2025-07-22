@@ -45,7 +45,6 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
                   return isValid && (
                     <Icon
                       icon={feature.icon}
-                      color={feature.iconColor?.hex || 'black'}
                       size={48}
                     />
                   );

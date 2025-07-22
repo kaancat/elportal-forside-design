@@ -21,16 +21,6 @@ export const Icon: React.FC<IconProps> = ({
   fallbackIcon,
   color
 }) => {
-  // Debug logging in development
-  if (icon && process.env.NODE_ENV === 'development') {
-    console.log('[Icon] Full icon data:', {
-      icon: icon.icon,
-      metadata: icon.metadata,
-      url: icon.metadata?.url,
-      colorInMetadata: icon.metadata?.color,
-      colorType: typeof icon.metadata?.color
-    });
-  }
 
   // Handle legacy icons that have icon string but no metadata
   if (icon?.icon && !icon.metadata?.url) {
@@ -39,10 +29,6 @@ export const Icon: React.FC<IconProps> = ({
     const defaultColor = color || '#84db41'; // Use provided color or default green
     const generatedUrl = `https://api.iconify.design/${iconString}.svg?color=${encodeURIComponent(defaultColor)}`;
     
-    console.log('[Icon] Generated URL for legacy icon:', {
-      iconString,
-      generatedUrl
-    });
 
     return (
       <img
@@ -111,5 +97,26 @@ export const Icon: React.FC<IconProps> = ({
   );
 };
 
-// Re-export helper functions for compatibility
-export { hasValidIcon, preloadIcons, preloadIcon } from './DynamicIcon';
+// Helper functions
+export const hasValidIcon = (iconData: any): iconData is IconManager => {
+  // Check if we have an icon string (for legacy) or proper metadata
+  return !!iconData && (!!iconData.icon || (!!iconData.metadata && !!(iconData.metadata.inlineSvg || iconData.metadata.url)));
+};
+
+export const preloadIcons = (icons: Array<IconManager | undefined>) => {
+  icons.forEach(icon => {
+    if (icon?.metadata?.url) {
+      const img = new Image();
+      img.src = icon.metadata.url;
+    } else if (icon?.icon) {
+      // Preload legacy icon URLs
+      const img = new Image();
+      img.src = `https://api.iconify.design/${icon.icon}.svg`;
+    }
+  });
+};
+
+export const preloadIcon = (url: string) => {
+  const img = new Image();
+  img.src = url;
+};

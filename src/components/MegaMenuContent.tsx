@@ -40,6 +40,7 @@ const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
                           icon={item.icon}
                           size={24}
                           className="mr-4 flex-shrink-0"
+                          color="#84db41"
                         />
                       )}
                       <div>

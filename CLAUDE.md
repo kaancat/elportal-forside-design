@@ -362,3 +362,101 @@ Run the appropriate commands based on what was modified:
 - Test Vindstød ranking is maintained
 - Verify real-time data updates work
 - Check responsive design on mobile
+
+## 9. SEO Page Generation Process (Direct API Method)
+
+### Overview
+ElPortal uses a direct AI-to-Sanity content generation approach for creating comprehensive SEO-optimized pages. This process has proven successful for generating high-quality, Danish-language content that ranks well in search engines while subtly promoting Vindstød as the preferred provider.
+
+### Key Success Factors
+1. **Dual Role Approach**: Act as both a top UI/UX designer AND expert SEO copywriter
+2. **Gemini Consultation**: Always consult Gemini for page structure, keywords, and SEO best practices
+3. **Component-First Design**: Leverage existing Sanity components for consistent design
+4. **Danish Content Excellence**: All content in native Danish with proper terminology
+5. **Subtle Promotion**: Promote wind power and Vindstød without explicit mentions
+
+### Page Generation Workflow
+
+#### 1. Initial Planning Phase
+```
+- Research competitor pages (e.g., elberegner.dk, elpriser.dk)
+- Analyze their content depth, structure, and keyword usage
+- Consult Gemini for:
+  - Optimal page structure
+  - Target keywords (Danish)
+  - SEO best practices for the topic
+  - Content outline
+```
+
+#### 2. Content Requirements
+- **Word Count**: 1000-2000 words minimum
+- **Language**: Danish (proper electricity market terminology)
+- **Tone**: Authoritative yet approachable
+- **Structure**: Hero → Key Content (e.g., Provider List) → Supporting Sections
+- **API Components**: Integrate live data visualizations throughout
+
+#### 3. Component Selection Strategy
+- **Consult Gemini** for optimal page structure based on:
+  - Page topic and user intent
+  - Competitor analysis
+  - SEO requirements
+- **Consider user journey** when selecting and ordering components
+- **Balance content types**: Mix text, data visualizations, and interactive elements
+- **Each page is unique**: Let the content goals drive component selection
+
+#### 4. Content Creation Process
+1. **Create JSON structure** with all content blocks
+2. **Write comprehensive Danish text** covering:
+   - Technical explanations (electricity prices, grid areas, etc.)
+   - Benefits of green energy (subtle Vindstød promotion)
+   - Practical advice for consumers
+   - Regional differences (DK1/DK2)
+3. **Validate all fields** against Sanity schemas
+4. **Use proper Portable Text format** for rich text fields
+
+#### 5. Technical Implementation
+```javascript
+// Import script pattern
+const client = createClient({
+  projectId: 'yxesi03x',
+  dataset: 'production',
+  useCdn: false,
+  apiVersion: '2025-01-01',
+  token: process.env.SANITY_API_TOKEN
+})
+
+// Create or update page
+const result = await client.createOrReplace({
+  _id: `page.${slug}`,
+  _type: 'page',
+  ...pageContent
+})
+```
+
+### Quality Checklist
+- [ ] Consulted Gemini for structure and keywords
+- [ ] 1000-2000+ words of Danish content
+- [ ] Natural keyword integration
+- [ ] API components add value, not just decoration
+- [ ] Vindstød subtly positioned as premium choice
+- [ ] All validation errors resolved
+- [ ] Mobile-responsive design considered
+- [ ] Internal linking strategy implemented
+
+### Common Pitfalls to Avoid
+1. **String vs Array Fields**: Many fields expect arrays (Portable Text), not strings
+2. **Missing Required Fields**: Always check schema requirements
+3. **Alignment Issues**: Use pageSection with headerAlignment for control
+4. **Over-promotion**: Keep Vindstød promotion subtle and credible
+
+### Proven Page Types
+- **"Elpriser"**: Comprehensive price comparison with provider list focus
+- **"Grøn Energi"**: Environmental benefits with renewable energy data
+- **"Spar Penge"**: Savings calculator and tips
+- **"DK1 vs DK2"**: Regional price differences explained
+
+### Future Improvements
+- Automate Gemini consultation with MCP integration
+- Create reusable content templates
+- Implement A/B testing for conversion optimization
+- Add automated Danish grammar checking

@@ -12,7 +12,7 @@ interface PageSectionProps {
 }
 
 const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
-  const { title, content, image, imagePosition = 'left', theme, cta } = section;
+  const { title, content, image, imagePosition = 'left', theme, cta, settings } = section;
 
   // Define custom components for embedded blocks in Portable Text
   const customComponents = {
@@ -61,14 +61,54 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
     backgroundColor: theme?.background || 'transparent',
   };
 
+  // Get text alignment class
+  const getTextAlignClass = () => {
+    switch (settings?.textAlignment) {
+      case 'left':
+        return 'text-left';
+      case 'right':
+        return 'text-right';
+      case 'center':
+      default:
+        return 'text-center';
+    }
+  };
+  
+  const textAlignClass = getTextAlignClass();
+
+  // Check if this is a text-only section (no image)
+  const isTextOnly = !image;
+
   return (
     <section style={sectionStyle} className="py-16 md:py-24 bg-white">
       <div className="container mx-auto px-4">
-        <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
-          
-          {/* Image Column */}
-          <div className={`order-1 ${imagePosition === 'right' ? 'md:order-2' : ''}`}>
-            {image && (
+        {isTextOnly ? (
+          // Text-only layout
+          <div className={`max-w-4xl mx-auto ${textAlignClass}`}>
+            {title && (
+              <h2 className={`text-3xl md:text-4xl font-bold tracking-tight text-brand-dark mb-6`}>
+                {title}
+              </h2>
+            )}
+            <div className="prose prose-lg max-w-none">
+              {content && <PortableText value={content} components={customComponents} />}
+            </div>
+            {cta && cta.text && cta.url && (
+              <div className={`mt-8 ${settings?.textAlignment === 'center' ? 'flex justify-center' : settings?.textAlignment === 'right' ? 'flex justify-end' : ''}`}>
+                <a 
+                  href={cta.url} 
+                  className="inline-flex items-center px-6 py-3 bg-brand-green hover:bg-brand-green/90 text-brand-dark font-semibold rounded-lg transition-colors duration-200"
+                >
+                  {cta.text}
+                </a>
+              </div>
+            )}
+          </div>
+        ) : (
+          // Image + text layout
+          <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
+            {/* Image Column */}
+            <div className={`order-1 ${imagePosition === 'right' ? 'md:order-2' : ''}`}>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -81,32 +121,31 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
                   className="rounded-xl w-full h-auto shadow-xl shadow-black/10"
                 />
               </motion.div>
-            )}
-          </div>
-
-          {/* Text Column */}
-          <div className={`order-2 ${imagePosition === 'right' ? 'md:order-1' : ''}`}>
-            {title && (
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-brand-dark mb-6">
-                {title}
-              </h2>
-            )}
-            <div className="prose prose-lg max-w-none">
-              {content && <PortableText value={content} components={customComponents} />}
             </div>
-            {cta && cta.text && cta.url && (
-              <div className="mt-8">
-                <a 
-                  href={cta.url} 
-                  className="inline-flex items-center px-6 py-3 bg-brand-green hover:bg-brand-green/90 text-brand-dark font-semibold rounded-lg transition-colors duration-200"
-                >
-                  {cta.text}
-                </a>
-              </div>
-            )}
-          </div>
 
-        </div>
+            {/* Text Column */}
+            <div className={`order-2 ${imagePosition === 'right' ? 'md:order-1' : ''} ${textAlignClass}`}>
+              {title && (
+                <h2 className={`text-3xl md:text-4xl font-bold tracking-tight text-brand-dark mb-6`}>
+                  {title}
+                </h2>
+              )}
+              <div className="prose prose-lg max-w-none">
+                {content && <PortableText value={content} components={customComponents} />}
+              </div>
+              {cta && cta.text && cta.url && (
+                <div className={`mt-8 ${settings?.textAlignment === 'center' ? 'flex justify-center' : settings?.textAlignment === 'right' ? 'flex justify-end' : ''}`}>
+                  <a 
+                    href={cta.url} 
+                    className="inline-flex items-center px-6 py-3 bg-brand-green hover:bg-brand-green/90 text-brand-dark font-semibold rounded-lg transition-colors duration-200"
+                  >
+                    {cta.text}
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

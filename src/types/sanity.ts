@@ -54,6 +54,12 @@ export interface PageSection {
     text: string;
     primary: string;
   };
+  settings?: {
+    theme?: 'default' | 'primary' | 'dark' | 'light';
+    padding?: 'none' | 'small' | 'medium' | 'large';
+    fullWidth?: boolean;
+    textAlignment?: 'left' | 'center' | 'right';
+  };
 }
 
 export interface FAQItem {

@@ -20,6 +20,7 @@ export class SanityService {
             "text": text.hex,
             "primary": primary.hex
           },
+          settings,
           content[]{ // Expand content array to include embedded blocks
             ..., // Get all fields for standard blocks (text, etc.)
             // Add expansions for each custom block type
@@ -383,6 +384,7 @@ export class SanityService {
             "text": text.hex,
             "primary": primary.hex
           },
+          settings,
           content[]{ 
             ...,
             _type == "livePriceGraph" => {

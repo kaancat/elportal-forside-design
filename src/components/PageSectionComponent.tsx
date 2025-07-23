@@ -12,7 +12,7 @@ interface PageSectionProps {
 }
 
 const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
-  const { title, content, image, imagePosition = 'left', theme, cta, settings } = section;
+  const { title, content, image, imagePosition = 'left', theme, cta, settings, headerAlignment } = section;
 
   // Define custom components for embedded blocks in Portable Text
   const customComponents = {
@@ -61,9 +61,10 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
     backgroundColor: theme?.background || 'transparent',
   };
 
-  // Get text alignment class
+  // Get text alignment class - headerAlignment takes priority over settings.textAlignment
   const getTextAlignClass = () => {
-    switch (settings?.textAlignment) {
+    const alignment = headerAlignment || settings?.textAlignment;
+    switch (alignment) {
       case 'left':
         return 'text-left';
       case 'right':

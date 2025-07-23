@@ -41,6 +41,7 @@ export interface PageSection {
   _type: 'pageSection'
   _key: string
   title?: string
+  headerAlignment?: 'left' | 'center' | 'right'
   content: BlockContent[]
   image?: SanityImage
   imagePosition?: 'left' | 'right' | 'none'

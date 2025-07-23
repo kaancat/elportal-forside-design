@@ -1,5 +1,11 @@
 {
   "buildCommand": "npm run build:clean",
   "framework": null,
-  "installCommand": "npm install --force"
+  "installCommand": "npm install --force",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }

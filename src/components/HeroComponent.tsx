@@ -12,22 +12,6 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
   // Handle both single image (schema) and images array (legacy)
   const heroImage = image || (images && images.length > 0 ? images[0] : null);
   
-  // Debug logging - HERO IMAGE DEBUGGING
-  console.log('🎨 [HERO DEBUG] Component rendering with block:', block);
-  console.log('🎨 [HERO DEBUG] Destructured values:', { headline, image, images, heroImage });
-  console.log('🎨 [HERO DEBUG] Direct URL available:', block.directImageUrl);
-  
-  if (heroImage) {
-    console.log('🎨 [HERO DEBUG] Hero image asset:', heroImage.asset);
-    try {
-      const imageUrl = urlFor(heroImage).width(1600).quality(80).url();
-      console.log('🎨 [HERO DEBUG] Generated URL:', imageUrl);
-    } catch (error) {
-      console.error('🎨 [HERO DEBUG] urlFor failed:', error);
-    }
-  } else {
-    console.log('🎨 [HERO DEBUG] No heroImage found!');
-  }
 
   // Full viewport height minus header space
   const minHeightStyle = { minHeight: 'calc(100vh - 8rem)' };
@@ -39,38 +23,12 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
       <div className="relative md:rounded-2xl md:overflow-hidden overflow-hidden">
         
         {/* Layer 1: Background Image (All screen sizes) */}
-        {(heroImage || block.directImageUrl) && (
+        {heroImage && (
           <div className="absolute inset-0">
             <img
-              src={(() => {
-                // Determine image source with logging
-                if (heroImage) {
-                  try {
-                    const url = urlFor(heroImage).width(1600).quality(80).url();
-                    console.log('🎨 [HERO DEBUG] Using urlFor result:', url);
-                    return url;
-                  } catch (error) {
-                    console.error('🎨 [HERO DEBUG] urlFor failed, using direct URL:', error);
-                    return block.directImageUrl;
-                  }
-                } else {
-                  console.log('🎨 [HERO DEBUG] Using direct URL:', block.directImageUrl);
-                  return block.directImageUrl;
-                }
-              })()}
-              alt={(heroImage && heroImage.alt) || "Hero background"}
+              src={urlFor(heroImage).width(1600).quality(80).url()}
+              alt={heroImage.alt || "Hero background"}
               className="w-full h-full object-cover"
-              onError={(e) => {
-                console.error('🎨 [HERO DEBUG] Image failed to load:', e.currentTarget.src);
-                // Try direct URL as fallback
-                if (block.directImageUrl && e.currentTarget.src !== block.directImageUrl) {
-                  console.log('🎨 [HERO DEBUG] Trying direct URL fallback:', block.directImageUrl);
-                  e.currentTarget.src = block.directImageUrl;
-                }
-              }}
-              onLoad={() => {
-                console.log('🎨 [HERO DEBUG] Image loaded successfully!');
-              }}
             />
           </div>
         )}

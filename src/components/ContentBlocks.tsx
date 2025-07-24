@@ -95,8 +95,21 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
 
 
   return (
-    <div className="space-y-6">
+    <div>
       {groupedBlocks.map((block, index) => {
+        // Determine spacing for this block
+        const nextBlock = groupedBlocks[index + 1];
+        const isDataVisualization = !Array.isArray(block) && ['livePriceGraph', 'co2EmissionsChart', 'renewableEnergyForecast', 'monthlyProductionChart', 'realPriceComparisonTable'].includes(block._type);
+        const nextIsDataVisualization = nextBlock && !Array.isArray(nextBlock) && ['livePriceGraph', 'co2EmissionsChart', 'renewableEnergyForecast', 'monthlyProductionChart', 'realPriceComparisonTable'].includes(nextBlock._type);
+        const isPageSection = !Array.isArray(block) && block._type === 'pageSection';
+        
+        // Use tighter spacing when pageSection is followed by data visualization
+        const tightSpacing = isPageSection && nextIsDataVisualization;
+        const spacingClass = tightSpacing ? 'mb-2' : (index < groupedBlocks.length - 1 ? 'mb-6' : '');
+        
+        return (
+          <div key={Array.isArray(block) ? `faq-group-${index}` : block._key} className={spacingClass}>
+            {(() => {
         // Use window.console to ensure logging works
         if (typeof window !== 'undefined' && !Array.isArray(block)) {
           window.console.log(`[Render] Block ${index} type: "${block._type}" (length: ${block._type?.length})`);
@@ -274,6 +287,9 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
             </div>
           )
         }
+              })()}
+            </div>
+        );
       })}
     </div>
   )

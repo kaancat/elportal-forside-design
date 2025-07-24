@@ -4,6 +4,14 @@
 
 **URL**: https://lovable.dev/projects/552b3352-b533-44e5-8485-d315bca5bd83
 
+## Available Pages
+
+- **Homepage** (`/`) - Main landing page
+- **Elpriser** (`/elpriser`) - Electricity prices guide
+- **Elselskaber** (`/elselskaber`) - Comprehensive guide to Danish electricity companies
+- **Om Os** (`/om-os`) - About page
+- **Energispareråd** (`/energispareraad`) - Energy saving tips
+
 ## How can I edit this code?
 
 There are several ways of editing your application.

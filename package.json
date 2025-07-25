@@ -16,7 +16,9 @@
     "mcp:browserbase": "tsx scripts/mcp-browserbase.ts",
     "mcp:screenshot": "tsx scripts/mcp-browserbase.ts screenshot",
     "mcp:analyze": "tsx scripts/mcp-browserbase.ts analyze",
-    "sanity:validate": "node scripts/sanity-validator.js"
+    "sanity:validate": "node scripts/sanity-validator.js",
+    "ladeboks:check": "tsx scripts/check-ladeboks-structure.ts",
+    "ladeboks:add-images": "tsx scripts/add-all-images-to-ladeboks.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

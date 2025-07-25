@@ -16,7 +16,18 @@ async function inspectLadeboksPage() {
   try {
     console.log('Fetching Ladeboks page...\n')
     
-    const page = await client.fetch(`*[_id == "page.ladeboks"][0]`)
+    // Try multiple queries to find the page
+    let page = await client.fetch(`*[_id == "page.ladeboks"][0]`)
+    
+    if (!page) {
+      console.log('Trying with slug query...')
+      page = await client.fetch(`*[_type == "page" && slug.current == "ladeboks"][0]`)
+    }
+    
+    if (!page) {
+      console.log('Trying partial ID match...')
+      page = await client.fetch(`*[_id match "*ladeboks*"][0]`)
+    }
     
     if (!page) {
       console.log('Ladeboks page not found!')

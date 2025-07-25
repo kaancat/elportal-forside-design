@@ -5,7 +5,9 @@ import { IconManager } from '@/types/sanity';
 
 interface ValuePropositionItem {
   _key: string;
-  text: string;
+  text?: string; // Legacy support
+  heading?: string;
+  description?: string;
   icon?: IconManager;
 }
 
@@ -46,21 +48,32 @@ export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps>
               <h2 className="text-2xl font-display font-bold text-brand-dark">{block.title}</h2>
             </div>
           )}
-          <ul className="space-y-3 pl-1">
-            {items.map((item, index) => (
-              <li key={item._key || index} className="flex items-center">
-                {hasValidIcon(item.icon) ? (
-                  <Icon
-                    icon={item.icon}
-                    size={24}
-                    className="mr-3 flex-shrink-0"
-                  />
-                ) : (
-                  <Check className="h-6 w-6 text-brand-primary mr-3 flex-shrink-0" />
-                )}
-                <span className="text-lg text-gray-800">{item.text}</span>
-              </li>
-            ))}
+          <ul className="space-y-4 pl-1">
+            {items.map((item, index) => {
+              // Get the display text from either new or legacy format
+              const displayText = item.heading || item.text || '';
+              const hasDescription = item.description && item.description.length > 0;
+              
+              return (
+                <li key={item._key || index} className="flex items-start">
+                  {hasValidIcon(item.icon) ? (
+                    <Icon
+                      icon={item.icon}
+                      size={24}
+                      className="mr-3 flex-shrink-0 mt-0.5"
+                    />
+                  ) : (
+                    <Check className="h-6 w-6 text-brand-primary mr-3 flex-shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <span className="text-lg font-semibold text-gray-800 block">{displayText}</span>
+                    {hasDescription && (
+                      <span className="text-base text-gray-600 mt-1 block">{item.description}</span>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>

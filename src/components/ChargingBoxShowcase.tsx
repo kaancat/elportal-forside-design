@@ -26,6 +26,12 @@ const formatPrice = (price: number) => {
 export function ChargingBoxShowcase({ block }: ChargingBoxShowcaseProps) {
   const { heading, description, products, headerAlignment = 'center' } = block
 
+  const alignmentClasses = {
+    left: 'text-left',
+    center: 'text-center',
+    right: 'text-right'
+  }
+
   // Debug logging
   console.log('[ChargingBoxShowcase] Rendering with:', {
     heading,
@@ -35,14 +41,24 @@ export function ChargingBoxShowcase({ block }: ChargingBoxShowcaseProps) {
   })
 
   if (!products || products.length === 0) {
-    console.log('[ChargingBoxShowcase] No products, returning null')
-    return null
-  }
-
-  const alignmentClasses = {
-    left: 'text-left',
-    center: 'text-center',
-    right: 'text-right'
+    console.log('[ChargingBoxShowcase] No products, showing placeholder')
+    return (
+      <section className="py-12 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className={`mb-8 ${alignmentClasses[headerAlignment]}`}>
+            <h2 className="text-3xl font-bold mb-4">{heading || 'Populære Ladebokse'}</h2>
+            {description && (
+              <div className="prose prose-lg max-w-none">
+                <PortableText value={description} />
+              </div>
+            )}
+          </div>
+          <div className="text-center py-8 text-gray-500">
+            <p>Ingen produkter tilgængelige i øjeblikket.</p>
+          </div>
+        </div>
+      </section>
+    )
   }
 
   return (

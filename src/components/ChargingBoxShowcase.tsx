@@ -51,8 +51,8 @@ export function ChargingBoxShowcase({ block }: ChargingBoxShowcaseProps) {
 
         {/* Product Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((product) => (
-            <Card key={product._id} className="relative overflow-hidden hover:shadow-lg transition-shadow duration-300">
+          {products.filter(Boolean).map((product) => (
+            <Card key={product._id || Math.random().toString()} className="relative overflow-hidden hover:shadow-lg transition-shadow duration-300">
               {/* Badge */}
               {product.badge && (
                 <div className="absolute top-4 right-4 z-10">
@@ -86,14 +86,16 @@ export function ChargingBoxShowcase({ block }: ChargingBoxShowcaseProps) {
 
                 {/* Price */}
                 <div className="mb-4">
-                  {product.originalPrice && product.originalPrice > product.currentPrice && (
+                  {product.originalPrice && product.currentPrice && product.originalPrice > product.currentPrice && (
                     <span className="text-gray-400 line-through text-sm mr-2">
                       {formatPrice(product.originalPrice)}
                     </span>
                   )}
-                  <span className="text-2xl font-bold text-brand-dark">
-                    {formatPrice(product.currentPrice)}
-                  </span>
+                  {product.currentPrice && (
+                    <span className="text-2xl font-bold text-brand-dark">
+                      {formatPrice(product.currentPrice)}
+                    </span>
+                  )}
                 </div>
 
                 {/* Features */}
@@ -109,18 +111,20 @@ export function ChargingBoxShowcase({ block }: ChargingBoxShowcaseProps) {
                 )}
 
                 {/* CTA Button */}
-                <Button 
-                  asChild 
-                  className="w-full bg-brand-green hover:bg-brand-green/90 text-white"
-                >
-                  <a 
-                    href={product.ctaLink} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
+                {product.ctaLink && (
+                  <Button 
+                    asChild 
+                    className="w-full bg-brand-green hover:bg-brand-green/90 text-white"
                   >
-                    {product.ctaText || 'Køb nu'}
-                  </a>
-                </Button>
+                    <a 
+                      href={product.ctaLink} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
+                      {product.ctaText || 'Køb nu'}
+                    </a>
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ))}

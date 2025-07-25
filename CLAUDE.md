@@ -4,28 +4,24 @@
 - **Vision:** Denmark's most trusted electricity price comparison platform, empowering consumers with real-time data and transparent pricing
 - **Business Goal:** Position Vindstød A/S as the recommended provider while maintaining fairness and transparency
 - **Current Phase:** Production-ready with active development of new features
-- **Architecture:** Three-project ecosystem - Frontend (React), CMS (Sanity), SEO Tools (AI-powered)
+- **Architecture:** Two-project ecosystem - Frontend (React), CMS (Sanity)
 - **Development Strategy:** Component-driven, headless CMS, real-time data integration, programmatic SEO
 
-## 2. Three-Project Architecture
+## 2. Two-Project Architecture
 
 ### elportal-forside-design (This Project - Frontend)
 - **Tech Stack:** Vite + React 18 + TypeScript + Tailwind CSS + shadcn/ui
 - **Purpose:** User-facing web application
 - **Key Features:** Real-time price graphs, interactive calculator, provider comparison
 - **Deployment:** Vercel with edge functions
+- **SEO Generation:** Direct Sanity API integration for creating pages
 
 ### sanityelpriscms (Content Backend)
 - **Tech Stack:** Sanity Studio v3 with 23 custom schemas
 - **Purpose:** Headless CMS for all content management
 - **Key Features:** Modular page builder, provider management, content validation
 - **Access:** https://dinelportal.sanity.studio
-
-### SEO-Page-Builder (Content Automation)
-- **Tech Stack:** Next.js + TypeScript + OpenRouter AI
-- **Purpose:** Generate SEO-optimized content at scale
-- **Key Features:** AI content generation, NDJSON export, bulk operations
-- **Integration:** Creates content for Sanity import
+- **API Integration:** Direct content creation via authenticated API
 
 ## 3. Critical Business Logic
 
@@ -90,7 +86,7 @@ const totalPrice = subtotal * 1.25 // Add 25% VAT
 
 **⚠️ CRITICAL: AI agents MUST read the [Project Structure documentation](/docs/ai-context/project-structure.md) before attempting any task to understand the complete technology stack, file tree and project organization.**
 
-ElPortal follows a three-project architecture with shared types and business logic. For the complete tech stack and file tree structure, see [docs/ai-context/project-structure.md](/docs/ai-context/project-structure.md).
+ElPortal follows a two-project architecture with the Frontend directly integrating with Sanity CMS. For the complete tech stack and file tree structure, see [docs/ai-context/project-structure.md](/docs/ai-context/project-structure.md).
 
 ## 3. Coding Standards & AI Instructions
 
@@ -298,6 +294,33 @@ mcp__context7__get_library_docs(
 - Support for specific library versions
 - Integration with current development practices
 
+### Smithery MCP Gateway
+**Documentation**: [Using MCP Servers](/docs/development/using-mcp-servers.md)
+
+**When to use:**
+- Finding images for components (Unsplash, stock photos)
+- Analyzing competitor websites
+- Researching content for SEO pages
+- Any task requiring external tools or services
+
+**Usage patterns:**
+```bash
+# Search for MCP servers
+npm run mcp:search "image stock photos"
+
+# Use a specific server
+npm run mcp:use @unsplash/mcp search -- --args '{"query": "wind turbines"}'
+
+# List available tools
+npm run mcp:use @smithery-ai/fetch --list
+```
+
+**Key capabilities:**
+- Access to 8,000+ MCP servers without installation
+- Dynamic tool discovery and usage
+- Unified gateway with single API key
+- Perfect for development tasks like finding images, analyzing competitors, generating content
+
 
 
 ## 6. ElPortal-Specific Patterns
@@ -355,7 +378,7 @@ After completing any coding task, follow this checklist:
 Run the appropriate commands based on what was modified:
 - **Frontend**: Run `npm run build` (includes tsc)
 - **Sanity**: Deploy to studio and test
-- **SEO Builder**: Validate generated NDJSON
+- **SEO Pages**: Validate content directly in Sanity Studio
 
 ### 2. Verification
 - Ensure all type checks pass before considering the task complete

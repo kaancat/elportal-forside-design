@@ -2,27 +2,35 @@
 
 ## Overview
 
-ElPortal operates as a sophisticated multi-project ecosystem designed for Danish electricity price comparison. The system integrates three core projects with external data sources to deliver real-time pricing information and SEO-optimized content.
+ElPortal operates as a sophisticated two-project ecosystem designed for Danish electricity price comparison. The system integrates the frontend application and Sanity CMS with external data sources to deliver real-time pricing information and SEO-optimized content.
 
 ## System Architecture
 
-### Three-Project Ecosystem
+### Two-Project Ecosystem
 
 ```
 ┌─────────────────────────┐     ┌─────────────────────────┐
-│   SEO Page Builder      │     │    Sanity CMS           │
-│  - AI Content Gen       │────▶│  - Content Storage      │
-│  - NDJSON Export        │     │  - 23 Schema Types      │
-│  - Bulk Operations      │     │  - Page Builder         │
-└─────────────────────────┘     └───────────┬─────────────┘
-                                            │
-                                            ▼
-┌─────────────────────────┐     ┌─────────────────────────┐
-│  Frontend Application   │◀────│   External APIs         │
-│  - React/TypeScript     │     │  - EnergiDataService    │
-│  - Real-time Updates    │     │  - Electricity Prices   │
-│  - Interactive Charts   │     │  - Production Data      │
+│  Frontend Application   │     │    Sanity CMS           │
+│  - React/TypeScript     │◀────│  - Content Storage      │
+│  - Real-time Updates    │     │  - 23 Schema Types      │
+│  - Interactive Charts   │     │  - Page Builder         │
+│  - SEO Page Generation  │────▶│  - API Content Creation │
 └─────────────────────────┘     └─────────────────────────┘
+                    │                       ▲
+                    │                       │
+                    ▼                       │
+┌─────────────────────────┐                 │
+│   External APIs         │                 │
+│  - EnergiDataService    │                 │
+│  - Electricity Prices   │                 │
+│  - Production Data      │                 │
+└─────────────────────────┘                 │
+                                           │
+┌─────────────────────────┐                 │
+│   AI Content Generation │─────────────────┘
+│  - Direct Sanity API    │
+│  - Danish SEO Content   │
+└─────────────────────────┘
 ```
 
 ## API Integration Patterns
@@ -114,7 +122,7 @@ cd elportal-forside-design
 npm run dev  # http://localhost:8080
 
 # Terminal 3: SEO Builder (when needed)
-cd SEO-Page-Builder
+# Direct API approach - no separate project needed
 npm run dev  # http://localhost:3000
 ```
 

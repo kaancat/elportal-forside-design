@@ -199,6 +199,29 @@ export interface ProviderListBlock {
   providers: ProviderProductBlock[]
 }
 
+export interface ChargingBoxProduct {
+  _id: string
+  _type: 'chargingBoxProduct'
+  name: string
+  description?: any[]
+  originalPrice?: number
+  currentPrice: number
+  badge?: string
+  features?: string[]
+  productImage?: any
+  ctaLink: string
+  ctaText?: string
+}
+
+export interface ChargingBoxShowcaseBlock {
+  _type: 'chargingBoxShowcase'
+  _key: string
+  heading: string
+  description?: any[]
+  products?: ChargingBoxProduct[]
+  headerAlignment?: 'left' | 'center' | 'right'
+}
+
 export interface FeatureBlock {
   _key: string
   _type: 'feature'
@@ -313,6 +336,7 @@ export type ContentBlock =
   | MunicipalityConsumptionMapBlock
   | ApplianceCalculator
   | EnergyTipsSection
+  | ChargingBoxShowcaseBlock
 
 export interface HomePage {
   _id: string

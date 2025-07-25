@@ -238,11 +238,7 @@ export class SanityService {
           maxTipsPerCategory
         },
         _type == "chargingBoxShowcase" => {
-          _key,
-          _type,
-          heading,
-          headerAlignment,
-          description,
+          ...,
           products[]->{ 
             _id,
             name,
@@ -620,11 +616,7 @@ export class SanityService {
           maxTipsPerCategory
         },
         _type == "chargingBoxShowcase" => {
-          _key,
-          _type,
-          heading,
-          headerAlignment,
-          description,
+          ...,
           products[]->{ 
             _id,
             name,

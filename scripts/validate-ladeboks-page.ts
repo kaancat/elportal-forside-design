@@ -1,14 +1,8 @@
 import { createClient } from '@sanity/client'
-import * as dotenv from 'dotenv'
-import { fileURLToPath } from 'url'
-import { dirname, resolve } from 'path'
+import dotenv from 'dotenv'
 
-// Get __dirname equivalent in ES modules
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-
-// Load environment variables from the Sanity CMS project
-dotenv.config({ path: resolve(__dirname, '../../sanityelpriscms/.env') })
+// Load environment variables
+dotenv.config()
 
 const client = createClient({
   projectId: 'yxesi03x',
@@ -18,112 +12,177 @@ const client = createClient({
   token: process.env.SANITY_API_TOKEN
 })
 
+// Schema field mappings - correct field names for each type
+const schemaFieldMappings = {
+  hero: {
+    requiredFields: ['headline'],
+    validFields: ['headline', 'subheadline', 'image'],
+    invalidFields: ['heading', 'ctaText', 'ctaLink']
+  },
+  pageSection: {
+    requiredFields: [],
+    validFields: ['title', 'content', 'headerAlignment', 'image', 'imagePosition', 'cta', 'settings'],
+    invalidFields: ['heading']
+  },
+  valueProposition: {
+    requiredFields: [],
+    validFields: ['title', 'items'],
+    invalidFields: ['heading', 'values', 'propositions']
+  },
+  livePriceGraph: {
+    requiredFields: ['title', 'apiRegion'],
+    validFields: ['title', 'subtitle', 'apiRegion', 'headerAlignment'],
+    invalidFields: ['heading', 'description', 'showDetails']
+  },
+  faqGroup: {
+    requiredFields: ['title', 'faqItems'],
+    validFields: ['title', 'faqItems'],
+    invalidFields: ['heading', 'faqs']
+  },
+  featureList: {
+    requiredFields: [],
+    validFields: ['title', 'features'],
+    invalidFields: ['heading']
+  },
+  callToActionSection: {
+    requiredFields: ['title', 'buttonText', 'buttonUrl'],
+    validFields: ['title', 'buttonText', 'buttonUrl'],
+    invalidFields: ['headline', 'heading']
+  },
+  richTextSection: {
+    requiredFields: ['content'],
+    validFields: ['content'],
+    invalidFields: ['title', 'heading']
+  },
+  chargingBoxShowcase: {
+    requiredFields: ['heading'],
+    validFields: ['heading', 'description', 'products', 'headerAlignment'],
+    invalidFields: ['title'] // This one actually uses 'heading'
+  }
+}
+
 async function validateLadeboksPage() {
   try {
-    console.log('🔍 Validating Ladeboks page...\n')
+    console.log('Fetching Ladeboks page for validation...\n')
     
-    // Fetch the page directly from Sanity
-    const page = await client.fetch(`*[_id == "page.ladeboks"][0]`)
+    const rawQuery = `*[_id == "page.ladeboks"][0]`
+    const page = await client.fetch(rawQuery)
     
     if (!page) {
       console.error('❌ Page not found!')
       return
     }
     
-    console.log('✅ Page found in Sanity!')
-    console.log('\n📋 Page Structure Validation:')
+    console.log(`Page: ${page.title} (${page._id})`)
+    console.log(`Slug: ${page.slug}`)
+    console.log(`Sections: ${page.sections?.length || 0}\n`)
     
-    // Check required fields
-    const checks = [
-      { field: '_id', value: page._id, expected: 'page.ladeboks' },
-      { field: '_type', value: page._type, expected: 'page' },
-      { field: 'title', value: page.title, type: 'string' },
-      { field: 'slug.current', value: page.slug?.current, expected: 'ladeboks' },
-      { field: 'seoMetaTitle', value: page.seoMetaTitle, type: 'string' },
-      { field: 'seoMetaDescription', value: page.seoMetaDescription, type: 'string' },
-      { field: 'seoKeywords', value: Array.isArray(page.seoKeywords), expected: true },
-      { field: 'contentBlocks', value: Array.isArray(page.contentBlocks), expected: true },
-    ]
+    let hasErrors = false
+    const errors: string[] = []
+    const warnings: string[] = []
     
-    let allPassed = true
-    
-    checks.forEach(check => {
-      if (check.expected !== undefined) {
-        const passed = check.value === check.expected
-        console.log(`   ${passed ? '✅' : '❌'} ${check.field}: ${check.value} ${passed ? '' : `(expected: ${check.expected})`}`)
-        if (!passed) allPassed = false
-      } else if (check.type) {
-        const passed = typeof check.value === check.type && check.value
-        console.log(`   ${passed ? '✅' : '❌'} ${check.field}: ${passed ? 'present' : 'missing/invalid'}`)
-        if (!passed) allPassed = false
+    // Validate each section
+    page.sections?.forEach((section: any, index: number) => {
+      const sectionType = section._type
+      const mapping = schemaFieldMappings[sectionType as keyof typeof schemaFieldMappings]
+      
+      console.log(`\nSection ${index + 1}: ${sectionType}`)
+      console.log(`  _key: ${section._key || '❌ MISSING'}`)
+      
+      if (!section._key) {
+        errors.push(`Section ${index + 1} (${sectionType}) is missing _key`)
+        hasErrors = true
+      }
+      
+      if (!mapping) {
+        warnings.push(`Unknown section type: ${sectionType}`)
+        console.log(`  ⚠️  Unknown section type`)
+        return
+      }
+      
+      // Check for invalid fields
+      const invalidFieldsFound = mapping.invalidFields.filter(field => 
+        section[field] !== undefined
+      )
+      
+      if (invalidFieldsFound.length > 0) {
+        hasErrors = true
+        invalidFieldsFound.forEach(field => {
+          errors.push(`Section ${index + 1} (${sectionType}) has invalid field: ${field}`)
+          console.log(`  ❌ Invalid field: ${field} = "${section[field]}"`)
+        })
+      }
+      
+      // Check for required fields
+      const missingRequired = mapping.requiredFields.filter(field => 
+        section[field] === undefined || section[field] === null
+      )
+      
+      if (missingRequired.length > 0) {
+        hasErrors = true
+        missingRequired.forEach(field => {
+          errors.push(`Section ${index + 1} (${sectionType}) missing required field: ${field}`)
+          console.log(`  ❌ Missing required field: ${field}`)
+        })
+      }
+      
+      // Show current fields
+      const currentFields = Object.keys(section).filter(key => 
+        !key.startsWith('_') || key === '_key'
+      )
+      console.log(`  Current fields: ${currentFields.join(', ')}`)
+      
+      // Check for proper field values
+      if (sectionType === 'valueProposition' && section.items) {
+        const invalidItems = section.items.filter((item: any) => 
+          !item._key || !item._type
+        )
+        if (invalidItems.length > 0) {
+          warnings.push(`Section ${index + 1} (valueProposition) has items without _key or _type`)
+          console.log(`  ⚠️  ${invalidItems.length} items missing _key or _type`)
+        }
+      }
+      
+      if (sectionType === 'faqGroup' && section.faqItems) {
+        const invalidFaqs = section.faqItems.filter((item: any) => 
+          !item._key || !item._type
+        )
+        if (invalidFaqs.length > 0) {
+          warnings.push(`Section ${index + 1} (faqGroup) has FAQ items without _key or _type`)
+          console.log(`  ⚠️  ${invalidFaqs.length} FAQ items missing _key or _type`)
+        }
       }
     })
     
-    console.log('\n📊 Content Analysis:')
-    console.log(`   - Keywords: ${page.seoKeywords?.length || 0} keywords`)
-    console.log(`   - Content blocks: ${page.contentBlocks?.length || 0} blocks`)
+    // Summary
+    console.log('\n' + '='.repeat(60))
+    console.log('VALIDATION SUMMARY')
+    console.log('='.repeat(60))
     
-    if (page.contentBlocks?.length > 0) {
-      console.log('\n📦 Content Blocks:')
-      page.contentBlocks.forEach((block, index) => {
-        console.log(`   ${index + 1}. ${block._type}${block.heading ? `: "${block.heading}"` : ''}`)
-        if (block._type === 'pageSection' && block.components) {
-          block.components.forEach((comp, cIndex) => {
-            console.log(`      - ${comp._type}${comp.heading ? `: "${comp.heading}"` : ''}`)
-          })
-        }
-      })
+    if (errors.length > 0) {
+      console.log('\n❌ ERRORS:')
+      errors.forEach(error => console.log(`  - ${error}`))
     }
     
-    // Check for common validation issues
-    console.log('\n🔧 Schema Validation:')
-    
-    // Check for _key in arrays
-    let hasKeys = true
-    if (page.contentBlocks) {
-      page.contentBlocks.forEach((block, index) => {
-        if (!block._key) {
-          console.log(`   ❌ Missing _key in contentBlocks[${index}]`)
-          hasKeys = false
-        }
-        if (block._type === 'pageSection' && block.components) {
-          block.components.forEach((comp, cIndex) => {
-            if (!comp._key) {
-              console.log(`   ❌ Missing _key in contentBlocks[${index}].components[${cIndex}]`)
-              hasKeys = false
-            }
-          })
-        }
-      })
+    if (warnings.length > 0) {
+      console.log('\n⚠️  WARNINGS:')
+      warnings.forEach(warning => console.log(`  - ${warning}`))
     }
     
-    if (hasKeys) {
-      console.log('   ✅ All array items have _key properties')
-    }
-    
-    // Check SEO structure
-    if (page.seo) {
-      console.log('   ❌ Found nested seo object (should be flat fields)')
+    if (!hasErrors && warnings.length === 0) {
+      console.log('\n✅ Page is valid!')
     } else {
-      console.log('   ✅ SEO fields are flat (correct structure)')
+      console.log('\n❌ Page has validation issues that need to be fixed.')
+      console.log('\nRun one of these scripts to fix:')
+      console.log('  npm run tsx scripts/fix-ladeboks-page.ts')
+      console.log('  npm run tsx scripts/fix-ladeboks-page-safe.ts (creates backup)')
     }
-    
-    // Check slug structure
-    if (page.slug && typeof page.slug === 'object' && page.slug._type === 'slug') {
-      console.log('   ✅ Slug has correct object structure')
-    } else {
-      console.log('   ❌ Slug structure is incorrect')
-    }
-    
-    console.log('\n' + (allPassed && hasKeys ? '✅ Page is valid and ready!' : '❌ Page has validation issues'))
-    
-    // Test frontend accessibility
-    console.log('\n🌐 Frontend Check:')
-    console.log('   URL: https://dinelportal.dk/ladeboks')
-    console.log('   API: https://yxesi03x.api.sanity.io/v2025-01-01/data/query/production')
     
   } catch (error) {
     console.error('❌ Error validating page:', error)
+    if (error instanceof Error) {
+      console.error('Details:', error.message)
+    }
   }
 }
 

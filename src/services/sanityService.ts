@@ -240,19 +240,20 @@ export class SanityService {
         _type == "chargingBoxShowcase" => {
           _key,
           _type,
-          title,
-          subtitle,
+          heading,
+          headerAlignment,
           description,
           products[]->{ 
             _id,
             name,
-            category,
-            power,
-            features,
-            price,
-            image,
             description,
-            specifications
+            originalPrice,
+            currentPrice,
+            badge,
+            features,
+            productImage,
+            ctaLink,
+            ctaText
           }
         }
       }
@@ -621,19 +622,20 @@ export class SanityService {
         _type == "chargingBoxShowcase" => {
           _key,
           _type,
-          title,
-          subtitle,
+          heading,
+          headerAlignment,
           description,
           products[]->{ 
             _id,
             name,
-            category,
-            power,
-            features,
-            price,
-            image,
             description,
-            specifications
+            originalPrice,
+            currentPrice,
+            badge,
+            features,
+            productImage,
+            ctaLink,
+            ctaText
           }
         }
       }

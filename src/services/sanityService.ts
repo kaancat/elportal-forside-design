@@ -151,6 +151,8 @@ export class SanityService {
           items[]{
             _key,
             text,
+            heading,
+            description,
             icon {
               ...,
               metadata {
@@ -524,6 +526,8 @@ export class SanityService {
           items[]{
             _key,
             text,
+            heading,
+            description,
             icon {
               ...,
               metadata {

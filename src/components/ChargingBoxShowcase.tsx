@@ -39,6 +39,17 @@ export function ChargingBoxShowcase({ block }: ChargingBoxShowcaseProps) {
     products: products,
     headerAlignment
   })
+  
+  // Log first product details
+  if (products && products.length > 0) {
+    console.log('[ChargingBoxShowcase] First product:', products[0])
+    console.log('[ChargingBoxShowcase] Product structure:', {
+      hasId: !!products[0]?._id,
+      hasName: !!products[0]?.name,
+      hasPrice: !!products[0]?.currentPrice,
+      hasCta: !!products[0]?.ctaLink
+    })
+  }
 
   if (!products || products.length === 0) {
     console.log('[ChargingBoxShowcase] No products, showing placeholder')
@@ -62,7 +73,7 @@ export function ChargingBoxShowcase({ block }: ChargingBoxShowcaseProps) {
   }
 
   return (
-    <section className="py-12 px-4">
+    <section className="py-12 px-4 bg-gray-50 border-2 border-red-500">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className={`mb-8 ${alignmentClasses[headerAlignment]}`}>
@@ -76,6 +87,7 @@ export function ChargingBoxShowcase({ block }: ChargingBoxShowcaseProps) {
 
         {/* Product Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="bg-yellow-200 p-4">DEBUG: {products.length} products to render</div>
           {products.filter(Boolean).map((product) => (
             <Card key={product._id || Math.random().toString()} className="relative overflow-hidden hover:shadow-lg transition-shadow duration-300">
               {/* Badge */}

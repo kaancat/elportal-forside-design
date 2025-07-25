@@ -236,6 +236,24 @@ export class SanityService {
           showDifficultyBadges,
           showSavingsPotential,
           maxTipsPerCategory
+        },
+        _type == "chargingBoxShowcase" => {
+          _key,
+          _type,
+          title,
+          subtitle,
+          description,
+          products[]->{ 
+            _id,
+            name,
+            category,
+            power,
+            features,
+            price,
+            image,
+            description,
+            specifications
+          }
         }
       }
     }`
@@ -599,6 +617,24 @@ export class SanityService {
           showDifficultyBadges,
           showSavingsPotential,
           maxTipsPerCategory
+        },
+        _type == "chargingBoxShowcase" => {
+          _key,
+          _type,
+          title,
+          subtitle,
+          description,
+          products[]->{ 
+            _id,
+            name,
+            category,
+            power,
+            features,
+            price,
+            image,
+            description,
+            specifications
+          }
         }
       }
     }`

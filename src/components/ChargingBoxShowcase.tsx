@@ -26,7 +26,16 @@ const formatPrice = (price: number) => {
 export function ChargingBoxShowcase({ block }: ChargingBoxShowcaseProps) {
   const { heading, description, products, headerAlignment = 'center' } = block
 
+  // Debug logging
+  console.log('[ChargingBoxShowcase] Rendering with:', {
+    heading,
+    productsCount: products?.length,
+    products: products,
+    headerAlignment
+  })
+
   if (!products || products.length === 0) {
+    console.log('[ChargingBoxShowcase] No products, returning null')
     return null
   }
 

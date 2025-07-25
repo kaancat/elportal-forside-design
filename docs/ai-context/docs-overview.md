@@ -19,24 +19,28 @@ This hierarchy allows AI agents to load targeted context efficiently while maint
 
 ## Tier 1: Foundational Documentation (System-Wide)
 
-- **[Master Context](/CLAUDE.md)** - *Essential for every session.* Three-project architecture, business logic, coding standards, and known issues
+- **[Master Context](/CLAUDE.md)** - *Essential for every session.* Two-project architecture, business logic, coding standards, and known issues
 - **[Project Structure](/docs/ai-context/project-structure.md)** - *REQUIRED reading.* Complete ElPortal ecosystem overview, tech stack, and file organization
-- **[System Integration](/docs/ai-context/system-integration.md)** - *For cross-project work.* API patterns, data flow, Sanity-Frontend-SEO Builder integration
+- **[System Integration](/docs/ai-context/system-integration.md)** - *For cross-project work.* API patterns, data flow, Sanity-Frontend integration
 - **[Deployment Infrastructure](/docs/ai-context/deployment-infrastructure.md)** - *Infrastructure patterns.* Vercel deployment, Sanity hosting, CI/CD, and monitoring
 - **[Task Management](/docs/ai-context/handoff.md)** - *Session continuity.* Current status, technical debt, and prioritized improvements
 - **[API Reference](/docs/ai-context/EnergiDataServiceAPI.md)** - *External API docs.* EnergiDataService endpoints, rate limits, and examples
 - **[Sanity Icon Troubleshooting](/docs/SANITY_ICON_TROUBLESHOOTING.md)** - *Plugin integration guide.* SchemaError fixes, icon picker setup, and common pitfalls
-- **[SEO Page Builder Integration](/docs/SEO_PAGE_BUILDER_INTEGRATION.md)** - *Field conflict resolution.* Handling duplicate fields, schema migration, and workflow integration
+- **[Direct SEO Page Generation](/docs/SEO_PAGE_GENERATION.md)** - *Direct API approach.* Creating SEO pages via Sanity API, content patterns, and validation
+
+### Development Tools
+- **[Using MCP Servers](/docs/development/using-mcp-servers.md)** - *Development efficiency.* Smithery gateway for accessing MCP servers, image search, competitor analysis, content generation
+- **[Smithery Example Workflow](/docs/development/smithery-example-workflow.md)** - *Practical examples.* Finding images, analyzing competitors, generating content via MCP servers
 
 ## Tier 2: Component-Level Documentation
 
 ### ElPortal Architecture
-- **[Component Architecture](/docs/CONTEXT-tier2-component.md)** - *Complete system.* Frontend, Sanity CMS, SEO Builder, API integration patterns, and business logic implementation
+- **[Component Architecture](/docs/CONTEXT-tier2-component.md)** - *Complete system.* Frontend, Sanity CMS, API integration patterns, and business logic implementation
 
 ### Key Components Covered
 - **Frontend Application** - React component architecture, state patterns, content blocks
 - **Sanity CMS** - 23 schemas, content modeling, editorial workflows  
-- **SEO Builder** - AI generation, NDJSON export, validation pipeline
+- **SEO Generation** - Direct AI-to-Sanity content creation, validation
 - **API Layer** - Serverless functions, EnergiDataService integration, caching
 - **Business Logic** - Price calculations, provider ranking algorithms
 

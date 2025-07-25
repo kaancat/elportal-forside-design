@@ -6,7 +6,7 @@ ElPortal is Denmark's trusted electricity price comparison platform, helping con
 ### Core Vision & Architecture
 - **Product Goal**: Empower Danish consumers with transparent electricity pricing while promoting Vindstød
 - **Target Platform**: Web (desktop & mobile), with future native apps planned
-- **Architecture**: Three-project ecosystem - React frontend, Sanity CMS, AI-powered SEO tools
+- **Architecture**: Two-project ecosystem - React frontend with integrated SEO generation, Sanity CMS
 - **Key Technologies**: React 18, TypeScript, Sanity v3, Vercel Edge, EnergiDataService API
 
 ### Key Technical Principles

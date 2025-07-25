@@ -71,12 +71,13 @@ ElPortal uses a modern cloud-native deployment architecture leveraging Vercel fo
 - Authenticated write access
 - Role-based permissions for editors
 
-### SEO Page Builder
+### SEO Page Generation
 
-**Deployment Options:**
-1. Local tool (current)
-2. Vercel deployment (planned)
-3. Scheduled automation (future)
+**Implementation:**
+- Direct Sanity API integration
+- No separate deployment needed
+- Content creation via authenticated API calls
+- Validation happens within Sanity
 
 ## CI/CD Pipeline
 

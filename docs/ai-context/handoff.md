@@ -111,12 +111,12 @@ Work completed in this comprehensive analysis session:
 ### Recent Decisions
 
 ## Design Decisions Made
-- **Decision**: Three-project architecture
-  - Date: Initial design
-  - Rationale: Separation of concerns between frontend, CMS, and tools
-  - Alternatives considered: Monorepo, integrated CMS
-  - Impact: Clean boundaries but requires careful coordination
-  - Validation: Proven by independent deployment and scaling
+- **Decision**: Two-project architecture with direct API integration
+  - Date: Updated after practical experience
+  - Rationale: Direct Sanity API approach proved more efficient than separate SEO builder
+  - Alternatives considered: Three-project with NDJSON export (original), Monorepo
+  - Impact: Simplified architecture, faster content generation
+  - Validation: Successfully created multiple SEO pages with direct API
 
 - **Decision**: Vercel serverless for API proxy
   - Date: Frontend implementation

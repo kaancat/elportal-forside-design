@@ -3,10 +3,10 @@
 > **Note**: This is component-specific context. See root **CLAUDE.md** for master project context and coding standards.
 
 ## Purpose
-ElPortal's three-project architecture provides a comprehensive electricity price comparison platform for Danish consumers. Each component serves specific business needs while maintaining seamless integration for transparent price comparison with Vindstød prioritization.
+ElPortal's two-project architecture provides a comprehensive electricity price comparison platform for Danish consumers. The frontend and Sanity CMS work together seamlessly to deliver transparent price comparison with Vindstød prioritization.
 
 ## Current Status: Production Ready ✅
-All three components are production-ready and deployed. Frontend delivers real-time price comparisons, Sanity CMS manages 23 content schemas, and SEO Builder automates content generation. Key integration points are established with proper data flow patterns.
+Both components are production-ready and deployed. Frontend delivers real-time price comparisons and generates SEO content directly via Sanity API. Sanity CMS manages 23 content schemas with direct API content creation. Key integration points are established with proper data flow patterns.
 
 ## Component-Specific Development Guidelines
 - **React/TypeScript**: Strict typing with discriminated unions for content blocks
@@ -41,17 +41,14 @@ All three components are production-ready and deployed. Frontend delivers real-t
   - **provider.ts** - Provider data with pricing structure
   - **pricing.ts** - Price calculation parameters
 
-### SEO Builder (`SEO-Page-Builder/`)
-- **src/components/** - AI content generation interface
-  - **ContentGenerator.tsx** - Main generation workflow
-  - **ValidationReport.tsx** - Quality assurance display
-- **src/lib/** - Core generation logic
-  - **ai-service.ts** - OpenRouter integration for content generation
-  - **validator.ts** - Multi-stage validation and auto-fix
-  - **ndjson-generator.ts** - Sanity-compatible export format
-- **src/schemas/** - Schema definitions for validation
-  - **manifest.ts** - Central schema source of truth
-  - **block-types.ts** - Content block type definitions
+### SEO Content Generation (Direct API)
+- **Approach**: Direct Sanity API integration for content creation
+- **Workflow**: AI-generated content → Validation → Direct API submission
+- **Key Benefits**:
+  - No intermediate NDJSON files needed
+  - Immediate content validation
+  - Faster iteration cycles
+- **Implementation**: See Section 9 in CLAUDE.md for complete workflow
 
 ## Implementation Highlights
 

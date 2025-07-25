@@ -34,7 +34,7 @@ This document provides the complete technology stack and file tree structure for
 ### API Integration & Data Sources
 - **EnergiDataService API** - Real-time electricity prices, production data, and forecasts
 - **Sanity Content API** - Headless CMS for content management
-- **OpenRouter API** - AI content generation for SEO automation
+- **AI Integration** - Direct content generation for SEO pages via Sanity API
 
 ### Future Technologies
 - **Supabase** - Backend services integration (already configured MCP)
@@ -44,22 +44,19 @@ This document provides the complete technology stack and file tree structure for
 
 ## Complete System Architecture
 
-The ElPortal ecosystem consists of three interconnected projects:
+The ElPortal ecosystem consists of two interconnected projects:
 
 1. **elportal-forside-design** (This Project)
    - Frontend web application
    - React/TypeScript/Vite
    - Displays content and real-time data
+   - Direct Sanity API integration for SEO page generation
 
 2. **sanityelpriscms**
    - Sanity CMS backend
    - 23 content schemas
    - Content management and page builder
-
-3. **SEO-Page-Builder**
-   - NDJSON content generator
-   - AI-powered SEO automation
-   - Bulk content creation tool
+   - Receives content via authenticated API for SEO pages
 
 ## File Tree Structure
 
@@ -137,7 +134,7 @@ The frontend uses a dynamic content rendering system with TWO renderers:
 ### Data Flow Architecture
 1. **Static Content**: Sanity CMS → Frontend components
 2. **Dynamic Data**: EnergiDataService API → Serverless functions → Frontend
-3. **SEO Content**: AI → SEO Builder → NDJSON → Sanity CMS → Frontend
+3. **SEO Content**: AI → Direct Sanity API → Frontend
 - **[Platform]** - Target platform expansion
 - **[Service]** - Planned service integrations
 

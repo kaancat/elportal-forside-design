@@ -23,6 +23,7 @@ import ConsumptionMapComponent from './ConsumptionMap'
 import HeroComponent from './HeroComponent'
 import { ApplianceCalculatorSection } from './ApplianceCalculatorSection'
 import { EnergyTipsSection } from './EnergyTipsSection'
+import ChargingBoxShowcase, { ChargingBoxShowcaseBlock } from './ChargingBoxShowcase'
 import ErrorBoundary from './ErrorBoundary'
 import { ContentErrorFallback, ChartErrorFallback, CalculatorErrorFallback } from './ErrorFallbacks'
 import { reportError } from '@/lib/errorReporting'
@@ -187,6 +188,9 @@ const renderContentBlock = (block: ContentBlock) => {
     
     case 'energyTipsSection':
       return <EnergyTipsSection block={block} />;
+    
+    case 'chargingBoxShowcase':
+      return <ChargingBoxShowcase block={block as ChargingBoxShowcaseBlock} />;
     
     default:
       // Handle unknown block types

@@ -1,5 +1,15 @@
 # SEO Page Generation Guide (Direct Sanity API Method)
 
+**⚠️ CRITICAL UPDATE: The page schema structure has changed! Always verify against `sanityelpriscms/schemaTypes/page.ts` before creating content.**
+
+## Important Schema Notes
+
+- Pages use `contentBlocks` NOT `sections`
+- SEO fields are FLAT at root level: `seoMetaTitle`, `seoMetaDescription`, `seoKeywords`
+- NO nested `seo` object exists
+- Slug must be an object: `{ _type: 'slug', current: 'url-slug' }`
+- All array items need unique `_key` values
+
 ## Overview
 
 ElPortal uses a direct AI-to-Sanity content generation approach for creating comprehensive SEO-optimized pages. This method has proven successful for generating high-quality, Danish-language content that ranks well in search engines while subtly promoting Vindstød as the preferred provider.
@@ -118,20 +128,30 @@ const result = await client.createOrReplace({
    ```javascript
    const pageContent = {
      title: "Elselskaber i Danmark - Find det bedste elselskab",
-     slug: "elselskaber",
-     seo: {
-       title: "Elselskaber 2025 • Sammenlign priser hos danske elselskaber",
-       description: "Find det billigste elselskab...",
-       keywords: ["elselskaber", "elselskab sammenligning", ...]
+     slug: {
+       _type: 'slug',
+       current: 'elselskaber'
      },
-     sections: [
-       { _type: "heroSection", ... },
-       { _type: "providerList", ... },
-       { _type: "co2EmissionsChart", ... },
-       { _type: "faqSection", ... }
+     // SEO fields are FLAT at root level - NO nested seo object!
+     seoMetaTitle: "Elselskaber 2025 • Sammenlign priser hos danske elselskaber",
+     seoMetaDescription: "Find det billigste elselskab...",
+     seoKeywords: ["elselskaber", "elselskab sammenligning", ...],
+     // Pages use contentBlocks, NOT sections!
+     contentBlocks: [
+       { _type: "hero", _key: "hero-1", ... },
+       { _type: "providerList", _key: "providers-1", ... },
+       { _type: "co2EmissionsChart", _key: "co2-1", ... },
+       { _type: "faqGroup", _key: "faq-1", ... }
      ]
    }
    ```
+   
+   **⚠️ CRITICAL SCHEMA NOTES:**
+   - SEO fields are flat: `seoMetaTitle`, `seoMetaDescription`, `seoKeywords`
+   - NO nested `seo` object exists in the schema
+   - Slug must be an object with `_type: 'slug'` and `current` property
+   - Use `contentBlocks` NOT `sections` for page content
+   - Every array item needs a unique `_key` property
 
 ## Future Improvements
 

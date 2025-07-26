@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import MegaMenuContent from './MegaMenuContent';
 import MobileNav from './MobileNav';
 import { AnimatePresence, motion } from 'framer-motion';
+import { resolveLink, checkLinksHealth } from '@/utils/linkResolver';
 
 const Navigation = () => {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
@@ -15,15 +16,15 @@ const Navigation = () => {
     const fetchSettings = async () => {
       const data = await SanityService.getSiteSettings();
       setSettings(data);
+      
+      // Health check navigation links in development
+      if (process.env.NODE_ENV === 'development' && data?.headerLinks) {
+        checkLinksHealth(data.headerLinks, 'Navigation');
+      }
     };
     fetchSettings();
   }, []);
   
-  const resolveLink = (link: LinkType) => {
-    if (link.linkType === 'external') return link.externalUrl || '#';
-    if (link.internalLink?.slug) return `/${link.internalLink.slug}`;
-    return '/';
-  };
 
   if (!settings) {
     return <header className="sticky top-0 z-50 w-full bg-brand-dark h-16" />;
@@ -50,7 +51,7 @@ const Navigation = () => {
               onMouseEnter={() => item._type === 'megaMenu' && setOpenMenuKey(item._key)}
             >
               {item._type === 'link' ? (
-                <RouterLink to={resolveLink(item as LinkType)} className="text-white hover:text-brand-green font-medium transition-colors">
+                <RouterLink to={resolveLink(item as LinkType, 'Navigation')} className="text-white hover:text-brand-green font-medium transition-colors">
                   {item.title}
                 </RouterLink>
               ) : (
@@ -66,7 +67,7 @@ const Navigation = () => {
         <div className="hidden md:flex items-center">
           {ctaButton && (
             <Button asChild className="bg-yellow-400 hover:bg-yellow-500 text-brand-dark font-medium rounded-full px-6">
-              <RouterLink to={resolveLink(ctaButton)}>{ctaButton.title}</RouterLink>
+              <RouterLink to={resolveLink(ctaButton, 'Navigation')}>{ctaButton.title}</RouterLink>
             </Button>
           )}
         </div>
@@ -74,10 +75,10 @@ const Navigation = () => {
         <div className="md:hidden flex items-center space-x-2">
           {ctaButton && (
             <Button asChild size="sm" className="bg-yellow-400 hover:bg-yellow-500 text-brand-dark font-medium rounded-full px-4">
-              <RouterLink to={resolveLink(ctaButton)}>{ctaButton.title}</RouterLink>
+              <RouterLink to={resolveLink(ctaButton, 'Navigation')}>{ctaButton.title}</RouterLink>
             </Button>
           )}
-          <MobileNav navItems={navItems} resolveLink={resolveLink} />
+          <MobileNav navItems={navItems} resolveLink={(link: LinkType) => resolveLink(link, 'Navigation')} />
         </div>
       </div>
 

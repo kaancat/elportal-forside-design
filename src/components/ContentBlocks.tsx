@@ -25,6 +25,12 @@ import HeroComponent from './HeroComponent'
 import { ApplianceCalculatorSection } from './ApplianceCalculatorSection'
 import { EnergyTipsSection } from './EnergyTipsSection'
 import ChargingBoxShowcase, { ChargingBoxShowcaseBlock } from './ChargingBoxShowcase'
+import RegionalComparison from './RegionalComparison'
+import PricingComparison from './PricingComparison'
+import DailyPriceTimeline from './DailyPriceTimeline'
+import InfoCardsSection from './InfoCardsSection'
+import { DebugWrapper } from './DebugWrapper'
+import { TypeDebugger } from './TypeDebugger'
 
 // Debug import
 if (typeof window !== 'undefined') {
@@ -238,6 +244,34 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
           return <EnergyTipsSection key={block._key} block={block} />
         } else if (block._type === 'chargingBoxShowcase') {
           return <ChargingBoxShowcase key={block._key} block={block as ChargingBoxShowcaseBlock} />
+        } else if (block._type === 'regionalComparison') {
+          console.log('[ContentBlocks] Rendering regionalComparison:', block)
+          return (
+            <DebugWrapper key={block._key} componentName="RegionalComparison" block={block}>
+              <RegionalComparison block={block} />
+            </DebugWrapper>
+          )
+        } else if (block._type === 'pricingComparison') {
+          console.log('[ContentBlocks] Rendering pricingComparison:', block)
+          return (
+            <DebugWrapper key={block._key} componentName="PricingComparison" block={block}>
+              <PricingComparison block={block} />
+            </DebugWrapper>
+          )
+        } else if (block._type === 'dailyPriceTimeline') {
+          console.log('[ContentBlocks] Rendering dailyPriceTimeline:', block)
+          return (
+            <DebugWrapper key={block._key} componentName="DailyPriceTimeline" block={block}>
+              <DailyPriceTimeline block={block} />
+            </DebugWrapper>
+          )
+        } else if (block._type === 'infoCardsSection') {
+          console.log('[ContentBlocks] Rendering infoCardsSection:', block)
+          return (
+            <DebugWrapper key={block._key} componentName="InfoCardsSection" block={block}>
+              <InfoCardsSection block={block} />
+            </DebugWrapper>
+          )
         } else {
           // Handle unknown block types with a clear error message instead of silent fallback
           const unknownBlock = block as ContentBlock & { _type: string; _key?: string }

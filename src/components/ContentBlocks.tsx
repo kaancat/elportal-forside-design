@@ -100,7 +100,7 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
 
 
   return (
-    <div>
+    <>
       {groupedBlocks.map((block, index) => {
         // Determine spacing for this block
         const nextBlock = groupedBlocks[index + 1];
@@ -108,9 +108,8 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         const nextIsDataVisualization = nextBlock && !Array.isArray(nextBlock) && ['livePriceGraph', 'co2EmissionsChart', 'renewableEnergyForecast', 'monthlyProductionChart', 'realPriceComparisonTable'].includes(nextBlock._type);
         const isPageSection = !Array.isArray(block) && block._type === 'pageSection';
         
-        // Use tighter spacing when pageSection is followed by data visualization
-        const tightSpacing = isPageSection && nextIsDataVisualization;
-        const spacingClass = tightSpacing ? 'mb-0' : (index < groupedBlocks.length - 1 ? 'mb-6' : '');
+        // Remove all spacing between blocks to prevent gaps
+        const spacingClass = '';
         
         return (
           <div key={Array.isArray(block) ? `faq-group-${index}` : block._key} className={spacingClass}>
@@ -306,7 +305,7 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
             </div>
         );
       })}
-    </div>
+    </>
   )
 }
 

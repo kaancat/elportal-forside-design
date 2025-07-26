@@ -271,6 +271,7 @@ export interface DailyPriceTimelineBlock {
   showTimeZones?: boolean;
   showAveragePrice?: boolean;
   highlightPeakHours?: boolean;
+  apiRegion?: 'DK1' | 'DK2';
 }
 
 export interface InfoCardsSectionBlock {

@@ -35,7 +35,12 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
             {block.title}
           </h2>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 justify-items-center">
+        <div className={`grid grid-cols-1 gap-8 md:gap-12 justify-items-center ${
+          block.features.length === 2 ? 'md:grid-cols-2' : 
+          block.features.length === 3 ? 'md:grid-cols-3' : 
+          block.features.length === 4 ? 'md:grid-cols-2 lg:grid-cols-4' : 
+          'md:grid-cols-3'
+        }`}>
           {block.features.map((feature, index) => {
             // Debug logging
             if (process.env.NODE_ENV === 'development' && feature.icon) {

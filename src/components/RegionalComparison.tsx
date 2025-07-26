@@ -87,20 +87,68 @@ const RegionalComparison: React.FC<RegionalComparisonProps> = ({ block }) => {
           )}
         </div>
 
-        {/* Map Visualization (if enabled) */}
+        {/* Enhanced Denmark Map Visualization (if enabled) */}
         {showMap && (
           <div className="mb-12 flex justify-center">
-            <div className="relative">
-              <Map className="w-64 h-64 text-gray-300" />
-              <div className="absolute top-1/3 left-1/4 transform -translate-x-1/2 -translate-y-1/2">
-                <div className="w-20 h-20 bg-blue-500/20 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-bold text-blue-700">DK1</span>
-                </div>
-              </div>
-              <div className="absolute top-1/3 right-1/4 transform translate-x-1/2 -translate-y-1/2">
-                <div className="w-20 h-20 bg-purple-500/20 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-bold text-purple-700">DK2</span>
-                </div>
+            <div className="relative bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+              <h3 className="text-center text-lg font-semibold text-gray-900 mb-6">Danmarks elprisområder</h3>
+              
+              {/* SVG Map of Denmark */}
+              <svg
+                viewBox="0 0 400 300"
+                className="w-96 h-72 mx-auto"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                {/* Background */}
+                <rect width="400" height="300" fill="#f8fafc" rx="8" />
+                
+                {/* Stylized Denmark outline - DK1 (West) */}
+                <g>
+                  {/* Jutland Peninsula (DK1) */}
+                  <path
+                    d="M120 80 L120 50 L140 40 L160 45 L180 50 L200 60 L210 80 L220 100 L225 120 L230 140 L235 160 L240 180 L235 200 L230 220 L220 240 L200 250 L180 255 L160 250 L140 245 L120 240 L110 220 L105 200 L100 180 L95 160 L100 140 L105 120 L110 100 L115 80 Z"
+                    fill="#3b82f6"
+                    fillOpacity="0.7"
+                    stroke="#1d4ed8"
+                    strokeWidth="2"
+                  />
+                  {/* Funen (DK1) */}
+                  <circle cx="260" cy="180" r="25" fill="#3b82f6" fillOpacity="0.7" stroke="#1d4ed8" strokeWidth="2" />
+                  {/* Bornholm (DK1) */}
+                  <circle cx="350" cy="120" r="15" fill="#3b82f6" fillOpacity="0.7" stroke="#1d4ed8" strokeWidth="2" />
+                </g>
+                
+                {/* DK2 (East) */}
+                <g>
+                  {/* Zealand */}
+                  <ellipse cx="300" cy="120" rx="35" ry="45" fill="#8b5cf6" fillOpacity="0.7" stroke="#7c3aed" strokeWidth="2" />
+                  {/* Lolland-Falster */}
+                  <ellipse cx="280" cy="200" rx="20" ry="15" fill="#8b5cf6" fillOpacity="0.7" stroke="#7c3aed" strokeWidth="2" />
+                </g>
+                
+                {/* Labels */}
+                <text x="170" y="150" textAnchor="middle" className="fill-white font-bold text-lg">DK1</text>
+                <text x="300" y="125" textAnchor="middle" className="fill-white font-bold text-lg">DK2</text>
+                
+                {/* Legend */}
+                <g transform="translate(20, 20)">
+                  <rect x="0" y="0" width="160" height="80" fill="white" stroke="#e5e7eb" strokeWidth="1" rx="4" />
+                  <text x="80" y="15" textAnchor="middle" className="fill-gray-900 font-semibold text-sm">Prisområder</text>
+                  
+                  <rect x="10" y="25" width="16" height="12" fill="#3b82f6" fillOpacity="0.7" />
+                  <text x="32" y="35" className="fill-gray-700 text-xs">DK1 - Vestdanmark</text>
+                  
+                  <rect x="10" y="45" width="16" height="12" fill="#8b5cf6" fillOpacity="0.7" />
+                  <text x="32" y="55" className="fill-gray-700 text-xs">DK2 - Østdanmark</text>
+                </g>
+              </svg>
+              
+              {/* Map Description */}
+              <div className="mt-6 text-center">
+                <p className="text-sm text-gray-600 max-w-md mx-auto">
+                  Danmark er opdelt i to elprisområder baseret på transmissionsnettet. 
+                  Priserne kan variere mellem områderne afhængigt af udbud og efterspørgsel.
+                </p>
               </div>
             </div>
           </div>

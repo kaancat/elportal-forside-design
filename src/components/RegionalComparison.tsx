@@ -120,23 +120,25 @@ const RegionalComparison: React.FC<RegionalComparisonProps> = ({ block }) => {
               <h3 className="text-center text-lg font-semibold text-gray-900 mb-6">Danmarks elprisområder</h3>
               
               {/* React Denmark Map */}
-              <div className="relative">
+              <div className="relative" style={{ pointerEvents: 'none' }}>
                 <Municipalities 
                   customizeAreas={customizeMunicipalities}
                   showTooltip={false}
                   zoomable={false}
+                  draggable={false}
                   className="w-full h-[400px]"
+                  style={{ cursor: 'default' }}
                 />
                 
-                {/* Region Labels Overlay */}
-                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                  <div className="flex gap-32">
-                    <div className="bg-white/90 px-4 py-2 rounded-lg shadow-md border-2 border-blue-500">
-                      <span className="text-2xl font-bold text-blue-700">DK1</span>
-                    </div>
-                    <div className="bg-white/90 px-4 py-2 rounded-lg shadow-md border-2 border-purple-500">
-                      <span className="text-2xl font-bold text-purple-700">DK2</span>
-                    </div>
+                {/* Subtle Region Labels */}
+                <div className="absolute top-20 left-1/4 pointer-events-none">
+                  <div className="bg-white/70 px-3 py-1 rounded-md shadow-sm border border-blue-300">
+                    <span className="text-sm font-medium text-blue-700">DK1</span>
+                  </div>
+                </div>
+                <div className="absolute top-20 right-1/4 pointer-events-none">
+                  <div className="bg-white/70 px-3 py-1 rounded-md shadow-sm border border-purple-300">
+                    <span className="text-sm font-medium text-purple-700">DK2</span>
                   </div>
                 </div>
               </div>

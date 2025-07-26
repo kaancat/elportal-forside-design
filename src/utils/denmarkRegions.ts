@@ -3,7 +3,7 @@
 // DK2 (East Denmark): Zealand, Lolland-Falster, Møn
 
 export const DK1_MUNICIPALITIES = [
-  // Jutland (Jylland)
+  // Jutland (Jylland) - with special characters
   'aabenraa', 'aalborg', 'aarhus', 'billund', 'brønderslev', 'esbjerg', 
   'fanø', 'favrskov', 'fredericia', 'frederikshavn',
   'haderslev', 'hedensted', 'herning', 'hjørring', 'holstebro', 
@@ -14,16 +14,23 @@ export const DK1_MUNICIPALITIES = [
   'sønderborg', 'thisted', 'tønder', 'varde', 'vejen', 'vejle', 
   'vesthimmerland', 'viborg',
   
-  // Funen (Fyn)
+  // Jutland - ASCII versions
+  'broenderslev', 'fanoe', 'hjoerring', 'laesoe', 'morsoe',
+  'ringkoebing-skjern', 'samsoe', 'soenderborg', 'toender',
+  
+  // Funen (Fyn) - with special characters
   'assens', 'faaborg-midtfyn', 'kerteminde', 'langeland', 'middelfart',
   'nordfyns', 'nyborg', 'odense', 'svendborg', 'ærø',
+  
+  // Funen - ASCII versions
+  'aeroe', 'aerø',
   
   // Bornholm
   'bornholm'
 ];
 
 export const DK2_MUNICIPALITIES = [
-  // Zealand (Sjælland)
+  // Zealand (Sjælland) - with special characters
   'albertslund', 'allerød', 'ballerup', 'brøndby', 'dragør', 
   'egedal', 'fredensborg', 'frederiksberg', 'frederikssund', 
   'furesø', 'gentofte', 'gladsaxe', 'glostrup', 'greve', 
@@ -32,7 +39,13 @@ export const DK2_MUNICIPALITIES = [
   'kalundborg', 'københavn', 'køge', 'lejre', 'lyngby-taarbæk', 
   'næstved', 'odsherred', 'ringsted', 'roskilde', 'rudersdal', 
   'rødovre', 'slagelse', 'solrød', 'sorø', 'stevns', 'tårnby', 
-  'vallensbæk', 'vordingborg',
+  'vallensbæk', 'vordingborg', 'faxe',
+  
+  // Zealand - ASCII versions
+  'alleroed', 'broendby', 'dragoer', 'furesoe', 'halsnaes',
+  'helsingoer', 'hilleroed', 'holbaek', 'hoeje-taastrup', 
+  'hoersholm', 'ishoej', 'koebenhavn', 'koege', 'lyngby-taarbaek',
+  'naestved', 'roedovre', 'solroed', 'soroe', 'taarnby', 'vallensbaek',
   
   // Lolland-Falster
   'guldborgsund', 'lolland'

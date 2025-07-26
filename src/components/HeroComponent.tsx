@@ -8,9 +8,27 @@ interface HeroProps {
 }
 
 const HeroComponent: React.FC<HeroProps> = ({ block }) => {
-  const { headline, subheadline, cta, image, images } = block;
-  // Handle both single image (schema) and images array (legacy)
+  const { 
+    headline, 
+    subheadline, 
+    title,
+    subtitle, 
+    description,
+    cta, 
+    image, 
+    images, 
+    backgroundImageUrl,
+    imageAlt,
+    imageCredit 
+  } = block;
+  
+  // Handle multiple image sources: direct URL, single image (schema), or images array (legacy)
   const heroImage = image || (images && images.length > 0 ? images[0] : null);
+  const hasBackgroundUrl = backgroundImageUrl && backgroundImageUrl.length > 0;
+  
+  // Use title/subtitle if headline/subheadline not available (for consistency)
+  const displayTitle = headline || title;
+  const displaySubtitle = subheadline || subtitle;
   
 
   // Full viewport height minus header space
@@ -23,13 +41,23 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
       <div className="relative md:rounded-2xl md:overflow-hidden overflow-hidden">
         
         {/* Layer 1: Background Image (All screen sizes) */}
-        {heroImage && (
+        {(heroImage || hasBackgroundUrl) && (
           <div className="absolute inset-0">
-            <img
-              src={urlFor(heroImage).width(1600).quality(80).url()}
-              alt={heroImage.alt || "Hero background"}
-              className="w-full h-full object-cover"
-            />
+            {hasBackgroundUrl ? (
+              // Direct URL image (e.g., from Unsplash)
+              <img
+                src={backgroundImageUrl}
+                alt={imageAlt || "Hero background showing Danish offshore wind turbines"}
+                className="w-full h-full object-cover"
+              />
+            ) : heroImage ? (
+              // Sanity asset image
+              <img
+                src={urlFor(heroImage).width(1600).quality(80).url()}
+                alt={heroImage.alt || "Hero background"}
+                className="w-full h-full object-cover"
+              />
+            ) : null}
           </div>
         )}
 
@@ -42,17 +70,30 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
           style={minHeightStyle}
         >
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-white mb-6">
-            {headline}
+            {displayTitle}
           </h1>
-          {subheadline && (
+          {displaySubtitle && (
             <p className="max-w-2xl mx-auto text-lg md:text-xl text-neutral-200 mb-8">
-              {subheadline}
+              {displaySubtitle}
             </p>
+          )}
+          {description && description.length > 0 && (
+            <div className="max-w-3xl mx-auto text-base md:text-lg text-neutral-300 mb-8">
+              {/* Basic description rendering - could be enhanced with PortableText if needed */}
+              <p>{description[0]?.children?.[0]?.text}</p>
+            </div>
           )}
           {cta?.text && cta?.link && (
             <Button asChild size="lg" className="bg-brand-green hover:bg-brand-green/90 text-brand-dark font-semibold rounded-full px-8 py-6 text-lg">
               <a href={cta.link}>{cta.text}</a>
             </Button>
+          )}
+          
+          {/* Image Credit (if using external image) */}
+          {imageCredit && hasBackgroundUrl && (
+            <div className="absolute bottom-4 right-4 text-xs text-white/70 bg-black/30 px-2 py-1 rounded">
+              {imageCredit}
+            </div>
           )}
         </div>
       </div>

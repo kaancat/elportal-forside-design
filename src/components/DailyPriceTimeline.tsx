@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Area, AreaChart } from 'recharts';
-import { Sun, Moon, Sunrise, Sunset, AlertCircle } from 'lucide-react';
+import { Sun, Moon, Sunrise, Sunset, AlertCircle, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { PortableText } from '@portabletext/react';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,12 @@ interface PriceData {
   isPeak: boolean;
 }
 
+interface ApiPriceData {
+  HourDK: string;
+  SpotPriceKWh: number;
+  TotalPriceKWh: number;
+}
+
 const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
   const {
     title = 'Døgnets prisvariationer',
@@ -27,47 +33,93 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
     leadingText,
     showTimeZones = true,
     showAveragePrice = true,
-    highlightPeakHours = true
+    highlightPeakHours = true,
+    apiRegion = 'DK2'
   } = block;
 
   const [data, setData] = useState<PriceData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [averagePrice, setAveragePrice] = useState(0);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
-  // Mock data for demonstration - in production, this would fetch real data
+  // Helper functions
+  const formatDate = (date: Date) => date.toISOString().split('T')[0];
+  
+  const getTimeOfDay = (hour: number): 'night' | 'morning' | 'day' | 'evening' => {
+    if (hour >= 0 && hour < 6) return 'night';
+    if (hour >= 6 && hour < 9) return 'morning'; 
+    if (hour >= 9 && hour < 17) return 'day';
+    return 'evening';
+  };
+
+  const isPeakHour = (hour: number, price: number, averagePrice: number): boolean => {
+    // Peak hours are typically morning (7-9) and evening (17-20) when price is above average
+    const isPeakTimeframe = (hour >= 7 && hour <= 9) || (hour >= 17 && hour <= 20);
+    return isPeakTimeframe && price > averagePrice;
+  };
+
+  const transformApiData = (apiData: ApiPriceData[]): PriceData[] => {
+    if (!apiData || apiData.length === 0) return [];
+    
+    // Calculate average first for peak detection
+    const avgPrice = apiData.reduce((sum, item) => sum + item.TotalPriceKWh, 0) / apiData.length;
+    
+    return apiData.map(item => {
+      const date = new Date(item.HourDK);
+      const hour = date.getHours();
+      const timeOfDay = getTimeOfDay(hour);
+      const isPeak = isPeakHour(hour, item.TotalPriceKWh, avgPrice);
+      
+      return {
+        hour: `${hour.toString().padStart(2, '0')}:00`,
+        price: item.TotalPriceKWh,
+        timeOfDay,
+        isPeak
+      };
+    });
+  };
+
+  // Fetch real electricity prices
   useEffect(() => {
-    const mockData: PriceData[] = [
-      { hour: '00:00', price: 0.8, timeOfDay: 'night', isPeak: false },
-      { hour: '01:00', price: 0.75, timeOfDay: 'night', isPeak: false },
-      { hour: '02:00', price: 0.7, timeOfDay: 'night', isPeak: false },
-      { hour: '03:00', price: 0.65, timeOfDay: 'night', isPeak: false },
-      { hour: '04:00', price: 0.7, timeOfDay: 'night', isPeak: false },
-      { hour: '05:00', price: 0.9, timeOfDay: 'morning', isPeak: false },
-      { hour: '06:00', price: 1.2, timeOfDay: 'morning', isPeak: false },
-      { hour: '07:00', price: 1.8, timeOfDay: 'morning', isPeak: true },
-      { hour: '08:00', price: 2.1, timeOfDay: 'morning', isPeak: true },
-      { hour: '09:00', price: 1.9, timeOfDay: 'day', isPeak: true },
-      { hour: '10:00', price: 1.6, timeOfDay: 'day', isPeak: false },
-      { hour: '11:00', price: 1.4, timeOfDay: 'day', isPeak: false },
-      { hour: '12:00', price: 1.3, timeOfDay: 'day', isPeak: false },
-      { hour: '13:00', price: 1.2, timeOfDay: 'day', isPeak: false },
-      { hour: '14:00', price: 1.3, timeOfDay: 'day', isPeak: false },
-      { hour: '15:00', price: 1.5, timeOfDay: 'day', isPeak: false },
-      { hour: '16:00', price: 1.8, timeOfDay: 'evening', isPeak: true },
-      { hour: '17:00', price: 2.3, timeOfDay: 'evening', isPeak: true },
-      { hour: '18:00', price: 2.5, timeOfDay: 'evening', isPeak: true },
-      { hour: '19:00', price: 2.2, timeOfDay: 'evening', isPeak: true },
-      { hour: '20:00', price: 1.8, timeOfDay: 'evening', isPeak: false },
-      { hour: '21:00', price: 1.4, timeOfDay: 'evening', isPeak: false },
-      { hour: '22:00', price: 1.1, timeOfDay: 'night', isPeak: false },
-      { hour: '23:00', price: 0.9, timeOfDay: 'night', isPeak: false }
-    ];
+    const fetchPriceData = async () => {
+      setLoading(true);
+      setError(null);
+      
+      const dateString = formatDate(selectedDate);
+      
+      try {
+        const response = await fetch(`/api/electricity-prices?region=${apiRegion}&date=${dateString}`);
+        
+        if (!response.ok) {
+          throw new Error('Kunne ikke hente prisdata');
+        }
+        
+        const result = await response.json();
+        
+        if (!result.records || result.records.length === 0) {
+          setError('Prisdata for den valgte dato er ikke tilgængelig endnu');
+          setData([]);
+          setAveragePrice(0);
+        } else {
+          const transformedData = transformApiData(result.records);
+          setData(transformedData);
+          
+          const avg = transformedData.reduce((sum, item) => sum + item.price, 0) / transformedData.length;
+          setAveragePrice(avg);
+        }
+      } catch (err: any) {
+        console.error('Error fetching price data:', err);
+        setError(err.message || 'Der opstod en fejl ved indlæsning af prisdata');
+        setData([]);
+        setAveragePrice(0);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    setData(mockData);
-    const avg = mockData.reduce((sum, item) => sum + item.price, 0) / mockData.length;
-    setAveragePrice(avg);
-    setLoading(false);
-  }, []);
+    fetchPriceData();
+  }, [apiRegion, selectedDate]);
 
   const timeZones = [
     { id: 'night', label: 'Nat', icon: Moon, color: 'bg-blue-900', hours: '23:00 - 05:00' },
@@ -157,15 +209,54 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
           </div>
         )}
 
+        {/* Date Controls */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-gray-600" />
+            <span className="text-sm text-gray-600">
+              Viser priser for: {selectedDate.toLocaleDateString('da-DK', { 
+                day: 'numeric', 
+                month: 'long', 
+                year: 'numeric' 
+              })}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">Region:</span>
+            <Badge variant="secondary" className="bg-green-100 text-green-800">
+              {apiRegion} ({apiRegion === 'DK1' ? 'Vestdanmark' : 'Østdanmark'})
+            </Badge>
+          </div>
+        </div>
+
         {/* Main Chart */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="text-xl font-bold text-gray-900">Prisudvikling gennem døgnet</CardTitle>
+            <CardTitle className="text-xl font-bold text-gray-900">
+              Prisudvikling gennem døgnet
+              {error && (
+                <Badge variant="destructive" className="ml-2">
+                  Data ikke tilgængelig
+                </Badge>
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="flex items-center justify-center h-[400px]">
-                <div className="text-gray-500">Indlæser prisdata...</div>
+                <div className="text-gray-500">Indlæser reelle prisdata fra energinet.dk...</div>
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center h-[400px] text-center">
+                <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+                <p className="text-red-600 font-semibold mb-2">{error}</p>
+                <p className="text-gray-500 text-sm">
+                  Prøv igen senere eller vælg en anden dato
+                </p>
+              </div>
+            ) : data.length === 0 ? (
+              <div className="flex items-center justify-center h-[400px]">
+                <div className="text-gray-500">Ingen prisdata tilgængelig for denne dato</div>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={400}>

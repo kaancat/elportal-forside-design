@@ -25,55 +25,24 @@ const InfoCardsSection: React.FC<InfoCardsSectionProps> = ({ block }) => {
     subtitle,
     headerAlignment = 'center',
     leadingText,
-    cards = [
-      {
-        title: 'Prisstigninger',
-        description: [{
-          _type: 'block',
-          children: [{ _type: 'span', text: 'Elprisen kan stige kraftigt i perioder med høj efterspørgsel eller lav produktion fra vedvarende energi.' }],
-          markDefs: [],
-          style: 'normal'
-        }],
-        icon: 'trending-up',
-        iconColor: 'text-red-600',
-        bgColor: 'bg-red-50'
-      },
-      {
-        title: 'Prisfald',
-        description: [{
-          _type: 'block',
-          children: [{ _type: 'span', text: 'Ved høj vindproduktion kan priserne falde markant - nogle gange helt til 0 kr/kWh.' }],
-          markDefs: [],
-          style: 'normal'
-        }],
-        icon: 'shield',
-        iconColor: 'text-green-600',
-        bgColor: 'bg-green-50'
-      },
-      {
-        title: 'Gennemsnitspriser',
-        description: [{
-          _type: 'block',
-          children: [{ _type: 'span', text: 'Historiske data viser typiske prismønstre, men fremtidige priser kan variere betydeligt.' }],
-          markDefs: [],
-          style: 'normal'
-        }],
-        icon: 'calculator',
-        iconColor: 'text-blue-600',
-        bgColor: 'bg-blue-50'
-      }
-    ],
-    columns = 3
+    cards = [],
+    columns = 4
   } = block;
 
   const getGridCols = (cols: number) => {
     switch (cols) {
+      case 1: return 'md:grid-cols-1';
       case 2: return 'md:grid-cols-2';
       case 3: return 'md:grid-cols-3';
-      case 4: return 'md:grid-cols-4';
+      case 4: return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4';
       default: return 'md:grid-cols-3';
     }
   };
+
+  // Early return if no cards
+  if (!cards || cards.length === 0) {
+    return null;
+  }
 
   return (
     <section className="py-16 lg:py-24 bg-white">
@@ -120,40 +89,61 @@ const InfoCardsSection: React.FC<InfoCardsSectionProps> = ({ block }) => {
           )}
         </div>
 
-        {/* Cards Grid */}
-        <div className={cn("grid gap-6", getGridCols(columns))}>
+        {/* Enhanced Cards Grid */}
+        <div className={cn("grid gap-6 lg:gap-8", getGridCols(columns))}>
           {cards.map((card, index) => {
             const Icon = card.icon ? iconMap[card.icon] || Info : Info;
             
             return (
-              <Card key={index} className="hover:shadow-lg transition-shadow h-full">
-                <CardHeader>
+              <Card 
+                key={index} 
+                className="group relative overflow-hidden hover:shadow-xl transition-all duration-300 h-full border-0 shadow-lg hover:scale-105"
+              >
+                {/* Background gradient */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 group-hover:from-gray-50 group-hover:to-gray-100 transition-all duration-300" />
+                
+                {/* Top accent border */}
+                <div className={cn(
+                  "absolute top-0 left-0 right-0 h-1 transition-all duration-300",
+                  card.bgColor?.includes('blue') ? "bg-blue-500" :
+                  card.bgColor?.includes('green') ? "bg-green-500" :
+                  card.bgColor?.includes('yellow') ? "bg-yellow-500" :
+                  card.bgColor?.includes('orange') ? "bg-orange-500" :
+                  "bg-gray-400"
+                )} />
+                
+                <CardHeader className="relative z-10 pb-4">
                   <div className="flex items-start gap-4">
                     <div className={cn(
-                      "w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0",
+                      "w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md transition-all duration-300 group-hover:scale-110",
                       card.bgColor || "bg-gray-100"
                     )}>
-                      <Icon className={cn("w-6 h-6", card.iconColor || "text-gray-600")} />
+                      <Icon className={cn("w-7 h-7 transition-all duration-300", card.iconColor || "text-gray-600")} />
                     </div>
-                    <CardTitle className="text-xl font-bold text-gray-900">
-                      {card.title}
-                    </CardTitle>
+                    <div className="flex-1">
+                      <CardTitle className="text-xl font-bold text-gray-900 mb-2 group-hover:text-gray-700 transition-colors">
+                        {card.title}
+                      </CardTitle>
+                    </div>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="relative z-10 pt-0">
                   {card.description && card.description.length > 0 && (
-                    <div className="text-gray-700">
+                    <div className="text-gray-700 leading-relaxed">
                       <PortableText 
                         value={card.description}
                         components={{
                           block: {
-                            normal: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>
+                            normal: ({ children }) => <p className="mb-3 last:mb-0 text-sm leading-relaxed">{children}</p>
                           }
                         }}
                       />
                     </div>
                   )}
                 </CardContent>
+                
+                {/* Subtle bottom glow effect */}
+                <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </Card>
             );
           })}

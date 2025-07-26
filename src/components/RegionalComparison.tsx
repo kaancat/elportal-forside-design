@@ -6,6 +6,10 @@ import { PortableText } from '@portabletext/react';
 import { cn } from '@/lib/utils';
 import { Municipalities, MunicipalityType } from 'react-denmark-map';
 import { getMunicipalityRegion } from '@/utils/denmarkRegions';
+import { 
+  getMunicipalityByAsciiName,
+  getMunicipalityByDanishName
+} from '@/utils/municipality/municipalityMappingFix';
 
 import type { RegionalComparisonBlock } from '@/types/sanity';
 
@@ -46,7 +50,25 @@ const RegionalComparison: React.FC<RegionalComparisonProps> = ({ block }) => {
 
   // Custom coloring function for municipalities
   const customizeMunicipalities = useCallback((municipality: MunicipalityType) => {
-    const region = getMunicipalityRegion(municipality.name);
+    // First try to find municipality using the comprehensive mapping system
+    let mapping = getMunicipalityByAsciiName(municipality.name);
+    if (!mapping) {
+      mapping = getMunicipalityByDanishName(municipality.name);
+    }
+    
+    let region: 'DK1' | 'DK2' | null = null;
+    
+    if (mapping) {
+      // Use the Danish name from mapping to check region
+      region = getMunicipalityRegion(mapping.danishName);
+      if (!region) {
+        // Also try with ASCII name
+        region = getMunicipalityRegion(mapping.asciiName);
+      }
+    } else {
+      // Fallback to direct region check
+      region = getMunicipalityRegion(municipality.name);
+    }
     
     if (!region) {
       // Default gray for unknown municipalities
@@ -129,18 +151,6 @@ const RegionalComparison: React.FC<RegionalComparisonProps> = ({ block }) => {
                   className="w-full h-[400px]"
                   style={{ cursor: 'default' }}
                 />
-                
-                {/* Subtle Region Labels */}
-                <div className="absolute top-20 left-1/4 pointer-events-none">
-                  <div className="bg-white/70 px-3 py-1 rounded-md shadow-sm border border-blue-300">
-                    <span className="text-sm font-medium text-blue-700">DK1</span>
-                  </div>
-                </div>
-                <div className="absolute top-20 right-1/4 pointer-events-none">
-                  <div className="bg-white/70 px-3 py-1 rounded-md shadow-sm border border-purple-300">
-                    <span className="text-sm font-medium text-purple-700">DK2</span>
-                  </div>
-                </div>
               </div>
               
               {/* Legend */}

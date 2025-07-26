@@ -322,6 +322,11 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-brand-green/10 to-transparent rounded-full blur-3xl -z-10" />
         </>
       )}
+      
+      {/* Subtle separator between sections */}
+      {hasSeparator && (
+        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-24 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
+      )}
     </motion.section>
   );
 }

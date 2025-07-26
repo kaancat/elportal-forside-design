@@ -24,6 +24,10 @@ import HeroComponent from './HeroComponent'
 import { ApplianceCalculatorSection } from './ApplianceCalculatorSection'
 import { EnergyTipsSection } from './EnergyTipsSection'
 import ChargingBoxShowcase, { ChargingBoxShowcaseBlock } from './ChargingBoxShowcase'
+import RegionalComparison from './RegionalComparison'
+import PricingComparison from './PricingComparison'
+import DailyPriceTimeline from './DailyPriceTimeline'
+import InfoCardsSection from './InfoCardsSection'
 import ErrorBoundary from './ErrorBoundary'
 import { ContentErrorFallback, ChartErrorFallback, CalculatorErrorFallback } from './ErrorFallbacks'
 import { reportError } from '@/lib/errorReporting'
@@ -191,6 +195,18 @@ const renderContentBlock = (block: ContentBlock) => {
     
     case 'chargingBoxShowcase':
       return <ChargingBoxShowcase block={block as ChargingBoxShowcaseBlock} />;
+    
+    case 'regionalComparison':
+      return <RegionalComparison block={block} />;
+    
+    case 'pricingComparison':
+      return <PricingComparison block={block} />;
+    
+    case 'dailyPriceTimeline':
+      return <DailyPriceTimeline block={block} />;
+    
+    case 'infoCardsSection':
+      return <InfoCardsSection block={block} />;
     
     default:
       // Handle unknown block types

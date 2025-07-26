@@ -56,10 +56,11 @@ export interface PageSection {
     primary: string;
   };
   settings?: {
-    theme?: 'default' | 'primary' | 'dark' | 'light';
+    theme?: 'default' | 'primary' | 'dark' | 'light' | 'brand' | 'subtle' | 'accent' | 'pattern';
     padding?: 'none' | 'small' | 'medium' | 'large';
     fullWidth?: boolean;
     textAlignment?: 'left' | 'center' | 'right';
+    separator?: boolean;
   };
 }
 
@@ -222,6 +223,73 @@ export interface ChargingBoxShowcaseBlock {
   headerAlignment?: 'left' | 'center' | 'right'
 }
 
+export interface RegionalComparisonBlock {
+  _type: 'regionalComparison';
+  _key: string;
+  title?: string;
+  subtitle?: string;
+  headerAlignment?: 'left' | 'center' | 'right';
+  leadingText?: BlockContent[];
+  dk1Title?: string;
+  dk1Description?: BlockContent[];
+  dk1PriceIndicator?: 'higher' | 'lower' | 'same';
+  dk1Features?: string[];
+  dk2Title?: string;
+  dk2Description?: BlockContent[];
+  dk2PriceIndicator?: 'higher' | 'lower' | 'same';
+  dk2Features?: string[];
+  showMap?: boolean;
+}
+
+export interface PricingComparisonBlock {
+  _type: 'pricingComparison';
+  _key: string;
+  title?: string;
+  subtitle?: string;
+  headerAlignment?: 'left' | 'center' | 'right';
+  leadingText?: BlockContent[];
+  fixedTitle?: string;
+  fixedDescription?: BlockContent[];
+  variableTitle?: string;
+  variableDescription?: BlockContent[];
+  comparisonItems?: {
+    feature: string;
+    fixed: string;
+    variable: string;
+    tooltip?: string;
+  }[];
+  recommendation?: BlockContent[];
+}
+
+export interface DailyPriceTimelineBlock {
+  _type: 'dailyPriceTimeline';
+  _key: string;
+  title?: string;
+  subtitle?: string;
+  headerAlignment?: 'left' | 'center' | 'right';
+  leadingText?: BlockContent[];
+  showTimeZones?: boolean;
+  showAveragePrice?: boolean;
+  highlightPeakHours?: boolean;
+}
+
+export interface InfoCardsSectionBlock {
+  _type: 'infoCardsSection';
+  _key: string;
+  title?: string;
+  subtitle?: string;
+  headerAlignment?: 'left' | 'center' | 'right';
+  leadingText?: BlockContent[];
+  cards?: {
+    title: string;
+    description?: BlockContent[];
+    icon?: string;
+    iconColor?: string;
+    bgColor?: string;
+  }[];
+  columns?: 2 | 3 | 4;
+}
+
 export interface FeatureBlock {
   _key: string
   _type: 'feature'
@@ -337,6 +405,10 @@ export type ContentBlock =
   | ApplianceCalculator
   | EnergyTipsSection
   | ChargingBoxShowcaseBlock
+  | RegionalComparisonBlock
+  | PricingComparisonBlock
+  | DailyPriceTimelineBlock
+  | InfoCardsSectionBlock
 
 export interface HomePage {
   _id: string

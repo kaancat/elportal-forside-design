@@ -2,17 +2,13 @@ import React from 'react';
 import { MegaMenu } from '@/types/sanity';
 import { Link as RouterLink } from 'react-router-dom';
 import { Icon, hasValidIcon } from './Icon';
+import { resolveLink } from '@/utils/linkResolver';
 
 interface MegaMenuContentProps {
   menu: MegaMenu;
 }
 
 const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
-  const resolveLink = (link: any) => {
-    if (link.linkType === 'external') return link.externalUrl || '#';
-    if (link.internalLink?.slug) return `/${link.internalLink.slug}`;
-    return '/';
-  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -34,7 +30,7 @@ const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
                 
                 return (
                   <li key={item._key}>
-                    <RouterLink to={resolveLink(item.link)} className="flex items-start p-2 rounded-lg hover:bg-brand-green/10">
+                    <RouterLink to={resolveLink(item.link, 'MegaMenu')} className="flex items-start p-2 rounded-lg hover:bg-brand-green/10">
                       {hasValidIcon(item.icon) && (
                         <Icon
                           icon={item.icon}

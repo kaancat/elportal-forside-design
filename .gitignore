@@ -28,3 +28,4 @@ dist-ssr
 .claude/
 docs/specs/example-feature-specification.md
 
+.vercel

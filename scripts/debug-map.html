@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debug Denmark Map</title>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module">
+    import React from 'react';
+    import ReactDOM from 'react-dom/client';
+    import { Municipalities } from 'react-denmark-map';
+    
+    const DebugMap = () => {
+      const [municipalities, setMunicipalities] = React.useState([]);
+      
+      const customizeMunicipalities = (municipality) => {
+        setMunicipalities(prev => {
+          const exists = prev.some(m => m.name === municipality.name);
+          if (!exists) {
+            console.log('Municipality:', municipality.name);
+            return [...prev, { name: municipality.name }];
+          }
+          return prev;
+        });
+        
+        return {
+          style: {
+            fill: '#60a5fa',
+            stroke: '#333',
+            strokeWidth: 0.5
+          }
+        };
+      };
+      
+      return (
+        <div>
+          <h1>Denmark Map Debug</h1>
+          <div style={{ width: '800px', height: '600px' }}>
+            <Municipalities 
+              customizeAreas={customizeMunicipalities}
+              showTooltip={true}
+              zoomable={false}
+              draggable={false}
+            />
+          </div>
+          <div>
+            <h2>Municipalities found: {municipalities.length}</h2>
+            <ul>
+              {municipalities.map(m => (
+                <li key={m.name}>{m.name}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      );
+    };
+    
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(React.createElement(DebugMap));
+  </script>
+</body>
+</html>

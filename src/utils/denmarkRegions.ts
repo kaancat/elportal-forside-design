@@ -12,7 +12,7 @@ export const DK1_MUNICIPALITIES = [
   'odder', 'randers', 'rebild', 'ringkøbing-skjern', 'samsø', 
   'silkeborg', 'skanderborg', 'skive', 'struer', 'syddjurs', 
   'sønderborg', 'thisted', 'tønder', 'varde', 'vejen', 'vejle', 
-  'vesthimmerland', 'viborg',
+  'vesthimmerland', 'vesthimmerlands', 'viborg',
   
   // Jutland - ASCII versions
   'broenderslev', 'fanoe', 'hjoerring', 'laesoe', 'morsoe',
@@ -20,7 +20,7 @@ export const DK1_MUNICIPALITIES = [
   
   // Funen (Fyn) - with special characters
   'assens', 'faaborg-midtfyn', 'kerteminde', 'langeland', 'middelfart',
-  'nordfyns', 'nyborg', 'odense', 'svendborg', 'ærø',
+  'nordfyn', 'nordfyns', 'nyborg', 'odense', 'svendborg', 'ærø',
   
   // Funen - ASCII versions
   'aeroe', 'aerø',

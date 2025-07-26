@@ -108,8 +108,9 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         const nextIsDataVisualization = nextBlock && !Array.isArray(nextBlock) && ['livePriceGraph', 'co2EmissionsChart', 'renewableEnergyForecast', 'monthlyProductionChart', 'realPriceComparisonTable'].includes(nextBlock._type);
         const isPageSection = !Array.isArray(block) && block._type === 'pageSection';
         
-        // Remove all spacing between blocks to prevent gaps
-        const spacingClass = '';
+        // Use subtle spacing between components - avoid large gaps but maintain visual separation
+        const tightSpacing = isPageSection && nextIsDataVisualization;
+        const spacingClass = tightSpacing ? 'mb-0' : (index < groupedBlocks.length - 1 ? 'mb-3' : '');
         
         return (
           <div key={Array.isArray(block) ? `faq-group-${index}` : block._key} className={spacingClass}>

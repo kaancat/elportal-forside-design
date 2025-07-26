@@ -278,13 +278,26 @@ const SafeContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
       }
     >
       <>
-        {groupedBlocks.map((block, index) => (
-          <SafeContentBlock 
-            key={Array.isArray(block) ? `faq-group-${index}` : block._key} 
-            block={block} 
-            index={index} 
-          />
-        ))}
+        {groupedBlocks.map((block, index) => {
+          // Determine spacing for this block (matching ContentBlocks logic)
+          const nextBlock = groupedBlocks[index + 1];
+          const isDataVisualization = !Array.isArray(block) && ['livePriceGraph', 'co2EmissionsChart', 'renewableEnergyForecast', 'monthlyProductionChart', 'realPriceComparisonTable'].includes(block._type);
+          const nextIsDataVisualization = nextBlock && !Array.isArray(nextBlock) && ['livePriceGraph', 'co2EmissionsChart', 'renewableEnergyForecast', 'monthlyProductionChart', 'realPriceComparisonTable'].includes(nextBlock._type);
+          const isPageSection = !Array.isArray(block) && block._type === 'pageSection';
+          
+          // Use subtle spacing between components - avoid large gaps but maintain visual separation
+          const tightSpacing = isPageSection && nextIsDataVisualization;
+          const spacingClass = tightSpacing ? 'mb-0' : (index < groupedBlocks.length - 1 ? 'mb-3' : '');
+          
+          return (
+            <div key={Array.isArray(block) ? `faq-group-${index}` : block._key} className={spacingClass}>
+              <SafeContentBlock 
+                block={block} 
+                index={index} 
+              />
+            </div>
+          );
+        })}
       </>
     </ErrorBoundary>
   );

@@ -95,52 +95,99 @@ const RegionalComparison: React.FC<RegionalComparisonProps> = ({ block }) => {
               
               {/* SVG Map of Denmark */}
               <svg
-                viewBox="0 0 400 300"
-                className="w-96 h-72 mx-auto"
+                viewBox="0 0 500 400"
+                className="w-full max-w-lg h-auto mx-auto"
                 xmlns="http://www.w3.org/2000/svg"
               >
                 {/* Background */}
-                <rect width="400" height="300" fill="#f8fafc" rx="8" />
+                <rect width="500" height="400" fill="#f8fafc" rx="8" />
                 
-                {/* Stylized Denmark outline - DK1 (West) */}
+                {/* DK1 (West) - Blue */}
                 <g>
-                  {/* Jutland Peninsula (DK1) */}
+                  {/* Jutland Peninsula (Jylland) */}
                   <path
-                    d="M120 80 L120 50 L140 40 L160 45 L180 50 L200 60 L210 80 L220 100 L225 120 L230 140 L235 160 L240 180 L235 200 L230 220 L220 240 L200 250 L180 255 L160 250 L140 245 L120 240 L110 220 L105 200 L100 180 L95 160 L100 140 L105 120 L110 100 L115 80 Z"
+                    d="M 150,50 L 170,40 L 180,35 L 185,40 L 190,38 L 195,42 L 200,45 L 205,50 L 210,60 L 215,70 L 220,85 L 225,100 L 228,115 L 230,130 L 232,145 L 235,160 L 238,175 L 240,190 L 242,205 L 240,220 L 238,235 L 235,250 L 230,265 L 225,275 L 220,285 L 210,295 L 200,300 L 190,303 L 180,305 L 170,303 L 160,300 L 150,295 L 140,285 L 135,275 L 130,260 L 125,245 L 122,230 L 120,215 L 118,200 L 116,185 L 115,170 L 114,155 L 115,140 L 118,125 L 120,110 L 125,95 L 130,80 L 135,65 L 140,55 L 145,52 Z"
                     fill="#3b82f6"
-                    fillOpacity="0.7"
-                    stroke="#1d4ed8"
+                    fillOpacity="0.8"
+                    stroke="#2563eb"
                     strokeWidth="2"
                   />
-                  {/* Funen (DK1) */}
-                  <circle cx="260" cy="180" r="25" fill="#3b82f6" fillOpacity="0.7" stroke="#1d4ed8" strokeWidth="2" />
-                  {/* Bornholm (DK1) */}
-                  <circle cx="350" cy="120" r="15" fill="#3b82f6" fillOpacity="0.7" stroke="#1d4ed8" strokeWidth="2" />
+                  
+                  {/* Funen (Fyn) */}
+                  <path
+                    d="M 265,200 L 275,195 L 285,195 L 295,200 L 300,210 L 300,220 L 295,230 L 285,235 L 275,235 L 265,230 L 260,220 L 260,210 Z"
+                    fill="#3b82f6"
+                    fillOpacity="0.8"
+                    stroke="#2563eb"
+                    strokeWidth="2"
+                  />
                 </g>
                 
-                {/* DK2 (East) */}
+                {/* DK2 (East) - Purple */}
                 <g>
-                  {/* Zealand */}
-                  <ellipse cx="300" cy="120" rx="35" ry="45" fill="#8b5cf6" fillOpacity="0.7" stroke="#7c3aed" strokeWidth="2" />
-                  {/* Lolland-Falster */}
-                  <ellipse cx="280" cy="200" rx="20" ry="15" fill="#8b5cf6" fillOpacity="0.7" stroke="#7c3aed" strokeWidth="2" />
+                  {/* Zealand (Sjælland) */}
+                  <path
+                    d="M 320,140 L 330,135 L 340,135 L 350,140 L 360,145 L 365,155 L 370,165 L 372,175 L 370,185 L 365,195 L 360,205 L 350,210 L 340,212 L 330,210 L 320,205 L 315,195 L 310,185 L 308,175 L 310,165 L 315,155 Z"
+                    fill="#8b5cf6"
+                    fillOpacity="0.8"
+                    stroke="#7c3aed"
+                    strokeWidth="2"
+                  />
+                  
+                  {/* Lolland */}
+                  <path
+                    d="M 310,240 L 320,238 L 330,240 L 335,245 L 335,250 L 330,255 L 320,257 L 310,255 L 305,250 L 305,245 Z"
+                    fill="#8b5cf6"
+                    fillOpacity="0.8"
+                    stroke="#7c3aed"
+                    strokeWidth="2"
+                  />
+                  
+                  {/* Falster */}
+                  <path
+                    d="M 345,250 L 350,248 L 355,250 L 358,255 L 355,260 L 350,262 L 345,260 L 342,255 Z"
+                    fill="#8b5cf6"
+                    fillOpacity="0.8"
+                    stroke="#7c3aed"
+                    strokeWidth="2"
+                  />
+                  
+                  {/* Møn */}
+                  <path
+                    d="M 365,230 L 370,228 L 375,232 L 375,237 L 370,240 L 365,238 L 362,234 Z"
+                    fill="#8b5cf6"
+                    fillOpacity="0.8"
+                    stroke="#7c3aed"
+                    strokeWidth="2"
+                  />
                 </g>
                 
-                {/* Labels */}
-                <text x="170" y="150" textAnchor="middle" className="fill-white font-bold text-lg">DK1</text>
-                <text x="300" y="125" textAnchor="middle" className="fill-white font-bold text-lg">DK2</text>
+                {/* Bornholm (DK1 - technically, but often shown separately) */}
+                <g>
+                  <circle cx="430" cy="120" r="18" fill="#3b82f6" fillOpacity="0.8" stroke="#2563eb" strokeWidth="2" />
+                  <text x="430" y="155" textAnchor="middle" className="fill-gray-700 text-xs font-medium">Bornholm</text>
+                </g>
+                
+                {/* Region Labels */}
+                <text x="180" y="180" textAnchor="middle" className="fill-white font-bold text-xl drop-shadow-lg">DK1</text>
+                <text x="340" y="175" textAnchor="middle" className="fill-white font-bold text-xl drop-shadow-lg">DK2</text>
                 
                 {/* Legend */}
-                <g transform="translate(20, 20)">
-                  <rect x="0" y="0" width="160" height="80" fill="white" stroke="#e5e7eb" strokeWidth="1" rx="4" />
-                  <text x="80" y="15" textAnchor="middle" className="fill-gray-900 font-semibold text-sm">Prisområder</text>
+                <g transform="translate(25, 25)">
+                  <rect x="0" y="0" width="180" height="90" fill="white" fillOpacity="0.95" stroke="#e5e7eb" strokeWidth="1" rx="6" />
+                  <text x="90" y="20" textAnchor="middle" className="fill-gray-900 font-semibold text-base">Elprisområder</text>
                   
-                  <rect x="10" y="25" width="16" height="12" fill="#3b82f6" fillOpacity="0.7" />
-                  <text x="32" y="35" className="fill-gray-700 text-xs">DK1 - Vestdanmark</text>
+                  <rect x="15" y="35" width="20" height="14" fill="#3b82f6" fillOpacity="0.8" rx="2" />
+                  <text x="42" y="46" className="fill-gray-700 text-sm">DK1 - Vestdanmark</text>
                   
-                  <rect x="10" y="45" width="16" height="12" fill="#8b5cf6" fillOpacity="0.7" />
-                  <text x="32" y="55" className="fill-gray-700 text-xs">DK2 - Østdanmark</text>
+                  <rect x="15" y="58" width="20" height="14" fill="#8b5cf6" fillOpacity="0.8" rx="2" />
+                  <text x="42" y="69" className="fill-gray-700 text-sm">DK2 - Østdanmark</text>
                 </g>
+                
+                {/* Small info text */}
+                <text x="250" y="380" textAnchor="middle" className="fill-gray-500 text-xs">
+                  Kortet viser Danmarks to elprisområder
+                </text>
               </svg>
               
               {/* Map Description */}

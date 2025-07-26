@@ -169,8 +169,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
       className={cn(
         "relative overflow-hidden transition-all duration-300",
         getThemeClasses(),
-        getPaddingClasses(),
-        hasSeparator && "border-b border-gray-100"
+        getPaddingClasses()
       )}
       style={theme?.background ? { backgroundColor: theme.background } : {}}
     >

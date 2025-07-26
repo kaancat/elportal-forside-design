@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Area, AreaChart } from 'recharts';
-import { Sun, Moon, Sunrise, Sunset, AlertCircle, Calendar } from 'lucide-react';
+import { Sun, Moon, Sunrise, Sunset, AlertCircle, Calendar, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { PortableText } from '@portabletext/react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 import type { DailyPriceTimelineBlock } from '@/types/sanity';
 
@@ -42,6 +50,7 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
   const [error, setError] = useState<string | null>(null);
   const [averagePrice, setAveragePrice] = useState(0);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedRegion, setSelectedRegion] = useState<'DK1' | 'DK2'>(apiRegion as 'DK1' | 'DK2');
 
   // Helper functions
   const formatDate = (date: Date) => date.toISOString().split('T')[0];
@@ -89,7 +98,7 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
       const dateString = formatDate(selectedDate);
       
       try {
-        const response = await fetch(`/api/electricity-prices?region=${apiRegion}&date=${dateString}`);
+        const response = await fetch(`/api/electricity-prices?region=${selectedRegion}&date=${dateString}`);
         
         if (!response.ok) {
           throw new Error('Kunne ikke hente prisdata');
@@ -119,7 +128,7 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
     };
 
     fetchPriceData();
-  }, [apiRegion, selectedDate]);
+  }, [selectedRegion, selectedDate]);
 
   const timeZones = [
     { id: 'night', label: 'Nat', icon: Moon, color: 'bg-blue-900', hours: '23:00 - 05:00' },
@@ -209,8 +218,8 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
           </div>
         )}
 
-        {/* Date Controls */}
-        <div className="flex items-center justify-between mb-6">
+        {/* Date and Region Controls */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
           <div className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-gray-600" />
             <span className="text-sm text-gray-600">
@@ -221,11 +230,30 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
               })}
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Region:</span>
-            <Badge variant="secondary" className="bg-green-100 text-green-800">
-              {apiRegion} ({apiRegion === 'DK1' ? 'Vestdanmark' : 'Østdanmark'})
-            </Badge>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-gray-600" />
+              <span className="text-sm text-gray-600">Vælg region:</span>
+            </div>
+            <Select value={selectedRegion} onValueChange={(value) => setSelectedRegion(value as 'DK1' | 'DK2')}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="DK1">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-blue-500" />
+                    <span>DK1 - Vestdanmark</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="DK2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-purple-500" />
+                    <span>DK2 - Østdanmark</span>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -289,7 +317,12 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
                       y={averagePrice} 
                       stroke="#ef4444" 
                       strokeDasharray="5 5"
-                      label={{ value: "Gennemsnit", position: "right" }}
+                      label={{ 
+                        value: "Gennemsnit", 
+                        position: "insideTopRight",
+                        offset: 10,
+                        style: { fontSize: 12, fill: '#ef4444' }
+                      }}
                     />
                   )}
                   

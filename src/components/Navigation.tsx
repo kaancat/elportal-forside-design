@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { SanityService } from '@/services/sanityService';
 import { SiteSettings, Link as LinkType, MegaMenu } from '@/types/sanity';
 import { Button } from '@/components/ui/button';
@@ -7,26 +8,40 @@ import MegaMenuContent from './MegaMenuContent';
 import MobileNav from './MobileNav';
 import { AnimatePresence, motion } from 'framer-motion';
 import { resolveLink, checkLinksHealth } from '@/utils/linkResolver';
+import { useNavigationRefresh } from '@/hooks/useNavigationRefresh';
 
 const Navigation = () => {
-  const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [openMenuKey, setOpenMenuKey] = useState<string | null>(null);
+  const { refreshNavigation } = useNavigationRefresh();
 
-  useEffect(() => {
-    const fetchSettings = async () => {
+  // Use React Query for navigation data fetching
+  const { data: settings, isLoading, error, dataUpdatedAt } = useQuery({
+    queryKey: ['navigation', 'site-settings'],
+    queryFn: async () => {
       const data = await SanityService.getSiteSettings();
-      setSettings(data);
       
       // Health check navigation links in development
       if (process.env.NODE_ENV === 'development' && data?.headerLinks) {
         checkLinksHealth(data.headerLinks, 'Navigation');
       }
-    };
-    fetchSettings();
-  }, []);
-  
+      
+      return data;
+    },
+    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+    gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes (formerly cacheTime)
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
+    refetchOnReconnect: true, // Refetch when network reconnects
+    retry: 3, // Retry failed requests 3 times
+  });
 
-  if (!settings) {
+  // Show loading state
+  if (isLoading) {
+    return <header className="sticky top-0 z-50 w-full bg-brand-dark h-16" />;
+  }
+
+  // Handle error state
+  if (error || !settings) {
+    console.error('Navigation error:', error);
     return <header className="sticky top-0 z-50 w-full bg-brand-dark h-16" />;
   }
   
@@ -95,6 +110,31 @@ const Navigation = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Development helper - shows last update time and refresh button */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed bottom-4 right-4 bg-gray-900 text-white p-3 rounded-lg shadow-lg text-xs z-50">
+          <div className="flex items-center gap-3">
+            <div>
+              <div>Navigation Updated:</div>
+              <div className="text-gray-400">
+                {new Date(dataUpdatedAt).toLocaleTimeString()}
+              </div>
+            </div>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => refreshNavigation()}
+              className="text-xs"
+            >
+              Refresh Nav
+            </Button>
+          </div>
+          <div className="text-gray-500 mt-1">
+            Shortcut: Ctrl+Shift+N
+          </div>
+        </div>
+      )}
     </header>
   );
 };

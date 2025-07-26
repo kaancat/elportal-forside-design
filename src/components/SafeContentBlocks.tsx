@@ -277,7 +277,7 @@ const SafeContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         </div>
       }
     >
-      <div className="space-y-6">
+      <>
         {groupedBlocks.map((block, index) => (
           <SafeContentBlock 
             key={Array.isArray(block) ? `faq-group-${index}` : block._key} 
@@ -285,7 +285,7 @@ const SafeContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
             index={index} 
           />
         ))}
-      </div>
+      </>
     </ErrorBoundary>
   );
 };

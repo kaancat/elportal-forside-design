@@ -74,7 +74,7 @@ const Index = () => {
         <ErrorBoundary level="component">
           <Navigation />
         </ErrorBoundary>
-        <main className="space-y-8">
+        <main>
           <ApiErrorFallback 
             onRetry={() => {
               clearError()
@@ -94,7 +94,7 @@ const Index = () => {
         <Navigation />
       </ErrorBoundary>
       
-      <main className="space-y-8">
+      <main>
         {/* Error Test Component - only in development */}
         <ErrorTestComponent />
         

@@ -18,55 +18,38 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        cache: 'npm'
-
-    - name: Install Sanity CLI
-      run: npm install -g @sanity/cli
 
     - name: Create backup directory
       run: mkdir -p backups
 
-    - name: Clone Sanity project
-      run: |
-        git clone https://github.com/${{ github.repository_owner }}/sanityelpriscms.git sanity-project || echo "Could not clone sanity project"
-
-    - name: Export Sanity dataset
+    - name: Export Sanity dataset via HTTP API
       env:
-        SANITY_AUTH_TOKEN: ${{ secrets.SANITY_API_TOKEN }}
+        SANITY_API_TOKEN: ${{ secrets.SANITY_API_TOKEN }}
       run: |
         DATE=$(date +%Y%m%d_%H%M%S)
         echo "Backing up Sanity dataset..."
         
-        # Try to use the cloned project, or use npx if clone failed
-        if [ -d "sanity-project" ]; then
-          cd sanity-project
-          npm install
-          npx sanity dataset export production ../backups/backup_$DATE.tar.gz
-        else
-          # Fallback: use npx with project flag
-          npx sanity dataset export production backups/backup_$DATE.tar.gz \
-            --project yxesi03x \
-            --token $SANITY_AUTH_TOKEN
-        fi
+        # Use curl to export dataset via Sanity HTTP API
+        curl -H "Authorization: Bearer $SANITY_API_TOKEN" \
+          "https://yxesi03x.api.sanity.io/v1/data/export/production/" \
+          -o backups/backup_$DATE.ndjson
         
-        # Also export as JSON for readability
+        # Convert to tar.gz format
+        tar -czf backups/backup_$DATE.tar.gz -C backups backup_$DATE.ndjson
+        rm backups/backup_$DATE.ndjson
+        
+        # Also export specific documents as JSON
         echo "Exporting content as JSON..."
-        mkdir -p ../backups/json_$DATE
+        mkdir -p backups/json_$DATE
         
-        # Export each document type from within the sanity project
-        if [ -d "../sanity-project" ]; then
-          cd ../sanity-project
-          for TYPE in page provider siteSettings homePage blogPost; do
-            echo "Exporting $TYPE documents..."
-            npx sanity documents query "*[_type == '$TYPE']" \
-              --dataset production \
-              > ../backups/json_$DATE/${TYPE}.json
-          done
-          cd ..
-        else
-          # Skip JSON export if no project directory
-          echo "Skipping JSON export - no project directory"
-        fi
+        # Export each document type via API
+        for TYPE in page provider siteSettings homePage blogPost; do
+          echo "Exporting $TYPE documents..."
+          curl -s -H "Authorization: Bearer $SANITY_API_TOKEN" \
+            -G "https://yxesi03x.api.sanity.io/v2025-01-01/data/query/production" \
+            --data-urlencode "query=*[_type == '$TYPE']" \
+            | jq '.' > backups/json_$DATE/${TYPE}.json
+        done
         
         # Create backup manifest
         echo "{

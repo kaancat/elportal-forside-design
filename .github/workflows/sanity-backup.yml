@@ -26,29 +26,47 @@ jobs:
     - name: Create backup directory
       run: mkdir -p backups
 
+    - name: Clone Sanity project
+      run: |
+        git clone https://github.com/${{ github.repository_owner }}/sanityelpriscms.git sanity-project || echo "Could not clone sanity project"
+
     - name: Export Sanity dataset
       env:
         SANITY_AUTH_TOKEN: ${{ secrets.SANITY_API_TOKEN }}
       run: |
         DATE=$(date +%Y%m%d_%H%M%S)
         echo "Backing up Sanity dataset..."
-        sanity dataset export production backups/backup_$DATE.tar.gz \
-          --project yxesi03x \
-          --token $SANITY_AUTH_TOKEN
+        
+        # Try to use the cloned project, or use npx if clone failed
+        if [ -d "sanity-project" ]; then
+          cd sanity-project
+          npm install
+          npx sanity dataset export production ../backups/backup_$DATE.tar.gz
+        else
+          # Fallback: use npx with project flag
+          npx sanity dataset export production backups/backup_$DATE.tar.gz \
+            --project yxesi03x \
+            --token $SANITY_AUTH_TOKEN
+        fi
         
         # Also export as JSON for readability
         echo "Exporting content as JSON..."
-        mkdir -p backups/json_$DATE
+        mkdir -p ../backups/json_$DATE
         
-        # Export each document type
-        for TYPE in page provider siteSettings homePage blogPost; do
-          echo "Exporting $TYPE documents..."
-          sanity documents query "*[_type == '$TYPE']" \
-            --project yxesi03x \
-            --dataset production \
-            --token $SANITY_AUTH_TOKEN \
-            > backups/json_$DATE/${TYPE}.json
-        done
+        # Export each document type from within the sanity project
+        if [ -d "../sanity-project" ]; then
+          cd ../sanity-project
+          for TYPE in page provider siteSettings homePage blogPost; do
+            echo "Exporting $TYPE documents..."
+            npx sanity documents query "*[_type == '$TYPE']" \
+              --dataset production \
+              > ../backups/json_$DATE/${TYPE}.json
+          done
+          cd ..
+        else
+          # Skip JSON export if no project directory
+          echo "Skipping JSON export - no project directory"
+        fi
         
         # Create backup manifest
         echo "{

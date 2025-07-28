@@ -1,0 +1,229 @@
+{
+  "instructions": [
+    "MANUAL FIX INSTRUCTIONS:",
+    "1. Go to Sanity Studio: https://dinelportal.sanity.studio",
+    "2. Navigate to Site Settings",
+    "3. In the Header Navigation section, you need to:",
+    "   - Delete all existing navigation items",
+    "   - Re-add them with the correct structure below",
+    "4. For each item in the 'headerLinks' array below:",
+    "   - Add a new item",
+    "   - Select the correct type (Link or Mega Menu)",
+    "   - Fill in the fields as shown",
+    "",
+    "IMPORTANT: The main issue is that 'Link' items are missing their _type field.",
+    "When adding links, make sure to select 'Link' from the dropdown."
+  ],
+  "headerLinks": [
+    {
+      "_type": "link",
+      "_key": "3b87656928f4",
+      "title": "Elpriser",
+      "linkType": "internal",
+      "internalLink": {
+        "_type": "reference",
+        "_ref": "1BrgDwXdqxJ08rMIoYfLjP"
+      }
+    },
+    {
+      "_type": "link",
+      "_key": "94a211b654c0",
+      "title": "Elselskaber",
+      "linkType": "internal",
+      "internalLink": {
+        "_type": "reference",
+        "_ref": "I7aq0qw44tdJ3YglBfyS8h"
+      }
+    },
+    {
+      "_type": "link",
+      "_key": "3fc712597bbf",
+      "title": "Ladeboks",
+      "linkType": "internal",
+      "internalLink": {
+        "_type": "reference",
+        "_ref": "Ldbn1aqxfi6rpqe9dn"
+      }
+    },
+    {
+      "_type": "link",
+      "_key": "56ab3fed792b",
+      "title": "Bliv klogere på",
+      "linkType": "external"
+    },
+    {
+      "_type": "link",
+      "_key": "d697d458059b",
+      "title": "Sammenlign Priser",
+      "linkType": "internal",
+      "internalLink": {
+        "_type": "reference",
+        "_ref": "80a93cd8-34a6-4041-8b4b-2f65424dcbc6"
+      },
+      "isButton": true
+    },
+    {
+      "_type": "megaMenu",
+      "_key": "yjei6404pzb",
+      "title": "Bliv klogere",
+      "content": [
+        {
+          "_type": "megaMenuColumn",
+          "_key": "uwferlmj6wf",
+          "title": "Elpriser & Prognoser",
+          "items": [
+            {
+              "_type": "megaMenuItem",
+              "_key": "3durylls8nv",
+              "title": "Aktuelle elpriser",
+              "description": "Se de seneste elpriser time for time",
+              "link": {
+                "_type": "link",
+                "_key": "link-3durylls8nv",
+                "title": "Aktuelle elpriser",
+                "linkType": "internal",
+                "internalLink": {
+                  "_type": "reference",
+                  "_ref": "drafts.1BrgDwXdqxJ08rMIoYfLjP"
+                }
+              }
+            },
+            {
+              "_type": "megaMenuItem",
+              "_key": "a5l2amkiifr",
+              "title": "Historiske elpriser",
+              "description": "Se udviklingen i elpriser over tid",
+              "link": {
+                "_type": "link",
+                "_key": "link-a5l2amkiifr",
+                "title": "Historiske elpriser",
+                "linkType": "internal",
+                "internalLink": {
+                  "_type": "reference",
+                  "_ref": "qgCxJyBbKpvhb2oGYjlhjr"
+                }
+              }
+            },
+            {
+              "_type": "megaMenuItem",
+              "_key": "yfrzcgw3ko",
+              "title": "Elpriser prognose",
+              "description": "Forudsigelser for morgendagens priser",
+              "link": {
+                "_type": "link",
+                "_key": "link-yfrzcgw3ko",
+                "title": "Elpriser prognose",
+                "linkType": "internal",
+                "internalLink": {
+                  "_type": "reference",
+                  "_ref": "qgCxJyBbKpvhb2oGYkdQx3"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "_type": "megaMenuColumn",
+          "_key": "5n5mobvayb",
+          "title": "Guides & Tips",
+          "items": [
+            {
+              "_type": "megaMenuItem",
+              "_key": "btywcwnbvk7",
+              "title": "Energibesparende tips",
+              "description": "Reducer dit elforbrug og spar penge",
+              "link": {
+                "_type": "link",
+                "_key": "link-btywcwnbvk7",
+                "title": "Energibesparende tips",
+                "linkType": "internal",
+                "internalLink": {
+                  "_type": "reference",
+                  "_ref": "I7aq0qw44tdJ3YglBpsP1G"
+                }
+              }
+            },
+            {
+              "_type": "megaMenuItem",
+              "_key": "kwgfvaba919",
+              "title": "Ladeboks til elbil",
+              "description": "Alt om ladebokse og installation",
+              "link": {
+                "_type": "link",
+                "_key": "link-kwgfvaba919",
+                "title": "Ladeboks til elbil",
+                "linkType": "internal",
+                "internalLink": {
+                  "_type": "reference",
+                  "_ref": "Ldbn1aqxfi6rpqe9dn"
+                }
+              }
+            },
+            {
+              "_type": "megaMenuItem",
+              "_key": "anmngxsjhet",
+              "title": "Grøn energi",
+              "description": "Lær om vedvarende energikilder",
+              "link": {
+                "_type": "link",
+                "_key": "link-anmngxsjhet",
+                "title": "Grøn energi",
+                "linkType": "external",
+                "externalUrl": "https://energinet.dk/groen-energi"
+              }
+            }
+          ]
+        },
+        {
+          "_type": "megaMenuColumn",
+          "_key": "js18gs7fmmj",
+          "title": "Om elmarkedet",
+          "items": [
+            {
+              "_type": "megaMenuItem",
+              "_key": "y9l2t3f9o28",
+              "title": "Sådan fungerer elmarkedet",
+              "description": "Forstå det danske elmarked",
+              "link": {
+                "_type": "link",
+                "_key": "link-y9l2t3f9o28",
+                "title": "Sådan fungerer elmarkedet",
+                "linkType": "external",
+                "externalUrl": "https://energinet.dk"
+              }
+            },
+            {
+              "_type": "megaMenuItem",
+              "_key": "ryhby44fjnl",
+              "title": "Elselskaber i Danmark",
+              "description": "Se alle danske elleverandører",
+              "link": {
+                "_type": "link",
+                "_key": "link-ryhby44fjnl",
+                "title": "Elselskaber i Danmark",
+                "linkType": "internal",
+                "internalLink": {
+                  "_type": "reference",
+                  "_ref": "I7aq0qw44tdJ3YglBfyS8h"
+                }
+              }
+            },
+            {
+              "_type": "megaMenuItem",
+              "_key": "lnwcc4cl65k",
+              "title": "Vindstød",
+              "description": "Danmarks grønne elselskab",
+              "link": {
+                "_type": "link",
+                "_key": "link-lnwcc4cl65k",
+                "title": "Vindstød",
+                "linkType": "external",
+                "externalUrl": "https://vindstod.dk"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

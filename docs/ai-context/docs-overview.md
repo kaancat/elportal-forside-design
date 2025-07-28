@@ -27,6 +27,7 @@ This hierarchy allows AI agents to load targeted context efficiently while maint
 - **[API Reference](/docs/ai-context/EnergiDataServiceAPI.md)** - *External API docs.* EnergiDataService endpoints, rate limits, and examples
 - **[Sanity Icon Troubleshooting](/docs/SANITY_ICON_TROUBLESHOOTING.md)** - *Plugin integration guide.* SchemaError fixes, icon picker setup, and common pitfalls
 - **[Direct SEO Page Generation](/docs/SEO_PAGE_GENERATION.md)** - *Direct API approach.* Creating SEO pages via Sanity API, content patterns, and validation
+- **[Agent Actions Integration](/docs/AGENT-ACTIONS-INTEGRATION.md)** - *AI-powered content creation.* Schema-aware document generation with automatic validation and error recovery
 
 ### Development Tools
 - **[Using MCP Servers](/docs/development/using-mcp-servers.md)** - *Development efficiency.* Smithery gateway for accessing MCP servers, image search, competitor analysis, content generation

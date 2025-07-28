@@ -1,0 +1,385 @@
+// Auto-generated from Sanity schemas - DO NOT EDIT
+// Generated on: 2025-07-27T13:10:00.415Z
+
+import { z } from 'zod';
+
+// Base schemas
+export const SanityReferenceSchema = z.object({
+  _type: z.literal('reference'),
+  _ref: z.string(),
+});
+
+export const SanitySlugSchema = z.object({
+  _type: z.literal('slug'),
+  current: z.string(),
+});
+
+export const SanityImageSchema = z.object({
+  _type: z.literal('image'),
+  asset: SanityReferenceSchema,
+  hotspot: z.object({
+    x: z.number(),
+    y: z.number(),
+    height: z.number(),
+    width: z.number(),
+  }).optional(),
+  crop: z.object({
+    top: z.number(),
+    bottom: z.number(),
+    left: z.number(),
+    right: z.number(),
+  }).optional(),
+}).passthrough();
+
+export const IconManagerSchema = z.object({
+  _type: z.literal('icon.manager'),
+  icon: z.string(),
+  metadata: z.object({
+    iconName: z.string(),
+    collectionId: z.string(),
+    collectionName: z.string(),
+    url: z.string(),
+    inlineSvg: z.string(),
+    downloadUrl: z.string(),
+    size: z.object({
+      width: z.number(),
+      height: z.number(),
+    }),
+  }),
+});
+
+export const ApplianceCalculatorSchema = z.object({
+  _type: z.literal('applianceCalculator'),
+  _key: z.string(),
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+});
+
+export const BlogPostSchema = z.object({
+  _type: z.literal('blogPost'),
+  _key: z.string(),
+  title: z.string(),
+  slug: SanitySlugSchema,
+});
+
+export const CallToActionSectionSchema = z.object({
+  _type: z.literal('callToActionSection'),
+  _key: z.string(),
+  title: z.string(),
+  buttonText: z.string(),
+  buttonUrl: z.string(),
+});
+
+export const ChargingBoxProductSchema = z.object({
+  _type: z.literal('chargingBoxProduct'),
+  _key: z.string(),
+  name: z.string(),
+});
+
+export const ChargingBoxShowcaseSchema = z.object({
+  _type: z.literal('chargingBoxShowcase'),
+  _key: z.string(),
+  heading: z.string(),
+});
+
+export const Co2EmissionsChartSchema = z.object({
+  _type: z.literal('co2EmissionsChart'),
+  _key: z.string(),
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+});
+
+export const ColorThemeSchema = z.object({
+  _type: z.literal('colorTheme'),
+  _key: z.string(),
+  name: z.string(),
+  background: z.any().optional(),
+  text: z.any().optional(),
+  primary: z.any().optional(),
+});
+
+export const ConsumptionMapSchema = z.object({
+  _type: z.literal('consumptionMap'),
+  _key: z.string(),
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+});
+
+export const DailyPriceTimelineSchema = z.object({
+  _type: z.literal('dailyPriceTimeline'),
+  _key: z.string(),
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+});
+
+export const DeclarationGridmixSchema = z.object({
+  _type: z.literal('declarationGridmix'),
+  _key: z.string(),
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+});
+
+export const DeclarationProductionSchema = z.object({
+  _type: z.literal('declarationProduction'),
+  _key: z.string(),
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+});
+
+export const EnergyTipsSectionSchema = z.object({
+  _type: z.literal('energyTipsSection'),
+  _key: z.string(),
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+});
+
+export const FaqGroupSchema = z.object({
+  _type: z.literal('faqGroup'),
+  _key: z.string(),
+  title: z.string(),
+});
+
+export const FaqItemSchema = z.object({
+  _type: z.literal('faqItem'),
+  _key: z.string(),
+  question: z.string(),
+});
+
+export const FeatureItemSchema = z.object({
+  _type: z.literal('featureItem'),
+  _key: z.string(),
+  icon: IconManagerSchema.optional(),
+  title: z.string().optional(),
+  description: z.string().optional(),
+});
+
+export const FeatureListSchema = z.object({
+  _type: z.literal('featureList'),
+  _key: z.string(),
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+});
+
+export const HeroSchema = z.object({
+  _type: z.literal('hero'),
+  _key: z.string(),
+  headline: z.string(),
+  subheadline: z.string().optional(),
+});
+
+export const HeroWithCalculatorSchema = z.object({
+  _type: z.literal('heroWithCalculator'),
+  _key: z.string(),
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+});
+
+export const HomePageSchema = z.object({
+  _type: z.literal('homePage'),
+  _key: z.string(),
+  title: z.string(),
+});
+
+export const InfoCardsSectionSchema = z.object({
+  _type: z.literal('infoCardsSection'),
+  _key: z.string(),
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+});
+
+export const LinkSchema = z.object({
+  _type: z.literal('link'),
+  _key: z.string(),
+  title: z.string(),
+});
+
+export const LivePriceGraphSchema = z.object({
+  _type: z.literal('livePriceGraph'),
+  _key: z.string(),
+  title: z.string(),
+  subtitle: z.string().optional(),
+});
+
+export const MegaMenuSchema = z.object({
+  _type: z.literal('megaMenu'),
+  _key: z.string(),
+  title: z.string(),
+});
+
+export const MegaMenuColumnSchema = z.object({
+  _type: z.literal('megaMenuColumn'),
+  _key: z.string(),
+  title: z.string().optional(),
+});
+
+export const MegaMenuItemSchema = z.object({
+  _type: z.literal('megaMenuItem'),
+  _key: z.string(),
+  title: z.string(),
+  description: z.string().optional(),
+  icon: IconManagerSchema.optional(),
+  link: z.any(),
+});
+
+export const MonthlyProductionChartSchema = z.object({
+  _type: z.literal('monthlyProductionChart'),
+  _key: z.string(),
+  title: z.string(),
+  leadingText: z.string().optional(),
+  description: z.string().optional(),
+});
+
+export const PageSchema = z.object({
+  _type: z.literal('page'),
+  _key: z.string(),
+  title: z.string(),
+  slug: SanitySlugSchema,
+});
+
+export const PageSchema = z.object({
+  _type: z.literal('page'),
+  _key: z.string(),
+  title: z.string(),
+  slug: SanitySlugSchema,
+});
+
+export const PageSectionSchema = z.object({
+  _type: z.literal('pageSection'),
+  _key: z.string(),
+  title: z.string().optional(),
+});
+
+export const PriceCalculatorSchema = z.object({
+  _type: z.literal('priceCalculator'),
+  _key: z.string(),
+  title: z.string().optional(),
+});
+
+export const PriceExampleTableSchema = z.object({
+  _type: z.literal('priceExampleTable'),
+  _key: z.string(),
+  title: z.string(),
+});
+
+export const PricingComparisonSchema = z.object({
+  _type: z.literal('pricingComparison'),
+  _key: z.string(),
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+});
+
+export const ProviderSchema = z.object({
+  _type: z.literal('provider'),
+  _key: z.string(),
+  providerName: z.string(),
+  productName: z.string(),
+  logo: SanityImageSchema.optional(),
+  displayPrice_kWh: z.number(),
+  displayMonthlyFee: z.number(),
+  signupLink: z.string().url(),
+  isVindstoedProduct: z.boolean().optional(),
+});
+
+export const ProviderListSchema = z.object({
+  _type: z.literal('providerList'),
+  _key: z.string(),
+  title: z.string().optional(),
+});
+
+export const RealPriceComparisonTableSchema = z.object({
+  _type: z.literal('realPriceComparisonTable'),
+  _key: z.string(),
+  title: z.string(),
+  leadingText: z.string().optional(),
+});
+
+export const RegionalComparisonSchema = z.object({
+  _type: z.literal('regionalComparison'),
+  _key: z.string(),
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+});
+
+export const RenewableEnergyForecastSchema = z.object({
+  _type: z.literal('renewableEnergyForecast'),
+  _key: z.string(),
+  title: z.string(),
+  leadingText: z.string().optional(),
+});
+
+export const RichTextSectionSchema = z.object({
+  _type: z.literal('richTextSection'),
+  _key: z.string(),
+});
+
+export const SectionSettingsSchema = z.object({
+  _type: z.literal('sectionSettings'),
+  _key: z.string(),
+});
+
+export const SiteSettingsSchema = z.object({
+  _type: z.literal('siteSettings'),
+  _key: z.string(),
+  title: z.string(),
+  description: z.string().optional(),
+});
+
+export const ValueItemSchema = z.object({
+  _type: z.literal('valueItem'),
+  _key: z.string(),
+  icon: IconManagerSchema.optional(),
+  heading: z.string(),
+  description: z.string(),
+});
+
+export const ValuePropositionSchema = z.object({
+  _type: z.literal('valueProposition'),
+  _key: z.string(),
+  title: z.string().optional(),
+});
+
+export const VideoSectionSchema = z.object({
+  _type: z.literal('videoSection'),
+  _key: z.string(),
+  title: z.string(),
+});
+
+// Union schema for all content blocks
+export const ContentBlockSchema = z.discriminatedUnion('_type', [
+  ApplianceCalculatorSchema,
+  CallToActionSectionSchema,
+  ChargingBoxShowcaseSchema,
+  Co2EmissionsChartSchema,
+  ColorThemeSchema,
+  ConsumptionMapSchema,
+  DailyPriceTimelineSchema,
+  DeclarationGridmixSchema,
+  DeclarationProductionSchema,
+  EnergyTipsSectionSchema,
+  FaqGroupSchema,
+  FaqItemSchema,
+  FeatureItemSchema,
+  FeatureListSchema,
+  HeroSchema,
+  HeroWithCalculatorSchema,
+  InfoCardsSectionSchema,
+  LinkSchema,
+  LivePriceGraphSchema,
+  MegaMenuSchema,
+  MegaMenuColumnSchema,
+  MegaMenuItemSchema,
+  MonthlyProductionChartSchema,
+  PageSectionSchema,
+  PriceCalculatorSchema,
+  PriceExampleTableSchema,
+  PricingComparisonSchema,
+  ProviderListSchema,
+  RealPriceComparisonTableSchema,
+  RegionalComparisonSchema,
+  RenewableEnergyForecastSchema,
+  RichTextSectionSchema,
+  SectionSettingsSchema,
+  ValueItemSchema,
+  ValuePropositionSchema,
+  VideoSectionSchema,
+]);

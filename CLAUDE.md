@@ -98,6 +98,36 @@ ElPortal follows a two-project architecture with the Frontend directly integrati
 - Do not commit to git without user approval.
 - Do not run any servers, rather tell the user to run servers for testing.
 - Always consider industry standard libraries/frameworks first over custom implementations.
+
+### 🚨 CRITICAL: Sanity Schema Validation
+When creating or modifying Sanity content, you MUST follow these rules to prevent validation errors:
+
+1. **ALWAYS consult schema documentation**: Check `/sanityelpriscms/docs/SANITY-SCHEMA-REFERENCE.md` before creating content
+2. **NEVER guess field names**: Common mistakes:
+   - `hero` uses `headline/subheadline` NOT `title/subtitle`
+   - `valueItem` uses `heading` NOT `title`
+   - `featureItem` uses `title` NOT `name`
+3. **Use correct field types**:
+   - Icons must be `icon.manager` objects with full metadata
+   - Images must be image objects with asset references
+   - Rich text fields use Portable Text array structure
+4. **Validate before saving**: Use the generated Zod schemas at `src/lib/sanity-schemas.zod.ts`
+5. **Include all required fields**: Check schema documentation for validation rules
+
+Example of correct content creation:
+```typescript
+import { HeroSchema } from '@/lib/sanity-schemas.zod';
+
+const heroContent = {
+  _type: 'hero',
+  _key: generateKey(),
+  headline: 'Din Elportal', // NOT 'title'!
+  subheadline: 'Spar på strøm', // NOT 'subtitle'!
+  image: { _type: 'image', asset: { _type: 'reference', _ref: 'asset-id' } }
+};
+
+// Validate before sending to Sanity
+const validated = HeroSchema.parse(heroContent);
 - Never mock anything. Never use placeholders. Never omit code.
 - Apply SOLID principles where relevant. Use modern framework features rather than reinventing solutions.
 - Be brutally honest about whether an idea is good or bad.

@@ -1,0 +1,770 @@
+[
+  {
+    "_createdAt": "2025-06-06T14:21:02Z",
+    "_id": "084518ec-2f79-48e0-b23c-add29ee83e6d",
+    "_rev": "1BrgDwXdqxJ08rMIofOhSo",
+    "_system": {
+      "base": {
+        "id": "084518ec-2f79-48e0-b23c-add29ee83e6d",
+        "rev": "YwEFrcvVhlZIgmLYjTFZ4Q"
+      }
+    },
+    "_type": "homePage",
+    "_updatedAt": "2025-07-25T09:34:56Z",
+    "contentBlocks": [
+      {
+        "_key": "624a53904835",
+        "_type": "featureList",
+        "features": [
+          {
+            "_key": "01158414c183",
+            "_type": "featureItem",
+            "description": "Udfyld vores enkle formular med info om dit elforbrug eller lad os beregne det for dig.",
+            "icon": {
+              "_type": "icon.manager",
+              "icon": "streamline-freehand:accounting-calculator",
+              "metadata": {
+                "author": {
+                  "name": "Streamline",
+                  "url": "https://github.com/webalys-hq/streamline-vectors"
+                },
+                "collectionId": "streamline-freehand",
+                "collectionName": "Freehand free icons",
+                "color": {
+                  "hex": "#000000",
+                  "rgba": {
+                    "a": 1,
+                    "b": 0,
+                    "g": 0,
+                    "r": 0
+                  }
+                },
+                "downloadUrl": "https://api.iconify.design/streamline-freehand:accounting-calculator.svg?width=20&height=20&color=%23000000&download=1",
+                "flip": "",
+                "hFlip": false,
+                "iconName": "accounting-calculator",
+                "license": {
+                  "name": "CC BY 4.0",
+                  "url": "https://creativecommons.org/licenses/by/4.0/"
+                },
+                "palette": false,
+                "rotate": 0,
+                "size": {
+                  "height": 20,
+                  "width": 20
+                },
+                "url": "https://api.iconify.design/streamline-freehand:accounting-calculator.svg?width=20&height=20&color=%23000000",
+                "vFlip": false
+              }
+            },
+            "title": "Indtast dine oplysninger"
+          },
+          {
+            "_key": "b2f47f7e0cb4",
+            "_type": "featureItem",
+            "description": "Se en oversigt over de bedste elaftaler baseret på dine behov og sortér efter pris eller andre kriterier.",
+            "icon": {
+              "_type": "icon.manager",
+              "icon": "streamline-freehand:content-paper-edit",
+              "metadata": {
+                "author": {
+                  "name": "Streamline",
+                  "url": "https://github.com/webalys-hq/streamline-vectors"
+                },
+                "collectionId": "streamline-freehand",
+                "collectionName": "Freehand free icons",
+                "color": {
+                  "hex": "#000000",
+                  "rgba": {
+                    "a": 1,
+                    "b": 0,
+                    "g": 0,
+                    "r": 0
+                  }
+                },
+                "downloadUrl": "https://api.iconify.design/streamline-freehand:content-paper-edit.svg?width=20&height=20&color=%23000000&download=1",
+                "flip": "",
+                "hFlip": false,
+                "iconName": "content-paper-edit",
+                "license": {
+                  "name": "CC BY 4.0",
+                  "url": "https://creativecommons.org/licenses/by/4.0/"
+                },
+                "palette": false,
+                "rotate": 0,
+                "size": {
+                  "height": 20,
+                  "width": 20
+                },
+                "url": "https://api.iconify.design/streamline-freehand:content-paper-edit.svg?width=20&height=20&color=%23000000",
+                "vFlip": false
+              }
+            },
+            "title": "Sammenlign tilbud"
+          },
+          {
+            "_key": "6ab71fe16876",
+            "_type": "featureItem",
+            "description": "Vælg den bedste aftale og skift elselskab med få klik. Vi klarer alt det praktiske for dig.",
+            "icon": {
+              "_type": "icon.manager",
+              "icon": "streamline-freehand:power-supply-plug",
+              "metadata": {
+                "author": {
+                  "name": "Streamline",
+                  "url": "https://github.com/webalys-hq/streamline-vectors"
+                },
+                "collectionId": "streamline-freehand",
+                "collectionName": "Freehand free icons",
+                "downloadUrl": "https://api.iconify.design/streamline-freehand:power-supply-plug.svg?width=20&height=20&download=1",
+                "flip": "",
+                "hFlip": false,
+                "iconName": "power-supply-plug",
+                "license": {
+                  "name": "CC BY 4.0",
+                  "url": "https://creativecommons.org/licenses/by/4.0/"
+                },
+                "palette": false,
+                "rotate": 0,
+                "size": {
+                  "height": 20,
+                  "width": 20
+                },
+                "url": "https://api.iconify.design/streamline-freehand:power-supply-plug.svg?width=20&height=20",
+                "vFlip": false
+              }
+            },
+            "title": "Vælg og skift nemt"
+          }
+        ],
+        "title": "Sådan fungerer ElPortal.dk"
+      },
+      {
+        "_key": "e625bdcf3ba1",
+        "_type": "valueProposition",
+        "propositions": [
+          "Sammenlign tilbud fra over 30 forskellige elselskaber",
+          "Spar i gennemsnit 2.300 kr. om året på din elregning",
+          "Opdaterede priser og verificerede udbydere",
+          "Over 10.000 danskere bruger dagligt ElPortal.dk"
+        ],
+        "title": "Hvorfor bruge Elportal.dk?"
+      },
+      {
+        "_key": "6366d1cb714c",
+        "_type": "providerList",
+        "providers": [
+          {
+            "_key": "dd3da12b7e68",
+            "_ref": "63c05ca2-cd1e-4f00-b544-6a2077d4031a",
+            "_type": "reference"
+          },
+          {
+            "_key": "6a1a53f333c6",
+            "_ref": "9451a43b-6e68-4914-945c-73a81a508214",
+            "_type": "reference"
+          },
+          {
+            "_key": "db7da15f80fd",
+            "_ref": "9526e0ba-cbe8-4526-9abc-7dabb4756b2b",
+            "_type": "reference"
+          }
+        ],
+        "title": "Sammenlign populære elselskaber"
+      },
+      {
+        "_key": "6252411fa31d",
+        "_type": "livePriceGraph",
+        "apiRegion": "DK1",
+        "subtitle": "Dagens elpris varierer fra time til time. Ved at følge udviklingen i spotprisen, kan du planlægge dit elforbrug og spare penge – fx ved at lade elbilen eller sætte opvaskemaskinen i gang, når strømmen er billigst. Grafen herunder opdateres løbende.",
+        "title": "Hvornår er strømmen billigst i dag?"
+      },
+      {
+        "_key": "61138a4e8b96",
+        "_type": "renewableEnergyForecast",
+        "leadingText": "Elprisen er ikke det eneste, der svinger i løbet af dagen – det gør produktionen af vedvarende energi også. I grafen nedenfor kan du se time-for-time prognosen for, hvor meget strøm der forventes at blive produceret fra solceller, landvindmøller og havvindmøller i Danmark. Brug grafen til at få et indblik i, hvornår der forventes mest grøn elproduktion – ikke nødvendigvis hvornår strømmen i dit stik er grønnest.",
+        "title": "Hvornår forventes der mest grøn elproduktion?"
+      },
+      {
+        "_key": "74d7877242d6",
+        "_type": "pageSection",
+        "content": [
+          {
+            "_key": "f2167038359f",
+            "_type": "block",
+            "children": [
+              {
+                "_key": "d1cafcfb35f9",
+                "_type": "span",
+                "marks": [],
+                "text": "ElPortal.dk samler data fra både offentlige og kommercielle kilder for at give dig det mest retvisende billede af elmarkedet.\nDu starter med at se dagens aktuelle spotpriser og prognoser. Derefter kan du justere dit elforbrug med vores interaktive værktøjer og se, hvilke elselskaber der tilbyder de bedste samlede priser – inklusive abonnement og gebyrer.\nVores mål er at gøre det nemt og gennemskueligt for dig at finde den bedste el-aftale."
+              }
+            ],
+            "markDefs": [],
+            "style": "normal"
+          }
+        ],
+        "cta": {
+          "text": "Se priser"
+        },
+        "headerAlignment": "left",
+        "image": {
+          "_type": "image",
+          "alt": "windmill on a hill",
+          "asset": {
+            "_ref": "image-7be15ec9534513618b3540805be193c764522694-5364x3576-jpg",
+            "_type": "reference"
+          }
+        },
+        "imagePosition": "left",
+        "title": "Sådan fungerer ElPortal"
+      },
+      {
+        "_key": "c6700036cc85",
+        "_type": "priceExampleTable",
+        "example1_kwh_price": 0.89,
+        "example1_subscription": 19,
+        "example1_title": "Vindstød A/S",
+        "example2_kwh_price": 0.95,
+        "example2_subscription": 29,
+        "example2_title": "GrønEnergi.dk",
+        "leadingText": [
+          {
+            "_key": "b23718f7a01d",
+            "_type": "block",
+            "children": [
+              {
+                "_key": "c2ebdea2422e",
+                "_type": "span",
+                "marks": [],
+                "text": "Nedenfor ser du et simpelt eksempel på, hvad det koster at være kunde hos to forskellige elselskaber, hvis dit forbrug er ca. 400 kWh pr. måned."
+              }
+            ],
+            "markDefs": [],
+            "style": "normal"
+          }
+        ],
+        "title": "Eksempel: Hvad koster 400 kWh strøm om måneden?"
+      },
+      {
+        "_key": "c0a5d1f08fca",
+        "_type": "videoSection",
+        "customThumbnail": {
+          "_type": "image",
+          "asset": {
+            "_ref": "image-1eb6cd0007fa7ef63b2cb7007de5a3ebf6cab289-1125x750-jpg",
+            "_type": "reference"
+          }
+        },
+        "title": "Se hvordan ElPortal virker – på 60 sekunder",
+        "videoUrl": "https://www.youtube.com/watch?v=xy9nj94xvKA"
+      },
+      {
+        "_key": "d3d1903ac57b",
+        "_type": "monthlyProductionChart",
+        "description": "Data hentes live fra EnergiDataService.",
+        "leadingText": "Er du nysgerrig efter at vide, hvor vores elektricitet kommer fra? Fra vindmøller, der snurrer langs kysten, til solceller på hustagene og traditionelle kraftværker – Danmarks energilandskab er i konstant udvikling. De seneste 12 måneder har budt på markante ændringer i, hvordan vi producerer vores strøm, og det har stor betydning for både klimaet og vores økonomi. Lad os dykke ned i tallene og se, hvad der har drevet den danske elproduktion det seneste år.",
+        "title": "Elproduktion i Danmark de seneste 12 måneder"
+      },
+      {
+        "_key": "063406365278",
+        "_type": "faqGroup",
+        "faqItems": [
+          {
+            "_key": "b8111637dbe8",
+            "_type": "faqItem",
+            "answer": [
+              {
+                "_key": "6f125953c15c",
+                "_type": "block",
+                "children": [
+                  {
+                    "_key": "fd124467c1fa",
+                    "_type": "span",
+                    "marks": [],
+                    "text": "Spotprisen er den rå elpris uden tillæg. Den reelle elpris inkluderer moms, afgifter, transport og eventuelle abonnementspriser fra elselskabet."
+                  }
+                ],
+                "markDefs": [],
+                "style": "normal"
+              }
+            ],
+            "question": "Hvad er forskellen på spotpris og den reelle elpris?"
+          },
+          {
+            "_key": "88eb6a2bb186",
+            "_type": "faqItem",
+            "answer": [
+              {
+                "_key": "c4dd2edc2820",
+                "_type": "block",
+                "children": [
+                  {
+                    "_key": "bd02062a1a40",
+                    "_type": "span",
+                    "marks": [],
+                    "text": "Elprisen er oftest lavest om natten og i weekenderne, men det afhænger af udbud og efterspørgsel samt vejrforhold."
+                  }
+                ],
+                "markDefs": [],
+                "style": "normal"
+              }
+            ],
+            "question": "Hvornår er el typisk billigst?"
+          },
+          {
+            "_key": "c0d3d10074a1",
+            "_type": "faqItem",
+            "answer": [
+              {
+                "_key": "30d9e504e1f2",
+                "_type": "block",
+                "children": [
+                  {
+                    "_key": "f21e79a26035",
+                    "_type": "span",
+                    "marks": [],
+                    "text": "Ja, ElPortal.dk er 100% gratis at bruge. Vi tjener penge gennem affiliate-aftaler med elselskaber, men alle priser og rangeringer er baseret på data."
+                  }
+                ],
+                "markDefs": [],
+                "style": "normal"
+              }
+            ],
+            "question": "Er det gratis at bruge ElPortal.dk?"
+          },
+          {
+            "_key": "336b740d7cee",
+            "_type": "faqItem",
+            "answer": [
+              {
+                "_key": "58fcab868a29",
+                "_type": "block",
+                "children": [
+                  {
+                    "_key": "a939142b8c80",
+                    "_type": "span",
+                    "marks": [],
+                    "text": "Ja, alle data hentes løbende fra troværdige kilder som EnergiDataService og opdateres flere gange dagligt."
+                  }
+                ],
+                "markDefs": [],
+                "style": "normal"
+              }
+            ],
+            "question": "Opdateres priserne automatisk?"
+          }
+        ],
+        "title": "Ofte Stillede Spørgsmål"
+      },
+      {
+        "_key": "b38a88c470cc",
+        "_type": "callToActionSection",
+        "buttonText": "Sammenlign Priser Nu",
+        "buttonUrl": "#",
+        "title": "Klar til at spare på din elregning?"
+      },
+      {
+        "_key": "8568446fff4e",
+        "_type": "realPriceComparisonTable",
+        "title": "Hvad koster strømmen hos elselskaberne?"
+      },
+      {
+        "_key": "6f3786d06513",
+        "_type": "co2EmissionsChart",
+        "headerAlignment": "left",
+        "leadingText": [
+          {
+            "_key": "9b019ed7adb8",
+            "_type": "block",
+            "children": [
+              {
+                "_key": "1824fa105fb2",
+                "_type": "span",
+                "marks": [],
+                "text": "CO₂‑udledning fra elektricitet – Danmarks grønne forspring"
+              }
+            ],
+            "markDefs": [],
+            "style": "h3"
+          },
+          {
+            "_key": "a635f542842c",
+            "_type": "block",
+            "children": [
+              {
+                "_key": "4736d2d9d829",
+                "_type": "span",
+                "marks": [],
+                "text": "Danmarks CO₂-intensitet for elproduktionen ligger i 2024 på "
+              },
+              {
+                "_key": "2f10d33a8153",
+                "_type": "span",
+                "marks": [
+                  "strong"
+                ],
+                "text": "cirka 173 g CO₂/kWh"
+              },
+              {
+                "_key": "afc9adae32c7",
+                "_type": "span",
+                "marks": [],
+                "text": ", med et rekordlavt niveau på "
+              },
+              {
+                "_key": "1f2ff0c678d9",
+                "_type": "span",
+                "marks": [
+                  "strong"
+                ],
+                "text": "96 g CO₂/kWh"
+              },
+              {
+                "_key": "83f96c09bf17",
+                "_type": "span",
+                "marks": [],
+                "text": " i udvalgte perioder. Til sammenligning ligger det globale gennemsnit på cirka "
+              },
+              {
+                "_key": "8e49a2e7b373",
+                "_type": "span",
+                "marks": [
+                  "strong"
+                ],
+                "text": "475 g CO₂/kWh"
+              },
+              {
+                "_key": "0889c0e560a3",
+                "_type": "span",
+                "marks": [],
+                "text": " . Det betyder, at dansk strøm er omkring 65 % renere end verdensgennemsnittet."
+              }
+            ],
+            "markDefs": [],
+            "style": "normal"
+          },
+          {
+            "_key": "ab7894308962",
+            "_type": "block",
+            "children": [
+              {
+                "_key": "b4438c340bbb",
+                "_type": "span",
+                "marks": [],
+                "text": ""
+              }
+            ],
+            "markDefs": [],
+            "style": "normal"
+          },
+          {
+            "_key": "57d8d392931d",
+            "_type": "block",
+            "children": [
+              {
+                "_key": "1883096071b5",
+                "_type": "span",
+                "marks": [],
+                "text": "Siden 1990 er CO₂-udledningen per kilowatt-time faldet markant: fra over "
+              },
+              {
+                "_key": "8f2ad693df4a",
+                "_type": "span",
+                "marks": [
+                  "strong"
+                ],
+                "text": "929 g CO₂/kWh"
+              },
+              {
+                "_key": "15c7929451ba",
+                "_type": "span",
+                "marks": [],
+                "text": " til "
+              },
+              {
+                "_key": "f23e9b5128e1",
+                "_type": "span",
+                "marks": [
+                  "strong",
+                  "a3aa0c5424c4"
+                ],
+                "text": "138 g CO₂/kWh"
+              },
+              {
+                "_key": "871aa20ee2e1",
+                "_type": "span",
+                "marks": [
+                  "a3aa0c5424c4"
+                ],
+                "text": " i 2023. "
+              }
+            ],
+            "markDefs": [
+              {
+                "_key": "a3aa0c5424c4",
+                "_type": "link",
+                "href": "https://ens.dk/sites/ens.dk/files/Statistik/energistatistik_2023.pdf?"
+              }
+            ],
+            "style": "normal"
+          },
+          {
+            "_key": "45c958b3ef0c",
+            "_type": "block",
+            "children": [
+              {
+                "_key": "89e699432e5f",
+                "_type": "span",
+                "marks": [],
+                "text": ""
+              }
+            ],
+            "markDefs": [],
+            "style": "normal"
+          },
+          {
+            "_key": "ad94577bfa78",
+            "_type": "block",
+            "children": [
+              {
+                "_key": "23a0b5e812c8",
+                "_type": "span",
+                "marks": [],
+                "text": "Dette skyldes især Danmarks omfattende omstilling til vedvarende energi: i 2024 var "
+              },
+              {
+                "_key": "832210c30ac9",
+                "_type": "span",
+                "marks": [
+                  "strong"
+                ],
+                "text": "82 % af elproduktionen baseret på vedvarende kilder"
+              },
+              {
+                "_key": "0a4573662422",
+                "_type": "span",
+                "marks": [],
+                "text": ", hvoraf vindkraft udgjorde "
+              },
+              {
+                "_key": "3e065568ca94",
+                "_type": "span",
+                "marks": [
+                  "strong"
+                ],
+                "text": "58,9 %"
+              },
+              {
+                "_key": "783c928fc573",
+                "_type": "span",
+                "marks": [],
+                "text": " ."
+              }
+            ],
+            "markDefs": [],
+            "style": "normal"
+          },
+          {
+            "_key": "871c7394287d",
+            "_type": "block",
+            "children": [
+              {
+                "_key": "67a97ae1cd07",
+                "_type": "span",
+                "marks": [],
+                "text": ""
+              }
+            ],
+            "markDefs": [],
+            "style": "normal"
+          },
+          {
+            "_key": "b0558775cbe0",
+            "_type": "block",
+            "children": [
+              {
+                "_key": "8a4071c6a345",
+                "_type": "span",
+                "marks": [],
+                "text": "Til sammenligning udleder kul cirka "
+              },
+              {
+                "_key": "3d4c82009a73",
+                "_type": "span",
+                "marks": [
+                  "strong"
+                ],
+                "text": "940 g CO₂/kWh"
+              },
+              {
+                "_key": "17d4a1574edd",
+                "_type": "span",
+                "marks": [],
+                "text": ", og naturgas cirka "
+              },
+              {
+                "_key": "df61483c29d0",
+                "_type": "span",
+                "marks": [
+                  "strong"
+                ],
+                "text": "530 g CO₂/kWh"
+              },
+              {
+                "_key": "7b8e0b90135b",
+                "_type": "span",
+                "marks": [],
+                "text": ", mens vind- og atomkraft kun ligger omkring "
+              },
+              {
+                "_key": "86be3cc6d3e2",
+                "_type": "span",
+                "marks": [
+                  "strong",
+                  "4085e0ed2284"
+                ],
+                "text": "12 g CO₂/kWh"
+              },
+              {
+                "_key": "693ef768dc98",
+                "_type": "span",
+                "marks": [],
+                "text": ". "
+              }
+            ],
+            "markDefs": [
+              {
+                "_key": "4085e0ed2284",
+                "_type": "link",
+                "href": "https://ens.dk/sites/ens.dk/files/Statistik/energistatistik_2023.pdf?"
+              }
+            ],
+            "style": "normal"
+          },
+          {
+            "_key": "c70d7a72e115",
+            "_type": "block",
+            "children": [
+              {
+                "_key": "c56f3bd91bc5",
+                "_type": "span",
+                "marks": [],
+                "text": ""
+              }
+            ],
+            "markDefs": [],
+            "style": "normal"
+          },
+          {
+            "_key": "ac54789d7d6c",
+            "_type": "block",
+            "children": [
+              {
+                "_key": "4b8ea69f5162",
+                "_type": "span",
+                "marks": [],
+                "text": "Det betyder, at dansk el i dag er "
+              },
+              {
+                "_key": "05b19a451b49",
+                "_type": "span",
+                "marks": [
+                  "strong"
+                ],
+                "text": "5–10 gange renere end kul"
+              },
+              {
+                "_key": "dc9142218092",
+                "_type": "span",
+                "marks": [],
+                "text": " og "
+              },
+              {
+                "_key": "be59321c3156",
+                "_type": "span",
+                "marks": [
+                  "strong"
+                ],
+                "text": "3–5 gange renere end naturgas"
+              },
+              {
+                "_key": "3e53cd468818",
+                "_type": "span",
+                "marks": [],
+                "text": "."
+              }
+            ],
+            "markDefs": [],
+            "style": "normal"
+          }
+        ],
+        "showGauge": true,
+        "subtitle": "Realtids CO₂-intensitet målt i gram per kWh",
+        "title": "CO₂-udledning fra elforbrug"
+      },
+      {
+        "_key": "bf6803ef4b48",
+        "_type": "declarationProduction",
+        "defaultView": "24h",
+        "headerAlignment": "center",
+        "showCO2Intensity": true,
+        "showProductionBreakdown": true,
+        "showRenewableShare": true,
+        "subtitle": "Realtids opdeling af elproduktion og CO₂-intensitet",
+        "title": "Elproduktion og CO₂-udledning"
+      },
+      {
+        "_key": "39cdb9055df9",
+        "_type": "consumptionMap",
+        "colorScheme": "brand",
+        "consumerType": "all",
+        "dataSource": "latest",
+        "defaultView": "24h",
+        "enableInteraction": true,
+        "headerAlignment": "center",
+        "mobileLayout": "responsive",
+        "showLegend": true,
+        "showStatistics": true,
+        "showTooltips": true,
+        "subtitle": "Enegergi",
+        "title": "Energi",
+        "updateInterval": 60
+      },
+      {
+        "_key": "2921ebaa4e95",
+        "_type": "declarationGridmix",
+        "headerAlignment": "center",
+        "showSummary": true,
+        "subtitle": "Realtids fordeling af Danmarks energiproduktion efter kilde",
+        "title": "Energimix fordeling",
+        "view": "24h"
+      },
+      {
+        "_key": "ac45142b8484",
+        "_type": "applianceCalculator",
+        "defaultElectricityPrice": 3.21,
+        "showCategories": [
+          "kitchen",
+          "entertainment",
+          "lighting",
+          "cooling",
+          "cooking",
+          "cleaning",
+          "heating",
+          "standby",
+          "other"
+        ],
+        "showSavingsCallToAction": true,
+        "subtitle": "Tilføj dine apparater og se præcis hvor meget strøm du bruger",
+        "title": "Beregn dit strømforbrug"
+      }
+    ],
+    "noIndex": false,
+    "ogImage": null,
+    "seoKeywords": [],
+    "seoMetaDescription": "Sammenlign elpriser i realtid på Elportal.dk og find den billigste og grønneste strøm til dit hjem. Spar penge med ét klik – nemt, hurtigt og gennemsigtigt.",
+    "seoMetaTitle": "Spar penge på el – Find billigste strøm på Elportal.dk",
+    "title": "Forside"
+  }
+]

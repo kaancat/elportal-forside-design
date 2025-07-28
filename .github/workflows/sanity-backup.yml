@@ -1,0 +1,91 @@
+name: Sanity Content Backup
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual triggers
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install Sanity CLI
+      run: npm install -g @sanity/cli
+
+    - name: Create backup directory
+      run: mkdir -p backups
+
+    - name: Export Sanity dataset
+      env:
+        SANITY_AUTH_TOKEN: ${{ secrets.SANITY_API_TOKEN }}
+      run: |
+        DATE=$(date +%Y%m%d_%H%M%S)
+        echo "Backing up Sanity dataset..."
+        sanity dataset export production backups/backup_$DATE.tar.gz \
+          --project yxesi03x \
+          --token $SANITY_AUTH_TOKEN
+        
+        # Also export as JSON for readability
+        echo "Exporting content as JSON..."
+        mkdir -p backups/json_$DATE
+        
+        # Export each document type
+        for TYPE in page provider siteSettings homePage blogPost; do
+          echo "Exporting $TYPE documents..."
+          sanity documents query "*[_type == '$TYPE']" \
+            --project yxesi03x \
+            --dataset production \
+            --token $SANITY_AUTH_TOKEN \
+            > backups/json_$DATE/${TYPE}.json
+        done
+        
+        # Create backup manifest
+        echo "{
+          \"date\": \"$DATE\",
+          \"dataset\": \"production\",
+          \"project\": \"yxesi03x\",
+          \"files\": [
+            \"backup_$DATE.tar.gz\",
+            \"json_$DATE/\"
+          ]
+        }" > backups/manifest_$DATE.json
+
+    - name: Upload backup to artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: sanity-backup-${{ github.run_id }}
+        path: backups/
+        retention-days: 30
+
+    - name: Create backup summary
+      run: |
+        echo "## Sanity Backup Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- **Date**: $(date)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Dataset**: production" >> $GITHUB_STEP_SUMMARY
+        echo "- **Backup files**: Located in artifacts" >> $GITHUB_STEP_SUMMARY
+        echo "- **Retention**: 30 days" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Backup Contents" >> $GITHUB_STEP_SUMMARY
+        echo "- Full dataset export (.tar.gz)" >> $GITHUB_STEP_SUMMARY
+        echo "- JSON exports for: page, provider, siteSettings, homePage, blogPost" >> $GITHUB_STEP_SUMMARY
+
+    # Optional: Upload to cloud storage (uncomment and configure as needed)
+    # - name: Upload to S3
+    #   env:
+    #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #     AWS_REGION: eu-north-1
+    #   run: |
+    #     aws s3 sync backups/ s3://your-backup-bucket/sanity-backups/

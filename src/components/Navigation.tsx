@@ -56,7 +56,14 @@ const Navigation = () => {
     >
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
         <RouterLink to="/" className="flex-shrink-0">
-          <img src="/lovable-uploads/97984f7d-d542-490c-9e04-5a0744d1b6a2.png" alt="ElPortal.dk Logo" className="h-8 sm:h-10" />
+          <img 
+            src={settings.logo?.asset?._ref ? 
+              `https://cdn.sanity.io/images/yxesi03x/production/${settings.logo.asset._ref.replace('image-', '').replace('-png', '.png').replace('-jpg', '.jpg').replace('-webp', '.webp')}` :
+              "/lovable-uploads/97984f7d-d542-490c-9e04-5a0744d1b6a2.png"
+            } 
+            alt={settings.title || "ElPortal.dk"} 
+            className="h-8 sm:h-10" 
+          />
         </RouterLink>
         
         <nav className="hidden md:flex items-center justify-center space-x-8">

@@ -11,6 +11,7 @@ import GenericPage from "./pages/GenericPage";
 import NotFound from "./pages/NotFound";
 import { EnergyTips } from "./pages/EnergyTips";
 import IconTest from "./pages/IconTest";
+import { useSiteMetadata } from "@/hooks/useSiteMetadata";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,31 +31,40 @@ const queryClient = new QueryClient({
   },
 });
 
+const AppContent = () => {
+  // Initialize site metadata (favicon, title, etc.)
+  useSiteMetadata();
+  
+  return (
+    <TooltipProvider delayDuration={0}>
+      <div className="min-h-screen w-full">
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <ErrorBoundary level="page">
+            <Routes>
+              <Route path="/" element={<Index />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="/energispareraad" element={<EnergyTips />} />
+              <Route path="/icon-test" element={<IconTest />} />
+              
+              {/* Dynamic route for generic pages - must be before the 404 catch-all */}
+              <Route path="/:slug" element={<GenericPage />} />
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </ErrorBoundary>
+        </BrowserRouter>
+      </div>
+    </TooltipProvider>
+  );
+};
+
 const App = () => {
   return (
     <ErrorBoundary level="app">
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider delayDuration={0}>
-          <div className="min-h-screen w-full">
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <ErrorBoundary level="page">
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="/energispareraad" element={<EnergyTips />} />
-                  <Route path="/icon-test" element={<IconTest />} />
-                  
-                  {/* Dynamic route for generic pages - must be before the 404 catch-all */}
-                  <Route path="/:slug" element={<GenericPage />} />
-                  
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </ErrorBoundary>
-            </BrowserRouter>
-          </div>
-        </TooltipProvider>
+        <AppContent />
       </QueryClientProvider>
     </ErrorBoundary>
   );

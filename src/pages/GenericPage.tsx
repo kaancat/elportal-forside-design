@@ -4,8 +4,8 @@ import { SanityService } from '@/services/sanityService';
 import { SanityPage } from '@/types/sanity';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
-import ContentBlocks from '@/components/ContentBlocks';
-import { PageBreadcrumb, type BreadcrumbItem } from '@/components/PageBreadcrumb';
+import { ContentBlocksWithBreadcrumb } from '@/components/ContentBlocksWithBreadcrumb';
+import { type BreadcrumbItem } from '@/components/PageBreadcrumbSubtle';
 import { getSanityImageUrl } from '@/lib/sanityImage';
 
 const GenericPage = () => {
@@ -127,15 +127,12 @@ const GenericPage = () => {
     <div className="min-h-screen bg-white">
       <Navigation />
       <main>
-        {/* Add breadcrumbs if not on homepage */}
-        {slug && breadcrumbItems.length > 0 && (
-          <div className="container mx-auto px-4 pt-4">
-            <PageBreadcrumb items={breadcrumbItems} />
-          </div>
-        )}
-        
         {pageData.contentBlocks && pageData.contentBlocks.length > 0 ? (
-          <ContentBlocks blocks={pageData.contentBlocks} />
+          <ContentBlocksWithBreadcrumb 
+            blocks={pageData.contentBlocks} 
+            breadcrumbItems={breadcrumbItems}
+            slug={slug}
+          />
         ) : (
           <div className="container mx-auto py-12 px-4">
             <div className="prose prose-lg max-w-none">

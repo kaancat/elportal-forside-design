@@ -5,7 +5,10 @@ import { PortableText } from '@portabletext/react'
 import LivePriceGraphComponent from './LivePriceGraphComponent'
 import RenewableEnergyForecastComponent from './RenewableEnergyForecast'
 import PriceCalculatorWidget from './PriceCalculatorWidget'
-import type { PageSection, LivePriceGraph, RenewableEnergyForecast, PriceCalculator } from '@/types/sanity'
+import RealPriceComparisonTableComponent from './RealPriceComparisonTable'
+import MonthlyProductionChart from './MonthlyProductionChart'
+import VideoSectionComponent from './VideoSectionComponent'
+import type { PageSection, LivePriceGraph, RenewableEnergyForecast, PriceCalculator, RealPriceComparisonTable, MonthlyProductionChartBlock, VideoSection } from '@/types/sanity'
 import { cn } from '@/lib/utils'
 import { useScrollAnimation, animationClasses } from '@/hooks/useScrollAnimation'
 
@@ -37,6 +40,21 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
          <div className="my-12">
            <PriceCalculatorWidget block={value} variant="standalone" />
          </div>
+      ),
+      realPriceComparisonTable: ({ value }: { value: RealPriceComparisonTable }) => (
+        <div className="not-prose -mx-4 sm:-mx-6 lg:-mx-16 my-12">
+          <RealPriceComparisonTableComponent block={value} />
+        </div>
+      ),
+      monthlyProductionChart: ({ value }: { value: MonthlyProductionChartBlock }) => (
+        <div className="not-prose -mx-4 sm:-mx-6 lg:-mx-16 my-12">
+          <MonthlyProductionChart block={value} />
+        </div>
+      ),
+      videoSection: ({ value }: { value: VideoSection }) => (
+        <div className="not-prose my-12">
+          <VideoSectionComponent block={value} />
+        </div>
       ),
     },
     block: {

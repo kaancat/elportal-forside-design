@@ -16,9 +16,9 @@ interface PageSectionProps {
 const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   const { title, content, image, imagePosition = 'left', theme, cta, settings, headerAlignment } = section;
   
-  // Use custom scroll animation hook with different animation types
-  const scrollAnimation = useScrollAnimation({ duration: 0.8, type: 'enlargeScroll' }); // For images - enlarge effect for visual impact
-  const textScrollAnimation = useScrollAnimation({ duration: 0.5, delay: 0.2, distance: 15, type: 'slideUp' }); // For text - pure slide up
+  // Use custom scroll animation hook - now always uses enlarge effect
+  const scrollAnimation = useScrollAnimation({ duration: 0.8 }); // For images
+  const textScrollAnimation = useScrollAnimation({ duration: 0.6, delay: 0.2 }); // For text
 
   // Define custom components for embedded blocks in Portable Text
   const customComponents = {

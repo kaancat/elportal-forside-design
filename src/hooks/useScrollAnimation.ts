@@ -13,7 +13,7 @@ const isMobileDevice = () => {
   return window.innerWidth <= 768 || 'ontouchstart' in window
 }
 
-type AnimationType = 'slideUp' | 'slideDown' | 'slideLeft' | 'slideRight' | 'elastic' | 'scale' | 'slideScale' | 'scaleRotate' | 'reveal' | 'lift' | 'emphasis'
+type AnimationType = 'fadeUp' | 'fadeIn' | 'slideUp' | 'hero' | 'fadeLeft' | 'fadeRight' | 'scale' | 'stagger'
 
 interface ScrollAnimationOptions {
   disabled?: boolean
@@ -21,6 +21,8 @@ interface ScrollAnimationOptions {
   duration?: number
   distance?: number
   type?: AnimationType
+  staggerDelay?: number // For staggered animations
+  index?: number // Item index for stagger
 }
 
 export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
@@ -58,9 +60,11 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
   }, [])
 
   const delay = options?.delay ?? 0
-  const duration = options?.duration ?? 0.3 // Faster, more professional
-  const distance = options?.distance ?? 10 // Much smaller movement
-  const animationType = options?.type ?? 'reveal' // Default to subtle reveal
+  const duration = options?.duration ?? 0.5 // Professional duration
+  const distance = options?.distance ?? 30 // Noticeable movement
+  const animationType = options?.type ?? 'fadeUp' // Default to classic fade up
+  const staggerDelay = options?.staggerDelay ?? 0.1
+  const index = options?.index ?? 0
 
   // If motion should be reduced or disabled, return static variants
   if (shouldReduceMotion || options?.disabled) {
@@ -77,15 +81,16 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
 
   // Define animation variants for different types
   const getVariants = (isMobile: boolean): Variants => {
-    const mobileDuration = duration * 0.9 // Less difference between mobile/desktop
-    const mobileDistance = Math.min(distance, 8) // Even smaller on mobile
+    const mobileDuration = duration * 0.9
+    const mobileDistance = isMobile ? distance * 0.7 : distance
+    const professionalEase = [0.22, 1, 0.36, 1] // Smooth deceleration
 
     switch (animationType) {
-      case 'slideUp':
-        // Pure upward slide - no opacity change
+      case 'fadeUp':
+        // Classic fade up - the most professional animation
         return {
           hidden: { 
-            opacity: 1,
+            opacity: 0,
             y: isMobile ? mobileDistance : distance
           },
           visible: { 
@@ -94,75 +99,71 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
             transition: {
               duration: isMobile ? mobileDuration : duration,
               delay,
-              ease: [0.25, 0.1, 0.25, 1]
+              ease: professionalEase
             }
           }
         }
 
-      case 'slideDown':
-        // Pure downward slide - no opacity change
+      case 'fadeIn':
+        // Pure fade without movement
         return {
           hidden: { 
+            opacity: 0
+          },
+          visible: { 
             opacity: 1,
-            y: isMobile ? -mobileDistance : -distance
+            transition: {
+              duration: isMobile ? mobileDuration * 0.8 : duration * 0.8,
+              delay,
+              ease: 'easeOut'
+            }
+          }
+        }
+
+      case 'slideUp':
+        // Stronger slide with fade for impact
+        return {
+          hidden: { 
+            opacity: 0,
+            y: isMobile ? 40 : 50
           },
           visible: { 
             opacity: 1,
             y: 0,
             transition: {
-              duration: isMobile ? mobileDuration : duration,
+              duration: isMobile ? mobileDuration * 1.2 : duration * 1.2,
               delay,
-              ease: [0.25, 0.1, 0.25, 1]
+              ease: professionalEase
             }
           }
         }
 
-      case 'slideScale':
-        // Combines subtle scale with upward slide - no opacity or blur
+      case 'hero':
+        // Special animation for hero sections
         return {
           hidden: { 
-            opacity: 1,
-            scale: 0.98, // More subtle
-            y: isMobile ? mobileDistance * 0.5 : distance * 0.5
+            opacity: 0,
+            scale: 0.98,
+            y: 20
           },
           visible: { 
             opacity: 1,
             scale: 1,
             y: 0,
             transition: {
-              duration: isMobile ? mobileDuration : duration,
+              duration: isMobile ? 0.6 : 0.8,
               delay,
-              ease: [0.25, 0.1, 0.25, 1]
+              ease: professionalEase
             }
           }
         }
 
-      case 'scaleRotate':
-        // Subtle scale with tiny rotation for dynamic effect
+      case 'fadeLeft':
+        // Fade in from left
         return {
           hidden: { 
-            opacity: 1,
-            scale: 0.98, // More subtle
-            rotate: isMobile ? -0.5 : -1 // Barely noticeable rotation
-          },
-          visible: { 
-            opacity: 1,
-            scale: 1,
-            rotate: 0,
-            transition: {
-              duration: isMobile ? mobileDuration : duration,
-              delay,
-              ease: [0.25, 0.1, 0.25, 1]
-            }
-          }
-        }
-
-      case 'slideLeft':
-        // Slide from left - no opacity change
-        return {
-          hidden: { 
-            opacity: 1,
-            x: isMobile ? -30 : -50
+            opacity: 0,
+            x: isMobile ? -20 : -30
           },
           visible: { 
             opacity: 1,
@@ -170,17 +171,17 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
             transition: {
               duration: isMobile ? mobileDuration : duration,
               delay,
-              ease: [0.25, 0.1, 0.25, 1]
+              ease: professionalEase
             }
           }
         }
 
-      case 'slideRight':
-        // Slide from right - no opacity change
+      case 'fadeRight':
+        // Fade in from right
         return {
           hidden: { 
-            opacity: 1,
-            x: isMobile ? 30 : 50
+            opacity: 0,
+            x: isMobile ? 20 : 30
           },
           visible: { 
             opacity: 1,
@@ -188,36 +189,17 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
             transition: {
               duration: isMobile ? mobileDuration : duration,
               delay,
-              ease: [0.25, 0.1, 0.25, 1]
-            }
-          }
-        }
-
-      case 'elastic':
-        // Elastic scale with spring physics
-        return {
-          hidden: { 
-            opacity: 1,
-            scale: 0.96
-          },
-          visible: { 
-            opacity: 1,
-            scale: 1,
-            transition: {
-              type: 'spring',
-              stiffness: 300,
-              damping: 20,
-              delay
+              ease: professionalEase
             }
           }
         }
 
       case 'scale':
-        // Simple scale animation - very subtle
+        // Subtle scale with fade
         return {
           hidden: { 
-            opacity: 1,
-            scale: isMobile ? 0.98 : 0.99 // Much more subtle
+            opacity: 0,
+            scale: 0.95
           },
           visible: { 
             opacity: 1,
@@ -225,73 +207,35 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
             transition: {
               duration: isMobile ? mobileDuration : duration,
               delay,
-              ease: [0.22, 1, 0.36, 1]
+              ease: professionalEase
             }
           }
         }
 
-      case 'reveal':
-        // Professional reveal animation - gentle fade with minimal movement
+      case 'stagger':
+        // For staggered list animations
         return {
           hidden: { 
-            opacity: 0.7,
-            y: isMobile ? 5 : 8
+            opacity: 0,
+            y: 20
           },
           visible: { 
             opacity: 1,
             y: 0,
             transition: {
-              duration: isMobile ? mobileDuration : duration,
-              delay,
-              ease: [0.25, 0.1, 0.25, 1]
-            }
-          }
-        }
-
-      case 'lift':
-        // Subtle lift effect with shadow
-        return {
-          hidden: { 
-            opacity: 1,
-            y: 0,
-            scale: 1
-          },
-          visible: { 
-            opacity: 1,
-            y: isMobile ? -2 : -3,
-            scale: 1.01, // Very subtle scale
-            transition: {
-              duration: isMobile ? mobileDuration : duration,
-              delay,
-              ease: [0.25, 0.1, 0.25, 1]
-            }
-          }
-        }
-
-      case 'emphasis':
-        // Subtle emphasis animation for cards
-        return {
-          hidden: { 
-            opacity: 1,
-            scale: 1
-          },
-          visible: { 
-            opacity: 1,
-            scale: isMobile ? 1.015 : 1.02, // Very subtle 1.5-2% scale
-            transition: {
-              duration: isMobile ? mobileDuration : duration,
-              delay,
-              ease: [0.22, 1, 0.36, 1]
+              duration: 0.4,
+              delay: delay + (index * staggerDelay),
+              ease: professionalEase
             }
           }
         }
 
       default:
-        // Default to reveal animation
+        // Default to fadeUp
         return {
           hidden: { 
-            opacity: 0.7,
-            y: isMobile ? 5 : 8
+            opacity: 0,
+            y: isMobile ? 20 : 30
           },
           visible: { 
             opacity: 1,
@@ -299,7 +243,7 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
             transition: {
               duration: isMobile ? mobileDuration : duration,
               delay,
-              ease: [0.25, 0.1, 0.25, 1]
+              ease: professionalEase
             }
           }
         }
@@ -323,14 +267,35 @@ export const fadeInAnimation = (delay = 0) => {
   const isMobile = isMobileDevice()
   
   return {
-    initial: { opacity: isMobile ? 0.01 : 0 },
+    initial: { opacity: 0 },
     animate: { opacity: 1 },
     transition: { 
-      duration: isMobile ? 0.3 : 0.5,
+      duration: isMobile ? 0.4 : 0.6,
       delay,
       ease: "easeOut"
     }
   }
+}
+
+// Utility function for staggered animations
+export const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2
+    }
+  }
+}
+
+// Professional animation presets
+export const animationPresets = {
+  hero: { duration: 0.8, distance: 40, type: 'hero' as AnimationType },
+  content: { duration: 0.6, distance: 30, type: 'fadeUp' as AnimationType },
+  card: { duration: 0.5, type: 'fadeIn' as AnimationType },
+  image: { duration: 0.7, type: 'scale' as AnimationType },
+  nav: { duration: 0.3, distance: 20, type: 'fadeUp' as AnimationType }
 }
 
 // CSS class for will-change optimization

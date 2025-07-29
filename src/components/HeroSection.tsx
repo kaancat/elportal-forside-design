@@ -86,9 +86,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({ block }) => {
               ))}
             </motion.div>
             
-            <Button size="lg" className="bg-brand-green hover:bg-opacity-90 text-white rounded-md px-8 py-6 text-lg font-medium">
-              Begynd <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            <div>
+              <Button size="lg" className="bg-brand-green hover:bg-opacity-90 text-white rounded-md px-8 py-6 text-lg font-medium">
+                Begynd <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </div>
           </motion.div>
           
           {/* Right column with calculator */}

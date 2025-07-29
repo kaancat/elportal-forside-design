@@ -164,7 +164,7 @@ const renderContentBlock = (block: ContentBlock) => {
       return <PriceCalculatorWidget block={block as PriceCalculator} />;
     
     case 'heroWithCalculator':
-      return <HeroSection />;
+      return <HeroSection block={block as HeroWithCalculator} />;
     
     case 'hero':
       return <HeroComponent block={block} />;
@@ -285,9 +285,9 @@ const SafeContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
           const nextIsDataVisualization = nextBlock && !Array.isArray(nextBlock) && ['livePriceGraph', 'co2EmissionsChart', 'renewableEnergyForecast', 'monthlyProductionChart', 'realPriceComparisonTable'].includes(nextBlock._type);
           const isPageSection = !Array.isArray(block) && block._type === 'pageSection';
           
-          // Use subtle spacing between components - avoid large gaps but maintain visual separation
-          const tightSpacing = isPageSection && nextIsDataVisualization;
-          const spacingClass = tightSpacing ? 'mb-0' : (index < groupedBlocks.length - 1 ? 'mb-3' : '');
+          // Remove spacing between components to prevent gaps when backgrounds are used
+          // Components handle their own internal padding
+          const spacingClass = 'mb-0';
           
           return (
             <div key={Array.isArray(block) ? `faq-group-${index}` : block._key} className={spacingClass}>

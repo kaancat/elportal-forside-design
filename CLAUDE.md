@@ -111,8 +111,12 @@ When creating or modifying Sanity content, you MUST follow these rules to preven
    - Icons must be `icon.manager` objects with full metadata
    - Images must be image objects with asset references
    - Rich text fields use Portable Text array structure
-4. **Validate before saving**: Use the generated Zod schemas at `src/lib/sanity-schemas.zod.ts`
-5. **Include all required fields**: Check schema documentation for validation rules
+4. **CRITICAL: PageSection content restrictions**:
+   - ✅ ALLOWED in pageSection.content: `block`, `image`, `livePriceGraph`, `renewableEnergyForecast`, `monthlyProductionChart`, `priceCalculator`, `realPriceComparisonTable`, `videoSection`
+   - ❌ NOT ALLOWED in pageSection.content: `valueProposition`, `priceExampleTable`, `faqGroup`, `featureList`, `providerList`, `hero`, `heroWithCalculator`, `callToActionSection`
+   - Complex components must be top-level contentBlocks, NOT nested inside pageSection.content
+5. **Validate before saving**: Use the generated Zod schemas at `src/lib/sanity-schemas.zod.ts`
+6. **Include all required fields**: Check schema documentation for validation rules
 
 Example of correct content creation:
 ```typescript
@@ -128,6 +132,24 @@ const heroContent = {
 
 // Validate before sending to Sanity
 const validated = HeroSchema.parse(heroContent);
+
+// CORRECT page structure:
+const pageContent = {
+  contentBlocks: [
+    {
+      _type: 'pageSection',
+      content: [
+        { _type: 'block', ... }, // ✅ Text content
+        { _type: 'livePriceGraph', ... } // ✅ Allowed embedded component
+      ]
+    },
+    {
+      _type: 'valueProposition', // ✅ Top-level, not nested
+      heading: 'Our values',
+      items: [...]
+    }
+  ]
+};
 - Never mock anything. Never use placeholders. Never omit code.
 - Apply SOLID principles where relevant. Use modern framework features rather than reinventing solutions.
 - Be brutally honest about whether an idea is good or bad.

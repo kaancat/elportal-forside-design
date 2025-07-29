@@ -22,6 +22,24 @@ export const Icon: React.FC<IconProps> = ({
   color
 }) => {
 
+  // Handle direct SVG field from sanity-plugin-icon-manager
+  if (icon?.svg) {
+    return (
+      <div
+        className={className}
+        style={{ 
+          width: `${size}px`, 
+          height: `${size}px`, 
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: color || 'currentColor'
+        }}
+        dangerouslySetInnerHTML={{ __html: icon.svg }}
+      />
+    );
+  }
+
   // Handle legacy icons that have icon string but no metadata
   if (icon?.icon && !icon.metadata?.url) {
     // Generate URL from icon string for backwards compatibility
@@ -55,7 +73,7 @@ export const Icon: React.FC<IconProps> = ({
   }
 
   // If no icon data at all, show fallback
-  if (!icon || (!icon.metadata?.url && !icon.icon)) {
+  if (!icon || (!icon.svg && !icon.metadata?.url && !icon.icon)) {
     return fallbackIcon || <HelpCircle size={size} className={className} />;
   }
 
@@ -99,8 +117,8 @@ export const Icon: React.FC<IconProps> = ({
 
 // Helper functions
 export const hasValidIcon = (iconData: any): iconData is IconManager => {
-  // Check if we have an icon string (for legacy) or proper metadata
-  return !!iconData && (!!iconData.icon || (!!iconData.metadata && !!(iconData.metadata.inlineSvg || iconData.metadata.url)));
+  // Check if we have direct SVG, icon string (for legacy) or proper metadata
+  return !!iconData && (!!iconData.svg || !!iconData.icon || (!!iconData.metadata && !!(iconData.metadata.inlineSvg || iconData.metadata.url)));
 };
 
 export const preloadIcons = (icons: Array<IconManager | undefined>) => {

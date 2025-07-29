@@ -123,6 +123,13 @@ export interface EnergyTipsSection extends ContentBlockBase {
   _type: 'energyTipsSection';
   title?: string;
   subtitle?: string;
+  showCategories?: string[];
+  displayMode?: 'tabs' | 'grid' | 'list';
+  headerAlignment?: 'left' | 'center' | 'right';
+  showDifficultyBadges?: boolean;
+  showSavingsPotential?: boolean;
+  showSavingsCalculator?: boolean;
+  maxTipsPerCategory?: number;
 }
 
 export interface FaqGroup extends ContentBlockBase {
@@ -156,6 +163,17 @@ export interface Hero extends ContentBlockBase {
 
 export interface HeroWithCalculator extends ContentBlockBase {
   _type: 'heroWithCalculator';
+  headline: string;
+  subheadline?: string;
+  content?: Array<any>; // Portable Text blocks
+  calculatorTitle?: string;
+  showLivePrice?: boolean;
+  showProviderComparison?: boolean;
+  stats?: Array<{
+    value: string;
+    label: string;
+  }>;
+  // Deprecated fields for backward compatibility
   title?: string;
   subtitle?: string;
 }
@@ -259,6 +277,14 @@ export interface ProviderList extends ContentBlockBase {
 export interface RealPriceComparisonTable extends ContentBlockBase {
   _type: 'realPriceComparisonTable';
   title: string;
+  subtitle?: string;
+  description?: Array<any>; // Portable Text blocks
+  region?: 'DK1' | 'DK2';
+  highlightLowest?: boolean;
+  showSpotPrice?: boolean;
+  showProviderFee?: boolean;
+  showTotalPrice?: boolean;
+  // Deprecated field for backward compatibility
   leadingText?: string;
 }
 
@@ -297,7 +323,19 @@ export interface ValueItem extends ContentBlockBase {
 
 export interface ValueProposition extends ContentBlockBase {
   _type: 'valueProposition';
+  heading: string;
+  subheading?: string;
+  content?: Array<any>; // Portable Text blocks
+  valueItems?: Array<{
+    _key: string;
+    _type: 'valueItem';
+    heading: string;
+    description: string;
+  }>;
+  // Deprecated fields for backward compatibility
   title?: string;
+  items?: Array<any>;
+  propositions?: string[];
 }
 
 export interface VideoSection extends ContentBlockBase {

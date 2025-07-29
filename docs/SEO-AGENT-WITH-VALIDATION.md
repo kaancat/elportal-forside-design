@@ -99,6 +99,63 @@ npm run seo:validate
 | valueItem.title | valueItem.heading | valueProposition |
 | featureItem.name | featureItem.title | featureList |
 
+## ⚠️ CRITICAL: PageSection Content Restrictions
+
+**NEVER put complex components inside pageSection.content!**
+
+The `pageSection` content field only accepts:
+- ✅ `block` (text)
+- ✅ `image`
+- ✅ `livePriceGraph`
+- ✅ `renewableEnergyForecast`
+- ✅ `monthlyProductionChart`
+- ✅ `priceCalculator`
+- ✅ `realPriceComparisonTable`
+- ✅ `videoSection`
+
+The following must be top-level contentBlocks:
+- ❌ `valueProposition`
+- ❌ `priceExampleTable`
+- ❌ `faqGroup`
+- ❌ `featureList`
+- ❌ `providerList`
+- ❌ `hero`
+- ❌ `heroWithCalculator`
+- ❌ `callToActionSection`
+
+**Example of CORRECT structure:**
+```javascript
+contentBlocks: [
+  {
+    _type: 'pageSection',
+    content: [
+      { _type: 'block', text: 'Some text...' },
+      { _type: 'livePriceGraph', ... }  // ✅ This is allowed
+    ]
+  },
+  {
+    _type: 'valueProposition',  // ✅ Top-level, not nested
+    heading: 'Our values',
+    items: [...]
+  }
+]
+```
+
+**Example of WRONG structure:**
+```javascript
+contentBlocks: [
+  {
+    _type: 'pageSection',
+    content: [
+      {
+        _type: 'valueProposition',  // ❌ NOT ALLOWED HERE!
+        ...
+      }
+    ]
+  }
+]
+```
+
 ## Benefits
 
 ✅ **No More Debugging**: Validation errors are caught and fixed automatically

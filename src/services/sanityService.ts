@@ -111,6 +111,8 @@ export class SanityService {
           _key,
           _type,
           title,
+          subtitle,
+          headerAlignment,
           'providers': providers[]->{ // The key is 'providers': and the operator is ->
             "id": _id,
             providerName,
@@ -486,6 +488,8 @@ export class SanityService {
           _key,
           _type,
           title,
+          subtitle,
+          headerAlignment,
           'providers': providers[]->{ 
             "id": _id,
             providerName,

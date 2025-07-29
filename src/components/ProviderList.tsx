@@ -100,17 +100,21 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
     sortOrderCompetitor: provider.isVindstoedProduct ? undefined : 1,
   });
 
+  const headerAlignmentClass = block.headerAlignment === 'left' ? 'text-left' : block.headerAlignment === 'right' ? 'text-right' : 'text-center';
+
   if (!block.providers || block.providers.length === 0) {
     return (
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="mb-12">
-            <h1 className="text-4xl font-display font-bold text-center mb-4 text-brand-dark">
+            <h1 className={`text-4xl font-display font-bold ${headerAlignmentClass} mb-4 text-brand-dark`}>
               {block.title || 'Sammenlign eludbydere'}
             </h1>
-            <p className="text-center text-gray-600 text-lg mb-8">
-              Find den bedste elpris for dig baseret på dit forbrug
-            </p>
+            {block.subtitle && (
+              <p className={`${headerAlignmentClass} text-gray-600 text-lg mb-8`}>
+                {block.subtitle}
+              </p>
+            )}
           </div>
           <div className="flex justify-center">
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
@@ -126,12 +130,14 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="mb-12">
-          <h1 className="text-4xl font-display font-bold text-center mb-4 text-brand-dark">
+          <h1 className={`text-4xl font-display font-bold ${headerAlignmentClass} mb-4 text-brand-dark`}>
             {block.title || 'Sammenlign eludbydere'}
           </h1>
-          <p className="text-center text-gray-600 text-lg mb-8">
-            Find den bedste elpris for dig baseret på dit forbrug
-          </p>
+          {block.subtitle && (
+            <p className={`${headerAlignmentClass} text-gray-600 text-lg mb-8`}>
+              {block.subtitle}
+            </p>
+          )}
         </div>
         
         {/* Household Type Selector */}

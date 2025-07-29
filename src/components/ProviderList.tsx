@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import ProviderCard from './ProviderCard';
 import HouseholdTypeSelector, { HouseholdType } from './HouseholdTypeSelector';
 import { Slider } from '@/components/ui/slider';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info } from 'lucide-react';
 import type { ProviderListBlock, ProviderProductBlock } from '../types/sanity';
+import { useScrollAnimation, staggerContainer, animationClasses } from '@/hooks/useScrollAnimation';
 
 interface ProviderListProps {
   block: ProviderListBlock;

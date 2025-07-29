@@ -13,10 +13,14 @@ const isMobileDevice = () => {
   return window.innerWidth <= 768 || 'ontouchstart' in window
 }
 
+type AnimationType = 'slideUp' | 'slideDown' | 'slideLeft' | 'slideRight' | 'elastic' | 'scale' | 'slideScale' | 'scaleRotate'
+
 interface ScrollAnimationOptions {
   disabled?: boolean
   delay?: number
   duration?: number
+  distance?: number
+  type?: AnimationType
 }
 
 export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
@@ -54,48 +58,204 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
   }, [])
 
   const delay = options?.delay ?? 0
-  const duration = options?.duration ?? 0.8
+  const duration = options?.duration ?? 0.6
+  const distance = options?.distance ?? 20
+  const animationType = options?.type ?? 'slideUp'
 
   // If motion should be reduced or disabled, return static variants
   if (shouldReduceMotion || options?.disabled) {
     return {
       variants: {
-        hidden: { opacity: 1, scale: 1 },
-        visible: { opacity: 1, scale: 1 }
+        hidden: { opacity: 1 },
+        visible: { opacity: 1 }
       } as Variants,
-      viewport: { once: false },
+      viewport: { once: true },
       initial: "visible",
       whileInView: "visible"
     }
   }
 
-  // Enlarge scroll animation - the only animation now
-  const variants: Variants = {
-    hidden: { 
-      opacity: 1,
-      scale: isMobile ? 0.85 : 0.8,
-      y: isMobile ? 10 : 15
-    },
-    visible: { 
-      opacity: 1,
-      scale: isMobile ? 1.05 : 1.1,
-      y: 0,
-      transition: {
-        type: 'spring',
-        stiffness: 100,
-        damping: 20,
-        delay,
-        duration: isMobile ? duration * 0.9 : duration
-      }
+  // Define animation variants for different types
+  const getVariants = (isMobile: boolean): Variants => {
+    const mobileDuration = duration * 0.8
+    const mobileDistance = Math.min(distance, 15)
+
+    switch (animationType) {
+      case 'slideUp':
+        // Pure upward slide - no opacity change
+        return {
+          hidden: { 
+            opacity: 1,
+            y: isMobile ? mobileDistance : distance
+          },
+          visible: { 
+            opacity: 1,
+            y: 0,
+            transition: {
+              duration: isMobile ? mobileDuration : duration,
+              delay,
+              ease: [0.25, 0.1, 0.25, 1]
+            }
+          }
+        }
+
+      case 'slideDown':
+        // Pure downward slide - no opacity change
+        return {
+          hidden: { 
+            opacity: 1,
+            y: isMobile ? -mobileDistance : -distance
+          },
+          visible: { 
+            opacity: 1,
+            y: 0,
+            transition: {
+              duration: isMobile ? mobileDuration : duration,
+              delay,
+              ease: [0.25, 0.1, 0.25, 1]
+            }
+          }
+        }
+
+      case 'slideScale':
+        // Combines subtle scale with upward slide - no opacity or blur
+        return {
+          hidden: { 
+            opacity: 1,
+            scale: 0.97,
+            y: isMobile ? mobileDistance * 0.7 : distance * 0.7
+          },
+          visible: { 
+            opacity: 1,
+            scale: 1,
+            y: 0,
+            transition: {
+              duration: isMobile ? mobileDuration : duration,
+              delay,
+              ease: [0.25, 0.1, 0.25, 1]
+            }
+          }
+        }
+
+      case 'scaleRotate':
+        // Subtle scale with tiny rotation for dynamic effect
+        return {
+          hidden: { 
+            opacity: 1,
+            scale: 0.96,
+            rotate: isMobile ? -1 : -2
+          },
+          visible: { 
+            opacity: 1,
+            scale: 1,
+            rotate: 0,
+            transition: {
+              duration: isMobile ? mobileDuration : duration,
+              delay,
+              ease: [0.25, 0.1, 0.25, 1]
+            }
+          }
+        }
+
+      case 'slideLeft':
+        // Slide from left - no opacity change
+        return {
+          hidden: { 
+            opacity: 1,
+            x: isMobile ? -30 : -50
+          },
+          visible: { 
+            opacity: 1,
+            x: 0,
+            transition: {
+              duration: isMobile ? mobileDuration : duration,
+              delay,
+              ease: [0.25, 0.1, 0.25, 1]
+            }
+          }
+        }
+
+      case 'slideRight':
+        // Slide from right - no opacity change
+        return {
+          hidden: { 
+            opacity: 1,
+            x: isMobile ? 30 : 50
+          },
+          visible: { 
+            opacity: 1,
+            x: 0,
+            transition: {
+              duration: isMobile ? mobileDuration : duration,
+              delay,
+              ease: [0.25, 0.1, 0.25, 1]
+            }
+          }
+        }
+
+      case 'elastic':
+        // Elastic scale with spring physics
+        return {
+          hidden: { 
+            opacity: 1,
+            scale: 0.96
+          },
+          visible: { 
+            opacity: 1,
+            scale: 1,
+            transition: {
+              type: 'spring',
+              stiffness: 300,
+              damping: 20,
+              delay
+            }
+          }
+        }
+
+      case 'scale':
+        // Simple scale animation (current one, but smoother)
+        return {
+          hidden: { 
+            opacity: 1,
+            scale: isMobile ? 0.97 : 0.98
+          },
+          visible: { 
+            opacity: 1,
+            scale: 1,
+            transition: {
+              duration: isMobile ? mobileDuration : duration,
+              delay,
+              ease: [0.22, 1, 0.36, 1]
+            }
+          }
+        }
+
+      default:
+        // Default to slideUp - no opacity change
+        return {
+          hidden: { 
+            opacity: 1,
+            y: isMobile ? mobileDistance : distance
+          },
+          visible: { 
+            opacity: 1,
+            y: 0,
+            transition: {
+              duration: isMobile ? mobileDuration : duration,
+              delay,
+              ease: [0.25, 0.1, 0.25, 1]
+            }
+          }
+        }
     }
   }
 
   return {
-    variants,
-    viewport: {
-      once: false, // Allow re-triggering for enlarge effect
-      margin: isMobile ? "-10%" : "-20%", // Trigger when closer to center
-      amount: 0.5 // Trigger when 50% of element is in view
+    variants: getVariants(isMobile),
+    viewport: { 
+      once: true, 
+      margin: isMobile ? "0px" : "-50px", // No negative margin on mobile
+      amount: isMobile ? 0.1 : 0.2 // Trigger earlier on mobile
     },
     initial: "hidden",
     whileInView: "visible"

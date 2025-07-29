@@ -188,9 +188,9 @@ interface EnergyTipsSectionProps {
 export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
   const [selectedCategory, setSelectedCategory] = useState('all')
   
-  // Use custom scroll animation hooks - now always uses enlarge effect
-  const headerAnimation = useScrollAnimation({ duration: 0.5 });
-  const cardAnimation = useScrollAnimation({ duration: 0.4 });
+  // Use custom scroll animation hooks
+  const headerAnimation = useScrollAnimation({ duration: 0.5, type: 'slideUp' });
+  const cardAnimation = useScrollAnimation({ duration: 0.4, distance: 15, type: 'elastic' }); // Keep elastic - it works well
   
   // Filter tips based on configuration
   const categoriesToShow = block.showCategories && block.showCategories.length > 0 
@@ -322,7 +322,7 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
         {/* Savings Calculator Section */}
         {block.showSavingsCalculator && (
           <motion.div
-            {...useScrollAnimation({ delay: 0.3 })}
+            {...useScrollAnimation({ delay: 0.3, distance: 15 })}
             className={`mt-12 ${animationClasses}`}
           >
             <Card className="p-8 bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">

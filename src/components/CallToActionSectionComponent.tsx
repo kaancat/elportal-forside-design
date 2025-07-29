@@ -1,6 +1,8 @@
 import React from 'react'
+import { motion } from 'framer-motion'
 import { CallToActionSection } from '@/types/sanity'
 import { Button } from '@/components/ui/button'
+import { useScrollAnimation, animationClasses } from '@/hooks/useScrollAnimation'
 
 interface CallToActionSectionComponentProps {
   block: CallToActionSection
@@ -23,7 +25,10 @@ const CallToActionSectionComponent: React.FC<CallToActionSectionComponentProps> 
   return (
     <section className="bg-gray-50 py-16">
       <div className="container mx-auto px-4 text-center">
-        <div className="max-w-2xl mx-auto">
+        <motion.div 
+          className="max-w-2xl mx-auto"
+          {...useScrollAnimation({ duration: 0.6, type: 'fadeUp' })}
+        >
           <h2 className="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-4">
             {block.title}
           </h2>
@@ -32,14 +37,18 @@ const CallToActionSectionComponent: React.FC<CallToActionSectionComponentProps> 
               {block.description}
             </p>
           )}
-          <Button
-            onClick={handleButtonClick}
-            size="lg"
-            className="bg-brand-green hover:bg-brand-green-hover text-white font-semibold px-8 py-4 text-lg"
+          <motion.div
+            {...useScrollAnimation({ duration: 0.5, type: 'fadeUp', delay: 0.2 })}
           >
-            {block.buttonText}
-          </Button>
-        </div>
+            <Button
+              onClick={handleButtonClick}
+              size="lg"
+              className="bg-brand-green hover:bg-brand-green-hover text-white font-semibold px-8 py-4 text-lg"
+            >
+              {block.buttonText}
+            </Button>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   )

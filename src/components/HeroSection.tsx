@@ -41,7 +41,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({ block }) => {
       <div className="container mx-auto px-4 relative z-10 py-16">
         <div className="flex flex-col lg:flex-row items-center gap-8">
           {/* Left column with hero content */}
-          <div className="lg:w-1/2 text-white">
+          <motion.div 
+            className="lg:w-1/2 text-white"
+            {...useScrollAnimation(animationPresets.hero)}
+          >
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-6">
               {headline.includes('sammenlign') ? (
                 <>

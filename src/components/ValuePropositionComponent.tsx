@@ -1,7 +1,9 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { Check, Info } from 'lucide-react';
 import { Icon, hasValidIcon } from './Icon';
 import { IconManager } from '@/types/sanity';
+import { useScrollAnimation, staggerContainer } from '@/hooks/useScrollAnimation';
 
 interface ValuePropositionItem {
   _key: string;
@@ -39,7 +41,10 @@ export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps>
     return (
     <section className="py-16 lg:py-24">
       <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto p-8 bg-green-50/60 rounded-2xl border border-green-200/60">
+        <motion.div 
+          className="max-w-4xl mx-auto p-8 bg-green-50/60 rounded-2xl border border-green-200/60"
+          {...useScrollAnimation({ duration: 0.6, type: 'fadeUp' })}
+        >
           {block.title && (
             <div className="flex items-center mb-6">
               <div className="flex items-center justify-center h-7 w-7 rounded-full bg-green-100 border border-green-200 mr-3">
@@ -48,14 +53,29 @@ export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps>
               <h2 className="text-2xl font-display font-bold text-brand-dark">{block.title}</h2>
             </div>
           )}
-          <ul className="space-y-4 pl-1">
+          <motion.ul 
+            className="space-y-4 pl-1"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+          >
             {items.map((item, index) => {
               // Get the display text from either new or legacy format
               const displayText = item.heading || item.text || '';
               const hasDescription = item.description && item.description.length > 0;
               
               return (
-                <li key={item._key || index} className="flex items-start">
+                <motion.li 
+                  key={item._key || index} 
+                  className="flex items-start"
+                  {...useScrollAnimation({ 
+                    type: 'stagger', 
+                    index,
+                    duration: 0.5,
+                    staggerDelay: 0.08 
+                  })}
+                >
                   {hasValidIcon(item.icon) ? (
                     <Icon
                       icon={item.icon}
@@ -71,11 +91,11 @@ export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps>
                       <span className="text-base text-gray-600 mt-1 block">{item.description}</span>
                     )}
                   </div>
-                </li>
+                </motion.li>
               );
             })}
-          </ul>
-        </div>
+          </motion.ul>
+        </motion.div>
       </div>
     </section>
   );

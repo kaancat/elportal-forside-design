@@ -87,10 +87,10 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
 
     switch (animationType) {
       case 'fadeUp':
-        // Classic fade up - the most professional animation
+        // Slide up animation (no opacity change to prevent blinking)
         return {
           hidden: { 
-            opacity: 0,
+            opacity: 1,
             y: isMobile ? mobileDistance : distance
           },
           visible: { 
@@ -105,13 +105,15 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
         }
 
       case 'fadeIn':
-        // Pure fade without movement
+        // Subtle zoom in (no opacity to prevent blinking)
         return {
           hidden: { 
-            opacity: 0
+            opacity: 1,
+            scale: 0.95
           },
           visible: { 
             opacity: 1,
+            scale: 1,
             transition: {
               duration: isMobile ? mobileDuration * 0.8 : duration * 0.8,
               delay,
@@ -121,10 +123,10 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
         }
 
       case 'slideUp':
-        // Stronger slide with fade for impact
+        // Stronger slide animation (no opacity)
         return {
           hidden: { 
-            opacity: 0,
+            opacity: 1,
             y: isMobile ? 40 : 50
           },
           visible: { 
@@ -139,10 +141,10 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
         }
 
       case 'hero':
-        // Special animation for hero sections
+        // Hero animation with scale and slide (no opacity)
         return {
           hidden: { 
-            opacity: 0,
+            opacity: 1,
             scale: 0.98,
             y: 20
           },
@@ -159,10 +161,10 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
         }
 
       case 'fadeLeft':
-        // Fade in from left
+        // Slide in from left (no opacity)
         return {
           hidden: { 
-            opacity: 0,
+            opacity: 1,
             x: isMobile ? -20 : -30
           },
           visible: { 
@@ -177,10 +179,10 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
         }
 
       case 'fadeRight':
-        // Fade in from right
+        // Slide in from right (no opacity)
         return {
           hidden: { 
-            opacity: 0,
+            opacity: 1,
             x: isMobile ? 20 : 30
           },
           visible: { 
@@ -195,10 +197,10 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
         }
 
       case 'scale':
-        // Subtle scale with fade
+        // Subtle scale animation (no opacity)
         return {
           hidden: { 
-            opacity: 0,
+            opacity: 1,
             scale: 0.95
           },
           visible: { 
@@ -213,10 +215,10 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
         }
 
       case 'stagger':
-        // For staggered list animations
+        // For staggered list animations (no opacity)
         return {
           hidden: { 
-            opacity: 0,
+            opacity: 1,
             y: 20
           },
           visible: { 
@@ -231,10 +233,10 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
         }
 
       default:
-        // Default to fadeUp
+        // Default to slideUp (no opacity)
         return {
           hidden: { 
-            opacity: 0,
+            opacity: 1,
             y: isMobile ? 20 : 30
           },
           visible: { 
@@ -262,13 +264,13 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
   }
 }
 
-// Utility function for simple fade animations
+// Utility function for simple scale animations (no opacity to prevent blinking)
 export const fadeInAnimation = (delay = 0) => {
   const isMobile = isMobileDevice()
   
   return {
-    initial: { opacity: 0 },
-    animate: { opacity: 1 },
+    initial: { opacity: 1, scale: 0.95 },
+    animate: { opacity: 1, scale: 1 },
     transition: { 
       duration: isMobile ? 0.4 : 0.6,
       delay,
@@ -277,9 +279,9 @@ export const fadeInAnimation = (delay = 0) => {
   }
 }
 
-// Utility function for staggered animations
+// Utility function for staggered animations (no opacity to prevent blinking)
 export const staggerContainer = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 1 },
   visible: {
     opacity: 1,
     transition: {

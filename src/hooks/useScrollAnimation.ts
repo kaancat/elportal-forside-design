@@ -13,7 +13,7 @@ const isMobileDevice = () => {
   return window.innerWidth <= 768 || 'ontouchstart' in window
 }
 
-type AnimationType = 'slideUp' | 'slideDown' | 'slideLeft' | 'slideRight' | 'elastic' | 'scale' | 'slideScale' | 'scaleRotate'
+type AnimationType = 'slideUp' | 'slideDown' | 'slideLeft' | 'slideRight' | 'elastic' | 'scale' | 'slideScale' | 'scaleRotate' | 'enlargeScroll'
 
 interface ScrollAnimationOptions {
   disabled?: boolean
@@ -230,6 +230,28 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
           }
         }
 
+      case 'enlargeScroll':
+        // Enlarge effect - starts small, grows when centered in viewport
+        return {
+          hidden: { 
+            opacity: 1,
+            scale: isMobile ? 0.85 : 0.8,
+            y: isMobile ? mobileDistance * 0.5 : distance * 0.5
+          },
+          visible: { 
+            opacity: 1,
+            scale: isMobile ? 1.05 : 1.1,
+            y: 0,
+            transition: {
+              type: 'spring',
+              stiffness: 100,
+              damping: 20,
+              delay,
+              duration: isMobile ? mobileDuration * 1.2 : duration * 1.2
+            }
+          }
+        }
+
       default:
         // Default to slideUp - no opacity change
         return {
@@ -250,13 +272,22 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
     }
   }
 
+  // Special viewport settings for enlargeScroll
+  const viewportSettings = animationType === 'enlargeScroll' 
+    ? {
+        once: false, // Allow re-triggering for enlarge effect
+        margin: isMobile ? "-10%" : "-20%", // Trigger when closer to center
+        amount: 0.5 // Trigger when 50% of element is in view
+      }
+    : {
+        once: true,
+        margin: isMobile ? "0px" : "-50px",
+        amount: isMobile ? 0.1 : 0.2
+      }
+
   return {
     variants: getVariants(isMobile),
-    viewport: { 
-      once: true, 
-      margin: isMobile ? "0px" : "-50px", // No negative margin on mobile
-      amount: isMobile ? 0.1 : 0.2 // Trigger earlier on mobile
-    },
+    viewport: viewportSettings,
     initial: "hidden",
     whileInView: "visible"
   }

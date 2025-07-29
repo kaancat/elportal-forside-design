@@ -13,10 +13,26 @@ const AnimationDemo: React.FC = () => {
   const slideRightAnimation = useScrollAnimation({ type: 'slideRight', duration: 0.6 })
   const elasticAnimation = useScrollAnimation({ type: 'elastic' })
   const scaleAnimation = useScrollAnimation({ type: 'scale', duration: 0.6 })
+  const enlargeScrollAnimation = useScrollAnimation({ type: 'enlargeScroll' })
 
   return (
     <div className="container mx-auto px-4 py-16 space-y-16">
       <h2 className="text-3xl font-bold text-center mb-12">Animation Showcase</h2>
+
+      {/* Enlarge Scroll Animation - Featured */}
+      <motion.div {...enlargeScrollAnimation}>
+        <Card className="p-8 bg-gradient-to-r from-indigo-50 to-purple-50 border-2 border-purple-200 shadow-lg">
+          <h3 className="text-2xl font-semibold mb-4 text-purple-900">🌟 Enlarge Scroll Animation</h3>
+          <p className="text-gray-700">
+            Watch this card grow larger as it reaches the center of your screen! 
+            This effect draws natural attention to content as users scroll. 
+            Starts at 80% scale, grows to 110% when centered, then shrinks back.
+          </p>
+          <p className="text-sm text-purple-600 mt-2">
+            Perfect for featured content, images, or call-to-action sections.
+          </p>
+        </Card>
+      </motion.div>
 
       {/* Slide Up Animation */}
       <motion.div {...slideUpAnimation}>
@@ -105,6 +121,36 @@ const AnimationDemo: React.FC = () => {
           </p>
         </Card>
       </motion.div>
+
+      {/* Multiple Enlarge Scroll Examples */}
+      <div className="space-y-12 mt-20">
+        <h3 className="text-xl font-semibold text-center text-gray-700">More Enlarge Scroll Examples</h3>
+        
+        {[
+          { 
+            title: "Image Gallery Item", 
+            bg: "from-cyan-50 to-blue-50",
+            content: "Perfect for image galleries where you want photos to subtly enlarge as users browse."
+          },
+          { 
+            title: "Feature Highlight", 
+            bg: "from-green-50 to-emerald-50",
+            content: "Draw attention to key features or benefits as they scroll into the spotlight."
+          },
+          { 
+            title: "Testimonial Card", 
+            bg: "from-amber-50 to-yellow-50",
+            content: "Make testimonials stand out by enlarging them when they're in focus."
+          }
+        ].map((item, index) => (
+          <motion.div key={index} {...enlargeScrollAnimation}>
+            <Card className={`p-6 bg-gradient-to-r ${item.bg} transform-gpu`}>
+              <h4 className="text-lg font-semibold mb-2">{item.title}</h4>
+              <p className="text-gray-600 text-sm">{item.content}</p>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
     </div>
   )
 }

@@ -13,7 +13,7 @@ const isMobileDevice = () => {
   return window.innerWidth <= 768 || 'ontouchstart' in window
 }
 
-type AnimationType = 'fadeSlide' | 'blur' | 'slideLeft' | 'slideRight' | 'elastic' | 'scale'
+type AnimationType = 'slideUp' | 'slideDown' | 'slideLeft' | 'slideRight' | 'elastic' | 'scale' | 'slideScale' | 'scaleRotate'
 
 interface ScrollAnimationOptions {
   disabled?: boolean
@@ -60,7 +60,7 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
   const delay = options?.delay ?? 0
   const duration = options?.duration ?? 0.6
   const distance = options?.distance ?? 20
-  const animationType = options?.type ?? 'fadeSlide'
+  const animationType = options?.type ?? 'slideUp'
 
   // If motion should be reduced or disabled, return static variants
   if (shouldReduceMotion || options?.disabled) {
@@ -81,11 +81,11 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
     const mobileDistance = Math.min(distance, 15)
 
     switch (animationType) {
-      case 'fadeSlide':
-        // Subtle fade with upward slide - most elegant
+      case 'slideUp':
+        // Pure upward slide - no opacity change
         return {
           hidden: { 
-            opacity: 0.5,
+            opacity: 1,
             y: isMobile ? mobileDistance : distance
           },
           visible: { 
@@ -99,18 +99,56 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
           }
         }
 
-      case 'blur':
-        // Subtle scale with very minimal blur - much more subtle
+      case 'slideDown':
+        // Pure downward slide - no opacity change
         return {
           hidden: { 
             opacity: 1,
-            scale: 0.98,
-            filter: 'blur(0.5px)'
+            y: isMobile ? -mobileDistance : -distance
+          },
+          visible: { 
+            opacity: 1,
+            y: 0,
+            transition: {
+              duration: isMobile ? mobileDuration : duration,
+              delay,
+              ease: [0.25, 0.1, 0.25, 1]
+            }
+          }
+        }
+
+      case 'slideScale':
+        // Combines subtle scale with upward slide - no opacity or blur
+        return {
+          hidden: { 
+            opacity: 1,
+            scale: 0.97,
+            y: isMobile ? mobileDistance * 0.7 : distance * 0.7
           },
           visible: { 
             opacity: 1,
             scale: 1,
-            filter: 'blur(0px)',
+            y: 0,
+            transition: {
+              duration: isMobile ? mobileDuration : duration,
+              delay,
+              ease: [0.25, 0.1, 0.25, 1]
+            }
+          }
+        }
+
+      case 'scaleRotate':
+        // Subtle scale with tiny rotation for dynamic effect
+        return {
+          hidden: { 
+            opacity: 1,
+            scale: 0.96,
+            rotate: isMobile ? -1 : -2
+          },
+          visible: { 
+            opacity: 1,
+            scale: 1,
+            rotate: 0,
             transition: {
               duration: isMobile ? mobileDuration : duration,
               delay,
@@ -193,10 +231,10 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
         }
 
       default:
-        // Default to fadeSlide
+        // Default to slideUp - no opacity change
         return {
           hidden: { 
-            opacity: 0.5,
+            opacity: 1,
             y: isMobile ? mobileDistance : distance
           },
           visible: { 

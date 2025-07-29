@@ -174,7 +174,13 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
         </div>
         
         {/* Products List */}
-        <div className="space-y-6">
+        <motion.div 
+          className="space-y-6"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+        >
           <h2 className="text-2xl font-display font-bold text-center text-brand-dark mb-8">
             Aktuelle tilbud
             {priceLoading && (
@@ -211,7 +217,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
               />
             );
           })}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

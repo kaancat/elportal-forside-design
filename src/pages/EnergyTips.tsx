@@ -28,6 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useQuery } from '@tanstack/react-query'
 import { client } from '@/lib/sanity'
 import { Appliance, EnergyTip } from '@/types/appliance'
+import { useScrollAnimation, fadeInAnimation, animationClasses } from '@/hooks/useScrollAnimation'
 
 // Mock data for now - will be replaced with Sanity data
 const mockAppliances: Appliance[] = [
@@ -252,9 +253,8 @@ export function EnergyTips() {
       <section className="bg-gradient-to-br from-brand-green/10 via-white to-green-50 pt-24 pb-16">
         <div className="container mx-auto px-4">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center max-w-4xl mx-auto"
+            {...fadeInAnimation()}
+            className={`text-center max-w-4xl mx-auto ${animationClasses}`}
           >
             <Badge className="mb-4 bg-brand-green/20 text-brand-green border-brand-green/30">
               <TrendingDown className="h-3 w-3 mr-1" />
@@ -300,9 +300,8 @@ export function EnergyTips() {
       <section id="tips" className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
+            {...fadeInAnimation()}
+            className={`text-center mb-12 ${animationClasses}`}
           >
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Praktiske energispare tips
@@ -338,9 +337,8 @@ export function EnergyTips() {
                   return (
                     <motion.div
                       key={tip._id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
+                      {...fadeInAnimation(index * 0.05)}
+                      className={animationClasses}
                     >
                       <Card className="p-6 h-full hover:shadow-lg transition-shadow duration-300">
                         <div className="flex items-start justify-between mb-4">
@@ -387,10 +385,8 @@ export function EnergyTips() {
       <section className="py-16 bg-gradient-to-r from-brand-green to-green-600">
         <div className="container mx-auto px-4">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="text-center text-white"
+            {...useScrollAnimation({ duration: 0.5 })}
+            className={`text-center text-white ${animationClasses}`}
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Klar til at spare på elregningen?

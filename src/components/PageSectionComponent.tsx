@@ -7,6 +7,7 @@ import RenewableEnergyForecastComponent from './RenewableEnergyForecast'
 import PriceCalculatorWidget from './PriceCalculatorWidget'
 import type { PageSection, LivePriceGraph, RenewableEnergyForecast, PriceCalculator } from '@/types/sanity'
 import { cn } from '@/lib/utils'
+import { useScrollAnimation, animationClasses } from '@/hooks/useScrollAnimation'
 
 interface PageSectionProps {
   section: PageSection;
@@ -14,6 +15,10 @@ interface PageSectionProps {
 
 const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   const { title, content, image, imagePosition = 'left', theme, cta, settings, headerAlignment } = section;
+  
+  // Use custom scroll animation hook
+  const scrollAnimation = useScrollAnimation({ duration: 0.6 });
+  const textScrollAnimation = useScrollAnimation({ duration: 0.5, delay: 0.2, distance: 15 });
 
   // Define custom components for embedded blocks in Portable Text
   const customComponents = {
@@ -132,44 +137,15 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   
   // Add visual separator between sections
   const hasSeparator = settings?.separator !== false;
-  
-  // Animation variants for sections
-  const sectionVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut"
-      }
-    }
-  };
-  
-  // Text animation variants
-  const textVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: {
-        duration: 0.5,
-        delay: 0.2,
-        ease: "easeOut"
-      }
-    }
-  };
 
   return (
     <motion.section 
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
-      variants={sectionVariants}
+      {...scrollAnimation}
       className={cn(
         "relative overflow-hidden transition-all duration-300",
         getThemeClasses(),
-        getPaddingClasses()
+        getPaddingClasses(),
+        animationClasses
       )}
       style={theme?.background ? { backgroundColor: theme.background } : {}}
     >
@@ -179,7 +155,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
           // Text-only layout
           <div className={`max-w-4xl mx-auto ${textAlignClass}`}>
             {title && (
-              <motion.div variants={textVariants}>
+              <motion.div {...textScrollAnimation}>
                 <h2 className={cn(
                   "text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-8",
                   "bg-gradient-to-r from-brand-dark to-brand-dark-light bg-clip-text",
@@ -194,7 +170,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
               </motion.div>
             )}
             <motion.div 
-              variants={textVariants}
+              {...textScrollAnimation}
               className={cn(
                 "prose prose-lg max-w-none",
                 settings?.theme === 'dark' && "prose-invert"
@@ -204,7 +180,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
             </motion.div>
             {cta && cta.text && cta.url && (
               <motion.div 
-                variants={textVariants}
+                {...textScrollAnimation}
                 className={`mt-10 ${settings?.textAlignment === 'center' ? 'flex justify-center' : settings?.textAlignment === 'right' ? 'flex justify-end' : ''}`}
               >
                 <a 
@@ -235,10 +211,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
             {/* Image Column */}
             <motion.div 
               className={`order-1 ${imagePosition === 'right' ? 'md:order-2' : ''}`}
-              initial={{ opacity: 0, x: imagePosition === 'right' ? 50 : -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7, ease: "easeOut" }}
-              viewport={{ once: true }}
+              {...scrollAnimation}
             >
               <div className="relative group">
                 {/* Image container with enhanced effects */}
@@ -261,10 +234,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
             {/* Text Column */}
             <motion.div 
               className={`order-2 ${imagePosition === 'right' ? 'md:order-1' : ''} ${textAlignClass}`}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-              viewport={{ once: true }}
+              {...textScrollAnimation}
             >
               {title && (
                 <div className="mb-8">

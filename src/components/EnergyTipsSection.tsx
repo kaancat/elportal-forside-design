@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Calculator } from 'lucide-react'
 import { EnergyTip } from '@/types/appliance'
+import { useScrollAnimation, fadeInAnimation, animationClasses } from '@/hooks/useScrollAnimation'
 
 // Hardcoded energy tips data
 const ENERGY_TIPS_DATA: EnergyTip[] = [
@@ -187,6 +188,10 @@ interface EnergyTipsSectionProps {
 export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
   const [selectedCategory, setSelectedCategory] = useState('all')
   
+  // Use custom scroll animation hooks
+  const headerAnimation = useScrollAnimation({ duration: 0.5 });
+  const cardAnimation = useScrollAnimation({ duration: 0.4, distance: 15 });
+  
   // Filter tips based on configuration
   const categoriesToShow = block.showCategories && block.showCategories.length > 0 
     ? block.showCategories 
@@ -207,13 +212,13 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
 
   const renderTipCard = (tip: EnergyTip, index: number) => {
     const Icon = tip.icon ? Icons[tip.icon as keyof typeof Icons] : Lightbulb
+    const cardFadeAnimation = fadeInAnimation(index * 0.05);
     
     return (
       <motion.div
         key={tip._id}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.1 }}
+        {...cardFadeAnimation}
+        className={animationClasses}
       >
         <Card className="p-6 h-full hover:shadow-lg transition-shadow duration-300">
           <div className="flex items-start justify-between mb-4">
@@ -261,13 +266,12 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          {...headerAnimation}
           className={`mb-12 ${
             block.headerAlignment === 'center' ? 'text-center' : 
             block.headerAlignment === 'right' ? 'text-right' : 
             'text-left'
-          }`}
+          } ${animationClasses}`}
         >
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             {block.title || 'Praktiske energispare tips'}
@@ -318,10 +322,8 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
         {/* Savings Calculator Section */}
         {block.showSavingsCalculator && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="mt-12"
+            {...useScrollAnimation({ delay: 0.3, distance: 15 })}
+            className={`mt-12 ${animationClasses}`}
           >
             <Card className="p-8 bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
               <div className="flex items-center gap-3 mb-6">

@@ -188,9 +188,9 @@ interface EnergyTipsSectionProps {
 export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
   const [selectedCategory, setSelectedCategory] = useState('all')
   
-  // Use custom scroll animation hooks
-  const headerAnimation = useScrollAnimation({ duration: 0.5, type: 'slideUp' });
-  const cardAnimation = useScrollAnimation({ duration: 0.4, distance: 15, type: 'elastic' }); // Keep elastic - it works well
+  // Use custom scroll animation hooks - professional and subtle
+  const headerAnimation = useScrollAnimation({ duration: 0.3, type: 'reveal' });
+  const cardAnimation = useScrollAnimation({ duration: 0.25, type: 'emphasis' }); // Subtle emphasis for cards
   
   // Filter tips based on configuration
   const categoriesToShow = block.showCategories && block.showCategories.length > 0 

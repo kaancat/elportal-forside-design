@@ -17,7 +17,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   const { title, content, image, imagePosition = 'left', theme, cta, settings, headerAlignment } = section;
   
   // Use custom scroll animation hook with different animation types
-  const scrollAnimation = useScrollAnimation({ duration: 0.6, type: 'blur' }); // For images
+  const scrollAnimation = useScrollAnimation({ duration: 0.6, type: 'fadeSlide' }); // For images
   const textScrollAnimation = useScrollAnimation({ duration: 0.5, delay: 0.2, distance: 15, type: 'fadeSlide' }); // For text
 
   // Define custom components for embedded blocks in Portable Text

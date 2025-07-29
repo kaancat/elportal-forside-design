@@ -19,9 +19,10 @@ interface PageSectionProps {
 const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   const { title, content, image, imagePosition = 'left', theme, cta, settings, headerAlignment } = section;
   
-  // Use custom scroll animation hook with professional animations
-  const scrollAnimation = useScrollAnimation({ duration: 0.3, type: 'lift' }); // For images - subtle lift effect
-  const textScrollAnimation = useScrollAnimation({ duration: 0.25, delay: 0.1, type: 'reveal' }); // For text - gentle reveal
+  // Use professional fade up animations
+  const imageAnimation = useScrollAnimation({ duration: 0.7, type: 'scale' }); // Professional scale for images
+  const textAnimation = useScrollAnimation({ duration: 0.6, type: 'fadeUp', delay: 0.1 }); // Classic fade up for text
+  const ctaAnimation = useScrollAnimation({ duration: 0.5, type: 'fadeUp', delay: 0.3 }); // Delayed for CTA
 
   // Define custom components for embedded blocks in Portable Text
   const customComponents = {
@@ -158,7 +159,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
 
   return (
     <motion.section 
-      {...scrollAnimation}
+      {...imageAnimation}
       className={cn(
         "relative overflow-hidden transition-all duration-300",
         getThemeClasses(),
@@ -173,7 +174,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
           // Text-only layout
           <div className={`max-w-4xl mx-auto ${textAlignClass}`}>
             {title && (
-              <motion.div {...textScrollAnimation}>
+              <motion.div {...textAnimation}>
                 <h2 className={cn(
                   "text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-8",
                   "bg-gradient-to-r from-brand-dark to-brand-dark-light bg-clip-text",
@@ -198,7 +199,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
             </motion.div>
             {cta && cta.text && cta.url && (
               <motion.div 
-                {...textScrollAnimation}
+                {...textAnimation}
                 className={`mt-10 ${settings?.textAlignment === 'center' ? 'flex justify-center' : settings?.textAlignment === 'right' ? 'flex justify-end' : ''}`}
               >
                 <a 
@@ -229,7 +230,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
             {/* Image Column */}
             <motion.div 
               className={`order-1 ${imagePosition === 'right' ? 'md:order-2' : ''}`}
-              {...scrollAnimation}
+              {...imageAnimation}
             >
               <div className="relative group">
                 {/* Image container with enhanced effects */}
@@ -252,7 +253,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
             {/* Text Column */}
             <motion.div 
               className={`order-2 ${imagePosition === 'right' ? 'md:order-1' : ''} ${textAlignClass}`}
-              {...textScrollAnimation}
+              {...textAnimation}
             >
               {title && (
                 <div className="mb-8">

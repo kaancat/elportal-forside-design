@@ -565,10 +565,18 @@ export interface FooterSettings {
 export interface SiteSettings {
   _id: string;
   _type: 'siteSettings';
-  siteTitle: string;
+  title: string;
+  siteTitle: string; // Keep for backward compatibility
+  description?: string;
+  logo?: SanityImage;
+  favicon?: SanityImage;
+  colorThemes?: Array<{
+    _key: string;
+    _type: 'colorTheme';
+    [key: string]: any;
+  }>;
   headerLinks: (Link | MegaMenu)[];
   footer: FooterSettings;
-  // Add other site settings fields as needed
 }
 
 export interface SanityPage {

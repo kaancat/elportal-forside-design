@@ -13,11 +13,14 @@ const isMobileDevice = () => {
   return window.innerWidth <= 768 || 'ontouchstart' in window
 }
 
+type AnimationType = 'fadeSlide' | 'blur' | 'slideLeft' | 'slideRight' | 'elastic' | 'scale'
+
 interface ScrollAnimationOptions {
   disabled?: boolean
   delay?: number
   duration?: number
   distance?: number
+  type?: AnimationType
 }
 
 export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
@@ -57,6 +60,7 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
   const delay = options?.delay ?? 0
   const duration = options?.duration ?? 0.6
   const distance = options?.distance ?? 20
+  const animationType = options?.type ?? 'fadeSlide'
 
   // If motion should be reduced or disabled, return static variants
   if (shouldReduceMotion || options?.disabled) {
@@ -71,46 +75,145 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
     }
   }
 
-  // Mobile-optimized variants - using scale instead of opacity for smoother animations
-  const mobileVariants: Variants = {
-    hidden: { 
-      opacity: 1,
-      scale: 0.95,
-      y: Math.min(distance, 10) // Reduced movement on mobile
-    },
-    visible: { 
-      opacity: 1,
-      scale: 1,
-      y: 0,
-      transition: {
-        duration: duration * 0.8, // Faster on mobile
-        delay,
-        ease: [0.25, 0.1, 0.25, 1] // Custom easing for smoother motion
-      }
-    }
-  }
+  // Define animation variants for different types
+  const getVariants = (isMobile: boolean): Variants => {
+    const mobileDuration = duration * 0.8
+    const mobileDistance = Math.min(distance, 15)
 
-  // Desktop variants - also using scale for consistency
-  const desktopVariants: Variants = {
-    hidden: { 
-      opacity: 1,
-      scale: 0.98,
-      y: distance * 0.5 // Reduced distance to prevent large shifts
-    },
-    visible: { 
-      opacity: 1,
-      scale: 1,
-      y: 0,
-      transition: {
-        duration,
-        delay,
-        ease: [0.22, 1, 0.36, 1] // More natural easing curve
-      }
+    switch (animationType) {
+      case 'fadeSlide':
+        // Subtle fade with upward slide - most elegant
+        return {
+          hidden: { 
+            opacity: 0.5,
+            y: isMobile ? mobileDistance : distance
+          },
+          visible: { 
+            opacity: 1,
+            y: 0,
+            transition: {
+              duration: isMobile ? mobileDuration : duration,
+              delay,
+              ease: [0.25, 0.1, 0.25, 1]
+            }
+          }
+        }
+
+      case 'blur':
+        // Blur to focus effect - modern and smooth
+        return {
+          hidden: { 
+            opacity: 1,
+            scale: 0.98,
+            filter: 'blur(4px)'
+          },
+          visible: { 
+            opacity: 1,
+            scale: 1,
+            filter: 'blur(0px)',
+            transition: {
+              duration: isMobile ? mobileDuration : duration,
+              delay,
+              ease: [0.25, 0.1, 0.25, 1]
+            }
+          }
+        }
+
+      case 'slideLeft':
+        // Slide from left - no opacity change
+        return {
+          hidden: { 
+            opacity: 1,
+            x: isMobile ? -30 : -50
+          },
+          visible: { 
+            opacity: 1,
+            x: 0,
+            transition: {
+              duration: isMobile ? mobileDuration : duration,
+              delay,
+              ease: [0.25, 0.1, 0.25, 1]
+            }
+          }
+        }
+
+      case 'slideRight':
+        // Slide from right - no opacity change
+        return {
+          hidden: { 
+            opacity: 1,
+            x: isMobile ? 30 : 50
+          },
+          visible: { 
+            opacity: 1,
+            x: 0,
+            transition: {
+              duration: isMobile ? mobileDuration : duration,
+              delay,
+              ease: [0.25, 0.1, 0.25, 1]
+            }
+          }
+        }
+
+      case 'elastic':
+        // Elastic scale with spring physics
+        return {
+          hidden: { 
+            opacity: 1,
+            scale: 0.96
+          },
+          visible: { 
+            opacity: 1,
+            scale: 1,
+            transition: {
+              type: 'spring',
+              stiffness: 300,
+              damping: 20,
+              delay
+            }
+          }
+        }
+
+      case 'scale':
+        // Simple scale animation (current one, but smoother)
+        return {
+          hidden: { 
+            opacity: 1,
+            scale: isMobile ? 0.97 : 0.98
+          },
+          visible: { 
+            opacity: 1,
+            scale: 1,
+            transition: {
+              duration: isMobile ? mobileDuration : duration,
+              delay,
+              ease: [0.22, 1, 0.36, 1]
+            }
+          }
+        }
+
+      default:
+        // Default to fadeSlide
+        return {
+          hidden: { 
+            opacity: 0.5,
+            y: isMobile ? mobileDistance : distance
+          },
+          visible: { 
+            opacity: 1,
+            y: 0,
+            transition: {
+              duration: isMobile ? mobileDuration : duration,
+              delay,
+              ease: [0.25, 0.1, 0.25, 1]
+            }
+          }
+        }
     }
   }
 
   return {
-    variants: isMobile ? mobileVariants : desktopVariants,
+    variants: getVariants(isMobile),
     viewport: { 
       once: true, 
       margin: isMobile ? "0px" : "-50px", // No negative margin on mobile

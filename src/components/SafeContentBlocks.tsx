@@ -1,4 +1,5 @@
 import React from 'react'
+import { AnimatePresence } from 'framer-motion'
 import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, CO2EmissionsChart, DeclarationProduction, DeclarationGridmix, ConsumptionMap, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
 import PageSectionComponent from './PageSectionComponent'
 import FAQItemComponent from './FAQItemComponent'
@@ -277,7 +278,7 @@ const SafeContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         </div>
       }
     >
-      <>
+      <AnimatePresence mode="wait">
         {groupedBlocks.map((block, index) => {
           // Determine spacing for this block (matching ContentBlocks logic)
           const nextBlock = groupedBlocks[index + 1];
@@ -289,8 +290,11 @@ const SafeContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
           // Components handle their own internal padding
           const spacingClass = 'mb-0';
           
+          // Generate unique layoutId for each block to prevent remounting
+          const layoutId = Array.isArray(block) ? `faq-group-${index}` : `${block._type}-${block._key}`;
+          
           return (
-            <div key={Array.isArray(block) ? `faq-group-${index}` : block._key} className={spacingClass}>
+            <div key={layoutId} className={spacingClass}>
               <SafeContentBlock 
                 block={block} 
                 index={index} 
@@ -298,7 +302,7 @@ const SafeContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
             </div>
           );
         })}
-      </>
+      </AnimatePresence>
     </ErrorBoundary>
   );
 };

@@ -1,4 +1,5 @@
 import React from 'react'
+import { AnimatePresence } from 'framer-motion'
 import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, CO2EmissionsChart, DeclarationProduction, DeclarationGridmix, ConsumptionMap, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
 import { debug } from '@/utils/debug'
 import PageSectionComponent from './PageSectionComponent'
@@ -100,7 +101,7 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
 
 
   return (
-    <>
+    <AnimatePresence mode="wait">
       {groupedBlocks.map((block, index) => {
         // Determine spacing for this block
         const nextBlock = groupedBlocks[index + 1];
@@ -112,8 +113,11 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         // Components handle their own internal padding
         const spacingClass = 'mb-0';
         
+        // Generate unique layoutId for each block to prevent remounting
+        const layoutId = Array.isArray(block) ? `faq-group-${index}` : `${block._type}-${block._key}`;
+        
         return (
-          <div key={Array.isArray(block) ? `faq-group-${index}` : block._key} className={spacingClass}>
+          <div key={layoutId} className={spacingClass}>
             {(() => {
         // Use window.console to ensure logging works
         if (typeof window !== 'undefined' && !Array.isArray(block)) {
@@ -306,7 +310,7 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
             </div>
         );
       })}
-    </>
+    </AnimatePresence>
   )
 }
 

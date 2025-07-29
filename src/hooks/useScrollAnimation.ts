@@ -71,14 +71,16 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
     }
   }
 
-  // Mobile-optimized variants
+  // Mobile-optimized variants - using scale instead of opacity for smoother animations
   const mobileVariants: Variants = {
     hidden: { 
-      opacity: 0.01, // Slightly visible to prevent flash
+      opacity: 1,
+      scale: 0.95,
       y: Math.min(distance, 10) // Reduced movement on mobile
     },
     visible: { 
-      opacity: 1, 
+      opacity: 1,
+      scale: 1,
       y: 0,
       transition: {
         duration: duration * 0.8, // Faster on mobile
@@ -88,19 +90,21 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
     }
   }
 
-  // Desktop variants
+  // Desktop variants - also using scale for consistency
   const desktopVariants: Variants = {
     hidden: { 
-      opacity: 0,
-      y: distance
+      opacity: 1,
+      scale: 0.98,
+      y: distance * 0.5 // Reduced distance to prevent large shifts
     },
     visible: { 
-      opacity: 1, 
+      opacity: 1,
+      scale: 1,
       y: 0,
       transition: {
         duration,
         delay,
-        ease: "easeOut"
+        ease: [0.22, 1, 0.36, 1] // More natural easing curve
       }
     }
   }

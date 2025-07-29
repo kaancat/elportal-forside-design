@@ -100,12 +100,12 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
         }
 
       case 'blur':
-        // Blur to focus effect - modern and smooth
+        // Subtle scale with very minimal blur - much more subtle
         return {
           hidden: { 
             opacity: 1,
             scale: 0.98,
-            filter: 'blur(4px)'
+            filter: 'blur(0.5px)'
           },
           visible: { 
             opacity: 1,

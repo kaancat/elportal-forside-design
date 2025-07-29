@@ -23,20 +23,21 @@ const Enlarge: React.FC<EnlargeProps> = ({ children, className = '' }) => {
   })
   
   // Transform scroll progress to scale
-  // When element is at bottom (0), scale is 0.8
-  // When element is in center (0.5), scale is 1.15
-  // When element is at top (1), scale is 0.8
+  // Much more subtle: 1.0 → 1.03 → 1.0 (only 3% scale change)
+  // When element is at bottom (0), scale is 1.0
+  // When element is in center (0.5), scale is 1.03
+  // When element is at top (1), scale is 1.0
   const scale = useTransform(
     scrollYProgress,
     [0, 0.5, 1],
-    [0.8, 1.15, 0.8]
+    [1.0, 1.03, 1.0]
   )
   
-  // Add spring physics for smoother animation
+  // Gentler spring for professional feel
   const smoothScale = useSpring(scale, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001
+    stiffness: 50,
+    damping: 20,
+    restDelta: 0.0001
   })
   
   return (

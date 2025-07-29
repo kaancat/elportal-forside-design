@@ -123,4 +123,36 @@
   body {
     @apply bg-background text-foreground font-sans;
   }
+  
+  /* Optimize animations for mobile devices */
+  @media (max-width: 768px) {
+    * {
+      /* Disable transform transitions on scroll to prevent flicker */
+      -webkit-transform: translateZ(0);
+      -webkit-backface-visibility: hidden;
+      -webkit-perspective: 1000;
+    }
+  }
+  
+  /* Smooth animation utilities */
+  .will-change-transform {
+    will-change: transform, opacity;
+  }
+  
+  /* Reduce motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  
+  /* Prevent layout shift during animations */
+  [data-framer-motion] {
+    contain: layout style paint;
+  }
 }

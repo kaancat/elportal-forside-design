@@ -188,7 +188,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
               </motion.div>
             )}
             <motion.div 
-              {...textScrollAnimation}
+              {...textAnimation}
               className={cn(
                 "prose prose-lg max-w-none",
                 settings?.theme === 'dark' && "prose-invert"
@@ -276,7 +276,10 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
                 {content && <PortableText value={content} components={customComponents} />}
               </div>
               {cta && cta.text && cta.url && (
-                <div className={`mt-10 ${settings?.textAlignment === 'center' ? 'flex justify-center' : settings?.textAlignment === 'right' ? 'flex justify-end' : ''}`}>
+                <motion.div 
+                  {...ctaAnimation}
+                  className={`mt-10 ${settings?.textAlignment === 'center' ? 'flex justify-center' : settings?.textAlignment === 'right' ? 'flex justify-end' : ''}`}
+                >
                   <a 
                     href={cta.url} 
                     className={cn(
@@ -296,7 +299,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
                       <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
                     </div>
                   </a>
-                </div>
+                </motion.div>
               )}
             </motion.div>
           </div>
@@ -311,9 +314,20 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
         </>
       )}
       
-      {/* Subtle separator between sections */}
+      {/* Full-width subtle separator between sections */}
       {hasSeparator && (
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-24 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
+        <div className="absolute bottom-0 left-0 right-0 overflow-hidden">
+          <div className="relative">
+            {/* Main separator line */}
+            <div className="h-px bg-gradient-to-r from-transparent via-gray-200/70 to-transparent"></div>
+            {/* Subtle glow effect */}
+            <div className="absolute inset-0 h-px bg-gradient-to-r from-transparent via-gray-300/30 to-transparent blur-md"></div>
+            {/* Optional: Add a centered accent if using brand theme */}
+            {settings?.theme === 'brand' || settings?.theme === 'accent' ? (
+              <div className="absolute inset-0 h-px bg-gradient-to-r from-transparent via-brand-green/20 to-transparent"></div>
+            ) : null}
+          </div>
+        </div>
       )}
     </motion.section>
   );

@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Calculator } from 'lucide-react'
 import { EnergyTip } from '@/types/appliance'
-import { useScrollAnimation, fadeInAnimation, animationClasses } from '@/hooks/useScrollAnimation'
+import { useScrollAnimation, staggerContainer, animationClasses } from '@/hooks/useScrollAnimation'
 
 // Hardcoded energy tips data
 const ENERGY_TIPS_DATA: EnergyTip[] = [
@@ -188,9 +188,8 @@ interface EnergyTipsSectionProps {
 export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
   const [selectedCategory, setSelectedCategory] = useState('all')
   
-  // Use custom scroll animation hooks - professional and subtle
-  const headerAnimation = useScrollAnimation({ duration: 0.3, type: 'reveal' });
-  const cardAnimation = useScrollAnimation({ duration: 0.25, type: 'emphasis' }); // Subtle emphasis for cards
+  // Use professional animations
+  const headerAnimation = useScrollAnimation({ duration: 0.6, type: 'fadeUp' });
   
   // Filter tips based on configuration
   const categoriesToShow = block.showCategories && block.showCategories.length > 0 
@@ -212,12 +211,17 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
 
   const renderTipCard = (tip: EnergyTip, index: number) => {
     const Icon = tip.icon ? Icons[tip.icon as keyof typeof Icons] : Lightbulb
-    const cardFadeAnimation = fadeInAnimation(index * 0.05);
+    const cardAnimation = useScrollAnimation({ 
+      type: 'stagger', 
+      index, 
+      duration: 0.5,
+      staggerDelay: 0.08 
+    });
     
     return (
       <motion.div
         key={tip._id}
-        {...cardFadeAnimation}
+        {...cardAnimation}
         className={animationClasses}
       >
         <Card className="p-6 h-full hover:shadow-lg transition-shadow duration-300">
@@ -257,9 +261,15 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
   }
 
   const content = (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <motion.div 
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      variants={staggerContainer}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-50px" }}
+    >
       {displayTips.map((tip, index) => renderTipCard(tip, index))}
-    </div>
+    </motion.div>
   )
 
   return (
@@ -322,7 +332,7 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
         {/* Savings Calculator Section */}
         {block.showSavingsCalculator && (
           <motion.div
-            {...useScrollAnimation({ delay: 0.3, distance: 15 })}
+            {...useScrollAnimation({ duration: 0.7, type: 'fadeUp', delay: 0.3 })}
             className={`mt-12 ${animationClasses}`}
           >
             <Card className="p-8 bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">

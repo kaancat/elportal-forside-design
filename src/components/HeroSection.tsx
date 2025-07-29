@@ -71,29 +71,35 @@ const HeroSection: React.FC<HeroSectionProps> = ({ block }) => {
             )}
             
             {/* Statistics display */}
-            <div className="flex flex-wrap gap-8 mb-10">
+            <motion.div 
+              className="flex flex-wrap gap-8 mb-10"
+              {...useScrollAnimation({ duration: 0.6, type: 'fadeUp', delay: 0.3 })}
+            >
               {stats.map((stat, index) => (
                 <div key={index} className="text-center">
                   <p className="text-3xl lg:text-4xl font-display font-bold text-brand-green">{stat.value}</p>
                   <p className="text-sm lg:text-base">{stat.label}</p>
                 </div>
               ))}
-            </div>
+            </motion.div>
             
             <Button size="lg" className="bg-brand-green hover:bg-opacity-90 text-white rounded-md px-8 py-6 text-lg font-medium">
               Begynd <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-          </div>
+          </motion.div>
           
           {/* Right column with calculator */}
-          <div className="lg:w-1/2">
+          <motion.div 
+            className="lg:w-1/2"
+            {...useScrollAnimation({ duration: 0.8, type: 'scale', delay: 0.2 })}
+          >
             <PriceCalculatorWidget 
               block={calculatorBlock} 
               variant="hero"
               showLivePrice={showLivePrice}
               showProviderComparison={showProviderComparison}
             />
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

@@ -189,8 +189,8 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
   const [selectedCategory, setSelectedCategory] = useState('all')
   
   // Use custom scroll animation hooks
-  const headerAnimation = useScrollAnimation({ duration: 0.5, type: 'fadeSlide' });
-  const cardAnimation = useScrollAnimation({ duration: 0.4, distance: 15, type: 'elastic' });
+  const headerAnimation = useScrollAnimation({ duration: 0.5, type: 'slideUp' });
+  const cardAnimation = useScrollAnimation({ duration: 0.4, distance: 15, type: 'elastic' }); // Keep elastic - it works well
   
   // Filter tips based on configuration
   const categoriesToShow = block.showCategories && block.showCategories.length > 0 

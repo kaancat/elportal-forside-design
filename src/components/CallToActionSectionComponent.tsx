@@ -24,9 +24,14 @@ const CallToActionSectionComponent: React.FC<CallToActionSectionComponentProps> 
     <section className="bg-gray-50 py-16">
       <div className="container mx-auto px-4 text-center">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-8">
+          <h2 className="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-4">
             {block.title}
           </h2>
+          {block.description && (
+            <p className="text-lg text-gray-600 mb-8">
+              {block.description}
+            </p>
+          )}
           <Button
             onClick={handleButtonClick}
             size="lg"

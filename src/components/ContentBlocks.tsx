@@ -108,9 +108,9 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         const nextIsDataVisualization = nextBlock && !Array.isArray(nextBlock) && ['livePriceGraph', 'co2EmissionsChart', 'renewableEnergyForecast', 'monthlyProductionChart', 'realPriceComparisonTable'].includes(nextBlock._type);
         const isPageSection = !Array.isArray(block) && block._type === 'pageSection';
         
-        // Use subtle spacing between components - avoid large gaps but maintain visual separation
-        const tightSpacing = isPageSection && nextIsDataVisualization;
-        const spacingClass = tightSpacing ? 'mb-0' : (index < groupedBlocks.length - 1 ? 'mb-3' : '');
+        // Remove spacing between components to prevent gaps when backgrounds are used
+        // Components handle their own internal padding
+        const spacingClass = 'mb-0';
         
         return (
           <div key={Array.isArray(block) ? `faq-group-${index}` : block._key} className={spacingClass}>
@@ -223,7 +223,7 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         } else if (block._type === 'priceCalculator') {
           return <PriceCalculatorWidget key={block._key} block={block as PriceCalculator} />
         } else if (block._type === 'heroWithCalculator') {
-          return <HeroSection key={block._key} />
+          return <HeroSection key={block._key} block={block as HeroWithCalculator} />
         } else if (block._type === 'hero') {
           return <HeroComponent key={block._key} block={block} />
         } else if (block._type === 'monthlyProductionChart') {

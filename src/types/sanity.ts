@@ -109,6 +109,7 @@ export interface CallToActionSection {
   _type: 'callToActionSection'
   _key: string
   title: string
+  description?: string
   buttonText: string
   buttonUrl: string
 }
@@ -126,6 +127,14 @@ export interface RealPriceComparisonTable {
   _type: 'realPriceComparisonTable'
   _key: string
   title: string
+  subtitle?: string
+  description?: Array<any> // Portable Text blocks
+  region?: 'DK1' | 'DK2'
+  highlightLowest?: boolean
+  showSpotPrice?: boolean
+  showProviderFee?: boolean
+  showTotalPrice?: boolean
+  // Deprecated field for backward compatibility
   leadingText?: string
 }
 
@@ -156,6 +165,19 @@ export interface PriceCalculator {
 export interface HeroWithCalculator {
   _type: 'heroWithCalculator'
   _key: string
+  headline: string
+  subheadline?: string
+  content?: Array<any> // Portable Text blocks
+  calculatorTitle?: string
+  showLivePrice?: boolean
+  showProviderComparison?: boolean
+  stats?: Array<{
+    value: string
+    label: string
+  }>
+  // Deprecated fields for backward compatibility
+  title?: string
+  subtitle?: string
 }
 
 export interface HeroBlock {
@@ -197,6 +219,8 @@ export interface ProviderListBlock {
   _type: 'providerList'
   _key: string
   title?: string
+  subtitle?: string
+  headerAlignment?: 'left' | 'center' | 'right'
   providers: ProviderProductBlock[]
 }
 
@@ -309,8 +333,19 @@ export interface FeatureListBlock {
 export interface ValuePropositionBlock {
   _type: 'valueProposition'
   _key: string
+  heading: string
+  subheading?: string
+  content?: Array<any> // Portable Text blocks
+  valueItems?: Array<{
+    _key: string
+    _type: 'valueItem'
+    heading: string
+    description: string
+  }>
+  // Deprecated fields for backward compatibility
   title?: string
-  propositions: string[]
+  items?: Array<any>
+  propositions?: string[]
 }
 
 export interface ApplianceCalculator {
@@ -330,8 +365,10 @@ export interface EnergyTipsSection {
   subtitle?: string
   showCategories?: string[]
   displayMode?: 'tabs' | 'grid' | 'list'
+  headerAlignment?: 'left' | 'center' | 'right'
   showDifficultyBadges?: boolean
   showSavingsPotential?: boolean
+  showSavingsCalculator?: boolean
   maxTipsPerCategory?: number
 }
 
@@ -468,8 +505,11 @@ export interface Link {
 
 export interface IconManager {
   _type: 'icon.manager';
-  icon: string;
-  metadata: {
+  icon?: string;
+  name?: string;
+  provider?: string;
+  svg?: string;
+  metadata?: {
     inlineSvg?: string;
     iconName?: string;
     url?: string;

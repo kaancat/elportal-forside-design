@@ -66,6 +66,7 @@ export const CallToActionSectionSchema = z.object({
   _type: z.literal('callToActionSection'),
   _key: z.string(),
   title: z.string(),
+  description: z.string().optional(),
   buttonText: z.string(),
   buttonUrl: z.string(),
 });
@@ -170,8 +171,19 @@ export const HeroSchema = z.object({
 export const HeroWithCalculatorSchema = z.object({
   _type: z.literal('heroWithCalculator'),
   _key: z.string(),
-  title: z.string().optional(),
-  subtitle: z.string().optional(),
+  headline: z.string(),
+  subheadline: z.string().optional(),
+  content: z.array(z.any()).optional(), // Portable Text blocks
+  calculatorTitle: z.string().optional(),
+  showLivePrice: z.boolean().optional(),
+  showProviderComparison: z.boolean().optional(),
+  stats: z.array(z.object({
+    value: z.string(),
+    label: z.string()
+  })).optional().nullable(),
+  // Deprecated fields for backward compatibility (nullable for clean data)
+  title: z.string().optional().nullable(),
+  subtitle: z.string().optional().nullable(),
 });
 
 export const HomePageSchema = z.object({
@@ -236,13 +248,6 @@ export const PageSchema = z.object({
   slug: SanitySlugSchema,
 });
 
-export const PageSchema = z.object({
-  _type: z.literal('page'),
-  _key: z.string(),
-  title: z.string(),
-  slug: SanitySlugSchema,
-});
-
 export const PageSectionSchema = z.object({
   _type: z.literal('pageSection'),
   _key: z.string(),
@@ -290,7 +295,15 @@ export const RealPriceComparisonTableSchema = z.object({
   _type: z.literal('realPriceComparisonTable'),
   _key: z.string(),
   title: z.string(),
-  leadingText: z.string().optional(),
+  subtitle: z.string().optional(),
+  description: z.array(z.any()).optional(), // Portable Text blocks
+  region: z.enum(['DK1', 'DK2']).optional(),
+  highlightLowest: z.boolean().optional(),
+  showSpotPrice: z.boolean().optional(),
+  showProviderFee: z.boolean().optional(),
+  showTotalPrice: z.boolean().optional(),
+  // Deprecated field for backward compatibility
+  leadingText: z.string().optional().nullable(),
 });
 
 export const RegionalComparisonSchema = z.object({
@@ -335,7 +348,19 @@ export const ValueItemSchema = z.object({
 export const ValuePropositionSchema = z.object({
   _type: z.literal('valueProposition'),
   _key: z.string(),
-  title: z.string().optional(),
+  heading: z.string(),
+  subheading: z.string().optional(),
+  content: z.array(z.any()).optional(), // Portable Text blocks
+  valueItems: z.array(z.object({
+    _key: z.string(),
+    _type: z.literal('valueItem'),
+    heading: z.string(),
+    description: z.string(),
+  })).optional(),
+  // Deprecated fields for backward compatibility
+  title: z.string().optional().nullable(),
+  items: z.array(z.any()).optional().nullable(),
+  propositions: z.array(z.string()).optional().nullable(),
 });
 
 export const VideoSectionSchema = z.object({

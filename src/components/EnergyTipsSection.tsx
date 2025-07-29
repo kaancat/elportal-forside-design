@@ -18,6 +18,9 @@ import * as Icons from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Calculator } from 'lucide-react'
 import { EnergyTip } from '@/types/appliance'
 
 // Hardcoded energy tips data
@@ -173,8 +176,10 @@ interface EnergyTipsSectionProps {
     subtitle?: string
     showCategories?: string[]
     displayMode?: 'tabs' | 'grid' | 'list'
+    headerAlignment?: 'left' | 'center' | 'right'
     showDifficultyBadges?: boolean
     showSavingsPotential?: boolean
+    showSavingsCalculator?: boolean
     maxTipsPerCategory?: number
   }
 }
@@ -258,12 +263,18 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
+          className={`mb-12 ${
+            block.headerAlignment === 'center' ? 'text-center' : 
+            block.headerAlignment === 'right' ? 'text-right' : 
+            'text-left'
+          }`}
         >
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             {block.title || 'Praktiske energispare tips'}
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className={`text-lg text-gray-600 ${
+            block.headerAlignment === 'center' ? 'max-w-2xl mx-auto' : ''
+          }`}>
             {block.subtitle || 'Følg disse simple råd for at reducere dit energiforbrug og spare penge hver måned.'}
           </p>
         </motion.div>
@@ -302,6 +313,64 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
           </Tabs>
         ) : (
           content
+        )}
+        
+        {/* Savings Calculator Section */}
+        {block.showSavingsCalculator && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="mt-12"
+          >
+            <Card className="p-8 bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+              <div className="flex items-center gap-3 mb-6">
+                <Calculator className="h-8 w-8 text-green-600" />
+                <h3 className="text-2xl font-bold text-gray-900">
+                  Beregn dine potentielle besparelser
+                </h3>
+              </div>
+              
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Dit nuværende månedlige elforbrug (kWh)
+                  </label>
+                  <Input
+                    type="number"
+                    placeholder="300"
+                    className="bg-white"
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 0
+                      const savings = Math.round(value * 0.15 * 2.5) // 15% savings at 2.5 kr/kWh
+                      const savingsElement = document.getElementById('estimated-savings')
+                      if (savingsElement) {
+                        savingsElement.textContent = savings.toString()
+                      }
+                    }}
+                  />
+                </div>
+                
+                <div className="flex flex-col justify-center">
+                  <p className="text-sm text-gray-600 mb-2">
+                    Estimeret månedlig besparelse
+                  </p>
+                  <p className="text-3xl font-bold text-green-600">
+                    <span id="estimated-savings">0</span> kr
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Ved implementering af vores energispare tips
+                  </p>
+                </div>
+              </div>
+              
+              <div className="mt-6">
+                <Button className="w-full md:w-auto bg-green-600 hover:bg-green-700">
+                  Se alle besparelsesmuligheder
+                </Button>
+              </div>
+            </Card>
+          </motion.div>
         )}
       </div>
     </section>

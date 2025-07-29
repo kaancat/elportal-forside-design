@@ -1,9 +1,11 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PriceCalculatorWidget from '@/components/PriceCalculatorWidget';
 import { HeroWithCalculator } from '@/types/sanity';
 import { PortableText } from '@portabletext/react';
+import { useScrollAnimation, animationPresets } from '@/hooks/useScrollAnimation';
 
 interface HeroSectionProps {
   block?: HeroWithCalculator;

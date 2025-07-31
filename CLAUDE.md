@@ -102,9 +102,10 @@ ElPortal follows a two-project architecture with the Frontend directly integrati
 ### 🚨 CRITICAL: Sanity Schema Validation
 When creating or modifying Sanity content, you MUST follow these rules to prevent validation errors:
 
-1. **ALWAYS consult schema documentation**: Check `/sanityelpriscms/docs/SANITY-SCHEMA-REFERENCE.md` before creating content
+1. **ALWAYS check actual schema files**: Check the schema files in `/sanityelpriscms/schemaTypes/` or use Sanity Studio preview to see correct field names
 2. **NEVER guess field names**: Common mistakes:
    - `hero` uses `headline/subheadline` NOT `title/subtitle`
+   - `valueProposition` uses `heading/valueItems` NOT `title/items`
    - `valueItem` uses `heading` NOT `title`
    - `featureItem` uses `title` NOT `name`
 3. **Use correct field types**:

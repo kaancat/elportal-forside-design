@@ -1,9 +1,8 @@
 import { createClient } from '@sanity/client'
 import dotenv from 'dotenv'
-import chalk from 'chalk'
-import { ValuePropositionSchema } from '@/lib/sanity-schemas.zod'
 
-dotenv.config()
+// Load environment variables
+dotenv.config({ path: '.env' })
 
 const client = createClient({
   projectId: 'yxesi03x',
@@ -14,138 +13,80 @@ const client = createClient({
 })
 
 async function verifyValuePropositionFix() {
+  console.log('🔍 Verifying valueProposition fix...\n')
+  
   try {
-    console.log(chalk.blue('🔍 Verifying valueProposition schema fix...\n'))
-    
-    const pageId = 'f7ecf92783e749828f7281a6e5829d52'
-    
-    // Get the valueProposition blocks
-    const page = await client.fetch(`*[_id == $pageId][0]{
-      "valuePropositionBlocks": contentBlocks[_type == 'valueProposition']{
-        _type,
+    // Fetch using the same GROQ query as frontend
+    const query = `*[_type == "page" && slug.current == "historiske-priser"][0]{
+      contentBlocks[_type == "valueProposition"]{
         _key,
+        _type,
         heading,
         subheading,
         content,
-        valueItems,
-        // Check deprecated fields
-        title,
-        items,
-        propositions
+        valueItems[]{
+          _key,
+          heading,
+          description,
+          icon
+        }
       }
-    }`, { pageId })
+    }`
     
-    const valuePropositionBlocks = page?.valuePropositionBlocks
+    const page = await client.fetch(query)
     
-    if (!valuePropositionBlocks || valuePropositionBlocks.length === 0) {
-      console.log(chalk.red('❌ No valueProposition blocks found'))
+    if (!page || !page.contentBlocks || page.contentBlocks.length === 0) {
+      console.error('❌ No valueProposition found')
       return
     }
     
-    console.log(chalk.green(`✅ Found ${valuePropositionBlocks.length} valueProposition blocks\n`))
+    const valueProposition = page.contentBlocks[0]
     
-    valuePropositionBlocks.forEach((block, index) => {
-      console.log(chalk.yellow(`Block ${index + 1}:`))
-      
-      // Validate with Zod schema
-      console.log(chalk.blue('🔧 Testing Zod validation...'))
-      try {
-        const validatedBlock = ValuePropositionSchema.parse(block)
-        console.log(chalk.green('✅ Zod validation passed!'))
-      } catch (error) {
-        console.log(chalk.red('❌ Zod validation failed:'), error.message)
-      }
-      
-      // Check field values
-      console.log(chalk.blue('\n📋 Field Analysis:'))
-      
-      // Required fields
-      console.log(chalk.yellow('Required Fields:'))
-      if (block.heading) {
-        console.log(chalk.green(`✅ heading: "${block.heading}"`))
-      } else {
-        console.log(chalk.red('❌ heading: MISSING'))
-      }
-      
-      // Previously unknown fields now supported
-      console.log(chalk.yellow('\nPreviously Unknown Fields (now supported):'))
-      
-      if (block.subheading) {
-        console.log(chalk.green(`✅ subheading: "${block.subheading}"`))
-      } else {
-        console.log(chalk.gray('⚪ subheading: not set'))
-      }
-      
-      // Content array (Portable Text)
-      if (block.content && Array.isArray(block.content)) {
-        console.log(chalk.green(`✅ content: ${block.content.length} blocks`))
-        const preview = block.content.slice(0, 3).map((contentBlock, i) => {
-          if (contentBlock._type === 'block') {
-            const text = contentBlock.children?.map(child => child.text).join('') || ''
-            return `   ${contentBlock.style === 'h3' ? 'H3:' : 'P:'} "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"`
-          }
-          return null
-        }).filter(Boolean)
-        preview.forEach(p => console.log(chalk.blue(p)))
-        if (block.content.length > 3) {
-          console.log(chalk.blue(`   ... and ${block.content.length - 3} more blocks`))
-        }
-      } else {
-        console.log(chalk.gray('⚪ content: not set'))
-      }
-      
-      // ValueItems array
-      if (block.valueItems && Array.isArray(block.valueItems)) {
-        console.log(chalk.green(`✅ valueItems: ${block.valueItems.length} items`))
-        block.valueItems.forEach((item, i) => {
-          console.log(chalk.blue(`   ${i + 1}. ${item.heading} - ${item.description}`))
-        })
-      } else {
-        console.log(chalk.gray('⚪ valueItems: not set'))
-      }
-      
-      // Deprecated fields check
-      console.log(chalk.yellow('\nDeprecated Fields:'))
-      if (block.title) {
-        console.log(chalk.orange(`⚠️  title: "${block.title}" (should use heading instead)`))
-      } else {
-        console.log(chalk.green('✅ title: properly empty'))
-      }
-      
-      if (block.items) {
-        console.log(chalk.orange(`⚠️  items: ${block.items.length} items (should use valueItems instead)`))
-      } else {
-        console.log(chalk.green('✅ items: properly empty'))
-      }
-      
-      if (block.propositions) {
-        console.log(chalk.orange(`⚠️  propositions: ${block.propositions.length} items (deprecated)`))
-      } else {
-        console.log(chalk.green('✅ propositions: properly empty'))
-      }
-      
-      console.log('\n' + '-'.repeat(50) + '\n')
-    })
+    console.log('✅ ValueProposition data structure:')
+    console.log('----------------------------------------')
+    console.log(`📌 Type: ${valueProposition._type}`)
+    console.log(`📌 Key: ${valueProposition._key}`)
+    console.log(`📌 Heading: "${valueProposition.heading || 'EMPTY'}"`)
+    console.log(`📌 Subheading: "${valueProposition.subheading || 'EMPTY'}"`)
+    console.log(`📌 Content: ${valueProposition.content ? `${valueProposition.content.length} blocks` : 'EMPTY'}`)
+    console.log(`📌 ValueItems: ${valueProposition.valueItems ? `${valueProposition.valueItems.length} items` : 'EMPTY'}`)
     
-    console.log(chalk.blue('📊 Summary:'))
-    const allValid = valuePropositionBlocks.every(block => !!block.heading)
+    if (valueProposition.valueItems && valueProposition.valueItems.length > 0) {
+      console.log('\n📇 ValueItems details:')
+      valueProposition.valueItems.forEach((item: any, index: number) => {
+        console.log(`\n   Item ${index + 1}:`)
+        console.log(`   - Key: ${item._key}`)
+        console.log(`   - Heading: "${item.heading}"`)
+        console.log(`   - Description: ${item.description ? 'Present' : 'Missing'}`)
+        console.log(`   - Icon: ${item.icon ? 'Present' : 'Missing'}`)
+      })
+    }
     
-    if (allValid) {
-      console.log(chalk.green('🎉 ALL VALIDATION CHECKS PASSED!'))
-      console.log(chalk.green('The valueProposition blocks should now work without schema errors.'))
-      console.log('')
-      console.log(chalk.blue('💡 The following fields are now recognized:'))
-      console.log(chalk.blue('   ✅ heading (required)'))
-      console.log(chalk.blue('   ✅ subheading'))
-      console.log(chalk.blue('   ✅ content (Portable Text)'))
-      console.log(chalk.blue('   ✅ valueItems (array of value propositions)'))
+    // Check for deprecated fields
+    const rawQuery = `*[_type == "page" && slug.current == "historiske-priser"][0]{
+      contentBlocks[_type == "valueProposition"]
+    }`
+    
+    const rawPage = await client.fetch(rawQuery)
+    const rawBlock = rawPage.contentBlocks[0]
+    
+    console.log('\n⚠️  Checking for deprecated fields:')
+    console.log(`   - title (deprecated): ${!!rawBlock.title}`)
+    console.log(`   - items (deprecated): ${!!rawBlock.items}`)
+    console.log(`   - propositions (deprecated): ${!!rawBlock.propositions}`)
+    
+    console.log('\n🎯 Summary:')
+    if (valueProposition.heading && valueProposition.valueItems) {
+      console.log('✅ SUCCESS: ValueProposition is properly structured!')
+      console.log('✅ Sanity Studio should now show populated fields!')
     } else {
-      console.log(chalk.red('❌ Some blocks have validation issues'))
+      console.log('❌ ISSUE: Some required fields are still missing')
     }
     
   } catch (error) {
-    console.error(chalk.red('❌ Error:', error))
+    console.error('❌ Error:', error)
   }
 }
 
+// Run verification
 verifyValuePropositionFix()

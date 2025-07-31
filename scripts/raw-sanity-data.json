@@ -1,0 +1,716 @@
+{
+  "elprisberegner": {
+    "featureList": {
+      "_key": "8f7d3f273698605d",
+      "_type": "featureList",
+      "features": [
+        {
+          "_key": "919d248b9b9351c7",
+          "_type": "featureItem",
+          "description": "Beregneren henter timeaktuelle spotpriser direkte fra Nord Pool, så du altid får den mest præcise pris.",
+          "icon": {
+            "_type": "icon.manager",
+            "icon": "streamline-freehand:trading-graph",
+            "metadata": {
+              "author": {
+                "name": "Streamline",
+                "url": "https://github.com/webalys-hq/streamline-vectors"
+              },
+              "collectionId": "streamline-freehand",
+              "collectionName": "Freehand free icons",
+              "color": {
+                "hex": "#84db41",
+                "rgba": {
+                  "a": 1,
+                  "b": 65,
+                  "g": 219,
+                  "r": 132
+                }
+              },
+              "downloadUrl": "https://api.iconify.design/streamline-freehand:trading-graph.svg?width=20&height=20&color=%2384db41&download=1",
+              "flip": "",
+              "hFlip": false,
+              "iconName": "trading-graph",
+              "license": {
+                "name": "CC BY 4.0",
+                "url": "https://creativecommons.org/licenses/by/4.0/"
+              },
+              "palette": false,
+              "rotate": 0,
+              "size": {
+                "height": 20,
+                "width": 20
+              },
+              "url": "https://api.iconify.design/streamline-freehand:trading-graph.svg?width=20&height=20&color=%2384db41",
+              "vFlip": false
+            },
+            "name": "TrendingUp",
+            "provider": "lucide",
+            "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"23 6 13.5 15.5 8.5 10.5 1 18\"></polyline><polyline points=\"17 6 23 6 23 12\"></polyline></svg>"
+          },
+          "title": "Aktuelle Spotpriser"
+        },
+        {
+          "_key": "888225cc5dc34b69",
+          "_type": "featureItem",
+          "description": "Vi inkluderer elafgift (90,4 øre/kWh), systemtarif (19 øre/kWh), nettariffer og 25% moms i beregningen.",
+          "icon": {
+            "_type": "icon.manager",
+            "icon": "streamline-freehand:accounting-calculator",
+            "metadata": {
+              "author": {
+                "name": "Streamline",
+                "url": "https://github.com/webalys-hq/streamline-vectors"
+              },
+              "collectionId": "streamline-freehand",
+              "collectionName": "Freehand free icons",
+              "color": {
+                "hex": "#84db41",
+                "rgba": {
+                  "a": 1,
+                  "b": 65,
+                  "g": 219,
+                  "r": 132
+                }
+              },
+              "downloadUrl": "https://api.iconify.design/streamline-freehand:accounting-calculator.svg?width=20&height=20&color=%2384db41&download=1",
+              "flip": "",
+              "hFlip": false,
+              "iconName": "accounting-calculator",
+              "license": {
+                "name": "CC BY 4.0",
+                "url": "https://creativecommons.org/licenses/by/4.0/"
+              },
+              "palette": false,
+              "rotate": 0,
+              "size": {
+                "height": 20,
+                "width": 20
+              },
+              "url": "https://api.iconify.design/streamline-freehand:accounting-calculator.svg?width=20&height=20&color=%2384db41",
+              "vFlip": false
+            },
+            "name": "Calculator",
+            "provider": "lucide",
+            "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"4\" y=\"2\" width=\"16\" height=\"20\" rx=\"2\"></rect><line x1=\"8\" x2=\"16\" y1=\"6\" y2=\"6\"></line><line x1=\"16\" x2=\"16\" y1=\"14\" y2=\"18\"></line><path d=\"M16 10h.01\"></path><path d=\"M12 10h.01\"></path><path d=\"M8 10h.01\"></path><path d=\"M12 14h.01\"></path><path d=\"M8 14h.01\"></path><path d=\"M12 18h.01\"></path><path d=\"M8 18h.01\"></path></svg>"
+          },
+          "title": "Alle Afgifter Inkluderet"
+        },
+        {
+          "_key": "5ee152c996cdc435",
+          "_type": "featureItem",
+          "description": "Se priser fra alle danske elselskaber side om side, så du nemt kan finde det billigste tilbud.",
+          "icon": {
+            "_type": "icon.manager",
+            "icon": "streamline-freehand:analytics-graph-bar-horizontal",
+            "metadata": {
+              "author": {
+                "name": "Streamline",
+                "url": "https://github.com/webalys-hq/streamline-vectors"
+              },
+              "collectionId": "streamline-freehand",
+              "collectionName": "Freehand free icons",
+              "color": {
+                "hex": "#84db41",
+                "rgba": {
+                  "a": 1,
+                  "b": 65,
+                  "g": 219,
+                  "r": 132
+                }
+              },
+              "downloadUrl": "https://api.iconify.design/streamline-freehand:analytics-graph-bar-horizontal.svg?width=20&height=20&color=%2384db41&download=1",
+              "flip": "",
+              "hFlip": false,
+              "iconName": "analytics-graph-bar-horizontal",
+              "license": {
+                "name": "CC BY 4.0",
+                "url": "https://creativecommons.org/licenses/by/4.0/"
+              },
+              "palette": false,
+              "rotate": 0,
+              "size": {
+                "height": 20,
+                "width": 20
+              },
+              "url": "https://api.iconify.design/streamline-freehand:analytics-graph-bar-horizontal.svg?width=20&height=20&color=%2384db41",
+              "vFlip": false
+            },
+            "name": "BarChart3",
+            "provider": "lucide",
+            "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 3v18h18\"></path><path d=\"M18 17V9\"></path><path d=\"M13 17V5\"></path><path d=\"M8 17v-3\"></path></svg>"
+          },
+          "title": "Sammenlign Elselskaber"
+        },
+        {
+          "_key": "9d3a81c52f5092c1",
+          "_type": "featureItem",
+          "description": "Indtast dit årlige elforbrug for at få en præcis beregning af dine forventede elomkostninger.",
+          "icon": {
+            "_type": "icon.manager",
+            "icon": "streamline-freehand:home-chimney-2",
+            "metadata": {
+              "author": {
+                "name": "Streamline",
+                "url": "https://github.com/webalys-hq/streamline-vectors"
+              },
+              "collectionId": "streamline-freehand",
+              "collectionName": "Freehand free icons",
+              "color": {
+                "hex": "#84db41",
+                "rgba": {
+                  "a": 1,
+                  "b": 65,
+                  "g": 219,
+                  "r": 132
+                }
+              },
+              "downloadUrl": "https://api.iconify.design/streamline-freehand:home-chimney-2.svg?width=20&height=20&color=%2384db41&download=1",
+              "flip": "",
+              "hFlip": false,
+              "iconName": "home-chimney-2",
+              "license": {
+                "name": "CC BY 4.0",
+                "url": "https://creativecommons.org/licenses/by/4.0/"
+              },
+              "palette": false,
+              "rotate": 0,
+              "size": {
+                "height": 20,
+                "width": 20
+              },
+              "url": "https://api.iconify.design/streamline-freehand:home-chimney-2.svg?width=20&height=20&color=%2384db41",
+              "vFlip": false
+            },
+            "name": "Home",
+            "provider": "lucide",
+            "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"></path><polyline points=\"9 22 9 12 15 12 15 22\"></polyline></svg>"
+          },
+          "title": "Dit Præcise Forbrug"
+        }
+      ],
+      "subtitle": "Præcis beregning baseret på realtidsdata",
+      "title": "Sådan Fungerer Elprisberegneren"
+    },
+    "heroWithCalculator": {
+      "_key": "916ea8ab30ea9a20",
+      "_type": "heroWithCalculator",
+      "calculatorTitle": "Beregn din elpris nu",
+      "content": [
+        {
+          "_key": "001e381da32a93b3",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "d3330bc0af5f6cae",
+              "_type": "span",
+              "marks": [],
+              "text": "Med vores elprisberegner kan du beregne din præcise elpris baseret på aktuelle spotpriser, elselskabets tillæg, nettariffer og alle afgifter. Beregneren opdateres hver time med nye elpriser, så du altid får det mest præcise resultat."
+            }
+          ],
+          "markDefs": [],
+          "style": "normal"
+        },
+        {
+          "_key": "feb9a7b32d6b5fae",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "1da88894dd4f440e",
+              "_type": "span",
+              "marks": [],
+              "text": "Start med at indtaste dit årlige elforbrug nedenfor, og se med det samme hvad din strøm koster hos forskellige elselskaber."
+            }
+          ],
+          "markDefs": [],
+          "style": "normal"
+        }
+      ],
+      "headline": "Elprisberegner - Beregn Din Præcise Elpris",
+      "showLivePrice": true,
+      "showProviderComparison": true,
+      "subheadline": "Gratis beregner med realtidspriser inklusiv alle afgifter og moms"
+    },
+    "infoCardsSection": {
+      "_key": "e4e06f80d2e54478",
+      "_type": "infoCardsSection",
+      "cards": [
+        {
+          "_key": "1BrgDwXdqxJ08rMIooDMVB",
+          "bgColor": "bg-green-50",
+          "description": [
+            {
+              "_key": "bd2acbeb1ecfc567",
+              "_type": "block",
+              "children": [
+                {
+                  "_key": "d347a6ce5c936271",
+                  "_type": "span",
+                  "marks": [],
+                  "text": "Vidste du at grøn strøm ikke behøver koste mere? Mange elselskaber tilbyder 100% vedvarende energi til samme pris som almindelig strøm."
+                }
+              ],
+              "markDefs": [],
+              "style": "normal"
+            }
+          ],
+          "icon": "shield",
+          "iconColor": "text-green-600",
+          "title": "Grøn strøm koster det samme"
+        },
+        {
+          "_key": "1BrgDwXdqxJ08rMIooDMXQ",
+          "bgColor": "bg-blue-50",
+          "description": [
+            {
+              "_key": "960441f7dfc41314",
+              "_type": "block",
+              "children": [
+                {
+                  "_key": "f09b1416130aed11",
+                  "_type": "span",
+                  "marks": [],
+                  "text": "Det er nemt og gratis at skifte elselskab. Dit nye selskab klarer alt det praktiske, og du mister aldrig strømmen."
+                }
+              ],
+              "markDefs": [],
+              "style": "normal"
+            }
+          ],
+          "icon": "clock",
+          "iconColor": "text-blue-600",
+          "title": "Skift elselskab på 5 minutter"
+        },
+        {
+          "_key": "1BrgDwXdqxJ08rMIooDMZf",
+          "bgColor": "bg-purple-50",
+          "description": [
+            {
+              "_key": "45fde3111876d2ba",
+              "_type": "block",
+              "children": [
+                {
+                  "_key": "88d08ed558ad7f8f",
+                  "_type": "span",
+                  "marks": [],
+                  "text": "Elpriserne ændrer sig konstant. Ved at tjekke priser kvartalsvis sikrer du dig altid det bedste tilbud."
+                }
+              ],
+              "markDefs": [],
+              "style": "normal"
+            }
+          ],
+          "icon": "trending-up",
+          "iconColor": "text-purple-600",
+          "title": "Tjek priser hver 3. måned"
+        }
+      ],
+      "columns": 3,
+      "headerAlignment": "center",
+      "leadingText": [
+        {
+          "_key": "6d410b5cfab68e11",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "1193b265bfbb0990",
+              "_type": "span",
+              "marks": [],
+              "text": "Her er tre vigtige ting du bør vide om elpriser og hvordan du kan spare penge på din elregning."
+            }
+          ],
+          "markDefs": [],
+          "style": "normal"
+        }
+      ],
+      "subtitle": "Tips til at få mest ud af din elaftale",
+      "title": "Vigtig Information om Elpriser"
+    },
+    "valueProposition": {
+      "_key": "b3b723ef052b2242",
+      "_type": "valueProposition",
+      "content": [
+        {
+          "_key": "707329d3b930bc44",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "107dab4a94e3c6e0",
+              "_type": "span",
+              "marks": [],
+              "text": "Din samlede elpris består af mere end bare spotprisen. Her er en komplet oversigt over alle de komponenter, der udgør din elpris:"
+            }
+          ],
+          "markDefs": [],
+          "style": "normal"
+        },
+        {
+          "_key": "e71ee4fb90852346",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "7a174646b3b37ab1",
+              "_type": "span",
+              "marks": [],
+              "text": "Spotpris (variabel)"
+            }
+          ],
+          "markDefs": [],
+          "style": "h3"
+        },
+        {
+          "_key": "e307a92b562eb90c",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "0c9a25ab1d7b75f3",
+              "_type": "span",
+              "marks": [],
+              "text": "Spotprisen er markedsprisen for el, som fastsættes time for time på Nord Pool elbørsen. Prisen afhænger af udbud og efterspørgsel og varierer gennem døgnet. Typisk er prisen lavest om natten og højest i spidsbelastningsperioder morgen og aften."
+            }
+          ],
+          "markDefs": [],
+          "style": "normal"
+        },
+        {
+          "_key": "08b1d7faff608efc",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "9d361e52686ad73d",
+              "_type": "span",
+              "marks": [],
+              "text": "Elselskabets tillæg (0-50 øre/kWh)"
+            }
+          ],
+          "markDefs": [],
+          "style": "h3"
+        },
+        {
+          "_key": "1e14b94f14eeb1a3",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "30e6050e2b5972fa",
+              "_type": "span",
+              "marks": [],
+              "text": "Dette er elselskabets fortjeneste og dækker administration, kundeservice og risiko. Tillægget varierer meget mellem selskaber - fra 0 øre hos de billigste til over 50 øre hos de dyreste. Her kan du spare mest ved at sammenligne."
+            }
+          ],
+          "markDefs": [],
+          "style": "normal"
+        },
+        {
+          "_key": "34a24db70c458551",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "eb5edc4f981b9974",
+              "_type": "span",
+              "marks": [],
+              "text": "Nettarif (20-40 øre/kWh)"
+            }
+          ],
+          "markDefs": [],
+          "style": "h3"
+        },
+        {
+          "_key": "dbcd4349cc1c1e08",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "36243f1e15c84b67",
+              "_type": "span",
+              "marks": [],
+              "text": "Nettariffen betales til dit lokale netselskab for transport af strømmen gennem elnettet. Tariffen afhænger af hvor i landet du bor og hvilket netselskab der servicerer dit område."
+            }
+          ],
+          "markDefs": [],
+          "style": "normal"
+        },
+        {
+          "_key": "508e176e8cbc4f2b",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "0ef3dab3ac26395a",
+              "_type": "span",
+              "marks": [],
+              "text": ""
+            }
+          ],
+          "markDefs": [],
+          "style": "normal"
+        },
+        {
+          "_key": "d75c7aab386ab7a2",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "9b61c17480fcda18",
+              "_type": "span",
+              "marks": [],
+              "text": "Systemtarif (19 øre/kWh)"
+            }
+          ],
+          "markDefs": [],
+          "style": "h3"
+        },
+        {
+          "_key": "edd83faa79efa2aa",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "20f0c9ffc054d5ce",
+              "_type": "span",
+              "marks": [],
+              "text": "Systemtariffen går til Energinet for at opretholde balancen i elnettet og sikre forsyningssikkerheden. Denne tarif er ens for alle forbrugere i Danmark."
+            }
+          ],
+          "markDefs": [],
+          "style": "normal"
+        },
+        {
+          "_key": "7d78a60fca095337",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "c1ace15e6a7c8245",
+              "_type": "span",
+              "marks": [],
+              "text": ""
+            }
+          ],
+          "markDefs": [],
+          "style": "normal"
+        },
+        {
+          "_key": "2e56f4e578897846",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "e5bd2fdf139f4ff4",
+              "_type": "span",
+              "marks": [],
+              "text": "Elafgift (90,4 øre/kWh i 2025)"
+            }
+          ],
+          "markDefs": [],
+          "style": "h3"
+        },
+        {
+          "_key": "46583327a9296598",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "2d1522652d0dec8a",
+              "_type": "span",
+              "marks": [],
+              "text": "Elafgiften er en statsafgift på elforbrug. For almindelige husholdninger er afgiften 90,4 øre per kWh i 2025. Virksomheder betaler en lavere sats."
+            }
+          ],
+          "markDefs": [],
+          "style": "normal"
+        },
+        {
+          "_key": "b4ea4812519e399c",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "9c540f6dd6709dd1",
+              "_type": "span",
+              "marks": [],
+              "text": ""
+            }
+          ],
+          "markDefs": [],
+          "style": "normal"
+        },
+        {
+          "_key": "42ca53e76f401ebd",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "99bbaa4ac84fcd6b",
+              "_type": "span",
+              "marks": [],
+              "text": "Moms (25%)"
+            }
+          ],
+          "markDefs": [],
+          "style": "h3"
+        },
+        {
+          "_key": "982180451fbadf70",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "1a866a056abf9b7f",
+              "_type": "span",
+              "marks": [],
+              "text": "Der lægges 25% moms oveni alle ovenstående priser og afgifter. Dette betyder at den endelige pris du betaler er 25% højere end summen af de andre komponenter."
+            }
+          ],
+          "markDefs": [],
+          "style": "normal"
+        }
+      ],
+      "heading": "Forstå Din Elpris - Alle Komponenter Forklaret",
+      "subheading": "Din elpris består af flere forskellige elementer",
+      "valueItems": [
+        {
+          "_key": "ac316cb7618104a8",
+          "_type": "valueItem",
+          "description": "2,10-2,80 kr/kWh inkl. alt",
+          "heading": "Gennemsnitlig elpris 2025"
+        },
+        {
+          "_key": "61f81543dcae6d99",
+          "_type": "valueItem",
+          "description": "Op til 2.000 kr/år ved skift",
+          "heading": "Mulig besparelse"
+        },
+        {
+          "_key": "2d3a76aa29304eab",
+          "_type": "valueItem",
+          "description": "50 øre - 5 kr/kWh på døgnet",
+          "heading": "Prisudsving"
+        }
+      ]
+    }
+  },
+  "prognoser": {
+    "hero": {
+      "_key": "hero-1",
+      "_type": "hero",
+      "headline": "Se Elpriser i Morgen og Spar Penge",
+      "subheadline": "Få præcise elpris prognoser time for time. Planlæg dit elforbrug smart og spar op til 50% på din elregning.",
+      "variant": "left"
+    },
+    "infoCardsSection": {
+      "_key": "info-cards",
+      "_type": "infoCardsSection",
+      "cards": [
+        {
+          "_key": "card1",
+          "description": [
+            {
+              "_key": "card1-block1",
+              "_type": "block",
+              "children": [
+                {
+                  "_key": "card1-span1",
+                  "_type": "span",
+                  "text": "Elpriser for næste dag offentliggøres hver dag kl. 13:00"
+                }
+              ],
+              "style": "normal"
+            }
+          ],
+          "icon": {
+            "_type": "iconPicker",
+            "name": "Clock",
+            "provider": "lucide",
+            "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><polyline points=\"12 6 12 12 16 14\"></polyline></svg>"
+          },
+          "title": "Daglig Opdatering"
+        },
+        {
+          "_key": "card2",
+          "description": [
+            {
+              "_key": "card2-block1",
+              "_type": "block",
+              "children": [
+                {
+                  "_key": "card2-span1",
+                  "_type": "span",
+                  "text": "Vi viser altid priser for i dag og i morgen time for time"
+                }
+              ],
+              "style": "normal"
+            }
+          ],
+          "icon": {
+            "_type": "iconPicker",
+            "name": "Calendar",
+            "provider": "lucide",
+            "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\" ry=\"2\"></rect><line x1=\"16\" y1=\"2\" x2=\"16\" y2=\"6\"></line><line x1=\"8\" y1=\"2\" x2=\"8\" y2=\"6\"></line><line x1=\"3\" y1=\"10\" x2=\"21\" y2=\"10\"></line></svg>"
+          },
+          "title": "48 Timers Horisont"
+        },
+        {
+          "_key": "card3",
+          "description": [
+            {
+              "_key": "card3-block1",
+              "_type": "block",
+              "children": [
+                {
+                  "_key": "card3-span1",
+                  "_type": "span",
+                  "text": "Vindprognoser er afgørende for præcise prisprognoser"
+                }
+              ],
+              "style": "normal"
+            }
+          ],
+          "icon": {
+            "_type": "iconPicker",
+            "name": "Cloud",
+            "provider": "lucide",
+            "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z\"></path></svg>"
+          },
+          "title": "Vejrbaseret"
+        }
+      ],
+      "columns": 3,
+      "headerAlignment": "left",
+      "subtitle": "Alt du behøver at vide for at udnytte elpris prognoser optimalt",
+      "title": "Vigtige Fakta om Elpris Prognoser"
+    },
+    "valueProposition": {
+      "_key": "value-prop-1",
+      "_type": "valueProposition",
+      "items": [
+        {
+          "_key": "value-item-key-1",
+          "_type": "valueItem",
+          "description": "Når det blæser meget, falder elpriserne markant. Danmark har nogle af Europas laveste elpriser takket være vores store vindmøllekapacitet.",
+          "heading": "Vindkraft sænker priserne",
+          "icon": {
+            "_type": "iconPicker",
+            "name": "Wind",
+            "provider": "lucide",
+            "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2\"></path><path d=\"M9.6 4.6A2 2 0 1 1 11 8H2\"></path><path d=\"M12.6 19.4A2 2 0 1 0 14 16H2\"></path></svg>"
+          }
+        },
+        {
+          "_key": "value-item-key-2",
+          "_type": "valueItem",
+          "description": "Vores prognoser viser, hvornår strømmen er mest grøn. Planlæg dit forbrug i timer med høj vedvarende energi.",
+          "heading": "Grøn strøm når det passer dig",
+          "icon": {
+            "_type": "iconPicker",
+            "name": "Leaf",
+            "provider": "lucide",
+            "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z\"></path><path d=\"M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12\"></path></svg>"
+          }
+        },
+        {
+          "_key": "value-item-key-3",
+          "_type": "valueItem",
+          "description": "Ved at vælge en leverandør med fokus på vindkraft, støtter du direkte udbygningen af vedvarende energi i Danmark.",
+          "heading": "Støt den grønne omstilling",
+          "icon": {
+            "_type": "iconPicker",
+            "name": "TrendingUp",
+            "provider": "lucide",
+            "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"22 7 13.5 15.5 8.5 10.5 2 17\"></polyline><polyline points=\"16 7 22 7 22 13\"></polyline></svg>"
+          }
+        }
+      ],
+      "title": "Vindkraft Gør Forskellen"
+    }
+  }
+}

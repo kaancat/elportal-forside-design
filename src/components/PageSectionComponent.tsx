@@ -19,14 +19,15 @@ interface PageSectionProps {
 const fadeUpVariant = {
   hidden: { 
     opacity: 0, 
-    y: 20 
+    y: 30 
   },
   visible: { 
     opacity: 1, 
     y: 0,
     transition: {
-      duration: 0.5,
-      ease: "easeOut"
+      duration: 0.8,
+      ease: "easeOut",
+      delay: 0.1
     }
   }
 }
@@ -150,7 +151,11 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
     <motion.section 
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: "-50px" }}
+      viewport={{ 
+        once: true, 
+        margin: "0px 0px -200px 0px",
+        amount: 0.3
+      }}
       variants={fadeUpVariant}
       className={cn(
         "relative overflow-hidden",

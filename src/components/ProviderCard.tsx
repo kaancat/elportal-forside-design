@@ -5,6 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ElectricityProduct } from '@/types/product';
+import { 
+  calculatePricePerKwh, 
+  calculateMonthlyCost, 
+  getPriceBreakdown,
+  PRICE_CONSTANTS 
+} from '@/services/priceCalculationService';
 
 interface ProviderCardProps {
   product: ElectricityProduct;
@@ -13,12 +19,6 @@ interface ProviderCardProps {
 }
 
 const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption, spotPrice }) => {
-  // Fee constants for Danish electricity pricing
-  const NETSelskab_AVG = 0.30; // Average grid tariff in kr
-  const ENERGINET_FEE = 0.11; // Energinet tariff in kr
-  const STATEN_ELAFGIFT = 0.76; // State electricity tax in kr
-
-
   // Add safety checks
   if (!product) {
     console.error('ProviderCard: product is undefined');
@@ -31,17 +31,11 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
     }
   };
 
-  // Enhanced price calculation with all fees and VAT
-  const markupKr = (product.displayPrice_kWh || 0); // Provider markup in kr
-  const baseSpotPrice = spotPrice !== null ? spotPrice : 1.0; // Use fallback of 1kr if spot price not loaded
-
-  // Sum of all per-kWh costs BEFORE VAT
-  const priceBeforeVat = baseSpotPrice + markupKr + NETSelskab_AVG + ENERGINET_FEE + STATEN_ELAFGIFT;
-  
-  // Final price including 25% VAT
-  const finalKwhPriceWithVat = priceBeforeVat * 1.25;
-
-  const estimatedMonthlyPrice = (finalKwhPriceWithVat * annualConsumption / 12) + (product.displayMonthlyFee || 0);
+  // Use the shared calculation service
+  const baseSpotPrice = spotPrice !== null ? spotPrice : PRICE_CONSTANTS.DEFAULT_SPOT_PRICE;
+  const pricePerKwh = calculatePricePerKwh(baseSpotPrice, product.displayPrice_kWh || 0);
+  const estimatedMonthlyPrice = calculateMonthlyCost(annualConsumption, pricePerKwh, product.displayMonthlyFee || 0);
+  const breakdown = getPriceBreakdown(baseSpotPrice, product.displayPrice_kWh || 0);
   
 
   return (
@@ -119,7 +113,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
                   pr. måned
                 </div>
                 <div className="text-xs text-gray-500 space-y-1">
-                  <div className="text-sm text-brand-dark font-semibold">Estimeret {finalKwhPriceWithVat.toFixed(2)} kr/kWh</div>
+                  <div className="text-sm text-brand-dark font-semibold">Estimeret {pricePerKwh.toFixed(2)} kr/kWh</div>
                   
                   <Popover>
                     <PopoverTrigger asChild>
@@ -132,17 +126,16 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
                         <h4 className="font-medium leading-none">Prisudregning</h4>
                         <p className="text-sm text-muted-foreground">Estimat baseret på live spotpris.</p>
                         <div className="text-xs space-y-1 pt-2">
-                          <div className="flex justify-between"><span>Rå elpris:</span> <span>{baseSpotPrice.toFixed(2)} kr.</span></div>
-                          <div className="flex justify-between"><span>Dit elselskab (tillæg):</span> <span>{markupKr.toFixed(2)} kr.</span></div>
+                          <div className="flex justify-between"><span>Spotpris:</span> <span>{breakdown.spotPrice.toFixed(2)} kr.</span></div>
+                          <div className="flex justify-between"><span>Dit elselskab (tillæg):</span> <span>{breakdown.providerMarkup.toFixed(2)} kr.</span></div>
                           <div className="border-t my-1"></div>
-                          <div className="flex justify-between"><span>Netselskab (gns.):</span> <span>{NETSelskab_AVG.toFixed(2)} kr.</span></div>
-                          <div className="flex justify-between"><span>Energinet:</span> <span>{ENERGINET_FEE.toFixed(2)} kr.</span></div>
-                          <div className="flex justify-between"><span>Staten (elafgift):</span> <span>{STATEN_ELAFGIFT.toFixed(2)} kr.</span></div>
+                          <div className="flex justify-between"><span>Netafgifter (samlet):</span> <span>{breakdown.networkFees.toFixed(2)} kr.</span></div>
+                          <div className="flex justify-between"><span>Elafgift:</span> <span>{breakdown.electricityTax.toFixed(2)} kr.</span></div>
                           <div className="border-t my-1"></div>
-                          <div className="flex justify-between font-semibold"><span>Pris u. moms:</span> <span>{priceBeforeVat.toFixed(2)} kr.</span></div>
-                          <div className="flex justify-between font-semibold"><span>Moms (25%):</span> <span>{(priceBeforeVat * 0.25).toFixed(2)} kr.</span></div>
+                          <div className="flex justify-between font-semibold"><span>Pris u. moms:</span> <span>{breakdown.subtotal.toFixed(2)} kr.</span></div>
+                          <div className="flex justify-between font-semibold"><span>Moms (25%):</span> <span>{breakdown.vatAmount.toFixed(2)} kr.</span></div>
                           <div className="border-t border-dashed my-1"></div>
-                          <div className="flex justify-between font-bold"><span>Total pr. kWh:</span> <span>{finalKwhPriceWithVat.toFixed(2)} kr.</span></div>
+                          <div className="flex justify-between font-bold"><span>Total pr. kWh:</span> <span>{breakdown.total.toFixed(2)} kr.</span></div>
                         </div>
                       </div>
                     </PopoverContent>

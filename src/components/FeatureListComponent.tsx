@@ -61,6 +61,7 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
                       <Icon
                         icon={feature.icon}
                         size={48}
+                        className="feature-list-icon"
                       />
                     );
                   })()}

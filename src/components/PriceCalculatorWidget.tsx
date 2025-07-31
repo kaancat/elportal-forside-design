@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Slider } from "@/components/ui/slider";
 import { Button } from '@/components/ui/button';
 import { Home, Building, Building2, Sun, ArrowRight, ArrowLeft, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SanityService } from '@/services/sanityService';
+import { ProviderProductBlock } from '@/types/sanity';
+import CalculatorResults from './CalculatorResults';
+import { rankProviders, PRICE_CONSTANTS } from '@/services/priceCalculationService';
 
 // --- PROPS INTERFACE ---
 interface PriceCalculatorWidgetProps {
@@ -40,6 +44,11 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
     const [currentStep, setCurrentStep] = useState(1);
     const [annualConsumption, setAnnualConsumption] = useState(4000);
     const [activePreset, setActivePreset] = useState<HousingType>('mindreHus');
+    const [providers, setProviders] = useState<ProviderProductBlock[]>([]);
+    const [spotPrice, setSpotPrice] = useState<number | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
     const handlePresetClick = (preset: Exclude<HousingType, 'custom'>) => {
         setActivePreset(preset);
@@ -50,6 +59,58 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
         setAnnualConsumption(value[0]);
         setActivePreset('custom');
     }
+
+    // Fetch data when moving to step 3
+    useEffect(() => {
+        if (currentStep === 3) {
+            fetchPriceData();
+        }
+    }, [currentStep]);
+
+    const fetchPriceData = async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            // Fetch providers
+            const allProviders = await SanityService.getAllProviders();
+            
+            // Fetch current spot price
+            let currentSpotPrice = PRICE_CONSTANTS.DEFAULT_SPOT_PRICE;
+            try {
+                const response = await fetch('/api/electricity-prices');
+                if (response.ok) {
+                    const data = await response.json();
+                    const currentHour = new Date().getHours();
+                    const currentPriceData = data.records?.find((r: any) => 
+                        new Date(r.HourDK).getHours() === currentHour
+                    );
+                    if (currentPriceData) {
+                        currentSpotPrice = currentPriceData.SpotPriceKWh;
+                        setLastUpdated(new Date());
+                    }
+                }
+            } catch (spotError) {
+                console.error('Failed to fetch spot price, using fallback:', spotError);
+            }
+            
+            setSpotPrice(currentSpotPrice);
+            
+            // Rank providers according to business logic
+            const rankedProviders = rankProviders(allProviders, currentSpotPrice, annualConsumption);
+            setProviders(rankedProviders);
+            
+        } catch (err) {
+            console.error('Error fetching price data:', err);
+            setError('Kunne ikke hente prisdata. Prøv venligst igen.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGoToResults = () => {
+        setCurrentStep(3);
+    };
 
     const brandGreen = '#98ce2f'; // Using a variable for the brand color
 
@@ -106,18 +167,42 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
                     <Slider value={[annualConsumption]} onValueChange={handleSliderChange} min={500} max={15000} step={100} />
                     <div className="flex gap-4 mt-6">
                         <Button onClick={() => setCurrentStep(1)} variant="outline" className="w-full"><ArrowLeft className="mr-2 h-4 w-4" /> Tilbage</Button>
-                        <Button onClick={() => setCurrentStep(3)} className="w-full bg-brand-green hover:opacity-90">Se dine priser <ArrowRight className="ml-2 h-4 w-4" /></Button>
+                        <Button onClick={handleGoToResults} className="w-full bg-brand-green hover:opacity-90">Se dine priser <ArrowRight className="ml-2 h-4 w-4" /></Button>
                     </div>
                 </div>
             )}
 
             {/* Step 3 */}
             {currentStep === 3 && (
-                <div className="mt-8 text-center">
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">Resultater</h3>
-                    <p className="text-gray-600 mb-6">Her vil en liste af elaftaler baseret på et forbrug på <span className="font-bold">{annualConsumption.toLocaleString('da-DK')} kWh</span> blive vist.</p>
-                    <p className="text-sm text-gray-500 mb-8">(Denne sektion er under udvikling)</p>
-                     <Button onClick={() => setCurrentStep(2)} variant="outline" className="w-full"><ArrowLeft className="mr-2 h-4 w-4" /> Tilbage til forbrug</Button>
+                <div className="mt-8">
+                    {loading ? (
+                        <div className="text-center py-12">
+                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green"></div>
+                            <p className="mt-4 text-gray-600">Henter aktuelle elpriser...</p>
+                        </div>
+                    ) : error ? (
+                        <div className="text-center py-12">
+                            <p className="text-red-600 mb-4">{error}</p>
+                            <Button onClick={fetchPriceData} variant="outline">
+                                Prøv igen
+                            </Button>
+                        </div>
+                    ) : spotPrice !== null && providers.length > 0 ? (
+                        <CalculatorResults
+                            providers={providers}
+                            annualConsumption={annualConsumption}
+                            spotPrice={spotPrice}
+                            onBack={() => setCurrentStep(2)}
+                            lastUpdated={lastUpdated}
+                        />
+                    ) : (
+                        <div className="text-center py-12">
+                            <p className="text-gray-600 mb-4">Ingen leverandører fundet</p>
+                            <Button onClick={() => setCurrentStep(2)} variant="outline">
+                                <ArrowLeft className="mr-2 h-4 w-4" /> Tilbage
+                            </Button>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

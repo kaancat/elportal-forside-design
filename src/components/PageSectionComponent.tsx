@@ -19,15 +19,15 @@ interface PageSectionProps {
 const fadeUpVariant = {
   hidden: { 
     opacity: 0, 
-    y: 30 
+    y: 20 
   },
   visible: { 
     opacity: 1, 
     y: 0,
     transition: {
-      duration: 0.8,
+      duration: 0.5,
       ease: "easeOut",
-      delay: 0.1
+      delay: 0.05
     }
   }
 }
@@ -153,8 +153,8 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
       whileInView="visible"
       viewport={{ 
         once: true, 
-        margin: "0px 0px -200px 0px",
-        amount: 0.3
+        margin: "0px 0px -50px 0px",
+        amount: 0.1
       }}
       variants={fadeUpVariant}
       className={cn(

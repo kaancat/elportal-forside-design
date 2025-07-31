@@ -10,19 +10,29 @@ import MonthlyProductionChart from './MonthlyProductionChart'
 import VideoSectionComponent from './VideoSectionComponent'
 import type { PageSection, LivePriceGraph, RenewableEnergyForecast, PriceCalculator, RealPriceComparisonTable, MonthlyProductionChartBlock, VideoSection } from '@/types/sanity'
 import { cn } from '@/lib/utils'
-import { useScrollAnimation, animationClasses } from '@/hooks/useScrollAnimation'
 
 interface PageSectionProps {
   section: PageSection;
 }
 
+// Simple fade-up animation variant
+const fadeUpVariant = {
+  hidden: { 
+    opacity: 0, 
+    y: 20 
+  },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut"
+    }
+  }
+}
+
 const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   const { title, content, image, imagePosition = 'left', theme, cta, settings, headerAlignment } = section;
-  
-  // Use professional fade up animations
-  const imageAnimation = useScrollAnimation({ duration: 0.7, type: 'scale' }); // Professional scale for images
-  const textAnimation = useScrollAnimation({ duration: 0.6, type: 'fadeUp', delay: 0.1 }); // Classic fade up for text
-  const ctaAnimation = useScrollAnimation({ duration: 0.5, type: 'fadeUp', delay: 0.3 }); // Delayed for CTA
 
   // Define custom components for embedded blocks in Portable Text
   const customComponents = {
@@ -70,7 +80,6 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
       ),
       blockquote: ({ children }: { children: React.ReactNode }) => (
         <blockquote className="relative border-l-4 border-brand-green pl-6 py-2 italic mb-6 text-neutral-700 bg-brand-green/5 rounded-r-lg">
-          <div className="absolute -left-1 top-0 w-8 h-8 bg-brand-green/20 rounded-full blur-xl" />
           {children}
         </blockquote>
       ),
@@ -84,7 +93,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
       link: ({ value, children }: { value?: { href: string }, children: React.ReactNode }) => (
         <a 
           href={value?.href} 
-          className="text-brand-green hover:text-brand-green-dark underline decoration-brand-green/30 hover:decoration-brand-green transition-colors duration-200"
+          className="text-brand-green hover:text-brand-green-dark underline transition-colors duration-200"
           target={value?.href?.startsWith('http') ? '_blank' : undefined}
           rel={value?.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
         >
@@ -94,17 +103,14 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
     },
   }
   
-  // Enhanced theme system with more visual options
+  // Simple theme system
   const getThemeClasses = () => {
     const themeType = settings?.theme || 'default';
     const themes = {
       default: 'bg-white',
-      light: 'bg-gradient-to-br from-gray-50 to-white',
-      brand: 'bg-gradient-to-br from-brand-green/5 to-white',
-      dark: 'bg-gradient-to-br from-brand-dark to-brand-dark-lighter text-white',
-      subtle: 'bg-gradient-to-br from-gray-50 via-white to-gray-50',
-      accent: 'bg-gradient-to-br from-brand-green/10 via-white to-brand-green/5',
-      pattern: 'bg-white bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-brand-green/5 via-transparent to-transparent',
+      light: 'bg-gray-50',
+      brand: 'bg-brand-green/5',
+      dark: 'bg-brand-dark text-white',
     }
     return themes[themeType as keyof typeof themes] || themes.default;
   };
@@ -121,21 +127,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
     return paddings[padding] || paddings.medium;
   };
 
-  // Background pattern overlay for visual interest
-  const getPatternOverlay = () => {
-    if (settings?.theme === 'pattern' || settings?.theme === 'accent') {
-      return (
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }}></div>
-        </div>
-      );
-    }
-    return null;
-  };
-
-  // Get text alignment class - headerAlignment takes priority over settings.textAlignment
+  // Get text alignment class
   const getTextAlignClass = () => {
     const alignment = headerAlignment || settings?.textAlignment;
     switch (alignment) {
@@ -153,122 +145,81 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
 
   // Check if this is a text-only section (no image)
   const isTextOnly = !image;
-  
-  // Add visual separator between sections
-  const hasSeparator = settings?.separator !== false;
 
   return (
     <motion.section 
-      {...imageAnimation}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-50px" }}
+      variants={fadeUpVariant}
       className={cn(
-        "relative overflow-hidden transition-all duration-300",
+        "relative overflow-hidden",
         getThemeClasses(),
-        getPaddingClasses(),
-        animationClasses
+        getPaddingClasses()
       )}
       style={theme?.background ? { backgroundColor: theme.background } : {}}
     >
-      {getPatternOverlay()}
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto px-4">
         {isTextOnly ? (
           // Text-only layout
           <div className={`max-w-4xl mx-auto ${textAlignClass}`}>
             {title && (
-              <motion.div {...textAnimation}>
-                <h2 className={cn(
-                  "text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-8",
-                  "bg-gradient-to-r from-brand-dark to-brand-dark-light bg-clip-text",
-                  settings?.theme === 'dark' ? "text-white from-white to-gray-200" : "text-brand-dark"
-                )}>
-                  {title}
-                </h2>
-                {/* Decorative underline for center-aligned headers */}
-                {textAlignClass === 'text-center' && (
-                  <div className="w-24 h-1 bg-gradient-to-r from-brand-green to-brand-green-light mx-auto mb-8 rounded-full" />
-                )}
-              </motion.div>
+              <h2 className={cn(
+                "text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-8",
+                settings?.theme === 'dark' ? "text-white" : "text-brand-dark"
+              )}>
+                {title}
+              </h2>
             )}
-            <motion.div 
-              {...textAnimation}
-              className={cn(
-                "prose prose-lg max-w-none",
-                settings?.theme === 'dark' && "prose-invert"
-              )}
-            >
+            <div className={cn(
+              "prose prose-lg max-w-none",
+              settings?.theme === 'dark' && "prose-invert"
+            )}>
               {content && <PortableText value={content} components={customComponents} />}
-            </motion.div>
+            </div>
             {cta && cta.text && cta.url && (
-              <motion.div 
-                {...textAnimation}
-                className={`mt-10 ${settings?.textAlignment === 'center' ? 'flex justify-center' : settings?.textAlignment === 'right' ? 'flex justify-end' : ''}`}
-              >
+              <div className={`mt-10 ${textAlignClass === 'text-center' ? 'flex justify-center' : textAlignClass === 'text-right' ? 'flex justify-end' : ''}`}>
                 <a 
                   href={cta.url} 
                   className={cn(
-                    "group relative inline-flex items-center px-8 py-4 font-semibold rounded-xl transition-all duration-300",
-                    "shadow-lg hover:shadow-xl hover:-translate-y-0.5",
+                    "inline-flex items-center px-8 py-4 font-semibold rounded-xl transition-colors duration-200",
+                    "shadow-lg",
                     settings?.theme === 'dark' 
                       ? "bg-brand-green text-brand-dark hover:bg-brand-green-light" 
-                      : "bg-gradient-to-r from-brand-green to-brand-green-light text-brand-dark hover:from-brand-green-light hover:to-brand-green"
+                      : "bg-brand-green text-white hover:bg-brand-green-dark"
                   )}
                 >
-                  <span className="relative z-10">{cta.text}</span>
-                  <svg className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {cta.text}
+                  <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
-                  {/* Shimmer effect */}
-                  <div className="absolute inset-0 rounded-xl overflow-hidden">
-                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                  </div>
                 </a>
-              </motion.div>
+              </div>
             )}
           </div>
         ) : (
           // Image + text layout
           <div className="grid md:grid-cols-2 gap-12 md:gap-16 lg:gap-20 items-center">
             {/* Image Column */}
-            <motion.div 
-              className={`order-1 ${imagePosition === 'right' ? 'md:order-2' : ''}`}
-              {...imageAnimation}
-            >
-              <div className="relative group">
-                {/* Image container with enhanced effects */}
-                <div className="relative overflow-hidden rounded-2xl">
-                  <img
-                    src={urlFor(image).width(1000).quality(85).url()}
-                    alt={image.alt || title}
-                    className="w-full h-auto transition-transform duration-700"
-                  />
-                  {/* Gradient overlay on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                </div>
-                {/* Enhanced shadow */}
-                <div className="absolute -inset-4 bg-gradient-to-r from-brand-green/20 to-brand-green-light/20 rounded-2xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
-                {/* Decorative corner accent */}
-                <div className="absolute -top-2 -right-2 w-20 h-20 bg-gradient-to-br from-brand-green to-brand-green-light rounded-full blur-2xl opacity-30" />
+            <div className={`order-1 ${imagePosition === 'right' ? 'md:order-2' : ''}`}>
+              <div className="relative">
+                <img
+                  src={urlFor(image).width(1000).quality(85).url()}
+                  alt={image.alt || title}
+                  className="w-full h-auto rounded-2xl"
+                />
               </div>
-            </motion.div>
+            </div>
 
             {/* Text Column */}
-            <motion.div 
-              className={`order-2 ${imagePosition === 'right' ? 'md:order-1' : ''} ${textAlignClass}`}
-              {...textAnimation}
-            >
+            <div className={`order-2 ${imagePosition === 'right' ? 'md:order-1' : ''} ${textAlignClass}`}>
               {title && (
-                <div className="mb-8">
-                  <h2 className={cn(
-                    "text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4",
-                    "bg-gradient-to-r from-brand-dark to-brand-dark-light bg-clip-text",
-                    settings?.theme === 'dark' ? "text-white from-white to-gray-200" : "text-brand-dark"
-                  )}>
-                    {title}
-                  </h2>
-                  {/* Decorative underline for left-aligned headers */}
-                  {textAlignClass === 'text-left' && (
-                    <div className="w-20 h-1 bg-gradient-to-r from-brand-green to-brand-green-light rounded-full" />
-                  )}
-                </div>
+                <h2 className={cn(
+                  "text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-6",
+                  settings?.theme === 'dark' ? "text-white" : "text-brand-dark"
+                )}>
+                  {title}
+                </h2>
               )}
               <div className={cn(
                 "prose prose-lg max-w-none",
@@ -277,59 +228,28 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
                 {content && <PortableText value={content} components={customComponents} />}
               </div>
               {cta && cta.text && cta.url && (
-                <motion.div 
-                  {...ctaAnimation}
-                  className={`mt-10 ${settings?.textAlignment === 'center' ? 'flex justify-center' : settings?.textAlignment === 'right' ? 'flex justify-end' : ''}`}
-                >
+                <div className={`mt-10 ${textAlignClass === 'text-center' ? 'flex justify-center' : textAlignClass === 'text-right' ? 'flex justify-end' : ''}`}>
                   <a 
                     href={cta.url} 
                     className={cn(
-                      "group relative inline-flex items-center px-8 py-4 font-semibold rounded-xl transition-all duration-300",
-                      "shadow-lg hover:shadow-xl hover:-translate-y-0.5",
+                      "inline-flex items-center px-8 py-4 font-semibold rounded-xl transition-colors duration-200",
+                      "shadow-lg",
                       settings?.theme === 'dark' 
                         ? "bg-brand-green text-brand-dark hover:bg-brand-green-light" 
-                        : "bg-gradient-to-r from-brand-green to-brand-green-light text-brand-dark hover:from-brand-green-light hover:to-brand-green"
+                        : "bg-brand-green text-white hover:bg-brand-green-dark"
                     )}
                   >
-                    <span className="relative z-10">{cta.text}</span>
-                    <svg className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {cta.text}
+                    <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
-                    {/* Shimmer effect */}
-                    <div className="absolute inset-0 rounded-xl overflow-hidden">
-                      <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                    </div>
                   </a>
-                </motion.div>
+                </div>
               )}
-            </motion.div>
+            </div>
           </div>
         )}
       </div>
-      
-      {/* Optional decorative elements */}
-      {settings?.theme === 'accent' && (
-        <>
-          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-brand-green/10 to-transparent rounded-full blur-3xl -z-10" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-brand-green/10 to-transparent rounded-full blur-3xl -z-10" />
-        </>
-      )}
-      
-      {/* Full-width subtle separator between sections */}
-      {hasSeparator && (
-        <div className="absolute bottom-0 left-0 right-0 overflow-hidden">
-          <div className="relative">
-            {/* Main separator line */}
-            <div className="h-px bg-gradient-to-r from-transparent via-gray-200/70 to-transparent"></div>
-            {/* Subtle glow effect */}
-            <div className="absolute inset-0 h-px bg-gradient-to-r from-transparent via-gray-300/30 to-transparent blur-md"></div>
-            {/* Optional: Add a centered accent if using brand theme */}
-            {settings?.theme === 'brand' || settings?.theme === 'accent' ? (
-              <div className="absolute inset-0 h-px bg-gradient-to-r from-transparent via-brand-green/20 to-transparent"></div>
-            ) : null}
-          </div>
-        </div>
-      )}
     </motion.section>
   );
 }

@@ -25,7 +25,10 @@
     "navigation:health": "tsx scripts/check-navigation-health.ts",
     "seo:create": "tsx scripts/create-seo-page-with-validation.ts",
     "seo:agent": "tsx scripts/seo-page-creator-agent.ts",
-    "seo:validate": "tsx scripts/agent-actions/test-prompt-validation-fixer.ts"
+    "seo:validate": "tsx scripts/agent-actions/test-prompt-validation-fixer.ts",
+    "fix:prognoser": "tsx scripts/fix-prognoser-page.ts",
+    "fix:prognoser-hero": "tsx scripts/add-hero-image-to-prognoser.ts",
+    "analyze:elprisberegner": "tsx scripts/analyze-elprisberegner-success.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -93,6 +96,7 @@
     "@eslint/js": "^9.9.0",
     "@tailwindcss/typography": "^0.5.15",
     "@types/node": "^22.16.5",
+    "@types/node-fetch": "^2.6.13",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vercel/node": "^5.2.1",
@@ -106,6 +110,7 @@
     "eslint-plugin-react-refresh": "^0.4.9",
     "globals": "^15.9.0",
     "lovable-tagger": "^1.1.7",
+    "node-fetch": "^3.3.2",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.11",
     "tsx": "^4.20.3",

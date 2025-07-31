@@ -86,6 +86,22 @@ export class SanityService {
           buttonText,
           buttonUrl
         },
+        _type == "infoCardsSection" => {
+          _key,
+          _type,
+          title,
+          subtitle,
+          headerAlignment,
+          leadingText,
+          cards[]{
+            title,
+            description,
+            icon,
+            iconColor,
+            bgColor
+          },
+          columns
+        },
         _type == "renewableEnergyForecast" => {
           _key,
           _type,
@@ -148,6 +164,24 @@ export class SanityService {
         _type == "valueProposition" => {
           _key,
           _type,
+          heading,
+          subheading,
+          content,
+          valueItems[]{
+            _key,
+            heading,
+            description,
+            icon {
+              ...,
+              metadata {
+                inlineSvg,
+                iconName,
+                url,
+                color
+              }
+            }
+          },
+          // Legacy fields for backward compatibility
           title,
           propositions,
           items[]{
@@ -164,6 +198,20 @@ export class SanityService {
                 color
               }
             }
+          }
+        },
+        _type == "heroWithCalculator" => {
+          _key,
+          _type,
+          headline,
+          subheadline,
+          content,
+          calculatorTitle,
+          showLivePrice,
+          showProviderComparison,
+          stats[]{
+            value,
+            label
           }
         },
         _type == "realPriceComparisonTable" => {
@@ -472,6 +520,22 @@ export class SanityService {
           buttonText,
           buttonUrl
         },
+        _type == "infoCardsSection" => {
+          _key,
+          _type,
+          title,
+          subtitle,
+          headerAlignment,
+          leadingText,
+          cards[]{
+            title,
+            description,
+            icon,
+            iconColor,
+            bgColor
+          },
+          columns
+        },
         _type == "livePriceGraph" => {
           title,
           subtitle,
@@ -525,6 +589,24 @@ export class SanityService {
         _type == "valueProposition" => {
           _key,
           _type,
+          heading,
+          subheading,
+          content,
+          valueItems[]{
+            _key,
+            heading,
+            description,
+            icon {
+              ...,
+              metadata {
+                inlineSvg,
+                iconName,
+                url,
+                color
+              }
+            }
+          },
+          // Legacy fields for backward compatibility
           title,
           propositions,
           items[]{

@@ -187,6 +187,16 @@ export interface InfoCardsSection extends ContentBlockBase {
   _type: 'infoCardsSection';
   title?: string;
   subtitle?: string;
+  headerAlignment?: 'left' | 'center' | 'right';
+  leadingText?: any[];
+  cards?: {
+    title: string;
+    description?: any[];
+    icon?: string;
+    iconColor?: string;
+    bgColor?: string;
+  }[];
+  columns?: 2 | 3 | 4;
 }
 
 export interface Link extends ContentBlockBase {
@@ -198,6 +208,8 @@ export interface LivePriceGraph extends ContentBlockBase {
   _type: 'livePriceGraph';
   title: string;
   subtitle?: string;
+  apiRegion: 'DK1' | 'DK2';
+  headerAlignment?: 'left' | 'center' | 'right';
 }
 
 export interface MegaMenu extends ContentBlockBase {

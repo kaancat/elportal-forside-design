@@ -27,6 +27,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import icon fixes */
+@import './styles/icon-fixes.css';
+
 @layer base {
   :root {
     --background: 0 0% 100%;

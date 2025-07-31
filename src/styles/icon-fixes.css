@@ -1,0 +1,46 @@
+/* Fix for tiny icons in FeatureList and ValueProposition components */
+
+/* Feature List Icons - Ensure proper sizing */
+.feature-list-icon {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.feature-list-icon img,
+.feature-list-icon svg {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  object-fit: contain !important;
+}
+
+/* Value Proposition Icons - Ensure proper sizing */
+.value-proposition-icon {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.value-proposition-icon img,
+.value-proposition-icon svg {
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  min-height: 24px !important;
+  object-fit: contain !important;
+}
+
+/* General icon fixes for icon manager icons */
+img[src*="api.iconify.design"],
+img[src*="icon-manager"] {
+  object-fit: contain !important;
+  max-width: none !important;
+}
+
+/* Ensure SVG icons from icon manager display properly */
+div[style*="width"][style*="height"] svg {
+  width: 100% !important;
+  height: 100% !important;
+}

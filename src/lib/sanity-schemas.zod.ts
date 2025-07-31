@@ -197,6 +197,16 @@ export const InfoCardsSectionSchema = z.object({
   _key: z.string(),
   title: z.string().optional(),
   subtitle: z.string().optional(),
+  headerAlignment: z.enum(['left', 'center', 'right']).optional(),
+  leadingText: z.array(z.any()).optional(),
+  cards: z.array(z.object({
+    title: z.string(),
+    description: z.array(z.any()).optional(),
+    icon: z.string().optional(),
+    iconColor: z.string().optional(),
+    bgColor: z.string().optional(),
+  })).optional(),
+  columns: z.union([z.literal(2), z.literal(3), z.literal(4)]).optional(),
 });
 
 export const LinkSchema = z.object({
@@ -210,6 +220,8 @@ export const LivePriceGraphSchema = z.object({
   _key: z.string(),
   title: z.string(),
   subtitle: z.string().optional(),
+  apiRegion: z.enum(['DK1', 'DK2']),
+  headerAlignment: z.enum(['left', 'center', 'right']).optional(),
 });
 
 export const MegaMenuSchema = z.object({

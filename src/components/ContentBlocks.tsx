@@ -237,7 +237,17 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks }) => {
         } else if (block._type === 'featureList') {
           return <FeatureListComponent key={block._key} block={block as FeatureListBlock} />
         } else if (block._type === 'valueProposition') {
-          return <ValuePropositionComponent key={block._key} block={block as ValuePropositionBlock} />
+          window.console.log('[ContentBlocks] ValueProposition type matched!', block);
+          try {
+            return <ValuePropositionComponent key={block._key} block={block as ValuePropositionBlock} />
+          } catch (error) {
+            window.console.error('[ContentBlocks] Error rendering ValueProposition:', error);
+            return (
+              <div key={block._key} className="bg-red-100 p-4 rounded">
+                <p>Error loading value proposition: {String(error)}</p>
+              </div>
+            );
+          }
         } else if (block._type === 'pageSection') {
           return <PageSectionComponent key={block._key} section={block as PageSection} />
         } else if (block._type === 'applianceCalculator') {

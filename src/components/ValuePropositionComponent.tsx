@@ -30,11 +30,8 @@ interface ValuePropositionComponentProps {
 }
 
 export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps> = ({ block }) => {
-  console.log('[ValueProposition] Rendering with block:', block);
-  
   try {
     if (!block) {
-      console.log('[ValueProposition] No block provided, returning null');
       return null;
     }
     
@@ -49,15 +46,9 @@ export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps>
       []
     );
     
-    console.log('[ValueProposition] Items:', items);
-    console.log('[ValueProposition] Items count:', items?.length || 0);
-    
     if (!items || items.length === 0) {
-      console.log('[ValueProposition] No items found, returning null');
       return null;
     }
-    
-    console.log('[ValueProposition] Rendering component with', items.length, 'items');
 
     return (
     <section className="py-16 lg:py-24">
@@ -124,12 +115,6 @@ export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps>
     </section>
   );
   } catch (error) {
-    console.error('[ValueProposition] Runtime error:', error);
-    return (
-      <div className="p-4 m-4 bg-red-50 text-red-600 rounded border border-red-200">
-        <p className="font-semibold">Error rendering ValueProposition component</p>
-        <p className="text-sm mt-1">{String(error)}</p>
-      </div>
-    );
+    return null;
   }
 }; 

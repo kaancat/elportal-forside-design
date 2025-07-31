@@ -1,11 +1,9 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PriceCalculatorWidget from '@/components/PriceCalculatorWidget';
 import { HeroWithCalculator } from '@/types/sanity';
 import { PortableText } from '@portabletext/react';
-import { useScrollAnimation, animationPresets } from '@/hooks/useScrollAnimation';
 
 interface HeroSectionProps {
   block?: HeroWithCalculator;
@@ -43,10 +41,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ block }) => {
       <div className="container mx-auto px-4 relative z-10 py-16">
         <div className="flex flex-col lg:flex-row items-center gap-8">
           {/* Left column with hero content */}
-          <motion.div 
-            className="lg:w-1/2 text-white"
-            {...useScrollAnimation(animationPresets.hero)}
-          >
+          <div className="lg:w-1/2 text-white">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-6">
               {headline.includes('sammenlign') ? (
                 <>
@@ -76,37 +71,31 @@ const HeroSection: React.FC<HeroSectionProps> = ({ block }) => {
             )}
             
             {/* Statistics display */}
-            <motion.div 
-              className="flex flex-wrap gap-8 mb-10"
-              {...useScrollAnimation({ duration: 0.6, type: 'fadeUp', delay: 0.3 })}
-            >
+            <div className="flex flex-wrap gap-8 mb-10">
               {stats.map((stat, index) => (
                 <div key={index} className="text-center">
                   <p className="text-3xl lg:text-4xl font-display font-bold text-brand-green">{stat.value}</p>
                   <p className="text-sm lg:text-base">{stat.label}</p>
                 </div>
               ))}
-            </motion.div>
+            </div>
             
             <div>
               <Button size="lg" className="bg-brand-green hover:bg-opacity-90 text-white rounded-md px-8 py-6 text-lg font-medium">
                 Begynd <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </div>
-          </motion.div>
+          </div>
           
           {/* Right column with calculator */}
-          <motion.div 
-            className="lg:w-1/2"
-            {...useScrollAnimation({ duration: 0.8, type: 'scale', delay: 0.2 })}
-          >
+          <div className="lg:w-1/2">
             <PriceCalculatorWidget 
               block={calculatorBlock} 
               variant="hero"
               showLivePrice={showLivePrice}
               showProviderComparison={showProviderComparison}
             />
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

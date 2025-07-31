@@ -167,11 +167,13 @@ export interface HeroWithCalculator {
   _key: string
   headline: string
   subheadline?: string
+  highlightWords?: string[] // Words to highlight in green
   content?: Array<any> // Portable Text blocks
   calculatorTitle?: string
   showLivePrice?: boolean
   showProviderComparison?: boolean
   stats?: Array<{
+    _key?: string
     value: string
     label: string
   }>

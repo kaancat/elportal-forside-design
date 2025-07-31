@@ -115,9 +115,10 @@ answer: [
 ## Best Practices
 
 1. **Always validate after deployment** - Run validation scripts after creating new pages
-2. **Check schema documentation** - Refer to `/sanityelpriscms/docs/SANITY-SCHEMA-REFERENCE.md`
+2. **Check actual schema files** - Refer to `/sanityelpriscms/schemaTypes/` directory for current field definitions
 3. **Use proper field names** - Common mistakes:
    - hero: `headline/subheadline` NOT `title/subtitle`
+   - valueProposition: `heading/valueItems` NOT `title/items`
    - valueItem: `heading` NOT `title`
    - featureItem: `title` NOT `name`
 4. **Test in Sanity Studio** - Always verify changes in the Studio interface

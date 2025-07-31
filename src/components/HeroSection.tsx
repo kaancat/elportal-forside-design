@@ -9,6 +9,37 @@ interface HeroSectionProps {
   block?: HeroWithCalculator;
 }
 
+// Helper function to render headline with green highlighted words
+const renderHeadlineWithHighlight = (text: string, highlightWords?: string[]) => {
+  // If no highlight words are defined, return plain text
+  if (!highlightWords || highlightWords.length === 0) {
+    return text;
+  }
+  
+  // Create a regex pattern that matches any of the highlight words (case-insensitive)
+  const pattern = highlightWords.map(word => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+  const regex = new RegExp(`(${pattern})`, 'gi');
+  
+  // Split the text by the pattern
+  const parts = text.split(regex);
+  
+  return (
+    <>
+      {parts.map((part, index) => {
+        // Check if this part matches any of the highlight words (case-insensitive)
+        const isHighlighted = highlightWords.some(
+          word => part.toLowerCase() === word.toLowerCase()
+        );
+        
+        if (isHighlighted) {
+          return <span key={index} className="text-brand-green">{part}</span>;
+        }
+        return part;
+      })}
+    </>
+  );
+};
+
 const HeroSection: React.FC<HeroSectionProps> = ({ block }) => {
   // Get values from block or use defaults
   const headline = block?.headline || block?.title || "Elpriser - Find og sammenlign elpriser";
@@ -43,13 +74,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ block }) => {
           {/* Left column with hero content */}
           <div className="lg:w-1/2 text-white">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-6">
-              {headline.includes('sammenlign') ? (
-                <>
-                  {headline.split('sammenlign')[0]}<span className="text-brand-green">sammenlign</span>{headline.split('sammenlign')[1]}
-                </>
-              ) : (
-                headline
-              )}
+              {renderHeadlineWithHighlight(headline, block?.highlightWords)}
             </h1>
             {subheadline && (
               <div className="text-xl mb-8">

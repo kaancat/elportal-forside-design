@@ -205,11 +205,13 @@ export class SanityService {
           _type,
           headline,
           subheadline,
+          highlightWords,
           content,
           calculatorTitle,
           showLivePrice,
           showProviderComparison,
           stats[]{
+            _key,
             value,
             label
           }

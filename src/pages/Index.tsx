@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import Navigation from '@/components/Navigation';
-import HeroSection from '@/components/HeroSection';
 import Footer from '@/components/Footer';
 import SafeContentBlocks from '@/components/SafeContentBlocks';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -97,10 +96,6 @@ const Index = () => {
       <main>
         {/* Error Test Component - only in development */}
         <ErrorTestComponent />
-        
-        <ErrorBoundary level="component">
-          <HeroSection />
-        </ErrorBoundary>
         
         {/* Loading state */}
         {loading && (

@@ -238,7 +238,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
                   <img
                     src={urlFor(image).width(1000).quality(85).url()}
                     alt={image.alt || title}
-                    className="w-full h-auto transition-transform duration-700 group-hover:scale-105"
+                    className="w-full h-auto transition-transform duration-700"
                   />
                   {/* Gradient overlay on hover */}
                   <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

@@ -60,8 +60,8 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
   }, [])
 
   const delay = options?.delay ?? 0
-  const duration = options?.duration ?? 0.5 // Professional duration
-  const distance = options?.distance ?? 30 // Noticeable movement
+  const duration = options?.duration ?? 0.4 // Faster default duration
+  const distance = options?.distance ?? 20 // Smaller movement distance
   const animationType = options?.type ?? 'fadeUp' // Default to classic fade up
   const staggerDelay = options?.staggerDelay ?? 0.1
   const index = options?.index ?? 0
@@ -256,8 +256,8 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
     variants: getVariants(isMobile),
     viewport: { 
       once: true, 
-      margin: isMobile ? "0px" : "-20px", // Smaller negative margin
-      amount: isMobile ? 0.15 : 0.25 // Trigger when more of element is visible
+      margin: isMobile ? "50px" : "100px", // Positive margin to trigger earlier
+      amount: isMobile ? 0.05 : 0.1 // Trigger when less of element is visible
     },
     initial: "hidden",
     whileInView: "visible"
@@ -293,11 +293,11 @@ export const staggerContainer = {
 
 // Professional animation presets
 export const animationPresets = {
-  hero: { duration: 0.8, distance: 40, type: 'hero' as AnimationType },
-  content: { duration: 0.6, distance: 30, type: 'fadeUp' as AnimationType },
-  card: { duration: 0.5, type: 'fadeIn' as AnimationType },
-  image: { duration: 0.7, type: 'scale' as AnimationType },
-  nav: { duration: 0.3, distance: 20, type: 'fadeUp' as AnimationType }
+  hero: { duration: 0.6, distance: 30, type: 'hero' as AnimationType },
+  content: { duration: 0.4, distance: 20, type: 'fadeUp' as AnimationType },
+  card: { duration: 0.3, type: 'fadeIn' as AnimationType },
+  image: { duration: 0.5, type: 'scale' as AnimationType },
+  nav: { duration: 0.2, distance: 15, type: 'fadeUp' as AnimationType }
 }
 
 // CSS class for will-change optimization

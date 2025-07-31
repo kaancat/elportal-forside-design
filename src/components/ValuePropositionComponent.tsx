@@ -14,6 +14,12 @@ interface ValuePropositionItem {
 }
 
 interface ValuePropositionBlock {
+  // Current fields
+  heading?: string;
+  subheading?: string;
+  content?: any[];
+  valueItems?: ValuePropositionItem[];
+  // Deprecated fields (for backward compatibility)
   title?: string;
   items?: ValuePropositionItem[];
   propositions?: string[]; // Legacy support
@@ -24,19 +30,34 @@ interface ValuePropositionComponentProps {
 }
 
 export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps> = ({ block }) => {
-  if (!block) return null;
+  console.log('[ValueProposition] Rendering with block:', block);
   
-  // Handle legacy data structure
-  const items = block.items || (block.propositions ? 
-    block.propositions.map((text: string, index: number) => ({ 
-      _key: `legacy-${index}`, 
-      text, 
-      icon: null 
-    })) : 
-    []
-  );
-  
-  if (!items || items.length === 0) return null;
+  try {
+    if (!block) {
+      console.log('[ValueProposition] No block provided, returning null');
+      return null;
+    }
+    
+    // Handle data from both new and legacy structures
+    // Priority: valueItems (new) > items (deprecated) > propositions (legacy)
+    const items = block.valueItems || block.items || (block.propositions ? 
+      block.propositions.map((text: string, index: number) => ({ 
+        _key: `legacy-${index}`, 
+        text, 
+        icon: null 
+      })) : 
+      []
+    );
+    
+    console.log('[ValueProposition] Items:', items);
+    console.log('[ValueProposition] Items count:', items?.length || 0);
+    
+    if (!items || items.length === 0) {
+      console.log('[ValueProposition] No items found, returning null');
+      return null;
+    }
+    
+    console.log('[ValueProposition] Rendering component with', items.length, 'items');
 
     return (
     <section className="py-16 lg:py-24">
@@ -45,13 +66,16 @@ export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps>
           className="max-w-4xl mx-auto p-8 bg-green-50/60 rounded-2xl border border-green-200/60"
           {...useScrollAnimation({ duration: 0.6, type: 'fadeUp' })}
         >
-          {block.title && (
+          {(block.heading || block.title) && (
             <div className="flex items-center mb-6">
               <div className="flex items-center justify-center h-7 w-7 rounded-full bg-green-100 border border-green-200 mr-3">
                 <Info className="h-5 w-5 text-brand-primary" />
               </div>
-              <h2 className="text-2xl font-display font-bold text-brand-dark">{block.title}</h2>
+              <h2 className="text-2xl font-display font-bold text-brand-dark">{block.heading || block.title}</h2>
             </div>
+          )}
+          {block.subheading && (
+            <p className="text-lg text-gray-600 mb-6">{block.subheading}</p>
           )}
           <motion.ul 
             className="space-y-4 pl-1"
@@ -80,7 +104,7 @@ export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps>
                     <Icon
                       icon={item.icon}
                       size={24}
-                      className="mr-3 flex-shrink-0 mt-0.5"
+                      className="mr-3 flex-shrink-0 mt-0.5 value-proposition-icon"
                     />
                   ) : (
                     <Check className="h-6 w-6 text-brand-primary mr-3 flex-shrink-0 mt-0.5" />
@@ -99,4 +123,13 @@ export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps>
       </div>
     </section>
   );
+  } catch (error) {
+    console.error('[ValueProposition] Runtime error:', error);
+    return (
+      <div className="p-4 m-4 bg-red-50 text-red-600 rounded border border-red-200">
+        <p className="font-semibold">Error rendering ValueProposition component</p>
+        <p className="text-sm mt-1">{String(error)}</p>
+      </div>
+    );
+  }
 }; 

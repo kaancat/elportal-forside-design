@@ -478,12 +478,24 @@ export class SanityService {
    */
   static async getUnifiedHomePage(): Promise<UnifiedPage | null> {
     try {
+      // Diagnostic logging
+      const query = `*[_type == "page" && isHomepage == true][0]{
+        ${this.getUnifiedPageQueryFragment()}
+      }`
+      console.log('Fetching homepage with query:', query.substring(0, 100) + '...')
+      
       // Fetch homepage using unified schema
-      const page = await client.fetch<UnifiedPage | null>(
-        `*[_type == "page" && isHomepage == true][0]{
-          ${this.getUnifiedPageQueryFragment()}
-        }`
-      )
+      const page = await client.fetch<UnifiedPage | null>(query)
+      
+      console.log('Raw homepage response:', {
+        exists: !!page,
+        _id: page?._id,
+        _type: page?._type,
+        isHomepage: page?.isHomepage,
+        contentBlocksExists: !!page?.contentBlocks,
+        contentBlocksType: page?.contentBlocks ? typeof page.contentBlocks : 'N/A',
+        contentBlocksLength: page?.contentBlocks?.length
+      })
       
       // Sanitize content blocks to ensure all have keys
       if (page && page.contentBlocks) {

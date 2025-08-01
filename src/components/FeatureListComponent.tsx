@@ -55,17 +55,18 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
             return (
               <div key={feature._key} className="flex flex-col items-center text-center max-w-sm">
                 <div className="flex items-center justify-center h-20 w-20 mb-6 rounded-full bg-brand-primary-light/10">
-                  {(() => {
-                    const isValid = hasValidIcon(feature.icon);
-                    return isValid && (
-                      <Icon
-                        icon={feature.icon}
-                        size={48}
-                        className="feature-list-icon"
-                      />
-                    );
-                  })()}
-              </div>
+                  {hasValidIcon(feature.icon) ? (
+                    <Icon
+                      icon={feature.icon}
+                      size={48}
+                      className="feature-list-icon"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 bg-brand-primary rounded-lg flex items-center justify-center">
+                      <span className="text-white font-bold text-xl">?</span>
+                    </div>
+                  )}
+                </div>
               <h3 className="text-xl font-bold text-brand-dark mb-3">
                 {feature.title}
               </h3>

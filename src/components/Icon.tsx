@@ -23,7 +23,8 @@ export const Icon: React.FC<IconProps> = ({
 }) => {
 
   // Handle direct SVG field from sanity-plugin-icon-manager
-  if (icon?.svg) {
+  // Skip placeholder SVGs and use URL instead
+  if (icon?.svg && !icon.svg.includes('Placeholder SVG')) {
     return (
       <div
         className={className}
@@ -36,6 +37,27 @@ export const Icon: React.FC<IconProps> = ({
           color: color || 'currentColor'
         }}
         dangerouslySetInnerHTML={{ __html: icon.svg }}
+      />
+    );
+  }
+
+  // Handle icons with metadata URL (from icon manager plugin)
+  if (icon?.metadata?.url) {
+    return (
+      <img
+        src={icon.metadata.url}
+        alt={icon.metadata.iconName || 'Icon'}
+        className={className}
+        style={{ 
+          width: `${size}px`, 
+          height: `${size}px`, 
+          objectFit: 'contain'
+        }}
+        onError={(e) => {
+          console.error('[Icon] Failed to load metadata URL:', icon.metadata.url);
+          // Hide broken images
+          e.currentTarget.style.display = 'none';
+        }}
       />
     );
   }
@@ -72,13 +94,8 @@ export const Icon: React.FC<IconProps> = ({
     );
   }
 
-  // If no icon data at all, show fallback
-  if (!icon || (!icon.svg && !icon.metadata?.url && !icon.icon)) {
-    return fallbackIcon || <HelpCircle size={size} className={className} />;
-  }
-
   // For inline SVG (if plugin provides it)
-  if (icon.metadata.inlineSvg) {
+  if (icon?.metadata?.inlineSvg) {
     return (
       <div
         className={className}
@@ -94,25 +111,13 @@ export const Icon: React.FC<IconProps> = ({
     );
   }
 
-  // For URL-based icons - just use the URL as-is from the plugin
-  // The plugin already includes color parameters in the URL
-  return (
-    <img
-      src={icon.metadata.url}
-      alt={icon.metadata.iconName || 'Icon'}
-      className={className}
-      style={{ 
-        width: `${size}px`, 
-        height: `${size}px`, 
-        objectFit: 'contain'
-      }}
-      onError={(e) => {
-        console.error('[Icon] Failed to load:', icon.metadata.url);
-        // Hide broken images
-        e.currentTarget.style.display = 'none';
-      }}
-    />
-  );
+  // If no icon data at all, show fallback
+  if (!icon || (!icon.svg && !icon.metadata?.url && !icon.icon)) {
+    return fallbackIcon || <HelpCircle size={size} className={className} />;
+  }
+
+  // Final fallback: this should not be reached given our current logic, but kept for safety
+  return fallbackIcon || <HelpCircle size={size} className={className} />;
 };
 
 // Helper functions

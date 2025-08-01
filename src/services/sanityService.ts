@@ -609,63 +609,200 @@ export class SanityService {
           }
         },
         _type == "heroWithCalculator" => {
-          ...
+          _key,
+          _type,
+          headline,
+          subheadline,
+          highlightWords,
+          content,
+          calculatorTitle,
+          showLivePrice,
+          showProviderComparison,
+          stats[]{
+            _key,
+            value,
+            label
+          }
         },
         _type == "priceExampleTable" => {
-          ...
+          title,
+          leadingText,
+          example1_title,
+          example1_kwh_price,
+          example1_subscription,
+          example2_title,
+          example2_kwh_price,
+          example2_subscription
         },
         _type == "realPriceComparisonTable" => {
-          ...
+          _key,
+          _type,
+          title,
+          leadingText
         },
         _type == "faqGroup" => {
-          ...,
-          faqItems[]->{
-            _id,
-            _type,
+          title,
+          faqItems[]{
+            _key,
             question,
             answer
           }
         },
         _type == "callToActionSection" => {
-          ...
+          title,
+          buttonText,
+          buttonUrl
         },
         _type == "livePriceGraph" => {
-          ...
+          title,
+          subtitle,
+          apiRegion,
+          headerAlignment
         },
         _type == "renewableEnergyForecast" => {
-          ...
+          _key,
+          _type,
+          title,
+          leadingText,
+          headerAlignment
         },
         _type == "monthlyProductionChart" => {
-          ...
+          _key,
+          _type,
+          title,
+          leadingText,
+          description,
+          headerAlignment
         },
         _type == "co2EmissionsChart" => {
-          ...
+          _key,
+          _type,
+          title,
+          subtitle,
+          leadingText,
+          headerAlignment,
+          showGauge
         },
         _type == "declarationProduction" => {
-          ...
+          _key,
+          _type,
+          title,
+          subtitle,
+          leadingText,
+          headerAlignment,
+          showProductionBreakdown,
+          showCO2Intensity,
+          showRenewableShare,
+          defaultView
         },
         _type == "declarationGridmix" => {
-          ...
+          _key,
+          _type,
+          title,
+          subtitle,
+          leadingText,
+          headerAlignment,
+          showSummary,
+          view
         },
         _type == "consumptionMap" => {
-          ...
+          _key,
+          _type,
+          title,
+          subtitle,
+          leadingText,
+          headerAlignment,
+          dataSource,
+          consumerType,
+          colorScheme,
+          showLegend,
+          showTooltips,
+          enableInteraction,
+          updateInterval,
+          defaultView,
+          showStatistics,
+          mobileLayout
         },
         _type == "priceCalculator" => {
-          ...
+          _key,
+          _type,
+          title
         },
         _type == "providerList" => {
-          ...
+          _key,
+          _type,
+          title,
+          subtitle,
+          headerAlignment,
+          'providers': providers[]->{ 
+            "id": _id,
+            providerName,
+            productName,
+            "logoUrl": logo.asset->url,
+            displayPrice_kWh,
+            displayMonthlyFee,
+            signupLink,
+            isVindstoedProduct,
+            benefits
+          }
         },
         _type == "featureList" => {
-          ...,
+          _key,
+          _type,
+          title,
           features[]{
-            ...
+            _key,
+            _type,
+            title,
+            description,
+            icon {
+              ...,
+              metadata {
+                inlineSvg,
+                iconName,
+                url,
+                color
+              }
+            }
           }
         },
         _type == "valueProposition" => {
-          ...,
+          _key,
+          _type,
+          heading,
+          subheading,
+          content,
           valueItems[]{
-            ...
+            _key,
+            heading,
+            description,
+            icon {
+              ...,
+              metadata {
+                inlineSvg,
+                iconName,
+                url,
+                color
+              }
+            }
+          },
+          // Legacy fields for backward compatibility
+          title,
+          propositions,
+          items[]{
+            _key,
+            text,
+            heading,
+            description,
+            icon {
+              ...,
+              metadata {
+                inlineSvg,
+                iconName,
+                url,
+                color
+              }
+            }
           }
         },
         _type == "videoSection" => {
@@ -679,10 +816,24 @@ export class SanityService {
           }
         },
         _type == "applianceCalculator" => {
-          ...
+          _key,
+          _type,
+          title,
+          subtitle,
+          showCategories,
+          showSavingsCallToAction,
+          defaultElectricityPrice
         },
         _type == "energyTipsSection" => {
-          ...
+          _key,
+          _type,
+          title,
+          subtitle,
+          showCategories,
+          displayMode,
+          showDifficultyBadges,
+          showSavingsPotential,
+          maxTipsPerCategory
         },
         _type == "chargingBoxShowcase" => {
           ...,
@@ -709,7 +860,20 @@ export class SanityService {
           ...
         },
         _type == "infoCardsSection" => {
-          ...
+          _key,
+          _type,
+          title,
+          subtitle,
+          headerAlignment,
+          leadingText,
+          cards[]{
+            title,
+            description,
+            icon,
+            iconColor,
+            bgColor
+          },
+          columns
         }
       }
     `

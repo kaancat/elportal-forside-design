@@ -14,17 +14,33 @@ const GenericPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!slug) return;
+    if (!slug) {
+      setError('No page slug provided');
+      setLoading(false);
+      return;
+    }
 
     const fetchPageData = async () => {
       try {
         setLoading(true);
         setError(null);
         const data = await SanityService.getUnifiedPage(slug);
-        setPageData(data);
+        
+        if (!data) {
+          setError(`Page "${slug}" not found`);
+          setPageData(null);
+        } else {
+          // Ensure content blocks are properly initialized
+          if (data.contentBlocks && !Array.isArray(data.contentBlocks)) {
+            console.error('Invalid contentBlocks structure:', data.contentBlocks);
+            data.contentBlocks = [];
+          }
+          setPageData(data);
+        }
       } catch (err) {
         console.error('Error fetching page data:', err);
-        setError('Failed to load page data');
+        setError(err instanceof Error ? err.message : 'Failed to load page data');
+        setPageData(null);
       } finally {
         setLoading(false);
       }
@@ -95,15 +111,38 @@ const GenericPage = () => {
     );
   }
 
-  if (error || !pageData) {
+  if (error) {
     return (
       <div className="min-h-screen bg-white">
         <Navigation />
         <div className="container mx-auto py-12 px-4 text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">404 - Page Not Found</h1>
-          <p className="text-gray-600 mb-8">The page you're looking for doesn't exist.</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            {error.includes('not found') ? '404 - Side ikke fundet' : 'Der opstod en fejl'}
+          </h1>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <p className="text-sm text-gray-500 mb-8">
+            {error.includes('not found') 
+              ? 'Siden du leder efter eksisterer ikke eller er blevet flyttet.' 
+              : 'Prøv venligst at genindlæse siden.'}
+          </p>
           <a href="/" className="text-brand-green hover:text-brand-green/80 font-medium">
-            Return to Home
+            Tilbage til forsiden
+          </a>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!pageData) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Navigation />
+        <div className="container mx-auto py-12 px-4 text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Intet indhold tilgængeligt</h1>
+          <p className="text-gray-600 mb-8">Der er ikke noget indhold at vise på denne side.</p>
+          <a href="/" className="text-brand-green hover:text-brand-green/80 font-medium">
+            Tilbage til forsiden
           </a>
         </div>
         <Footer />
@@ -116,13 +155,16 @@ const GenericPage = () => {
     <div className="min-h-screen bg-white">
       <Navigation />
       <main>
-        {pageData.contentBlocks && pageData.contentBlocks.length > 0 ? (
+        {pageData.contentBlocks && Array.isArray(pageData.contentBlocks) && pageData.contentBlocks.length > 0 ? (
           <UnifiedContentBlocks page={pageData} enableBreadcrumbs={true} />
         ) : (
           <div className="container mx-auto py-12 px-4">
-            <div className="prose prose-lg max-w-none">
-              <p className="text-gray-600">
-                No content blocks available for this page.
+            <div className="max-w-2xl mx-auto text-center">
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                {pageData.title || 'Side under opbygning'}
+              </h1>
+              <p className="text-gray-600 text-lg">
+                Denne side er under opbygning. Kom tilbage snart for at se indholdet.
               </p>
             </div>
           </div>

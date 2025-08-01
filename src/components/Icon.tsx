@@ -45,9 +45,10 @@ export const Icon: React.FC<IconProps> = ({
   }
 
   // Priority 1: Non-placeholder SVG (highest quality)
-  if (icon.svg && !icon.svg.includes('Placeholder SVG')) {
+  // BUT: Skip direct SVG if we have metadata URL as backup (VP2 case)
+  if (icon.svg && !icon.svg.includes('Placeholder SVG') && !icon.metadata?.url) {
     if (typeof window !== 'undefined') {
-      window.console.log('[Icon] Rendering direct SVG');
+      window.console.log('[Icon] Rendering direct SVG (no metadata URL backup)');
     }
     return (
       <div

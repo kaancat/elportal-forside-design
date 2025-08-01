@@ -22,22 +22,13 @@ export const Icon: React.FC<IconProps> = ({
   color
 }) => {
 
-  // Debug logging for ValueProposition 2 icons
-  if (process.env.NODE_ENV === 'development' && icon) {
-    console.log('[Icon] Debug data:', {
-      hasIcon: !!icon,
-      hasSvg: !!icon.svg,
-      svgContent: icon.svg ? icon.svg.substring(0, 50) + '...' : 'No SVG',
-      hasMetadata: !!icon.metadata,
-      metadataUrl: icon.metadata?.url,
-      iconString: icon.icon,
-      componentPath: 'Icon.tsx'
-    });
+  // Early return for no icon data
+  if (!icon) {
+    return fallbackIcon || <HelpCircle size={size} className={className} />;
   }
 
-  // Handle direct SVG field from sanity-plugin-icon-manager
-  // Skip placeholder SVGs and use URL instead
-  if (icon?.svg && !icon.svg.includes('Placeholder SVG')) {
+  // Priority 1: Non-placeholder SVG (highest quality)
+  if (icon.svg && !icon.svg.includes('Placeholder SVG')) {
     return (
       <div
         className={className}
@@ -54,8 +45,8 @@ export const Icon: React.FC<IconProps> = ({
     );
   }
 
-  // Handle icons with metadata URL (from icon manager plugin)
-  if (icon?.metadata?.url) {
+  // Priority 2: Metadata URL (works for both VP1 and VP2)
+  if (icon.metadata?.url) {
     return (
       <img
         src={icon.metadata.url}
@@ -75,40 +66,8 @@ export const Icon: React.FC<IconProps> = ({
     );
   }
 
-  // Handle legacy icons that have icon string but no metadata
-  if (icon?.icon && !icon.metadata?.url) {
-    // Generate URL from icon string for backwards compatibility
-    const iconString = icon.icon;
-    const defaultColor = color || '#84db41'; // Use provided color or default green
-    const generatedUrl = `https://api.iconify.design/${iconString}.svg?color=${encodeURIComponent(defaultColor)}`;
-    
-
-    return (
-      <img
-        src={generatedUrl}
-        alt={iconString || 'Icon'}
-        className={className}
-        style={{ 
-          width: `${size}px`, 
-          height: `${size}px`, 
-          objectFit: 'contain'
-        }}
-        onError={(e) => {
-          console.error('[Icon] Failed to load generated URL:', generatedUrl);
-          // Show fallback on error
-          const parent = e.currentTarget.parentElement;
-          if (parent && fallbackIcon) {
-            parent.innerHTML = '';
-            parent.appendChild(document.createElement('div')).innerHTML = 
-              '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
-          }
-        }}
-      />
-    );
-  }
-
-  // For inline SVG (if plugin provides it)
-  if (icon?.metadata?.inlineSvg) {
+  // Priority 3: Inline SVG from metadata
+  if (icon.metadata?.inlineSvg) {
     return (
       <div
         className={className}
@@ -124,12 +83,30 @@ export const Icon: React.FC<IconProps> = ({
     );
   }
 
-  // If no icon data at all, show fallback
-  if (!icon || (!icon.svg && !icon.metadata?.url && !icon.icon)) {
-    return fallbackIcon || <HelpCircle size={size} className={className} />;
+  // Priority 4: Generate URL from icon string (legacy fallback)
+  if (icon.icon) {
+    const defaultColor = color || '#84db41';
+    const generatedUrl = `https://api.iconify.design/${icon.icon}.svg?color=${encodeURIComponent(defaultColor)}`;
+    
+    return (
+      <img
+        src={generatedUrl}
+        alt={icon.icon || 'Icon'}
+        className={className}
+        style={{ 
+          width: `${size}px`, 
+          height: `${size}px`, 
+          objectFit: 'contain'
+        }}
+        onError={(e) => {
+          console.error('[Icon] Failed to load generated URL:', generatedUrl);
+          e.currentTarget.style.display = 'none';
+        }}
+      />
+    );
   }
 
-  // Final fallback: this should not be reached given our current logic, but kept for safety
+  // Final fallback
   return fallbackIcon || <HelpCircle size={size} className={className} />;
 };
 

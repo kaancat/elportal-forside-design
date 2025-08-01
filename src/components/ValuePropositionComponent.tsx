@@ -92,25 +92,13 @@ export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps>
                   })}
                 >
                   {hasValidIcon(item.icon) ? (
-                    <>
-                      {process.env.NODE_ENV === 'development' && console.log('[ValueProposition] Rendering icon for:', displayText, {
-                        hasValidIcon: hasValidIcon(item.icon),
-                        icon: item.icon
-                      })}
-                      <Icon
-                        icon={item.icon}
-                        size={24}
-                        className="mr-3 flex-shrink-0 mt-0.5 value-proposition-icon"
-                      />
-                    </>
+                    <Icon
+                      icon={item.icon}
+                      size={24}
+                      className="mr-3 flex-shrink-0 mt-0.5 value-proposition-icon"
+                    />
                   ) : (
-                    <>
-                      {process.env.NODE_ENV === 'development' && console.log('[ValueProposition] Using fallback for:', displayText, {
-                        hasValidIcon: hasValidIcon(item.icon),
-                        icon: item.icon
-                      })}
-                      <Check className="h-6 w-6 text-brand-primary mr-3 flex-shrink-0 mt-0.5" />
-                    </>
+                    <Check className="h-6 w-6 text-brand-primary mr-3 flex-shrink-0 mt-0.5" />
                   )}
                   <div className="flex-1">
                     <span className="text-lg font-semibold text-gray-800 block">{displayText}</span>

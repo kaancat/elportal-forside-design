@@ -1,5 +1,6 @@
-// Auto-generated from Sanity schemas - DO NOT EDIT
+// Auto-generated from Sanity schemas - MANUALLY UPDATED ON 2025-08-01
 // Generated on: 2025-07-27T13:10:00.413Z
+// MANUAL UPDATES: Fixed PageSection and Hero interfaces to match actual Sanity schemas
 
 // Base types
 export interface SanityReference {
@@ -159,6 +160,7 @@ export interface Hero extends ContentBlockBase {
   _type: 'hero';
   headline: string;
   subheadline?: string;
+  image?: SanityImage;
 }
 
 export interface HeroWithCalculator extends ContentBlockBase {
@@ -252,6 +254,15 @@ export interface Page extends ContentBlockBase {
 export interface PageSection extends ContentBlockBase {
   _type: 'pageSection';
   title?: string;
+  headerAlignment?: 'left' | 'center' | 'right';
+  content?: Array<any>; // Array of blocks, images, and embedded components
+  image?: SanityImage;
+  imagePosition?: 'left' | 'right';
+  cta?: {
+    text: string;
+    url: string;
+  };
+  settings?: any; // SectionSettings interface
 }
 
 export interface PriceCalculator extends ContentBlockBase {

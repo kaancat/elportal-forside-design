@@ -1,23 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
-import ContentBlocks from '@/components/ContentBlocks';
+import UnifiedContentBlocks from '@/components/UnifiedContentBlocks';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import ErrorTestComponent from '@/components/ErrorTestComponent';
 import { ApiErrorFallback } from '@/components/ErrorFallbacks';
 import { useApiErrorHandler } from '@/hooks/useErrorHandler';
 import { SanityService } from '@/services/sanityService';
-import { HomePage } from '@/types/sanity';
+import { UnifiedPage } from '@/types/sanity';
 import { getSanityImageUrl } from '@/lib/sanityImage';
 
 const Index = () => {
-  const [homepageData, setHomepageData] = useState<HomePage | null>(null)
+  const [homepageData, setHomepageData] = useState<UnifiedPage | null>(null)
   const [loading, setLoading] = useState(true)
   const { errorState, clearError, withApiErrorHandling } = useApiErrorHandler()
 
   useEffect(() => {
     const fetchHomepageData = withApiErrorHandling(async () => {
-      const data = await SanityService.getHomePage()
+      const data = await SanityService.getUnifiedHomePage()
       setHomepageData(data)
       setLoading(false)
     }, 'homepage-data')
@@ -107,9 +107,9 @@ const Index = () => {
           </div>
         )}
         
-        {/* Render Sanity content blocks with error boundaries */}
+        {/* Render Sanity content blocks with unified wrapper */}
         {!loading && homepageData?.contentBlocks && homepageData.contentBlocks.length > 0 && (
-          <ContentBlocks blocks={homepageData.contentBlocks} enableErrorBoundaries={true} />
+          <UnifiedContentBlocks page={homepageData} enableBreadcrumbs={false} />
         )}
         
         {/* No content fallback */}

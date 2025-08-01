@@ -450,25 +450,6 @@ export type ContentBlock =
   | DailyPriceTimelineBlock
   | InfoCardsSectionBlock
 
-export interface HomePage {
-  _id: string
-  _type: 'homePage'
-  title: string
-  seoMetaTitle: string
-  seoMetaDescription: string
-  seoKeywords?: string[]
-  ogImage?: {
-    _type: 'image'
-    asset: {
-      _ref: string
-      _type: 'reference'
-    }
-    alt?: string
-  }
-  noIndex?: boolean
-  contentBlocks: ContentBlock[]
-}
-
 export interface BlogPost {
   _id: string
   _type: 'blogPost'
@@ -492,7 +473,7 @@ export interface SanitySlug {
 
 interface InternalLink {
   slug: string;
-  _type: 'page' | 'blogPost' | 'homePage';
+  _type: 'page' | 'blogPost';
 }
 
 export interface Link {
@@ -651,4 +632,9 @@ export interface MunicipalityConsumptionMapBlock {
   showHousingBreakdown?: boolean;
   showHeatingBreakdown?: boolean;
   headerAlignment?: 'left' | 'center' | 'right';
+}
+
+// Unified Page Interface
+export interface UnifiedPage extends SanityPage {
+  isHomepage?: boolean
 }

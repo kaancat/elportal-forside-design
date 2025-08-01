@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LucideIcon, TrendingUp, Shield, Calculator, Clock, Zap, Info } from 'lucide-react';
+import { Info } from 'lucide-react';
+import { Icon, hasValidIcon } from './Icon';
 import { PortableText } from '@portabletext/react';
 import { cn } from '@/lib/utils';
 
@@ -9,15 +10,6 @@ import type { InfoCardsSectionBlock } from '@/types/sanity';
 interface InfoCardsSectionProps {
   block: InfoCardsSectionBlock;
 }
-
-const iconMap: Record<string, LucideIcon> = {
-  'trending-up': TrendingUp,
-  'shield': Shield,
-  'calculator': Calculator,
-  'clock': Clock,
-  'zap': Zap,
-  'info': Info
-};
 
 const InfoCardsSection: React.FC<InfoCardsSectionProps> = ({ block }) => {
   const {
@@ -92,7 +84,6 @@ const InfoCardsSection: React.FC<InfoCardsSectionProps> = ({ block }) => {
         {/* Enhanced Cards Grid */}
         <div className={cn("grid gap-6 lg:gap-8", getGridCols(columns))}>
           {cards.map((card, index) => {
-            const Icon = card.icon ? iconMap[card.icon] || Info : Info;
             
             return (
               <Card 
@@ -118,7 +109,15 @@ const InfoCardsSection: React.FC<InfoCardsSectionProps> = ({ block }) => {
                       "w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md transition-all duration-300 group-hover:scale-110",
                       card.bgColor || "bg-gray-100"
                     )}>
-                      <Icon className={cn("w-7 h-7 transition-all duration-300", card.iconColor || "text-gray-600")} />
+                      {hasValidIcon(card.icon) ? (
+                        <Icon
+                          icon={card.icon}
+                          size={28}
+                          className={cn("transition-all duration-300", card.iconColor || "text-gray-600")}
+                        />
+                      ) : (
+                        <Info className={cn("w-7 h-7 transition-all duration-300", card.iconColor || "text-gray-600")} />
+                      )}
                     </div>
                     <div className="flex-1">
                       <CardTitle className="text-xl font-bold text-gray-900 mb-2 group-hover:text-gray-700 transition-colors">

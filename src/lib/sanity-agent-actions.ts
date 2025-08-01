@@ -27,10 +27,10 @@ export interface AgentActionsConfig {
 export interface PageCreationOptions {
   title: string
   slug: string
-  seoTitle?: string
-  seoDescription?: string
+  seoMetaTitle?: string
+  seoMetaDescription?: string
   topic?: string
-  keywords?: string[]
+  seoKeywords?: string[]
   contentRequirements?: string
   references?: Array<{ _ref: string; _type: 'reference' }>
 }
@@ -124,13 +124,13 @@ export class SanityAgentActions {
   /**
    * Enhances existing page content with SEO improvements
    */
-  async enhancePageSEO(pageId: string, keywords: string[]): Promise<any> {
+  async enhancePageSEO(pageId: string, seoKeywords: string[]): Promise<any> {
     if (!this.client.agentActions) {
       throw new Error('Agent Actions not available. Please check your Sanity plan or use traditional API methods.')
     }
 
     const instruction = `Enhance the page for SEO:
-      - Optimize content for keywords: ${keywords.join(', ')}
+      - Optimize content for keywords: ${seoKeywords.join(', ')}`
       - Add internal linking opportunities
       - Ensure proper heading hierarchy
       - Add schema markup suggestions
@@ -247,10 +247,10 @@ export class SanityAgentActions {
     Basic Information:
     - Title: "${options.title}"
     - Slug: "${options.slug}"
-    - SEO Title: "${options.seoTitle || options.title}"
-    - SEO Description: "${options.seoDescription || `Alt om ${options.topic} - find de bedste løsninger hos ElPortal`}"
+    - SEO Title: "${options.seoMetaTitle || options.title}"
+    - SEO Description: "${options.seoMetaDescription || `Alt om ${options.topic} - find de bedste løsninger hos ElPortal`}"
     ${options.topic ? `- Topic: ${options.topic}` : ''}
-    ${options.keywords ? `- Target keywords: ${options.keywords.join(', ')}` : ''}
+    ${options.seoKeywords ? `- Target keywords: ${options.seoKeywords.join(', ')}` : ''}
 
     Content Requirements:
     ${options.contentRequirements || `

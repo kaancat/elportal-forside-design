@@ -29,7 +29,7 @@ export const ContentBlocksWithBreadcrumb: React.FC<ContentBlocksWithBreadcrumbPr
     return (
       <>
         {/* Render first part of content blocks */}
-        <ContentBlocks blocks={blocksBeforeBreadcrumb} />
+        <ContentBlocks blocks={blocksBeforeBreadcrumb} enableErrorBoundaries={true} />
         
         {/* Render inline breadcrumb */}
         {slug && breadcrumbItems.length > 0 && (
@@ -45,7 +45,7 @@ export const ContentBlocksWithBreadcrumb: React.FC<ContentBlocksWithBreadcrumbPr
         )}
         
         {/* Render remaining content blocks */}
-        <ContentBlocks blocks={blocksAfterBreadcrumb} />
+        <ContentBlocks blocks={blocksAfterBreadcrumb} enableErrorBoundaries={true} />
       </>
     )
   }
@@ -59,7 +59,7 @@ export const ContentBlocksWithBreadcrumb: React.FC<ContentBlocksWithBreadcrumbPr
           variant={breadcrumbPlacement.position as any}
         />
       )}
-      <ContentBlocks blocks={blocks} />
+      <ContentBlocks blocks={blocks} enableErrorBoundaries={true} />
     </>
   )
 }

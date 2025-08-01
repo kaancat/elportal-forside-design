@@ -177,9 +177,6 @@ export interface HeroWithCalculator {
     value: string
     label: string
   }>
-  // Deprecated fields for backward compatibility
-  title?: string
-  subtitle?: string
 }
 
 export interface HeroBlock {
@@ -310,7 +307,7 @@ export interface InfoCardsSectionBlock {
   cards?: {
     title: string;
     description?: BlockContent[];
-    icon?: string;
+    icon?: IconManager;
     iconColor?: string;
     bgColor?: string;
   }[];
@@ -344,10 +341,6 @@ export interface ValuePropositionBlock {
     heading: string
     description: string
   }>
-  // Deprecated fields for backward compatibility
-  title?: string
-  items?: Array<any>
-  propositions?: string[]
 }
 
 export interface ApplianceCalculator {

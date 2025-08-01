@@ -42,8 +42,8 @@ const renderHeadlineWithHighlight = (text: string, highlightWords?: string[]) =>
 
 const HeroSection: React.FC<HeroSectionProps> = ({ block }) => {
   // Get values from block or use defaults
-  const headline = block?.headline || block?.title || "Elpriser - Find og sammenlign elpriser";
-  const subheadline = block?.subheadline || block?.subtitle || "Sammenlign elpriser og se, om du kan finde en bedre elpris ud fra dit estimerede forbrug.";
+  const headline = block?.headline || "Elpriser - Find og sammenlign elpriser";
+  const subheadline = block?.subheadline || "Sammenlign elpriser og se, om du kan finde en bedre elpris ud fra dit estimerede forbrug.";
   const calculatorTitle = block?.calculatorTitle || "Beregn dit forbrug";
   const showLivePrice = block?.showLivePrice ?? true;
   const showProviderComparison = block?.showProviderComparison ?? true;

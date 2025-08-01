@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Icon Rendering Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #f5f5f5;
+        }
+        .test-container { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .icon-test { 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center;
+            margin: 10px; 
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+        }
+        .icon-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 80px;
+            width: 80px;
+            border-radius: 50%;
+            background: rgba(132, 219, 65, 0.1);
+        }
+        .feature-list-icon {
+            /* Copy exact styles from FeatureListComponent */
+        }
+        img {
+            display: block !important;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Icon Rendering Test</h1>
+    
+    <div class="test-container">
+        <h2>Test 1: Direct URL img tags</h2>
+        <p>Testing if the Iconify URLs render correctly as img tags:</p>
+        
+        <div class="icon-test">
+            <div class="icon-wrapper">
+                <img 
+                    src="https://api.iconify.design/solar:chart-bold.svg?width=20&height=20&color=%2384db41" 
+                    alt="chart-bold"
+                    style="width: 48px; height: 48px; object-fit: contain;"
+                />
+            </div>
+            <span>Chart Bold (Size 48px)</span>
+        </div>
+        
+        <div class="icon-test">
+            <div class="icon-wrapper">
+                <img 
+                    src="https://api.iconify.design/streamline-ultimate:receipt-bold.svg?width=20&height=20&color=%2384db41" 
+                    alt="receipt-bold"
+                    style="width: 48px; height: 48px; object-fit: contain;"
+                />
+            </div>
+            <span>Receipt Bold (Size 48px)</span>
+        </div>
+        
+        <div class="icon-test">
+            <div class="icon-wrapper">
+                <img 
+                    src="https://api.iconify.design/ic:baseline-scale.svg?width=20&height=20&color=%2384db41" 
+                    alt="baseline-scale"
+                    style="width: 48px; height: 48px; object-fit: contain;"
+                />
+            </div>
+            <span>Baseline Scale (Size 48px)</span>
+        </div>
+        
+        <div class="icon-test">
+            <div class="icon-wrapper">
+                <img 
+                    src="https://api.iconify.design/material-symbols:house.svg?width=20&height=20&color=%2384db41" 
+                    alt="house"
+                    style="width: 48px; height: 48px; object-fit: contain;"
+                />
+            </div>
+            <span>House (Size 48px)</span>
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Test 2: Different Sizes</h2>
+        <p>Testing different sizes to see if that affects rendering:</p>
+        
+        <div class="icon-test">
+            <img 
+                src="https://api.iconify.design/solar:chart-bold.svg?width=24&height=24&color=%2384db41" 
+                alt="chart-bold-24"
+                style="width: 24px; height: 24px; object-fit: contain;"
+            />
+            <span>24px</span>
+        </div>
+        
+        <div class="icon-test">
+            <img 
+                src="https://api.iconify.design/solar:chart-bold.svg?width=32&height=32&color=%2384db41" 
+                alt="chart-bold-32"
+                style="width: 32px; height: 32px; object-fit: contain;"
+            />
+            <span>32px</span>
+        </div>
+        
+        <div class="icon-test">
+            <img 
+                src="https://api.iconify.design/solar:chart-bold.svg?width=48&height=48&color=%2384db41" 
+                alt="chart-bold-48"
+                style="width: 48px; height: 48px; object-fit: contain;"
+            />
+            <span>48px</span>
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Test 3: No URL parameters</h2>
+        <p>Testing without URL parameters:</p>
+        
+        <div class="icon-test">
+            <img 
+                src="https://api.iconify.design/solar:chart-bold.svg" 
+                alt="chart-bold-no-params"
+                style="width: 48px; height: 48px; object-fit: contain;"
+            />
+            <span>No params</span>
+        </div>
+    </div>
+
+    <script>
+        // Test for console errors
+        console.log('🧪 Icon test page loaded');
+        
+        // Add error listeners to images
+        document.querySelectorAll('img').forEach((img, index) => {
+            img.addEventListener('load', function() {
+                console.log(`✅ Image ${index + 1} loaded successfully:`, this.src);
+            });
+            
+            img.addEventListener('error', function() {
+                console.error(`❌ Image ${index + 1} failed to load:`, this.src);
+            });
+        });
+        
+        // Check after 2 seconds
+        setTimeout(() => {
+            const images = document.querySelectorAll('img');
+            console.log(`📊 Final status of ${images.length} images:`);
+            images.forEach((img, index) => {
+                const rect = img.getBoundingClientRect();
+                console.log(`Image ${index + 1}:`, {
+                    src: img.src,
+                    naturalWidth: img.naturalWidth,
+                    naturalHeight: img.naturalHeight,
+                    displayWidth: rect.width,
+                    displayHeight: rect.height,
+                    visible: rect.width > 0 && rect.height > 0
+                });
+            });
+        }, 2000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,448 @@
+{
+  "_id": "qgCxJyBbKpvhb2oGYqfgkp",
+  "contentBlocks": [
+    {
+      "_key": "3ka62fe93dr",
+      "_type": "hero",
+      "headline": "Vælg den rigtige el-leverandør",
+      "image": {
+        "_key": "tlhpshzbw3m",
+        "_type": "image",
+        "alt": "Vindmøller i Danmark - grøn energi og bæredygtighed",
+        "asset": {
+          "_ref": "image-7be15ec9534513618b3540805be193c764522694-5364x3576-jpg",
+          "_type": "reference"
+        },
+        "hotspot": {
+          "height": 0.5,
+          "width": 0.8,
+          "x": 0.5,
+          "y": 0.5
+        }
+      },
+      "subheadline": "Spar tusindvis af kroner med det rigtige valg"
+    },
+    {
+      "_key": "a1s06lh5qtp",
+      "_type": "pageSection",
+      "content": [
+        {
+          "_key": "block-a1s06lh5qtp-1",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "span-a1s06lh5qtp-1",
+              "_type": "span",
+              "marks": [],
+              "text": "Vælg den rigtige el-leverandør kan spare dig tusindvis af kroner årligt. Denne guide hjælper dig med at forstå markedet og træffe det bedste valg for dit forbrug."
+            }
+          ],
+          "markDefs": [],
+          "style": "normal"
+        }
+      ],
+      "headerAlignment": "left",
+      "title": "Din komplette guide til at vælge el-leverandør"
+    },
+    {
+      "_key": "ls5dwx7fwc",
+      "_type": "pageSection",
+      "content": [
+        {
+          "_key": "block-ls5dwx7fwc-1",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "span-ls5dwx7fwc-1",
+              "_type": "span",
+              "marks": [],
+              "text": "Det danske elmarked blev liberaliseret i 2003, hvilket betyder, at du frit kan vælge din el-leverandør. Der er over 100 forskellige leverandører at vælge imellem."
+            }
+          ],
+          "markDefs": [],
+          "style": "normal"
+        }
+      ],
+      "headerAlignment": "left",
+      "image": {
+        "_key": "iuatp8pgpb",
+        "_type": "image",
+        "alt": "Det danske elmarked - moderne energiinfrastruktur",
+        "asset": {
+          "_ref": "image-1bb854050ed58d6d9690a127a112f9d3c0380d6f-6000x4000-jpg",
+          "_type": "reference"
+        }
+      },
+      "imagePosition": "right",
+      "title": "Forstå markedet for el-leverandører i Danmark"
+    },
+    {
+      "_key": "x93ajwv6pi",
+      "_type": "featureList",
+      "content": null,
+      "cta": null,
+      "headerAlignment": null,
+      "headline": null,
+      "image": null,
+      "imagePosition": null,
+      "settings": null,
+      "subheadline": null,
+      "subtitle": "Overvej disse områder før du træffer dit valg",
+      "title": "De vigtigste faktorer når du vælger el-leverandør"
+    },
+    {
+      "_key": "kkk7a8uinn9",
+      "_type": "pageSection",
+      "content": [
+        {
+          "_key": "block-kkk7a8uinn9-1",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "span-kkk7a8uinn9-1",
+              "_type": "span",
+              "marks": [],
+              "text": "Med den rigtige el-leverandør kan en gennemsnitlig husstand spare mellem 2.000-5.000 kroner årligt. Brug vores beregner til at se din potentielle besparelse."
+            }
+          ],
+          "markDefs": [],
+          "style": "normal"
+        }
+      ],
+      "headerAlignment": "center",
+      "title": "Beregn din potentielle besparelse"
+    },
+    {
+      "_key": "m7mzpllnm4b",
+      "_type": "pageSection",
+      "content": [
+        {
+          "_key": "block-m7mzpllnm4b-1",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "span-m7mzpllnm4b-1",
+              "_type": "span",
+              "marks": [],
+              "text": "El-leverandører tilbyder forskellige prismodeller: fast pris, variabel pris og spotpris. Hver model har sine fordele afhængigt af dit forbrugsmønster."
+            }
+          ],
+          "markDefs": [],
+          "style": "normal"
+        }
+      ],
+      "headerAlignment": "left",
+      "title": "Forstå forskellige prismodeller"
+    },
+    {
+      "_key": "9vzuih8yjta",
+      "_type": "providerList",
+      "content": null,
+      "cta": null,
+      "headerAlignment": "center",
+      "headline": null,
+      "image": null,
+      "imagePosition": null,
+      "settings": null,
+      "subheadline": null,
+      "subtitle": "Find det bedste elselskab for dit behov",
+      "title": "Sammenlign Elselskaber"
+    },
+    {
+      "_key": "lcceqz0kcmf",
+      "_type": "pageSection",
+      "content": [
+        {
+          "_key": "block-lcceqz0kcmf-1",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "span-lcceqz0kcmf-1",
+              "_type": "span",
+              "marks": [],
+              "text": "Mange danskere ønsker at vælge grøn strøm for at reducere deres CO2-aftryk. Lær om de forskellige certificeringer og garantier for grøn energi."
+            }
+          ],
+          "markDefs": [],
+          "style": "normal"
+        }
+      ],
+      "headerAlignment": "left",
+      "image": {
+        "_key": "utx33yqyjn",
+        "_type": "image",
+        "alt": "Solceller og vindmøller - vedvarende energi i Danmark",
+        "asset": {
+          "_ref": "image-cc2444043b973c6c4c5326638213be037aba3762-4642x3095-jpg",
+          "_type": "reference"
+        }
+      },
+      "imagePosition": "left",
+      "title": "Grøn energi og bæredygtighed"
+    },
+    {
+      "_key": "05vq025xil57",
+      "_type": "valueProposition",
+      "content": null,
+      "cta": null,
+      "headerAlignment": null,
+      "heading": "Hvorfor bruge ElPortal til sammenligning?",
+      "headline": null,
+      "image": null,
+      "imagePosition": null,
+      "settings": null,
+      "subheading": "Vi gør det nemt at finde den bedste el-leverandør",
+      "subheadline": null,
+      "title": null
+    },
+    {
+      "_key": "h6vodbfp3fo",
+      "_type": "pageSection",
+      "content": [
+        {
+          "_key": "block-h6vodbfp3fo-1",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "span-h6vodbfp3fo-1",
+              "_type": "span",
+              "marks": [],
+              "text": "Elhushold, sommerhusejere og virksomheder har forskellige behov. Find ud af, hvilke faktorer der er vigtigst for din situation."
+            }
+          ],
+          "markDefs": [],
+          "style": "normal"
+        }
+      ],
+      "headerAlignment": "left",
+      "image": {
+        "_key": "bf35b6kldf4",
+        "_type": "image",
+        "alt": "Forskellige danske boligtyper - fra lejlighed til parcelhus",
+        "asset": {
+          "_ref": "image-25f491848272aa86650eb9e5bf4e061402a3d902-5056x3371-jpg",
+          "_type": "reference"
+        }
+      },
+      "imagePosition": "right",
+      "title": "Særlige overvejelser for forskellige forbrugertyper"
+    },
+    {
+      "_key": "2ys12pzb0wd",
+      "_type": "pageSection",
+      "content": [
+        {
+          "_key": "block-2ys12pzb0wd-1",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "span-2ys12pzb0wd-1",
+              "_type": "span",
+              "marks": [],
+              "text": "Skift af el-leverandør er nemt og gratis. Vi guider dig gennem hele processen fra sammenligning til kontraktunderskrivelse."
+            }
+          ],
+          "markDefs": [],
+          "style": "normal"
+        }
+      ],
+      "headerAlignment": "left",
+      "title": "Processen: Fra research til skift"
+    },
+    {
+      "_key": "uqok992rekp",
+      "_type": "pageSection",
+      "content": [
+        {
+          "_key": "block-uqok992rekp-1",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "span-uqok992rekp-1",
+              "_type": "span",
+              "marks": [],
+              "text": "Undgå dyre fejl ved at kende de mest almindelige faldgruber når du vælger el-leverandør. Læs de små bogstaver og forstå alle gebyrer."
+            }
+          ],
+          "markDefs": [],
+          "style": "normal"
+        }
+      ],
+      "headerAlignment": "left",
+      "title": "Almindelige faldgruber og hvordan du undgår dem"
+    },
+    {
+      "_key": "pctnb5v215",
+      "_type": "pageSection",
+      "content": [
+        {
+          "_key": "block-pctnb5v215-1",
+          "_type": "block",
+          "children": [
+            {
+              "_key": "span-pctnb5v215-1",
+              "_type": "span",
+              "marks": [],
+              "text": "Vindstød er en moderne el-leverandør, der fokuserer på transparent prissætning og 100% grøn energi. Se hvorfor mange danskere vælger Vindstød."
+            }
+          ],
+          "markDefs": [],
+          "style": "normal"
+        }
+      ],
+      "headerAlignment": "left",
+      "title": "Vindstød - Et eksempel på moderne el-leverandør"
+    },
+    {
+      "_key": "pj152lrpm4",
+      "_type": "faqGroup",
+      "content": null,
+      "cta": null,
+      "faqItems": [
+        {
+          "_key": "p0en4xn3p2",
+          "_type": "faqItem",
+          "answer": [
+            {
+              "_key": "qhwz0dcafk",
+              "_type": "block",
+              "children": [
+                {
+                  "_key": "1r4r2zwm11i",
+                  "_type": "span",
+                  "marks": [],
+                  "text": "Selve skifteprocessen tager typisk 1-3 hverdage at registrere. Den nye leverandør overtager ved næste månedsskifte, og du skal ikke selv kontakte din gamle leverandør."
+                }
+              ],
+              "style": "normal"
+            }
+          ],
+          "question": "Hvor lang tid tager det at skifte el-leverandør?"
+        },
+        {
+          "_key": "pjbezv559gl",
+          "_type": "faqItem",
+          "answer": [
+            {
+              "_key": "0w2f0u4mpk4j",
+              "_type": "block",
+              "children": [
+                {
+                  "_key": "mgzuyt93ap",
+                  "_type": "span",
+                  "marks": [],
+                  "text": "Ja, men det kan koste et gebyr. Check dine nuværende kontraktvilkår for omkostninger ved opsigelse før tid."
+                }
+              ],
+              "style": "normal"
+            }
+          ],
+          "question": "Kan jeg skifte selvom jeg har binding?"
+        },
+        {
+          "_key": "lb6omlz9ebd",
+          "_type": "faqItem",
+          "answer": [
+            {
+              "_key": "dq2ovw0mo9",
+              "_type": "block",
+              "children": [
+                {
+                  "_key": "9wt6apvads9",
+                  "_type": "span",
+                  "marks": [],
+                  "text": "Netselskabet ejer og vedligeholder ledningsnettet - det kan du ikke vælge. El-leverandøren sælger strømmen - her har du frit valg."
+                }
+              ],
+              "style": "normal"
+            }
+          ],
+          "question": "Hvad er forskellen på netselskab og el-leverandør?"
+        },
+        {
+          "_key": "126ug5uqvkm",
+          "_type": "faqItem",
+          "answer": [
+            {
+              "_key": "vkonumvtjil",
+              "_type": "block",
+              "children": [
+                {
+                  "_key": "0ex46sbrbl3",
+                  "_type": "span",
+                  "marks": [],
+                  "text": "Ikke nødvendigvis. Mange grønne leverandører er konkurrencedygtige på pris, og nogle er endda blandt de billigste."
+                }
+              ],
+              "style": "normal"
+            }
+          ],
+          "question": "Er grøn strøm dyrere?"
+        },
+        {
+          "_key": "uijmmc5tcde",
+          "_type": "faqItem",
+          "answer": [
+            {
+              "_key": "1nto0dmh1tg",
+              "_type": "block",
+              "children": [
+                {
+                  "_key": "6r34wkn18f2",
+                  "_type": "span",
+                  "marks": [],
+                  "text": "Du mister aldrig strømmen. Netselskabet sikrer forsyning, og du flyttes automatisk til en forsyningspligtig leverandør."
+                }
+              ],
+              "style": "normal"
+            }
+          ],
+          "question": "Hvad sker der hvis min el-leverandør går konkurs?"
+        },
+        {
+          "_key": "q90wgyksn3",
+          "_type": "faqItem",
+          "answer": [
+            {
+              "_key": "lqorou7vlr8",
+              "_type": "block",
+              "children": [
+                {
+                  "_key": "yl31qqfq9m",
+                  "_type": "span",
+                  "marks": [],
+                  "text": "Check virksomhedens historik, læs anmeldelser, verificér CVR-nummer og se efter branchegodkendelser."
+                }
+              ],
+              "style": "normal"
+            }
+          ],
+          "question": "Hvordan ved jeg om en leverandør er pålidelig?"
+        }
+      ],
+      "headerAlignment": null,
+      "headline": null,
+      "image": null,
+      "imagePosition": null,
+      "settings": null,
+      "subheadline": null,
+      "title": "Ofte stillede spørgsmål"
+    },
+    {
+      "_key": "u99sjpdpj1",
+      "_type": "callToActionSection",
+      "buttonText": "Start sammenligning nu",
+      "buttonUrl": "/",
+      "content": null,
+      "cta": null,
+      "headerAlignment": null,
+      "headline": null,
+      "image": null,
+      "imagePosition": null,
+      "settings": null,
+      "subheadline": null,
+      "title": "Tag kontrollen over dine elomkostninger i dag"
+    }
+  ],
+  "title": "Sådan vælger du den rigtige el-leverandør - Komplet guide 2025"
+}

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VP2 Icon Test</title>
+</head>
+<body>
+    <h1>Testing VP2 Icon URLs</h1>
+    
+    <div style="padding: 20px;">
+        <h2>VP2 Icon 1: check-badge</h2>
+        <img 
+            src="https://api.iconify.design/heroicons:check-badge.svg?width=20&height=20&color=%2384db41"
+            alt="check-badge"
+            style="width: 48px; height: 48px;"
+        />
+        
+        <h2>VP2 Icon 2: refresh</h2>
+        <img 
+            src="https://api.iconify.design/material-symbols-light:refresh.svg?width=20&height=20&color=%2384db41"
+            alt="refresh"
+            style="width: 48px; height: 48px;"
+        />
+        
+        <h2>VP2 Icon 3: list</h2>
+        <img 
+            src="https://api.iconify.design/material-symbols-light:list-rounded.svg?width=20&height=20&color=%2384db41"
+            alt="list-rounded"
+            style="width: 48px; height: 48px;"
+        />
+    </div>
+    
+    <script>
+        console.log('Testing VP2 icon URLs...');
+        document.querySelectorAll('img').forEach((img, index) => {
+            img.onload = () => console.log(`✅ VP2 Icon ${index + 1} loaded successfully`);
+            img.onerror = () => console.error(`❌ VP2 Icon ${index + 1} failed to load`);
+        });
+    </script>
+</body>
+</html>

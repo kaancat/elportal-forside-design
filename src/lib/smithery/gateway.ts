@@ -28,7 +28,11 @@ class SmitheryAuthProvider {
 
   // OAuth methods required by SDK but not used for API key auth
   clientInformation() {
-    return undefined
+    return {
+      redirect_uris: ['http://localhost:3000/callback'],
+      client_name: 'elportal-dev',
+      scope: 'read'
+    }
   }
 
   saveClientInformation() {
@@ -36,7 +40,11 @@ class SmitheryAuthProvider {
   }
 
   tokens() {
-    return undefined
+    return {
+      access_token: this.apiKey,
+      token_type: 'Bearer',
+      scope: 'read'
+    }
   }
 
   saveTokens() {

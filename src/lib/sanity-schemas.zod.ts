@@ -1,5 +1,6 @@
-// Auto-generated from Sanity schemas - DO NOT EDIT
+// Auto-generated from Sanity schemas - MANUALLY UPDATED ON 2025-08-01
 // Generated on: 2025-07-27T13:10:00.415Z
+// MANUAL UPDATES: Fixed PageSection and Hero schemas to match actual Sanity schemas
 
 import { z } from 'zod';
 
@@ -166,6 +167,7 @@ export const HeroSchema = z.object({
   _key: z.string(),
   headline: z.string(),
   subheadline: z.string().optional(),
+  image: SanityImageSchema.optional(),
 });
 
 export const HeroWithCalculatorSchema = z.object({
@@ -264,6 +266,15 @@ export const PageSectionSchema = z.object({
   _type: z.literal('pageSection'),
   _key: z.string(),
   title: z.string().optional(),
+  headerAlignment: z.enum(['left', 'center', 'right']).optional(),
+  content: z.array(z.any()).optional(), // Array of blocks, images, and embedded components
+  image: SanityImageSchema.optional(),
+  imagePosition: z.enum(['left', 'right']).optional(),
+  cta: z.object({
+    text: z.string(),
+    url: z.string(),
+  }).optional(),
+  settings: z.any().optional(), // SectionSettings schema defined later in file
 });
 
 export const PriceCalculatorSchema = z.object({

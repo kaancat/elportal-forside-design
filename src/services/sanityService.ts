@@ -1,6 +1,7 @@
 import { client } from '@/lib/sanity'
 import { BlogPost, SiteSettings, SanityPage, ProviderProductBlock, UnifiedPage } from '@/types/sanity'
 import { UnifiedPageService } from './unifiedPageService'
+import { sanitizeContentBlocks } from '@/lib/sanitizeContentBlocks'
 
 export class SanityService {
 
@@ -433,6 +434,11 @@ export class SanityService {
     
     try {
       const page = await client.fetch<SanityPage>(query, { slug })
+      // Sanitize content blocks to ensure all have keys
+      if (page && page.contentBlocks) {
+        page.contentBlocks = sanitizeContentBlocks(page.contentBlocks)
+      }
+      
       return page
     } catch (error) {
       console.error('Error fetching page by slug:', error)
@@ -479,6 +485,11 @@ export class SanityService {
         }`
       )
       
+      // Sanitize content blocks to ensure all have keys
+      if (page && page.contentBlocks) {
+        page.contentBlocks = sanitizeContentBlocks(page.contentBlocks)
+      }
+      
       return page
     } catch (error) {
       console.error('Error fetching unified homepage:', error)
@@ -505,6 +516,11 @@ export class SanityService {
         { slug }
       )
 
+      // Sanitize content blocks to ensure all have keys
+      if (page && page.contentBlocks) {
+        page.contentBlocks = sanitizeContentBlocks(page.contentBlocks)
+      }
+      
       return page
     } catch (error) {
       console.error('Error fetching unified page:', error)

@@ -188,11 +188,6 @@ export const HeroWithCalculatorSchema = z.object({
   subtitle: z.string().optional().nullable(),
 });
 
-export const HomePageSchema = z.object({
-  _type: z.literal('homePage'),
-  _key: z.string(),
-  title: z.string(),
-});
 
 export const InfoCardsSectionSchema = z.object({
   _type: z.literal('infoCardsSection'),

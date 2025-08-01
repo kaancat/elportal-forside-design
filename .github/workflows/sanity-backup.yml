@@ -43,7 +43,7 @@ jobs:
         mkdir -p backups/json_$DATE
         
         # Export each document type via API
-        for TYPE in page provider siteSettings homePage blogPost; do
+        for TYPE in page provider siteSettings blogPost; do
           echo "Exporting $TYPE documents..."
           curl -s -H "Authorization: Bearer $SANITY_API_TOKEN" \
             -G "https://yxesi03x.api.sanity.io/v2025-01-01/data/query/production" \
@@ -80,7 +80,7 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Backup Contents" >> $GITHUB_STEP_SUMMARY
         echo "- Full dataset export (.tar.gz)" >> $GITHUB_STEP_SUMMARY
-        echo "- JSON exports for: page, provider, siteSettings, homePage, blogPost" >> $GITHUB_STEP_SUMMARY
+        echo "- JSON exports for: page, provider, siteSettings, blogPost" >> $GITHUB_STEP_SUMMARY
 
     # Optional: Upload to cloud storage (uncomment and configure as needed)
     # - name: Upload to S3

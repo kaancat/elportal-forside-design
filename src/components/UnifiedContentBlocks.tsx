@@ -26,10 +26,11 @@ const UnifiedContentBlocks: React.FC<UnifiedContentBlocksProps> = ({
   enableBreadcrumbs = true,
   breadcrumbItems 
 }) => {
-  const blocks = page.contentBlocks || []
+  // Ensure blocks is always an array and filter out null/undefined values
+  const blocks = (page?.contentBlocks || []).filter(Boolean)
 
   // Homepage or breadcrumbs disabled: use regular ContentBlocks
-  if (page.isHomepage || !enableBreadcrumbs) {
+  if (page?.isHomepage || !enableBreadcrumbs) {
     return <ContentBlocks blocks={blocks} enableErrorBoundaries={true} />
   }
 

@@ -180,7 +180,9 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
               "prose prose-lg max-w-none",
               settings?.theme === 'dark' && "prose-invert"
             )}>
-              {content && <PortableText value={content} components={customComponents} />}
+              {content && Array.isArray(content) && content.length > 0 && (
+                <PortableText value={content} components={customComponents} />
+              )}
             </div>
             {cta && cta.text && cta.url && (
               <div className={`mt-10 ${textAlignClass === 'text-center' ? 'flex justify-center' : textAlignClass === 'text-right' ? 'flex justify-end' : ''}`}>
@@ -230,7 +232,9 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
                 "prose prose-lg max-w-none",
                 settings?.theme === 'dark' && "prose-invert"
               )}>
-                {content && <PortableText value={content} components={customComponents} />}
+                {content && Array.isArray(content) && content.length > 0 && (
+                <PortableText value={content} components={customComponents} />
+              )}
               </div>
               {cta && cta.text && cta.url && (
                 <div className={`mt-10 ${textAlignClass === 'text-center' ? 'flex justify-center' : textAlignClass === 'text-right' ? 'flex justify-end' : ''}`}>

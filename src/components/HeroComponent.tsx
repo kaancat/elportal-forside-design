@@ -11,8 +11,6 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
   const { 
     headline, 
     subheadline, 
-    title,
-    subtitle, 
     description,
     cta, 
     image, 
@@ -26,9 +24,6 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
   const heroImage = image || (images && images.length > 0 ? images[0] : null);
   const hasBackgroundUrl = backgroundImageUrl && backgroundImageUrl.length > 0;
   
-  // Use title/subtitle if headline/subheadline not available (for consistency)
-  const displayTitle = headline || title;
-  const displaySubtitle = subheadline || subtitle;
   
 
   // Full viewport height minus header space
@@ -70,11 +65,11 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
           style={minHeightStyle}
         >
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-white mb-6">
-            {displayTitle}
+            {headline}
           </h1>
-          {displaySubtitle && (
+          {subheadline && (
             <p className="max-w-2xl mx-auto text-lg md:text-xl text-neutral-200 mb-8">
-              {displaySubtitle}
+              {subheadline}
             </p>
           )}
           {description && description.length > 0 && (

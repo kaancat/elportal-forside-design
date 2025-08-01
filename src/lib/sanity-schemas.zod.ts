@@ -1,6 +1,10 @@
 // Auto-generated from Sanity schemas - MANUALLY UPDATED ON 2025-08-01
 // Generated on: 2025-07-27T13:10:00.415Z
-// MANUAL UPDATES: Fixed PageSection and Hero schemas to match actual Sanity schemas
+// MANUAL UPDATES: 
+// - 2025-08-01: Fixed PageSection and Hero schemas to match actual Sanity schemas
+// - 2025-08-01: Removed deprecated fields (title/subtitle) from HeroWithCalculator
+// - 2025-08-01: Removed deprecated fields (title/items/propositions) from ValueProposition
+// - 2025-08-01: Added icon field to valueItems in ValueProposition
 
 import { z } from 'zod';
 
@@ -183,9 +187,6 @@ export const HeroWithCalculatorSchema = z.object({
     value: z.string(),
     label: z.string()
   })).optional().nullable(),
-  // Deprecated fields for backward compatibility (nullable for clean data)
-  title: z.string().optional().nullable(),
-  subtitle: z.string().optional().nullable(),
 });
 
 
@@ -199,7 +200,7 @@ export const InfoCardsSectionSchema = z.object({
   cards: z.array(z.object({
     title: z.string(),
     description: z.array(z.any()).optional(),
-    icon: z.string().optional(),
+    icon: IconManagerSchema.optional(),
     iconColor: z.string().optional(),
     bgColor: z.string().optional(),
   })).optional(),
@@ -374,11 +375,8 @@ export const ValuePropositionSchema = z.object({
     _type: z.literal('valueItem'),
     heading: z.string(),
     description: z.string(),
+    icon: IconManagerSchema.optional(),
   })).optional(),
-  // Deprecated fields for backward compatibility
-  title: z.string().optional().nullable(),
-  items: z.array(z.any()).optional().nullable(),
-  propositions: z.array(z.string()).optional().nullable(),
 });
 
 export const VideoSectionSchema = z.object({

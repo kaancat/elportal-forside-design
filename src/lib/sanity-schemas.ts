@@ -175,9 +175,6 @@ export interface HeroWithCalculator extends ContentBlockBase {
     value: string;
     label: string;
   }>;
-  // Deprecated fields for backward compatibility
-  title?: string;
-  subtitle?: string;
 }
 
 

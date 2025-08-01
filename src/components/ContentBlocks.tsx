@@ -97,9 +97,9 @@ const SafeContentBlock: React.FC<{
         <section className="container mx-auto px-4 py-8">
           <h2 className="text-2xl font-bold text-brand-dark mb-6">Ofte stillede spørgsmål</h2>
           <div className="max-w-3xl">
-            {block.map((faqItem) => (
+            {block.map((faqItem, faqIndex) => (
               <ErrorBoundary
-                key={faqItem._key}
+                key={faqItem?._key || `faq-${faqIndex}`}
                 level="component"
                 fallback={<ContentErrorFallback message="Spørgsmål kunne ikke vises" />}
               >
@@ -242,7 +242,10 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
   const groupedBlocks: Array<ContentBlock | FAQItem[]> = [];
   let currentFAQGroup: FAQItem[] = [];
 
-  blocks.forEach((block, index) => {
+  // Filter out null/undefined blocks first
+  const validBlocks = blocks.filter(Boolean);
+  
+  validBlocks.forEach((block, index) => {
     if (block._type === 'faqItem') {
       currentFAQGroup.push(block as FAQItem);
     } else {
@@ -295,7 +298,9 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
             const spacingClass = 'mb-0';
             
             // Generate unique layoutId for each block to prevent remounting
-            const layoutId = Array.isArray(block) ? `faq-group-${index}` : `${block._type}-${block._key}`;
+            const layoutId = Array.isArray(block) 
+              ? `faq-group-${index}` 
+              : `${block._type}-${block._key || index}`;
             
             return (
               <div key={layoutId} className={spacingClass}>
@@ -326,7 +331,9 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
         const spacingClass = 'mb-0';
         
         // Generate unique layoutId for each block to prevent remounting
-        const layoutId = Array.isArray(block) ? `faq-group-${index}` : `${block._type}-${block._key}`;
+        const layoutId = Array.isArray(block) 
+          ? `faq-group-${index}` 
+          : `${block._type}-${block._key || index}`;
         
         return (
           <div key={layoutId} className={spacingClass}>
@@ -335,8 +342,8 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
               <section className="container mx-auto px-4 py-8">
                 <h2 className="text-2xl font-bold text-brand-dark mb-6">Ofte stillede spørgsmål</h2>
                 <div className="max-w-3xl">
-                  {block.map((faqItem) => (
-                    <FAQItemComponent key={faqItem._key} item={faqItem} />
+                  {block.map((faqItem, faqIndex) => (
+                    <FAQItemComponent key={faqItem?._key || `faq-${faqIndex}`} item={faqItem} />
                   ))}
                 </div>
               </section>

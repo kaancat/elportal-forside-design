@@ -180,10 +180,6 @@ export interface HeroWithCalculator extends ContentBlockBase {
   subtitle?: string;
 }
 
-export interface HomePage extends ContentBlockBase {
-  _type: 'homePage';
-  title: string;
-}
 
 export interface InfoCardsSection extends ContentBlockBase {
   _type: 'infoCardsSection';

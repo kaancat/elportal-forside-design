@@ -85,14 +85,14 @@ const CalculatorResults: React.FC<CalculatorResultsProps> = ({
               }`}
             >
               {provider.isVindstoedProduct && (
-                <div className="absolute top-0 right-0">
+                <div className="absolute top-0 right-0 z-10">
                   <Badge className="bg-brand-green text-white rounded-bl-lg rounded-tr-none px-3 py-1">
                     ⭐ Anbefalet
                   </Badge>
                 </div>
               )}
               
-              <CardContent className="p-4">
+              <CardContent className={`p-4 ${provider.isVindstoedProduct ? 'pt-12' : ''}`}>
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <h4 className="font-semibold text-gray-900">{provider.productName}</h4>

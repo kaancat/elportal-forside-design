@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
-import SafeContentBlocks from '@/components/SafeContentBlocks';
+import ContentBlocks from '@/components/ContentBlocks';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import ErrorTestComponent from '@/components/ErrorTestComponent';
 import { ApiErrorFallback } from '@/components/ErrorFallbacks';
@@ -109,7 +109,7 @@ const Index = () => {
         
         {/* Render Sanity content blocks with error boundaries */}
         {!loading && homepageData?.contentBlocks && homepageData.contentBlocks.length > 0 && (
-          <SafeContentBlocks blocks={homepageData.contentBlocks} />
+          <ContentBlocks blocks={homepageData.contentBlocks} enableErrorBoundaries={true} />
         )}
         
         {/* No content fallback */}

@@ -48,12 +48,12 @@ const totalPrice = subtotal * 1.25 // Add 25% VAT
 
 ## 4. Component Architecture
 
-### Content Block System (CRITICAL: Two Renderers!)
-- **ContentBlocks.tsx**: Central router for 15+ content types (used by regular pages)
-- **SafeContentBlocks.tsx**: Error-boundary wrapped renderer (used by homepage and critical pages)
+### Content Block System (UNIFIED RENDERER)
+- **ContentBlocks.tsx**: Unified router for 15+ content types with optional error boundaries
 - **Dynamic Rendering**: Maps Sanity schemas to React components
 - **Type Safety**: Full TypeScript with discriminated unions
-- **IMPORTANT**: When adding new content blocks, you MUST update BOTH ContentBlocks.tsx AND SafeContentBlocks.tsx
+- **Error Boundaries**: Optional via `enableErrorBoundaries={true}` prop (enabled for homepage)
+- **IMPORTANT**: When adding new content blocks, update ContentBlocks.tsx renderContentBlock() function
 
 ### Key Interactive Components
 1. **PriceCalculatorWidget**: Core conversion tool

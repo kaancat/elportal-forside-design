@@ -22,6 +22,19 @@ export const Icon: React.FC<IconProps> = ({
   color
 }) => {
 
+  // Debug logging for ValueProposition 2 icons
+  if (process.env.NODE_ENV === 'development' && icon) {
+    console.log('[Icon] Debug data:', {
+      hasIcon: !!icon,
+      hasSvg: !!icon.svg,
+      svgContent: icon.svg ? icon.svg.substring(0, 50) + '...' : 'No SVG',
+      hasMetadata: !!icon.metadata,
+      metadataUrl: icon.metadata?.url,
+      iconString: icon.icon,
+      componentPath: 'Icon.tsx'
+    });
+  }
+
   // Handle direct SVG field from sanity-plugin-icon-manager
   // Skip placeholder SVGs and use URL instead
   if (icon?.svg && !icon.svg.includes('Placeholder SVG')) {

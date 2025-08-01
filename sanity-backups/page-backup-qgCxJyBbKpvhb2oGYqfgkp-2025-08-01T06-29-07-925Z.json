@@ -1,0 +1,568 @@
+{
+  "_createdAt": "2025-07-28T11:43:17Z",
+  "_id": "qgCxJyBbKpvhb2oGYqfgkp",
+  "_rev": "95vBmVlXBxlHRIj7vFbLBV",
+  "_system": {
+    "base": {
+      "id": "qgCxJyBbKpvhb2oGYqfgkp",
+      "rev": "1BrgDwXdqxJ08rMIonfImO"
+    }
+  },
+  "_type": "page",
+  "_updatedAt": "2025-07-31T13:27:03Z",
+  "contentBlocks": [
+    {
+      "_key": "3ka62fe93dr",
+      "_type": "hero",
+      "content": null,
+      "cta": null,
+      "features": null,
+      "headerAlignment": null,
+      "headline": "Vælg den rigtige el-leverandør",
+      "image": {
+        "_key": "tlhpshzbw3m",
+        "_type": "image",
+        "alt": "Vindmøller i Danmark - grøn energi og bæredygtighed",
+        "asset": {
+          "_ref": "image-7be15ec9534513618b3540805be193c764522694-5364x3576-jpg",
+          "_type": "reference"
+        },
+        "hotspot": {
+          "height": 0.5,
+          "width": 0.8,
+          "x": 0.5,
+          "y": 0.5
+        }
+      },
+      "imagePosition": null,
+      "items": null,
+      "settings": null,
+      "showScrollIndicator": true,
+      "subheadline": "Spar tusindvis af kroner med det rigtige valg",
+      "title": null,
+      "valueItems": null,
+      "variant": "centered"
+    },
+    {
+      "_key": "a1s06lh5qtp",
+      "_type": "pageSection",
+      "content": null,
+      "cta": null,
+      "features": null,
+      "headerAlignment": "left",
+      "headline": null,
+      "image": null,
+      "imagePosition": null,
+      "items": null,
+      "settings": null,
+      "showScrollIndicator": null,
+      "subheadline": null,
+      "title": "Din komplette guide til at vælge el-leverandør",
+      "valueItems": null,
+      "variant": null
+    },
+    {
+      "_key": "ls5dwx7fwc",
+      "_type": "pageSection",
+      "content": null,
+      "cta": null,
+      "features": null,
+      "headerAlignment": "left",
+      "headline": null,
+      "image": {
+        "_key": "iuatp8pgpb",
+        "_type": "image",
+        "alt": "Det danske elmarked - moderne energiinfrastruktur",
+        "asset": {
+          "_ref": "image-1bb854050ed58d6d9690a127a112f9d3c0380d6f-6000x4000-jpg",
+          "_type": "reference"
+        }
+      },
+      "imagePosition": "right",
+      "items": null,
+      "settings": null,
+      "showScrollIndicator": null,
+      "subheadline": null,
+      "title": "Forstå markedet for el-leverandører i Danmark",
+      "valueItems": null,
+      "variant": null
+    },
+    {
+      "_key": "x93ajwv6pi",
+      "_type": "featureList",
+      "content": null,
+      "cta": null,
+      "features": [
+        {
+          "_key": "ss1q6hzmro",
+          "_type": "featureItem",
+          "description": "Forstå forskellen mellem spotpris, fastpris og hybrid-modeller. Vælg den model der passer til din risikovillighed og forbrugsmønster.",
+          "icon": {
+            "_type": "icon.manager",
+            "name": "circleEuro",
+            "provider": "hi",
+            "svg": "<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 24 24\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path fill=\"none\" stroke-width=\"2\" d=\"M12,23 C18.0751322,23 23,18.0751322 23,12 C23,5.92486775 18.0751322,1 12,1 C5.92486775,1 1,5.92486775 1,12 C1,18.0751322 5.92486775,23 12,23 Z M6,8 L13,8 M6,12 L13,12 M15,16 C15,16 13.0611501,17 11.5,17 C9,17 7.5,15 7.5,12 C7.5,9 9,7 11.5,7 C13.0611501,7 15,8 15,8\"></path></svg>"
+          },
+          "title": "Pris og prismodeller"
+        },
+        {
+          "_key": "6nvsnmo6c3d",
+          "_type": "featureItem",
+          "description": "Check bindingsperioder, opsigelsesvarsel og gebyrer. Vælg fleksible løsninger der giver dig frihed til at skifte.",
+          "icon": {
+            "_type": "icon.manager",
+            "name": "contract",
+            "provider": "fi",
+            "svg": "<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 24 24\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z\"></path></svg>"
+          },
+          "title": "Kontraktvilkår og binding"
+        },
+        {
+          "_key": "amf4bq2h14",
+          "_type": "featureItem",
+          "description": "Vælg leverandører med certificeret vedvarende energi. Støt den grønne omstilling med vindstrøm eller solenergi.",
+          "icon": {
+            "_type": "icon.manager",
+            "name": "leaf",
+            "provider": "fa",
+            "svg": "<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M272 96c-78.6 0-145.1 51.5-167.7 122.5c33.6-17 71.5-26.5 111.7-26.5h88c8.8 0 16 7.2 16 16s-7.2 16-16 16H288 216s0 0 0 0c-16.6 0-32.7 1.9-48.3 5.4c-25.9 5.9-49.9 16.4-71.4 30.7c0 0 0 0 0 0C38.3 298.8 0 364.9 0 440v16c0 13.3 10.7 24 24 24s24-10.7 24-24V440c0-48.7 20.7-92.5 53.8-123.2C121.6 392.3 190.3 448 272 448l1 0c132.1-.7 239-130.9 239-291.4c0-42.6-7.5-83.1-21.1-119.6c-2.6-6.9-12.7-6.6-16.2-.1C455.9 72.1 418.7 96 376 96L272 96z\"></path></svg>"
+          },
+          "title": "Grøn energi"
+        },
+        {
+          "_key": "ublqro4a4aq",
+          "_type": "featureItem",
+          "description": "God support sparer dig frustrationer. Vælg leverandører med dansk kundeservice og gode digitale løsninger.",
+          "icon": {
+            "_type": "icon.manager",
+            "name": "headset",
+            "provider": "fi",
+            "svg": "<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 24 24\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M20 12v-1.707c0-4.442-3.479-8.161-7.755-8.29-2.204-.051-4.251.736-5.816 2.256A7.933 7.933 0 0 0 4 10v2c-1.103 0-2 .897-2 2v4c0 1.103.897 2 2 2h2V10a5.95 5.95 0 0 1 1.821-4.306 5.977 5.977 0 0 1 4.363-1.691C15.392 4.099 18 6.921 18 10.293V20h2c1.103 0 2-.897 2-2v-4c0-1.103-.897-2-2-2z\"></path><path d=\"M7 12h2v8H7zm8 0h2v8h-2z\"></path></svg>"
+          },
+          "title": "Kundeservice"
+        }
+      ],
+      "headerAlignment": null,
+      "headline": null,
+      "image": null,
+      "imagePosition": null,
+      "items": null,
+      "settings": null,
+      "showScrollIndicator": null,
+      "subheadline": null,
+      "subtitle": "Overvej disse områder før du træffer dit valg",
+      "title": "De vigtigste faktorer når du vælger el-leverandør",
+      "valueItems": null,
+      "variant": null
+    },
+    {
+      "_key": "kkk7a8uinn9",
+      "_type": "pageSection",
+      "content": null,
+      "cta": null,
+      "features": null,
+      "headerAlignment": "center",
+      "headline": null,
+      "image": null,
+      "imagePosition": null,
+      "items": null,
+      "settings": null,
+      "showScrollIndicator": null,
+      "subheadline": null,
+      "title": "Beregn din potentielle besparelse",
+      "valueItems": null,
+      "variant": null
+    },
+    {
+      "_key": "m7mzpllnm4b",
+      "_type": "pageSection",
+      "content": null,
+      "cta": null,
+      "features": null,
+      "headerAlignment": "left",
+      "headline": null,
+      "image": null,
+      "imagePosition": null,
+      "items": null,
+      "settings": null,
+      "showScrollIndicator": null,
+      "subheadline": null,
+      "title": "Forstå forskellige prismodeller",
+      "valueItems": null,
+      "variant": null
+    },
+    {
+      "_key": "9vzuih8yjta",
+      "_type": "providerList",
+      "content": null,
+      "cta": null,
+      "features": null,
+      "headerAlignment": "center",
+      "headline": null,
+      "image": null,
+      "imagePosition": null,
+      "items": null,
+      "settings": null,
+      "showScrollIndicator": null,
+      "subheadline": null,
+      "subtitle": "Find det bedste elselskab for dit behov",
+      "title": "Sammenlign Elselskaber",
+      "valueItems": null,
+      "variant": null
+    },
+    {
+      "_key": "lcceqz0kcmf",
+      "_type": "pageSection",
+      "content": null,
+      "cta": null,
+      "features": null,
+      "headerAlignment": "left",
+      "headline": null,
+      "image": {
+        "_key": "utx33yqyjn",
+        "_type": "image",
+        "alt": "Solceller og vindmøller - vedvarende energi i Danmark",
+        "asset": {
+          "_ref": "image-cc2444043b973c6c4c5326638213be037aba3762-4642x3095-jpg",
+          "_type": "reference"
+        }
+      },
+      "imagePosition": "left",
+      "items": null,
+      "settings": null,
+      "showScrollIndicator": null,
+      "subheadline": null,
+      "title": "Grøn energi og bæredygtighed",
+      "valueItems": null,
+      "variant": null
+    },
+    {
+      "_key": "05vq025xil57",
+      "_type": "valueProposition",
+      "content": null,
+      "cta": null,
+      "features": null,
+      "headerAlignment": null,
+      "heading": "Hvorfor bruge ElPortal til sammenligning?",
+      "headline": null,
+      "image": null,
+      "imagePosition": null,
+      "items": null,
+      "settings": null,
+      "showScrollIndicator": null,
+      "subheading": "Vi gør det nemt at finde den bedste el-leverandør",
+      "subheadline": null,
+      "title": null,
+      "valueItems": [
+        {
+          "_key": "vp1",
+          "_type": "valueItem",
+          "description": "Vi viser alle leverandører transparent og giver dig det fulde overblik",
+          "heading": "Uvildig sammenligning",
+          "icon": {
+            "_type": "icon.manager",
+            "name": "balance",
+            "provider": "fa",
+            "svg": "<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 640 512\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M554.9 154.5c-17.62-35.25-68.12-35.38-85.87 0c-87 174.3-84.1 165.9-84.1 181.5c0 44.13 57.25 80 128 80s127.1-35.88 127.1-80C639.1 319.9 641.4 327.3 554.9 154.5zM439.1 320l71.96-144l72.17 144H439.1zM256 336c0-16.12 1.375-8.75-85.12-181.5c-17.62-35.25-68.12-35.38-85.87 0c-87 174.3-84.1 165.9-84.1 181.5c0 44.13 57.25 80 127.1 80S256 380.1 256 336zM127.9 176L200.1 320H55.96L127.9 176zM495.1 448h-143.1V153.3C375.5 143 393.1 121.8 398.4 96h113.6c17.67 0 31.1-14.33 31.1-32s-14.33-32-31.1-32h-128.4c-14.62-19.38-37.5-32-63.62-32S270.1 12.62 256.4 32H128C110.3 32 96 46.33 96 64S110.3 96 127.1 96h113.6c5.25 25.75 22.87 47 46.37 57.25V448H144c-26.51 0-48.01 21.49-48.01 48c0 8.836 7.165 16 16 16h416c8.836 0 16-7.164 16-16C544 469.5 522.5 448 495.1 448z\"></path></svg>"
+          }
+        },
+        {
+          "_key": "vp2",
+          "_type": "valueItem",
+          "description": "Se aktuelle elpriser og prognoser direkte fra de officielle kilder",
+          "heading": "Realtidsdata",
+          "icon": {
+            "_type": "icon.manager",
+            "name": "chart",
+            "provider": "fi",
+            "svg": "<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 24 24\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M3 3v18h18v-2H5V3H3z\"></path><path d=\"M19 10h2v3h-2zm-5-5h2v10h-2zm-5 8h2v5H9z\"></path></svg>"
+          }
+        },
+        {
+          "_key": "vp3",
+          "_type": "valueItem",
+          "description": "Få præcise prisoverslag baseret på dit faktiske forbrug",
+          "heading": "Personlig beregning",
+          "icon": {
+            "_type": "icon.manager",
+            "name": "calculator",
+            "provider": "fi",
+            "svg": "<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 24 24\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M19 2H5c-1.103 0-2 .897-2 2v16c0 1.103.897 2 2 2h14c1.103 0 2-.897 2-2V4c0-1.103-.897-2-2-2zM5 20V4h14l.001 16H5z\"></path><path d=\"M7 12h2v2H7zm0 4h2v2H7zm4-4h2v2h-2zM7 6h10v4H7zm4 10h2v2h-2zm4-4h2v6h-2z\"></path></svg>"
+          }
+        },
+        {
+          "_key": "vp4",
+          "_type": "valueItem",
+          "description": "ElPortal er 100% gratis at bruge og helt uafhængig af leverandørerne",
+          "heading": "Gratis og uafhængig",
+          "icon": {
+            "_type": "icon.manager",
+            "name": "shield",
+            "provider": "fi",
+            "svg": "<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 24 24\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M20.995 6.9a.998.998 0 0 0-.548-.795l-8-4a1 1 0 0 0-.895 0l-8 4a1.002 1.002 0 0 0-.547.795c-.011.107-.961 10.767 8.589 15.014a.987.987 0 0 0 .812 0c9.55-4.247 8.6-14.906 8.589-15.014zM12 19.897C5.231 16.625 4.911 9.642 4.966 7.635L12 4.118l7.029 3.515c.037 1.989-.328 9.018-7.029 12.264z\"></path><path d=\"m11 12.586-2.293-2.293-1.414 1.414L11 15.414l5.707-5.707-1.414-1.414z\"></path></svg>"
+          }
+        }
+      ],
+      "variant": null
+    },
+    {
+      "_key": "h6vodbfp3fo",
+      "_type": "pageSection",
+      "content": null,
+      "cta": null,
+      "features": null,
+      "headerAlignment": "left",
+      "headline": null,
+      "image": {
+        "_key": "bf35b6kldf4",
+        "_type": "image",
+        "alt": "Forskellige danske boligtyper - fra lejlighed til parcelhus",
+        "asset": {
+          "_ref": "image-25f491848272aa86650eb9e5bf4e061402a3d902-5056x3371-jpg",
+          "_type": "reference"
+        }
+      },
+      "imagePosition": "right",
+      "items": null,
+      "settings": null,
+      "showScrollIndicator": null,
+      "subheadline": null,
+      "title": "Særlige overvejelser for forskellige forbrugertyper",
+      "valueItems": null,
+      "variant": null
+    },
+    {
+      "_key": "2ys12pzb0wd",
+      "_type": "pageSection",
+      "content": null,
+      "cta": null,
+      "features": null,
+      "headerAlignment": "left",
+      "headline": null,
+      "image": null,
+      "imagePosition": null,
+      "items": null,
+      "settings": null,
+      "showScrollIndicator": null,
+      "subheadline": null,
+      "title": "Processen: Fra research til skift",
+      "valueItems": null,
+      "variant": null
+    },
+    {
+      "_key": "uqok992rekp",
+      "_type": "pageSection",
+      "content": null,
+      "cta": null,
+      "features": null,
+      "headerAlignment": "left",
+      "headline": null,
+      "image": null,
+      "imagePosition": null,
+      "items": null,
+      "settings": null,
+      "showScrollIndicator": null,
+      "subheadline": null,
+      "title": "Almindelige faldgruber og hvordan du undgår dem",
+      "valueItems": null,
+      "variant": null
+    },
+    {
+      "_key": "pctnb5v215",
+      "_type": "pageSection",
+      "content": null,
+      "cta": null,
+      "features": null,
+      "headerAlignment": "left",
+      "headline": null,
+      "image": null,
+      "imagePosition": null,
+      "items": null,
+      "settings": null,
+      "showScrollIndicator": null,
+      "subheadline": null,
+      "title": "Vindstød - Et eksempel på moderne el-leverandør",
+      "valueItems": null,
+      "variant": null
+    },
+    {
+      "_key": "pj152lrpm4",
+      "_type": "faqGroup",
+      "content": null,
+      "cta": null,
+      "faqItems": [
+        {
+          "_key": "p0en4xn3p2",
+          "_type": "faqItem",
+          "answer": [
+            {
+              "_key": "qhwz0dcafk",
+              "_type": "block",
+              "children": [
+                {
+                  "_key": "1r4r2zwm11i",
+                  "_type": "span",
+                  "marks": [],
+                  "text": "Selve skifteprocessen tager typisk 1-3 hverdage at registrere. Den nye leverandør overtager ved næste månedsskifte, og du skal ikke selv kontakte din gamle leverandør."
+                }
+              ],
+              "style": "normal"
+            }
+          ],
+          "question": "Hvor lang tid tager det at skifte el-leverandør?"
+        },
+        {
+          "_key": "pjbezv559gl",
+          "_type": "faqItem",
+          "answer": [
+            {
+              "_key": "0w2f0u4mpk4j",
+              "_type": "block",
+              "children": [
+                {
+                  "_key": "mgzuyt93ap",
+                  "_type": "span",
+                  "marks": [],
+                  "text": "Ja, men det kan koste et gebyr. Check dine nuværende kontraktvilkår for omkostninger ved opsigelse før tid."
+                }
+              ],
+              "style": "normal"
+            }
+          ],
+          "question": "Kan jeg skifte selvom jeg har binding?"
+        },
+        {
+          "_key": "lb6omlz9ebd",
+          "_type": "faqItem",
+          "answer": [
+            {
+              "_key": "dq2ovw0mo9",
+              "_type": "block",
+              "children": [
+                {
+                  "_key": "9wt6apvads9",
+                  "_type": "span",
+                  "marks": [],
+                  "text": "Netselskabet ejer og vedligeholder ledningsnettet - det kan du ikke vælge. El-leverandøren sælger strømmen - her har du frit valg."
+                }
+              ],
+              "style": "normal"
+            }
+          ],
+          "question": "Hvad er forskellen på netselskab og el-leverandør?"
+        },
+        {
+          "_key": "126ug5uqvkm",
+          "_type": "faqItem",
+          "answer": [
+            {
+              "_key": "vkonumvtjil",
+              "_type": "block",
+              "children": [
+                {
+                  "_key": "0ex46sbrbl3",
+                  "_type": "span",
+                  "marks": [],
+                  "text": "Ikke nødvendigvis. Mange grønne leverandører er konkurrencedygtige på pris, og nogle er endda blandt de billigste."
+                }
+              ],
+              "style": "normal"
+            }
+          ],
+          "question": "Er grøn strøm dyrere?"
+        },
+        {
+          "_key": "uijmmc5tcde",
+          "_type": "faqItem",
+          "answer": [
+            {
+              "_key": "1nto0dmh1tg",
+              "_type": "block",
+              "children": [
+                {
+                  "_key": "6r34wkn18f2",
+                  "_type": "span",
+                  "marks": [],
+                  "text": "Du mister aldrig strømmen. Netselskabet sikrer forsyning, og du flyttes automatisk til en forsyningspligtig leverandør."
+                }
+              ],
+              "style": "normal"
+            }
+          ],
+          "question": "Hvad sker der hvis min el-leverandør går konkurs?"
+        },
+        {
+          "_key": "q90wgyksn3",
+          "_type": "faqItem",
+          "answer": [
+            {
+              "_key": "lqorou7vlr8",
+              "_type": "block",
+              "children": [
+                {
+                  "_key": "yl31qqfq9m",
+                  "_type": "span",
+                  "marks": [],
+                  "text": "Check virksomhedens historik, læs anmeldelser, verificér CVR-nummer og se efter branchegodkendelser."
+                }
+              ],
+              "style": "normal"
+            }
+          ],
+          "question": "Hvordan ved jeg om en leverandør er pålidelig?"
+        }
+      ],
+      "features": null,
+      "headerAlignment": null,
+      "headline": null,
+      "image": null,
+      "imagePosition": null,
+      "items": null,
+      "settings": null,
+      "showScrollIndicator": null,
+      "subheadline": null,
+      "title": "Ofte stillede spørgsmål",
+      "valueItems": null,
+      "variant": null
+    },
+    {
+      "_key": "u99sjpdpj1",
+      "_type": "callToActionSection",
+      "buttonText": "Start sammenligning nu",
+      "buttonUrl": "/",
+      "content": null,
+      "cta": null,
+      "features": null,
+      "headerAlignment": null,
+      "headline": null,
+      "image": null,
+      "imagePosition": null,
+      "items": null,
+      "settings": null,
+      "showScrollIndicator": null,
+      "subheadline": null,
+      "title": "Tag kontrollen over dine elomkostninger i dag",
+      "valueItems": null,
+      "variant": null
+    }
+  ],
+  "seoKeywords": [
+    "vælg elselskab",
+    "el-leverandør",
+    "sammenlign elselskaber",
+    "bedste elselskab",
+    "elpriser",
+    "grøn strøm",
+    "fastpris el",
+    "spotpris",
+    "kundeservice elselskab",
+    "skift elselskab"
+  ],
+  "seoMetaDescription": "Find den bedste el-leverandør til dit behov. Sammenlign priser, kontrakter og grøn energi. Spar penge og træf det rigtige valg med vores guide.",
+  "seoMetaTitle": "Sådan vælger du den rigtige el-leverandør - Komplet guide 2024",
+  "slug": {
+    "_type": "slug",
+    "current": "hvordan-vaelger-du-elleverandoer"
+  },
+  "title": "Sådan vælger du den rigtige el-leverandør - Komplet guide 2025"
+}

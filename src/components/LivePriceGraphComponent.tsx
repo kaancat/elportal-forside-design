@@ -71,7 +71,11 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
           setData([]);
         } else {
           setData(result.records);
-          const max = Math.max(...result.records.map((r: PriceData) => r.TotalPriceKWh));
+          // Safe maxPrice calculation with validation
+          const validPrices = result.records
+            .map((r: PriceData) => r.TotalPriceKWh)
+            .filter((price: number) => typeof price === 'number' && !isNaN(price) && isFinite(price));
+          const max = validPrices.length > 0 ? Math.max(...validPrices) : 1.5;
           setMaxPrice(max > 0 ? max : 1.5); // Set a minimum max price to avoid tiny bars
         }
       } catch (err: any) {
@@ -115,34 +119,70 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   };
 
   const calculatedData = useMemo(() => {
-    return data.map(d => {
-      const spotPrice = d.SpotPriceKWh;
-      let feesOnChart = 0;
-      if (fees.system.enabled) feesOnChart += fees.system.value;
-      if (fees.elafgift.enabled) feesOnChart += fees.elafgift.value;
-      let totalWithFees = spotPrice + feesOnChart;
-      if (fees.moms.enabled) totalWithFees *= fees.moms.value;
-      return { hour: new Date(d.HourDK).getHours(), spotPrice, total: totalWithFees, fees: feesOnChart * (fees.moms.enabled ? fees.moms.value : 1) };
-    });
+    return data
+      .filter(d => d && typeof d.SpotPriceKWh === 'number' && d.HourDK)
+      .map(d => {
+        const spotPrice = d.SpotPriceKWh || 0;
+        let feesOnChart = 0;
+        if (fees.system.enabled) feesOnChart += fees.system.value || 0;
+        if (fees.elafgift.enabled) feesOnChart += fees.elafgift.value || 0;
+        let totalWithFees = spotPrice + feesOnChart;
+        if (fees.moms.enabled) totalWithFees *= fees.moms.value || 1;
+        
+        // Safe date parsing with fallback
+        let hour = 0;
+        try {
+          hour = new Date(d.HourDK).getHours();
+          if (isNaN(hour)) hour = 0;
+        } catch (e) {
+          hour = 0;
+        }
+        
+        return { 
+          hour, 
+          spotPrice, 
+          total: totalWithFees, 
+          fees: feesOnChart * (fees.moms.enabled ? fees.moms.value || 1 : 1) 
+        };
+      });
   }, [data, fees]);
 
   const stats = useMemo(() => {
     if (calculatedData.length === 0) return null;
-    const prices = calculatedData.map(d => d.total);
-    const highest = Math.max(...prices);
-    const lowest = Math.min(...prices);
-    const average = prices.reduce((a, b) => a + b, 0) / prices.length;
     
-    // Calculate standard deviation
-    const squaredDifferences = prices.map(price => Math.pow(price - average, 2));
-    const variance = squaredDifferences.reduce((a, b) => a + b, 0) / prices.length;
+    // Filter out invalid prices and ensure we have valid data
+    const validPrices = calculatedData
+      .map(d => d.total)
+      .filter(price => typeof price === 'number' && !isNaN(price) && isFinite(price));
+    
+    if (validPrices.length === 0) return null;
+    
+    const highest = Math.max(...validPrices);
+    const lowest = Math.min(...validPrices);
+    const average = validPrices.reduce((a, b) => a + b, 0) / validPrices.length;
+    
+    // Calculate standard deviation with valid prices only
+    const squaredDifferences = validPrices.map(price => Math.pow(price - average, 2));
+    const variance = squaredDifferences.reduce((a, b) => a + b, 0) / validPrices.length;
     const standardDeviation = Math.sqrt(variance);
     
+    // Find hours for highest/lowest prices with fallback
+    const highestData = calculatedData.find(d => d.total === highest);
+    const lowestData = calculatedData.find(d => d.total === lowest);
+    
     return {
-      highest: { price: highest, hour: calculatedData.find(d => d.total === highest)?.hour },
-      lowest: { price: lowest, hour: calculatedData.find(d => d.total === lowest)?.hour },
-      average: { price: average },
-      standardDeviation
+      highest: { 
+        price: highest || 0, 
+        hour: highestData?.hour ?? 0 
+      },
+      lowest: { 
+        price: lowest || 0, 
+        hour: lowestData?.hour ?? 0 
+      },
+      average: { 
+        price: average || 0 
+      },
+      standardDeviation: standardDeviation || 0
     };
   }, [calculatedData]);
 
@@ -187,17 +227,17 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                     <>
                         <div>
                             <p className="text-[11px] sm:text-xs text-gray-500">Højeste pris</p>
-                            <p className="text-base sm:text-lg font-bold text-gray-800">{stats.highest.price.toFixed(2)} kr.</p>
-                            <p className="text-[11px] sm:text-xs text-gray-500">Kl. {String(stats.highest.hour).padStart(2, '0')}:00</p>
+                            <p className="text-base sm:text-lg font-bold text-gray-800">{(stats?.highest?.price ?? 0).toFixed(2)} kr.</p>
+                            <p className="text-[11px] sm:text-xs text-gray-500">Kl. {String(stats?.highest?.hour ?? 0).padStart(2, '0')}:00</p>
                         </div>
                         <div>
                             <p className="text-[11px] sm:text-xs text-gray-500">Laveste pris</p>
-                            <p className="text-base sm:text-lg font-bold text-gray-800">{stats.lowest.price.toFixed(2)} kr.</p>
-                            <p className="text-[11px] sm:text-xs text-gray-500">Kl. {String(stats.lowest.hour).padStart(2, '0')}:00</p>
+                            <p className="text-base sm:text-lg font-bold text-gray-800">{(stats?.lowest?.price ?? 0).toFixed(2)} kr.</p>
+                            <p className="text-[11px] sm:text-xs text-gray-500">Kl. {String(stats?.lowest?.hour ?? 0).padStart(2, '0')}:00</p>
                         </div>
                         <div>
                             <p className="text-[11px] sm:text-xs text-gray-500">Gennemsnit</p>
-                            <p className="text-base sm:text-lg font-bold text-gray-800">{stats.average.price.toFixed(2)} kr.</p>
+                            <p className="text-base sm:text-lg font-bold text-gray-800">{(stats?.average?.price ?? 0).toFixed(2)} kr.</p>
                             <p className="text-[11px] sm:text-xs text-gray-500">{selectedDate.toLocaleDateString('da-DK', { day: 'numeric', month: 'long' })}</p>
                         </div>
                     </>
@@ -283,7 +323,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                                 className="absolute right-0 w-full flex items-center"
                                 style={{ top: `${((maxPrice - tick) / maxPrice) * 100}%`, transform: 'translateY(-50%)' }}
                             >
-                                <span className="text-xs text-gray-400 mr-2">{tick.toFixed(2)}</span>
+                                <span className="text-xs text-gray-400 mr-2">{(tick ?? 0).toFixed(2)}</span>
                                 <div className="flex-1 border-b border-dashed border-gray-200"></div>
                             </div>
                         ))}
@@ -386,7 +426,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                                     
                                     {/* Labels container, placed directly below the bar */}
                                     <div className="text-center mt-2 px-0.5">
-                                        <div className="text-xs font-medium text-gray-600 leading-none">{total.toFixed(2)}</div>
+                                        <div className="text-xs font-medium text-gray-600 leading-none">{(total ?? 0).toFixed(2)}</div>
                                         <div className="text-xs text-gray-500 leading-none mt-0.5">kl. {String(hour).padStart(2, '0')}</div>
                                     </div>
                                 </div>
@@ -451,24 +491,24 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                     <div className="flex flex-col gap-y-1 text-xs">
                         <div className="flex justify-between">
                             <span>Spotpris:</span>
-                            <span>{hoveredHourData.spotPrice.toFixed(2)} kr/kWh</span>
+                            <span>{(hoveredHourData?.spotPrice ?? 0).toFixed(2)} kr/kWh</span>
                         </div>
                         {hoveredHourData.system > 0 && (
                             <div className="flex justify-between">
                                 <span>Systemgebyr:</span>
-                                <span>{hoveredHourData.system.toFixed(2)} kr/kWh</span>
+                                <span>{(hoveredHourData?.system ?? 0).toFixed(2)} kr/kWh</span>
                             </div>
                         )}
                         {hoveredHourData.elafgift > 0 && (
                             <div className="flex justify-between">
                                 <span>Elafgift:</span>
-                                <span>{hoveredHourData.elafgift.toFixed(2)} kr/kWh</span>
+                                <span>{(hoveredHourData?.elafgift ?? 0).toFixed(2)} kr/kWh</span>
                             </div>
                         )}
                         <div className="border-t border-gray-600 pt-1 mt-1">
                             <div className="flex justify-between font-semibold">
                                 <span>Total pris:</span>
-                                <span>{hoveredHourData.total.toFixed(2)} kr/kWh</span>
+                                <span>{(hoveredHourData?.total ?? 0).toFixed(2)} kr/kWh</span>
           </div>
         </div>
                     </div>

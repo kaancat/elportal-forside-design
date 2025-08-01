@@ -729,6 +729,22 @@ export class SanityService {
             ctaLink,
             ctaText
           }
+        },
+        _type == "heroWithCalculator" => {
+          _key,
+          _type,
+          headline,
+          subheadline,
+          highlightWords,
+          content,
+          calculatorTitle,
+          showLivePrice,
+          showProviderComparison,
+          stats[]{
+            _key,
+            value,
+            label
+          }
         }
       }
     }`

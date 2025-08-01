@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { SanityService } from '@/services/sanityService';
-import { SanityPage } from '@/types/sanity';
+import { UnifiedPage } from '@/types/sanity';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
-import { ContentBlocksWithBreadcrumb } from '@/components/ContentBlocksWithBreadcrumb';
-import { type BreadcrumbItem } from '@/components/PageBreadcrumbSubtle';
+import UnifiedContentBlocks from '@/components/UnifiedContentBlocks';
 import { getSanityImageUrl } from '@/lib/sanityImage';
 
 const GenericPage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const [pageData, setPageData] = useState<SanityPage | null>(null);
+  const [pageData, setPageData] = useState<UnifiedPage | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,7 +20,7 @@ const GenericPage = () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await SanityService.getPageBySlug(slug);
+        const data = await SanityService.getUnifiedPage(slug);
         setPageData(data);
       } catch (err) {
         console.error('Error fetching page data:', err);
@@ -112,27 +111,13 @@ const GenericPage = () => {
     );
   }
 
-  // Generate breadcrumb items based on page data
-  const breadcrumbItems: BreadcrumbItem[] = [];
-  
-  // Add parent page if exists (you might need to fetch this from Sanity)
-  // For now, we'll just add the current page
-  if (pageData.title) {
-    breadcrumbItems.push({
-      label: pageData.title,
-    });
-  }
 
   return (
     <div className="min-h-screen bg-white">
       <Navigation />
       <main>
         {pageData.contentBlocks && pageData.contentBlocks.length > 0 ? (
-          <ContentBlocksWithBreadcrumb 
-            blocks={pageData.contentBlocks} 
-            breadcrumbItems={breadcrumbItems}
-            slug={slug}
-          />
+          <UnifiedContentBlocks page={pageData} enableBreadcrumbs={true} />
         ) : (
           <div className="container mx-auto py-12 px-4">
             <div className="prose prose-lg max-w-none">

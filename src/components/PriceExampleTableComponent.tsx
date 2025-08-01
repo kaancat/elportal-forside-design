@@ -24,13 +24,14 @@ const PriceExampleTableComponent: React.FC<PriceExampleTableComponentProps> = ({
   // Fixed consumption for calculation (100 kWh per month)
   const monthlyConsumption = 100
 
-  // Calculate total prices
-  const example1Total = (block.example1_kwh_price * monthlyConsumption) + block.example1_subscription
-  const example2Total = (block.example2_kwh_price * monthlyConsumption) + block.example2_subscription
+  // Calculate total prices with null safety
+  const example1Total = ((block.example1_kwh_price ?? 0) * monthlyConsumption) + (block.example1_subscription ?? 0)
+  const example2Total = ((block.example2_kwh_price ?? 0) * monthlyConsumption) + (block.example2_subscription ?? 0)
 
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return `${amount.toFixed(2)} kr.`
+  // Format currency with null safety
+  const formatCurrency = (amount: number | null | undefined) => {
+    const safeAmount = amount ?? 0
+    return `${safeAmount.toFixed(2)} kr.`
   }
 
   return (

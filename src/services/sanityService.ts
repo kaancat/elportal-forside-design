@@ -1,326 +1,8 @@
 import { client } from '@/lib/sanity'
-import { HomePage, BlogPost, SiteSettings, SanityPage, ProviderProductBlock } from '@/types/sanity'
+import { BlogPost, SiteSettings, SanityPage, ProviderProductBlock, UnifiedPage } from '@/types/sanity'
+import { UnifiedPageService } from './unifiedPageService'
 
 export class SanityService {
-  // Fetch homepage content
-  static async getHomePage(): Promise<HomePage | null> {
-    const query = `*[_type == "homePage"][0]{
-      _id,
-      _type,
-      title,
-      seoMetaTitle,
-      seoMetaDescription,
-      contentBlocks[]{
-        _type,
-        _key,
-        _type == "pageSection" => {
-          ..., // Get all fields from pageSection
-          theme->{ // Follow the reference to the colorTheme
-            "background": background.hex,
-            "text": text.hex,
-            "primary": primary.hex
-          },
-          settings,
-          content[]{ // Expand content array to include embedded blocks
-            ..., // Get all fields for standard blocks (text, etc.)
-            // Add expansions for each custom block type
-            _type == "livePriceGraph" => {
-              _key,
-              _type,
-              title,
-              subtitle,
-              apiRegion,
-              headerAlignment
-            },
-            _type == "renewableEnergyForecast" => {
-              _key,
-              _type,
-              title,
-              leadingText,
-              headerAlignment
-            },
-            _type == "priceCalculator" => {
-              _key,
-              _type,
-              title
-            }
-          }
-        },
-        _type == "faqItem" => {
-          question,
-          answer
-        },
-        _type == "faqGroup" => {
-          title,
-          faqItems[]{
-            _key,
-            question,
-            answer
-          }
-        },
-        _type == "priceExampleTable" => {
-          title,
-          leadingText,
-          example1_title,
-          example1_kwh_price,
-          example1_subscription,
-          example2_title,
-          example2_kwh_price,
-          example2_subscription
-        },
-        _type == "videoSection" => {
-          title,
-          videoUrl,
-          customThumbnail{
-            asset,
-            alt,
-            hotspot,
-            crop
-          }
-        },
-        _type == "richTextSection" => {
-          content
-        },
-        _type == "callToActionSection" => {
-          title,
-          buttonText,
-          buttonUrl
-        },
-        _type == "infoCardsSection" => {
-          _key,
-          _type,
-          title,
-          subtitle,
-          headerAlignment,
-          leadingText,
-          cards[]{
-            title,
-            description,
-            icon,
-            iconColor,
-            bgColor
-          },
-          columns
-        },
-        _type == "renewableEnergyForecast" => {
-          _key,
-          _type,
-          title,
-          leadingText,
-          headerAlignment
-        },
-        _type == "livePriceGraph" => {
-          title,
-          subtitle,
-          apiRegion,
-          headerAlignment
-        },
-        _type == "monthlyProductionChart" => {
-          _key,
-          _type,
-          title,
-          leadingText,
-          description,
-          headerAlignment
-        },
-        _type == "providerList" => {
-          _key,
-          _type,
-          title,
-          subtitle,
-          headerAlignment,
-          'providers': providers[]->{ // The key is 'providers': and the operator is ->
-            "id": _id,
-            providerName,
-            productName,
-            "logoUrl": logo.asset->url,
-            displayPrice_kWh,
-            displayMonthlyFee,
-            signupLink,
-            isVindstoedProduct,
-            benefits
-          }
-        },
-        _type == "featureList" => {
-          _key,
-          _type,
-          title,
-          features[]{
-            _key,
-            _type,
-            title,
-            description,
-            icon {
-              ...,
-              metadata {
-                inlineSvg,
-                iconName,
-                url,
-                color
-              }
-            }
-          }
-        },
-        _type == "valueProposition" => {
-          _key,
-          _type,
-          heading,
-          subheading,
-          content,
-          valueItems[]{
-            _key,
-            heading,
-            description,
-            icon {
-              ...,
-              metadata {
-                inlineSvg,
-                iconName,
-                url,
-                color
-              }
-            }
-          },
-          // Legacy fields for backward compatibility
-          title,
-          propositions,
-          items[]{
-            _key,
-            text,
-            heading,
-            description,
-            icon {
-              ...,
-              metadata {
-                inlineSvg,
-                iconName,
-                url,
-                color
-              }
-            }
-          }
-        },
-        _type == "heroWithCalculator" => {
-          _key,
-          _type,
-          headline,
-          subheadline,
-          highlightWords,
-          content,
-          calculatorTitle,
-          showLivePrice,
-          showProviderComparison,
-          stats[]{
-            _key,
-            value,
-            label
-          }
-        },
-        _type == "realPriceComparisonTable" => {
-          _key,
-          _type,
-          title,
-          leadingText
-        },
-        _type == "co2EmissionsChart" => {
-          _key,
-          _type,
-          title,
-          subtitle,
-          leadingText,
-          headerAlignment,
-          showGauge
-        },
-        _type == "declarationProduction" => {
-          _key,
-          _type,
-          title,
-          subtitle,
-          leadingText,
-          headerAlignment,
-          showProductionBreakdown,
-          showCO2Intensity,
-          showRenewableShare,
-          defaultView
-        },
-        _type == "consumptionMap" => {
-          _key,
-          _type,
-          title,
-          subtitle,
-          leadingText,
-          headerAlignment,
-          dataSource,
-          consumerType,
-          colorScheme,
-          showLegend,
-          showTooltips,
-          enableInteraction,
-          updateInterval,
-          defaultView,
-          showStatistics,
-          mobileLayout
-        },
-        _type == "declarationGridmix" => {
-          _key,
-          _type,
-          title,
-          subtitle,
-          leadingText,
-          headerAlignment,
-          showSummary,
-          view
-        },
-        _type == "applianceCalculator" => {
-          _key,
-          _type,
-          title,
-          subtitle,
-          showCategories,
-          showSavingsCallToAction,
-          defaultElectricityPrice
-        },
-        _type == "energyTipsSection" => {
-          _key,
-          _type,
-          title,
-          subtitle,
-          showCategories,
-          displayMode,
-          showDifficultyBadges,
-          showSavingsPotential,
-          maxTipsPerCategory
-        },
-        _type == "chargingBoxShowcase" => {
-          _key,
-          _type,
-          heading,
-          headerAlignment,
-          description,
-          products[]->{ 
-            _id,
-            name,
-            description,
-            originalPrice,
-            currentPrice,
-            badge,
-            features,
-            productImage,
-            ctaLink,
-            ctaText
-          }
-        }
-      }
-    }`
-    
-    try {
-      const homePage = await client.fetch<HomePage>(query)
-      return homePage
-    } catch (error) {
-      console.error('Error fetching homepage:', error)
-      return null
-    }
-  }
 
   // Fetch all blog posts
   static async getAllBlogPosts(): Promise<BlogPost[]> {
@@ -779,5 +461,241 @@ export class SanityService {
       console.error('Error fetching providers:', error)
       return []
     }
+  }
+
+  // ===== UNIFIED PAGE METHODS =====
+  // Primary methods for fetching pages using the unified schema
+
+  /**
+   * Fetch homepage using unified page schema
+   * @returns UnifiedPage or null
+   */
+  static async getUnifiedHomePage(): Promise<UnifiedPage | null> {
+    try {
+      // Fetch homepage using unified schema
+      const page = await client.fetch<UnifiedPage | null>(
+        `*[_type == "page" && isHomepage == true][0]{
+          ${this.getUnifiedPageQueryFragment()}
+        }`
+      )
+      
+      return page
+    } catch (error) {
+      console.error('Error fetching unified homepage:', error)
+      return null
+    }
+  }
+
+  /**
+   * Fetch any page (homepage or regular) using unified schema
+   * @param slug - Optional slug for regular pages, null/undefined for homepage
+   * @returns UnifiedPage or null
+   */
+  static async getUnifiedPage(slug?: string): Promise<UnifiedPage | null> {
+    try {
+      if (!slug) {
+        return this.getUnifiedHomePage()
+      }
+
+      // Fetch page using unified schema
+      const page = await client.fetch<UnifiedPage | null>(
+        `*[_type == "page" && slug.current == $slug][0]{
+          ${this.getUnifiedPageQueryFragment()}
+        }`,
+        { slug }
+      )
+
+      return page
+    } catch (error) {
+      console.error('Error fetching unified page:', error)
+      return null
+    }
+  }
+
+  /**
+   * Get the GROQ query fragment for unified pages
+   * Handles all content blocks and references
+   */
+  private static getUnifiedPageQueryFragment(): string {
+    return `
+      _id,
+      _type,
+      title,
+      slug,
+      parent->{
+        _id,
+        title,
+        slug
+      },
+      isHomepage,
+      seoMetaTitle,
+      seoMetaDescription,
+      seoKeywords,
+      ogImage{
+        _type,
+        asset->{
+          _ref,
+          _type
+        },
+        alt
+      },
+      noIndex,
+      contentBlocks[]{
+        _type,
+        _key,
+        _type == "pageSection" => {
+          ...,
+          theme->{
+            "background": background.hex,
+            "text": text.hex,
+            "primary": primary.hex
+          },
+          settings,
+          content[]{
+            ...,
+            _type == "livePriceGraph" => {
+              _key,
+              _type,
+              title,
+              subtitle,
+              apiRegion,
+              headerAlignment
+            },
+            _type == "renewableEnergyForecast" => {
+              _key,
+              _type,
+              title,
+              leadingText,
+              headerAlignment
+            },
+            _type == "priceCalculator" => {
+              _key,
+              _type,
+              title
+            }
+          }
+        },
+        _type == "hero" => {
+          ...,
+          cta,
+          images[]{
+            ...,
+            asset->{
+              _id,
+              url,
+              metadata {
+                dimensions {
+                  width,
+                  height
+                }
+              }
+            }
+          }
+        },
+        _type == "heroWithCalculator" => {
+          ...
+        },
+        _type == "priceExampleTable" => {
+          ...
+        },
+        _type == "realPriceComparisonTable" => {
+          ...
+        },
+        _type == "faqGroup" => {
+          ...,
+          faqItems[]->{
+            _id,
+            _type,
+            question,
+            answer
+          }
+        },
+        _type == "callToActionSection" => {
+          ...
+        },
+        _type == "livePriceGraph" => {
+          ...
+        },
+        _type == "renewableEnergyForecast" => {
+          ...
+        },
+        _type == "monthlyProductionChart" => {
+          ...
+        },
+        _type == "co2EmissionsChart" => {
+          ...
+        },
+        _type == "declarationProduction" => {
+          ...
+        },
+        _type == "declarationGridmix" => {
+          ...
+        },
+        _type == "consumptionMap" => {
+          ...
+        },
+        _type == "priceCalculator" => {
+          ...
+        },
+        _type == "providerList" => {
+          ...
+        },
+        _type == "featureList" => {
+          ...,
+          features[]{
+            ...
+          }
+        },
+        _type == "valueProposition" => {
+          ...,
+          valueItems[]{
+            ...
+          }
+        },
+        _type == "videoSection" => {
+          ...,
+          customThumbnail{
+            ...,
+            asset->{
+              _id,
+              url
+            }
+          }
+        },
+        _type == "applianceCalculator" => {
+          ...
+        },
+        _type == "energyTipsSection" => {
+          ...
+        },
+        _type == "chargingBoxShowcase" => {
+          ...,
+          products[]->{
+            _id,
+            name,
+            description,
+            originalPrice,
+            currentPrice,
+            badge,
+            features,
+            productImage,
+            ctaLink,
+            ctaText
+          }
+        },
+        _type == "regionalComparison" => {
+          ...
+        },
+        _type == "pricingComparison" => {
+          ...
+        },
+        _type == "dailyPriceTimeline" => {
+          ...
+        },
+        _type == "infoCardsSection" => {
+          ...
+        }
+      }
+    `
   }
 }

@@ -19,14 +19,8 @@ const Index = () => {
     const fetchHomepageData = withApiErrorHandling(async () => {
       const data = await SanityService.getUnifiedHomePage()
       
-      // Diagnostic logging
-      console.log('Homepage data fetched:', data);
+      // Ensure content blocks are properly initialized
       if (data) {
-        console.log('ContentBlocks type:', typeof data.contentBlocks);
-        console.log('ContentBlocks isArray:', Array.isArray(data.contentBlocks));
-        console.log('ContentBlocks length:', data.contentBlocks?.length);
-        
-        // Ensure content blocks are properly initialized
         if (data.contentBlocks && !Array.isArray(data.contentBlocks)) {
           console.error('Invalid contentBlocks structure:', data.contentBlocks);
           data.contentBlocks = [];
@@ -131,16 +125,6 @@ const Index = () => {
         {!loading && (!homepageData || !homepageData.contentBlocks || !Array.isArray(homepageData.contentBlocks) || homepageData.contentBlocks.length === 0) && (
           <div className="container mx-auto px-4 py-8 text-center">
             <p className="text-gray-600">Intet indhold tilgængeligt.</p>
-            {/* Diagnostic info */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="mt-4 text-sm text-gray-500">
-                <p>Debug info:</p>
-                <p>Homepage data exists: {homepageData ? 'Yes' : 'No'}</p>
-                <p>ContentBlocks exists: {homepageData?.contentBlocks ? 'Yes' : 'No'}</p>
-                <p>ContentBlocks is array: {homepageData?.contentBlocks && Array.isArray(homepageData.contentBlocks) ? 'Yes' : 'No'}</p>
-                <p>ContentBlocks length: {homepageData?.contentBlocks?.length || 0}</p>
-              </div>
-            )}
           </div>
         )}
       </main>

@@ -4,7 +4,7 @@ Last Updated: 2025-08-01
 
 ## Overview
 
-This directory contains 22 active TypeScript scripts and utilities for the ElPortal project. All scripts have been audited and verified to be in active use or necessary for ongoing operations.
+This directory contains active TypeScript scripts and utilities for the ElPortal project. All scripts have been audited and verified to be in active use or necessary for ongoing operations.
 
 ## Script Categories
 
@@ -37,15 +37,7 @@ This directory contains 22 active TypeScript scripts and utilities for the ElPor
 
 ### 6. Testing & Debugging
 - `test-sanity-query.ts` - Test GROQ queries against Sanity
-- `test-phase3-frontend.ts` - Test Phase 3 frontend migration (temporary)
-- `test-unified-types.ts` - Test unified type system
-- `test-unified-types-simple.ts` - Simplified unified type testing
 
-### 7. Migration Scripts
-- `comprehensive-migration-check.ts` - Comprehensive homepage unification verification
-
-### 8. Agent Actions (Subdirectory)
-The `agent-actions/` folder contains experimental AI agent integration scripts for automated content creation and validation.
 
 ## Usage
 
@@ -68,20 +60,9 @@ All scripts expect these environment variables (from .env):
 - `VITE_SANITY_PROJECT_ID` - Sanity project ID (yxesi03x)
 - `VITE_SANITY_DATASET` - Sanity dataset name (production)
 
-## Scripts Still Referencing homePage
-
-These scripts reference the legacy `homePage` type for backward compatibility testing:
-- `test-unified-types.ts` - Tests type conversion between schemas
-- `test-unified-types-simple.ts` - Simplified type testing
-- `test-phase3-frontend.ts` - Frontend migration testing
-- `comprehensive-migration-check.ts` - Migration verification
-- `agent-actions/test-agent-actions-schemas.ts` - Schema testing
-
-These references are intentional and necessary for ensuring the migration works correctly.
 
 ## Maintenance Notes
 
 - Run `check-navigation-health.ts` weekly
 - Run `validate-final.ts` before any deployment
-- Migration test scripts can be removed after Phase 5 completion
-- All other scripts are part of ongoing operations
+- All scripts are part of ongoing operations

@@ -400,6 +400,11 @@ const LiveComponent = ({ block }: { block: LiveDataBlock }) => {
 
 ## 6. Technical Debt & Known Issues
 
+### Recently Addressed ✅
+- **Documentation cleanup** - Removed 150+ outdated files (Feb 2025)
+- **Security improvement** - Removed exposed API tokens from scripts/
+- **Agent updates** - All agents now use real-time code checking instead of static docs
+
 ### High Priority
 - **TypeScript strict mode disabled** - Gradual migration needed
 - **No shared types package** - Types duplicated across projects
@@ -407,8 +412,8 @@ const LiveComponent = ({ block }: { block: LiveDataBlock }) => {
 
 ### Medium Priority
 - **Direct Sanity queries** - Should use React Query
-- **No error boundaries** - Add for better UX
-- **Missing lazy loading** - For performance
+- **CSS import warning** - @import order in index.css needs fixing
+- **Large bundle size** - 2.5MB main chunk needs code splitting
 
 ### Future Considerations
 - **User authentication** - For personalized features
@@ -438,7 +443,32 @@ ElPortal uses `sanity-plugin-icon-manager` with a sophisticated fallback system.
 - Troubleshooting guide for icon display issues
 - Best practices for icon implementation
 
-## 9. SEO Page Generation Process (Direct API Method)
+## 9. Content Management Best Practices
+
+### 🚨 Content Update Guidelines
+**For simple content updates requested by the user**, use the existing API connection to directly read/write changes. The .env file contains Sanity API credentials for this purpose.
+
+**When to use direct API updates:**
+- User specifically requests immediate content changes
+- Simple field updates (alignment, text, settings)
+- Quick fixes or adjustments to existing content
+- Testing or verifying content changes
+
+**When to use Sanity Studio (https://dinelportal.sanity.studio):**
+- Complex content creation requiring visual preview
+- Managing media assets and uploads
+- Exploring content structure
+- User prefers visual interface
+
+**Only create NEW API scripts when:**
+- Bulk importing/migrating large amounts of data
+- Automating repetitive content creation (e.g., 50+ similar pages)
+- Integrating with external data sources
+- Performing complex content transformations
+
+**For routine updates**, use existing scripts in the `scripts/` directory when available (e.g., `update-homepage-alignment.ts`).
+
+## 10. SEO Page Generation Process (Direct API Method)
 
 ### Overview
 ElPortal uses a direct AI-to-Sanity content generation approach for creating comprehensive SEO-optimized pages. This process has proven successful for generating high-quality, Danish-language content that ranks well in search engines while subtly promoting Vindstød as the preferred provider.

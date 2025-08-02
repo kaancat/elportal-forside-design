@@ -24,7 +24,8 @@
     "navigation:health": "tsx scripts/check-navigation-health.ts",
     "seo:create": "tsx scripts/create-seo-page-with-validation.ts",
     "seo:agent": "tsx scripts/seo-page-creator-agent.ts",
-    "seo:validate": "tsx scripts/agent-actions/test-prompt-validation-fixer.ts"
+    "seo:validate": "tsx scripts/agent-actions/test-prompt-validation-fixer.ts",
+    "icon:validate": "node scripts/validate-icon-structure.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

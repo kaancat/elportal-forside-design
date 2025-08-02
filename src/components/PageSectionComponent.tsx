@@ -110,16 +110,26 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
     },
   }
   
-  // Simple theme system
+  // Enhanced theme system with all 8 themes
   const getThemeClasses = () => {
     const themeType = settings?.theme || 'default';
     const themes = {
       default: 'bg-white',
       light: 'bg-gray-50',
-      brand: 'bg-brand-green/5',
+      brand: 'bg-gradient-to-br from-brand-green/10 to-brand-green-light/10',
       dark: 'bg-brand-dark text-white',
+      primary: 'bg-brand-green text-white',
+      subtle: 'bg-gradient-to-br from-green-50 to-green-100',
+      accent: 'bg-brand-green-dark text-white',
+      pattern: 'bg-gray-100 relative',
     }
     return themes[themeType as keyof typeof themes] || themes.default;
+  };
+
+  // Check if theme has dark background (needs light text)
+  const isDarkTheme = () => {
+    const themeType = settings?.theme;
+    return themeType === 'dark' || themeType === 'primary' || themeType === 'accent';
   };
 
   // Get padding classes based on settings
@@ -246,21 +256,36 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
       )}
       style={theme?.background ? { backgroundColor: theme.background } : {}}
     >
-      <div className="container mx-auto px-4">
+      {/* Pattern overlay for pattern theme */}
+      {settings?.theme === 'pattern' && (
+        <div 
+          className="absolute inset-0 opacity-5 pointer-events-none"
+          style={{
+            backgroundImage: `repeating-linear-gradient(
+              45deg,
+              transparent,
+              transparent 10px,
+              rgba(132, 219, 65, 0.1) 10px,
+              rgba(132, 219, 65, 0.1) 20px
+            )`
+          }}
+        />
+      )}
+      <div className="container mx-auto px-4 relative z-10">
         {isTextOnly ? (
           // Text-only layout
           <div className={`max-w-4xl mx-auto ${textAlignClass}`}>
             {title && (
               <h2 className={cn(
                 "text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-8",
-                settings?.theme === 'dark' ? "text-white" : "text-brand-dark"
+                isDarkTheme() ? "text-white" : "text-brand-dark"
               )}>
                 {title}
               </h2>
             )}
             <div className={cn(
               "prose prose-lg max-w-none",
-              settings?.theme === 'dark' && "prose-invert"
+              isDarkTheme() && "prose-invert"
             )}>
               {content && Array.isArray(content) && content.length > 0 && (
                 <PortableText value={content} components={customComponents} />
@@ -273,7 +298,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
                   className={cn(
                     "inline-flex items-center px-8 py-4 font-semibold rounded-xl transition-colors duration-200",
                     "shadow-lg",
-                    settings?.theme === 'dark' 
+                    isDarkTheme() 
                       ? "bg-brand-green text-brand-dark hover:bg-brand-green-light" 
                       : "bg-brand-green text-white hover:bg-brand-green-dark"
                   )}
@@ -318,7 +343,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
               {title && (
                 <h2 className={cn(
                   "text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-6",
-                  settings?.theme === 'dark' ? "text-white" : "text-brand-dark"
+                  isDarkTheme() ? "text-white" : "text-brand-dark"
                 )}>
                   {title}
                 </h2>
@@ -326,7 +351,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
               <div className={cn(
                 "prose prose-lg",
                 layoutRatio === '60/40' ? 'max-w-prose' : 'max-w-none',
-                settings?.theme === 'dark' && "prose-invert"
+                isDarkTheme() && "prose-invert"
               )}>
                 {content && Array.isArray(content) && content.length > 0 && (
                 <PortableText value={content} components={customComponents} />
@@ -339,7 +364,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
                     className={cn(
                       "inline-flex items-center px-8 py-4 font-semibold rounded-xl transition-colors duration-200",
                       "shadow-lg",
-                      settings?.theme === 'dark' 
+                      isDarkTheme() 
                         ? "bg-brand-green text-brand-dark hover:bg-brand-green-light" 
                         : "bg-brand-green text-white hover:bg-brand-green-dark"
                     )}

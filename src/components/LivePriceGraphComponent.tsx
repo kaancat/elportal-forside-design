@@ -312,7 +312,114 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
       
       {/* CHART AREA */}
       {loading ? <div className="text-center h-72 flex items-center justify-center">Indlæser graf...</div> : error ? <div className="text-center h-72 flex items-center justify-center text-red-600">{error}</div> : (
-        <div ref={chartWrapperRef} className="w-full relative">
+        <>
+          {/* Mobile vertical layout */}
+          <div className="md:hidden w-full">
+            <div className="space-y-1">
+              {calculatedData.map(({ hour, spotPrice, total, fees: feesAmount }) => {
+                const currentHour = new Date().getHours();
+                const isCurrentHour = hour === currentHour && isToday;
+                const priceCategory = stats ? getPriceCategory(total, stats.average.price, stats.standardDeviation) : 'medium';
+                const barWidth = Math.max((total / maxPrice) * 100, 5);
+                const spotWidth = Math.max((spotPrice / maxPrice) * 100, 2);
+                
+                const getBarColor = (category: 'low' | 'medium' | 'high') => {
+                  switch (category) {
+                    case 'low': return 'bg-green-500';
+                    case 'medium': return 'bg-yellow-400';
+                    case 'high': return 'bg-red-500';
+                  }
+                };
+
+                return (
+                  <div 
+                    key={hour} 
+                    className={cn(
+                      "flex items-center gap-2 py-2",
+                      isCurrentHour && "bg-blue-50 -mx-4 px-4 border-l-4 border-blue-500"
+                    )}
+                  >
+                    {/* Hour label */}
+                    <div className="w-12 text-sm text-gray-600 font-medium">
+                      {String(hour).padStart(2, '0')}
+                    </div>
+                    
+                    {/* Bar container */}
+                    <div className="flex-1 relative">
+                      <div className="relative h-8 bg-gray-100 rounded overflow-hidden">
+                        {/* Total bar (spot + fees) */}
+                        <div 
+                          className={`absolute left-0 top-0 h-full ${getBarColor(priceCategory)} transition-all duration-300`}
+                          style={{ width: `${barWidth}%` }}
+                        >
+                          {/* Striped pattern for spot price portion */}
+                          <div 
+                            className="absolute left-0 top-0 h-full"
+                            style={{ 
+                              width: `${(spotWidth / barWidth) * 100}%`,
+                              backgroundImage: `repeating-linear-gradient(
+                                -45deg,
+                                transparent,
+                                transparent 3px,
+                                rgba(0, 0, 0, 0.1) 3px,
+                                rgba(0, 0, 0, 0.1) 6px
+                              )`
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Price label */}
+                    <div className="w-20 text-right">
+                      <div className="text-sm font-semibold text-gray-800">
+                        {(total ?? 0).toFixed(2)}
+                      </div>
+                      <div className="text-xs text-gray-500">kr/kWh</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Mobile legend */}
+            <div className="mt-6 space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-green-500 rounded"></div>
+                  <span className="text-gray-600">Lav pris</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-yellow-400 rounded"></div>
+                  <span className="text-gray-600">Mellem</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-red-500 rounded"></div>
+                  <span className="text-gray-600">Høj pris</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <div className="w-4 h-4 bg-gray-400 rounded relative overflow-hidden">
+                  <div 
+                    className="absolute inset-0"
+                    style={{
+                      backgroundImage: `repeating-linear-gradient(
+                        -45deg,
+                        transparent,
+                        transparent 2px,
+                        rgba(0, 0, 0, 0.15) 2px,
+                        rgba(0, 0, 0, 0.15) 4px
+                      )`
+                    }}
+                  />
+                </div>
+                <span className="text-gray-600">Spotpris (inkluderet i total)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop horizontal layout */}
+          <div ref={chartWrapperRef} className="hidden md:block w-full relative">
             <div ref={chartAreaRef} className="overflow-x-auto">
                 <div className="flex w-full min-w-[800px] pb-4">
                     {/* Y-Axis Labels & Gridlines */}
@@ -516,7 +623,8 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                     <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
                 </div>
             )}
-        </div>
+          </div>
+        </>
       )}
       </div>
     </section>

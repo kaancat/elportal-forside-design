@@ -8,6 +8,7 @@ import PriceCalculatorWidget from './PriceCalculatorWidget'
 import RealPriceComparisonTableComponent from './RealPriceComparisonTable'
 import MonthlyProductionChart from './MonthlyProductionChart'
 import VideoSectionComponent from './VideoSectionComponent'
+import StickyImageSection from './StickyImageSection'
 import type { PageSection, LivePriceGraph, RenewableEnergyForecast, PriceCalculator, RealPriceComparisonTable, MonthlyProductionChartBlock, VideoSection } from '@/types/sanity'
 import { cn } from '@/lib/utils'
 
@@ -152,6 +153,30 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   // Check if this is a text-only section (no image)
   const isTextOnly = !image;
   
+  // If sticky image is enabled and there's an image, use the StickyImageSection component
+  if (stickyImage && image) {
+    return (
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ 
+          once: true, 
+          margin: "0px 0px -50px 0px",
+          amount: 0.1
+        }}
+        variants={fadeUpVariant}
+        className={cn(
+          "relative", // Remove overflow-hidden for sticky to work
+          getThemeClasses(),
+          getPaddingClasses()
+        )}
+        style={theme?.background ? { backgroundColor: theme.background } : {}}
+      >
+        <StickyImageSection section={section} customComponents={customComponents} />
+      </motion.section>
+    );
+  }
+  
   // Get grid layout classes based on ratio
   const getGridClasses = () => {
     switch (layoutRatio) {
@@ -274,10 +299,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
               imagePosition === 'right' ? 'md:order-2' : '',
               getImageColumnClasses()
             )}>
-              <div className={cn(
-                "relative",
-                stickyImage && verticalAlign === 'start' ? 'md:sticky md:top-20 md:h-fit' : ''
-              )}>
+              <div className="relative">
                 <img
                   src={urlFor(image).width(1000).quality(85).url()}
                   alt={image.alt || title}

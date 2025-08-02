@@ -100,8 +100,8 @@ const Navigation = () => {
     });
   }, [isLoading, isFetching, error, settings, cachedData, navigationData]);
 
-  // Show loading skeleton with structure
-  if (isLoading && !navigationData) {
+  // Show loading skeleton when loading or fetching without data
+  if ((isLoading || isFetching) && !navigationData) {
     return (
       <header className="sticky top-0 z-50 w-full bg-brand-dark h-16">
         <div className="container mx-auto px-4 flex items-center justify-between h-16">
@@ -142,7 +142,13 @@ const Navigation = () => {
 
   // If no data at all (shouldn't happen with fallbacks)
   if (!navigationData) {
-    console.error('[Navigation] No navigation data available');
+    console.error('[Navigation] No navigation data available', {
+      isLoading,
+      isFetching,
+      hasSettings: !!settings,
+      hasCachedData: !!cachedData,
+      error
+    });
     return <header className="sticky top-0 z-50 w-full bg-brand-dark h-16" />;
   }
   

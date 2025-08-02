@@ -116,7 +116,19 @@ const InfoCardsSection: React.FC<InfoCardsSectionProps> = ({ block }) => {
                           className={cn("transition-all duration-300", card.iconColor || "text-gray-600")}
                         />
                       ) : (
-                        <Info className={cn("w-7 h-7 transition-all duration-300", card.iconColor || "text-gray-600")} />
+                        <>
+                          {/* Development warning for string icons */}
+                          {process.env.NODE_ENV === 'development' && typeof card.icon === 'string' && (
+                            console.warn(
+                              '[InfoCardsSection] String icon detected:', 
+                              card.icon, 
+                              'in card:', 
+                              card.title,
+                              '- Run icon migration script to fix'
+                            )
+                          )}
+                          <Info className={cn("w-7 h-7 transition-all duration-300", card.iconColor || "text-gray-600")} />
+                        </>
                       )}
                     </div>
                     <div className="flex-1">

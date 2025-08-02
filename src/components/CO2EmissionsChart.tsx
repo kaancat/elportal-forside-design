@@ -350,30 +350,36 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
                 </div>
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={450}>
-                <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorCO2" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#84cc16" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#84cc16" stopOpacity={0.1}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" vertical={false} />
-                  <XAxis 
-                    dataKey="hour" 
-                    tick={{ fontSize: 12, fill: '#6b7280' }} 
-                    dy={10}
-                  />
-                  <YAxis 
-                    domain={[0, yAxisMax]}
-                    tick={{ fontSize: 12, fill: '#6b7280' }}
-                    label={{ 
-                      value: 'g CO₂/kWh', 
-                      angle: -90, 
-                      position: 'insideLeft',
-                      style: { fill: '#6b7280' }
-                    }}
-                  />
+              <div className="relative">
+                {/* Y-axis label positioned absolute for mobile */}
+                <div className="md:hidden absolute top-2 left-2 z-10 text-xs text-gray-600 bg-white/90 px-2 py-1 rounded">
+                  g CO₂/kWh
+                </div>
+                <ResponsiveContainer width="100%" height={450}>
+                  <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorCO2" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#84cc16" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#84cc16" stopOpacity={0.1}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" vertical={false} />
+                    <XAxis 
+                      dataKey="hour" 
+                      tick={{ fontSize: 12, fill: '#6b7280' }} 
+                      dy={10}
+                    />
+                    <YAxis 
+                      domain={[0, yAxisMax]}
+                      tick={{ fontSize: 12, fill: '#6b7280' }}
+                      label={{ 
+                        value: 'g CO₂/kWh', 
+                        angle: -90, 
+                        position: 'insideLeft',
+                        style: { fill: '#6b7280' },
+                        className: 'hidden md:block'
+                      }}
+                    />
                   <Tooltip content={<CustomTooltip />} />
                   
                   {/* Reference lines for emission levels */}
@@ -388,8 +394,9 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
                     fill="url(#colorCO2)"
                     strokeWidth={2}
                   />
-                </AreaChart>
-              </ResponsiveContainer>
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             )}
           </div>
 
@@ -422,15 +429,15 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
 
         {/* Legend */}
         <div className="mt-8 flex justify-center">
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-gray-50 rounded-lg p-4 w-full max-w-2xl">
             <h3 className="text-sm font-semibold text-gray-700 mb-3 text-center">CO₂-intensitet niveauer</h3>
-            <div className="flex flex-wrap gap-4 justify-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
               {Object.entries(emissionLevels).map(([key, config]) => (
                 <div key={key} className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded" style={{ backgroundColor: config.color }}></div>
+                  <div className="w-4 h-4 rounded flex-shrink-0" style={{ backgroundColor: config.color }}></div>
                   <span className="text-sm">
                     <span className="font-medium">{config.label}</span>
-                    <span className="text-gray-500 ml-1">({config.range})</span>
+                    <span className="text-gray-500 ml-1 text-xs">({config.range})</span>
                   </span>
                 </div>
               ))}

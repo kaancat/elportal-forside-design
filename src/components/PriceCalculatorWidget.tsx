@@ -164,7 +164,9 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
                         <div className="p-4 border-2 border-transparent rounded-lg"></div>
                     </div>
                     <div className="text-center mb-2"><h4 className="font-semibold text-gray-700">Eller angiv præcist årligt forbrug:</h4><p className="font-bold text-brand-green text-lg">{annualConsumption.toLocaleString('da-DK')} kWh</p></div>
-                    <Slider value={[annualConsumption]} onValueChange={handleSliderChange} min={500} max={15000} step={100} />
+                    <div className="py-4 px-2 -mx-2">
+                        <Slider value={[annualConsumption]} onValueChange={handleSliderChange} min={500} max={15000} step={100} />
+                    </div>
                     <div className="flex gap-4 mt-6">
                         <Button onClick={() => setCurrentStep(1)} variant="outline" className="w-full"><ArrowLeft className="mr-2 h-4 w-4" /> Tilbage</Button>
                         <Button onClick={handleGoToResults} className="w-full bg-brand-green hover:opacity-90">Se dine priser <ArrowRight className="ml-2 h-4 w-4" /></Button>

@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { SanityService } from '@/services/sanityService';
 import { UnifiedPage } from '@/types/sanity';
-import Navigation from '@/components/Navigation';
-import Footer from '@/components/Footer';
 import UnifiedContentBlocks from '@/components/UnifiedContentBlocks';
 import { getSanityImageUrl } from '@/lib/sanityImage';
 
@@ -97,81 +95,65 @@ const GenericPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white">
-        <Navigation />
-        <div className="container mx-auto py-12 px-4">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/2 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-          </div>
+      <div className="container mx-auto py-12 px-4">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/2 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded w-2/3"></div>
         </div>
-        <Footer />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white">
-        <Navigation />
-        <div className="container mx-auto py-12 px-4 text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            {error.includes('not found') ? '404 - Side ikke fundet' : 'Der opstod en fejl'}
-          </h1>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <p className="text-sm text-gray-500 mb-8">
-            {error.includes('not found') 
-              ? 'Siden du leder efter eksisterer ikke eller er blevet flyttet.' 
-              : 'Prøv venligst at genindlæse siden.'}
-          </p>
-          <a href="/" className="text-brand-green hover:text-brand-green/80 font-medium">
-            Tilbage til forsiden
-          </a>
-        </div>
-        <Footer />
+      <div className="container mx-auto py-12 px-4 text-center">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          {error.includes('not found') ? '404 - Side ikke fundet' : 'Der opstod en fejl'}
+        </h1>
+        <p className="text-gray-600 mb-4">{error}</p>
+        <p className="text-sm text-gray-500 mb-8">
+          {error.includes('not found') 
+            ? 'Siden du leder efter eksisterer ikke eller er blevet flyttet.' 
+            : 'Prøv venligst at genindlæse siden.'}
+        </p>
+        <Link to="/" className="text-brand-green hover:text-brand-green/80 font-medium">
+          Tilbage til forsiden
+        </Link>
       </div>
     );
   }
 
   if (!pageData) {
     return (
-      <div className="min-h-screen bg-white">
-        <Navigation />
-        <div className="container mx-auto py-12 px-4 text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Intet indhold tilgængeligt</h1>
-          <p className="text-gray-600 mb-8">Der er ikke noget indhold at vise på denne side.</p>
-          <a href="/" className="text-brand-green hover:text-brand-green/80 font-medium">
-            Tilbage til forsiden
-          </a>
-        </div>
-        <Footer />
+      <div className="container mx-auto py-12 px-4 text-center">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">Intet indhold tilgængeligt</h1>
+        <p className="text-gray-600 mb-8">Der er ikke noget indhold at vise på denne side.</p>
+        <Link to="/" className="text-brand-green hover:text-brand-green/80 font-medium">
+          Tilbage til forsiden
+        </Link>
       </div>
     );
   }
 
 
   return (
-    <div className="min-h-screen bg-white">
-      <Navigation />
-      <main>
-        {pageData.contentBlocks && Array.isArray(pageData.contentBlocks) && pageData.contentBlocks.length > 0 ? (
-          <UnifiedContentBlocks page={pageData} enableBreadcrumbs={true} />
-        ) : (
-          <div className="container mx-auto py-12 px-4">
-            <div className="max-w-2xl mx-auto text-center">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                {pageData.title || 'Side under opbygning'}
-              </h1>
-              <p className="text-gray-600 text-lg">
-                Denne side er under opbygning. Kom tilbage snart for at se indholdet.
-              </p>
-            </div>
+    <>
+      {pageData.contentBlocks && Array.isArray(pageData.contentBlocks) && pageData.contentBlocks.length > 0 ? (
+        <UnifiedContentBlocks page={pageData} enableBreadcrumbs={true} />
+      ) : (
+        <div className="container mx-auto py-12 px-4">
+          <div className="max-w-2xl mx-auto text-center">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              {pageData.title || 'Side under opbygning'}
+            </h1>
+            <p className="text-gray-600 text-lg">
+              Denne side er under opbygning. Kom tilbage snart for at se indholdet.
+            </p>
           </div>
-        )}
-      </main>
-      <Footer />
-    </div>
+        </div>
+      )}
+    </>
   );
 };
 

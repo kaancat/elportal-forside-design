@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import Navigation from '@/components/Navigation';
-import Footer from '@/components/Footer';
 import UnifiedContentBlocks from '@/components/UnifiedContentBlocks';
-import ErrorBoundary from '@/components/ErrorBoundary';
 import ErrorTestComponent from '@/components/ErrorTestComponent';
 import { ApiErrorFallback } from '@/components/ErrorFallbacks';
 import { useApiErrorHandler } from '@/hooks/useErrorHandler';
@@ -78,61 +75,43 @@ const Index = () => {
   // Show API error if there's an error state
   if (errorState.hasError && !loading) {
     return (
-      <div className="min-h-screen bg-white">
-        <ErrorBoundary level="component">
-          <Navigation />
-        </ErrorBoundary>
-        <main>
-          <ApiErrorFallback 
-            onRetry={() => {
-              clearError()
-              window.location.reload()
-            }}
-            message="Kunne ikke indlæse forsiden"
-          />
-        </main>
-        <Footer />
-      </div>
+      <ApiErrorFallback 
+        onRetry={() => {
+          clearError()
+          window.location.reload()
+        }}
+        message="Kunne ikke indlæse forsiden"
+      />
     )
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <ErrorBoundary level="component">
-        <Navigation />
-      </ErrorBoundary>
+    <>
+      {/* Error Test Component - only in development */}
+      <ErrorTestComponent />
       
-      <main>
-        {/* Error Test Component - only in development */}
-        <ErrorTestComponent />
-        
-        {/* Loading state */}
-        {loading && (
-          <div className="container mx-auto px-4 py-8 text-center">
-            <div className="animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-1/4 mx-auto mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
-            </div>
+      {/* Loading state */}
+      {loading && (
+        <div className="container mx-auto px-4 py-8 text-center">
+          <div className="animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-1/4 mx-auto mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
           </div>
-        )}
-        
-        {/* Render Sanity content blocks with unified wrapper */}
-        {!loading && homepageData && homepageData.contentBlocks && Array.isArray(homepageData.contentBlocks) && homepageData.contentBlocks.length > 0 && (
-          <UnifiedContentBlocks page={homepageData} enableBreadcrumbs={false} />
-        )}
-        
-        {/* No content fallback */}
-        {!loading && (!homepageData || !homepageData.contentBlocks || !Array.isArray(homepageData.contentBlocks) || homepageData.contentBlocks.length === 0) && (
-          <div className="container mx-auto px-4 py-8 text-center">
-            <p className="text-gray-600">Intet indhold tilgængeligt.</p>
-          </div>
-        )}
-      </main>
+        </div>
+      )}
       
-      <ErrorBoundary level="component">
-        <Footer />
-      </ErrorBoundary>
-    </div>
+      {/* Render Sanity content blocks with unified wrapper */}
+      {!loading && homepageData && homepageData.contentBlocks && Array.isArray(homepageData.contentBlocks) && homepageData.contentBlocks.length > 0 && (
+        <UnifiedContentBlocks page={homepageData} enableBreadcrumbs={false} />
+      )}
+      
+      {/* No content fallback */}
+      {!loading && (!homepageData || !homepageData.contentBlocks || !Array.isArray(homepageData.contentBlocks) || homepageData.contentBlocks.length === 0) && (
+        <div className="container mx-auto px-4 py-8 text-center">
+          <p className="text-gray-600">Intet indhold tilgængeligt.</p>
+        </div>
+      )}
+    </>
   );
 };
 

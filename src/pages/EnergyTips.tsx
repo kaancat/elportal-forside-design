@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { 
   Lightbulb, 
@@ -221,6 +222,7 @@ const difficultyLabels = {
 }
 
 export function EnergyTips() {
+  const navigate = useNavigate()
   const [selectedCategory, setSelectedCategory] = useState('all')
 
   // In production, fetch from Sanity
@@ -398,7 +400,7 @@ export function EnergyTips() {
               size="lg"
               variant="secondary"
               className="bg-white text-brand-green hover:bg-gray-100"
-              onClick={() => window.location.href = '/sammenlign-priser'}
+              onClick={() => navigate('/sammenlign-priser')}
             >
               Sammenlign elpriser nu
               <ArrowRight className="ml-2 h-4 w-4" />

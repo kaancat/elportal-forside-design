@@ -47,9 +47,11 @@ const MobileNavAccordionGroup: React.FC<{ column: MegaMenuColumn, resolveLink: (
 interface MobileNavProps {
   navItems: (LinkType | MegaMenu)[];
   resolveLink: (link: LinkType) => string;
+  logoSrc?: string;
+  logoAlt?: string;
 }
 
-const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink }) => {
+const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, logoAlt }) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
   const simpleLinks = navItems.filter(item => item._type === 'link') as LinkType[];
@@ -63,19 +65,23 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink }) => {
           <span className="sr-only">Open menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="bg-brand-dark border-l border-neutral-800 text-white w-full max-w-sm p-0 flex flex-col [&>button]:hidden">
+      <SheetContent side="left" className="bg-brand-dark border-l border-neutral-800 text-white w-full max-w-sm p-0 flex flex-col h-full [&>button]:hidden">
         <div className="p-4 flex justify-between items-center border-b border-neutral-800 flex-shrink-0">
-          <a href="/" className="flex items-center" onClick={() => setIsOpen(false)}>
-            <img src="/lovable-uploads/97984f7d-d542-490c-9e04-5a0744d1b6a2.png" alt="ElPortal.dk Logo" className="h-8" />
-          </a>
+          <RouterLink to="/" className="flex items-center" onClick={() => setIsOpen(false)}>
+            <img 
+              src={logoSrc || "/lovable-uploads/97984f7d-d542-490c-9e04-5a0744d1b6a2.png"} 
+              alt={logoAlt || "ElPortal.dk Logo"} 
+              className="h-8" 
+            />
+          </RouterLink>
           <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
               <X className="h-6 w-6" />
               <span className="sr-only">Close menu</span>
           </Button>
         </div>
         
-        <div className="flex-grow overflow-y-auto">
-          <div className="p-4 space-y-2">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
+          <div className="p-4 space-y-2 pb-8">
             {/* Render Simple Links First */}
             {simpleLinks.map(item => (
                <div key={item._key} onClick={() => setIsOpen(false)}>
@@ -94,7 +100,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink }) => {
                 <div className="px-3 pt-4 pb-2">
                   <h3 className="text-base font-semibold text-neutral-400 uppercase tracking-wider">{megaMenu.title}</h3>
                 </div>
-                <Accordion type="multiple" className="w-full">
+                <Accordion type="multiple" className="w-full pb-4">
                   {megaMenu.content.map(column => (
                      <div key={column._key} onClick={(e) => {
                        // This prevents the whole accordion from closing when a link inside is clicked

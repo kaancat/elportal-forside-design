@@ -1,4 +1,5 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CallToActionSection } from '@/types/sanity'
 import { Button } from '@/components/ui/button'
@@ -9,6 +10,7 @@ interface CallToActionSectionComponentProps {
 }
 
 const CallToActionSectionComponent: React.FC<CallToActionSectionComponentProps> = ({ block }) => {
+  const navigate = useNavigate()
 
   if (!block?.title || !block?.buttonText || !block?.buttonUrl) {
     return null
@@ -18,7 +20,7 @@ const CallToActionSectionComponent: React.FC<CallToActionSectionComponentProps> 
     if (block.buttonUrl.startsWith('http') || block.buttonUrl.startsWith('https')) {
       window.open(block.buttonUrl, '_blank', 'noopener,noreferrer')
     } else {
-      window.location.href = block.buttonUrl
+      navigate(block.buttonUrl)
     }
   }
 

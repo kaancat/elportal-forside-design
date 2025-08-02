@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import Layout from "@/components/Layout";
 import Index from "./pages/Index";
 import GenericPage from "./pages/GenericPage";
 import NotFound from "./pages/NotFound";
@@ -42,17 +43,19 @@ const AppContent = () => {
         <Sonner />
         <BrowserRouter>
           <ErrorBoundary level="page">
-            <Routes>
-              <Route path="/" element={<Index />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="/energispareraad" element={<EnergyTips />} />
-              <Route path="/icon-test" element={<IconTest />} />
-              
-              {/* Dynamic route for generic pages - must be before the 404 catch-all */}
-              <Route path="/:slug" element={<GenericPage />} />
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <Layout>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="/energispareraad" element={<EnergyTips />} />
+                <Route path="/icon-test" element={<IconTest />} />
+                
+                {/* Dynamic route for generic pages - must be before the 404 catch-all */}
+                <Route path="/:slug" element={<GenericPage />} />
+                
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Layout>
           </ErrorBoundary>
         </BrowserRouter>
       </div>

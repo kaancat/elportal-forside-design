@@ -100,7 +100,15 @@ const Navigation = () => {
               <RouterLink to={resolveLink(ctaButton, 'Navigation')}>{ctaButton.title}</RouterLink>
             </Button>
           )}
-          <MobileNav navItems={navItems} resolveLink={(link: LinkType) => resolveLink(link, 'Navigation')} />
+          <MobileNav 
+            navItems={navItems} 
+            resolveLink={(link: LinkType) => resolveLink(link, 'Navigation')}
+            logoSrc={settings.logo?.asset?._ref ? 
+              `https://cdn.sanity.io/images/yxesi03x/production/${settings.logo.asset._ref.replace('image-', '').replace('-png', '.png').replace('-jpg', '.jpg').replace('-webp', '.webp')}` :
+              "/lovable-uploads/97984f7d-d542-490c-9e04-5a0744d1b6a2.png"
+            }
+            logoAlt={settings.title || "ElPortal.dk"}
+          />
         </div>
       </div>
 

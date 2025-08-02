@@ -132,18 +132,15 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
     },
   }
   
-  // Enhanced theme system with all 8 themes
+  // Simplified theme system with 5 themes
   const getThemeClasses = () => {
     const themeType = settings?.theme || 'default';
     const themes = {
       default: 'bg-white',
       light: 'bg-gray-50',
-      brand: 'bg-gradient-to-br from-brand-green/10 to-brand-green-light/10',
+      subtle: 'bg-green-50/60',
       dark: 'bg-brand-dark text-white',
-      primary: 'bg-brand-green text-white',
-      subtle: 'bg-gradient-to-br from-green-50 to-green-100',
-      accent: 'bg-brand-green-dark text-white',
-      pattern: 'bg-gray-100 relative',
+      primary: 'bg-brand-green text-white'
     }
     return themes[themeType as keyof typeof themes] || themes.default;
   };
@@ -151,7 +148,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   // Check if theme has dark background (needs light text)
   const isDarkTheme = () => {
     const themeType = settings?.theme;
-    return themeType === 'dark' || themeType === 'primary' || themeType === 'accent';
+    return themeType === 'dark' || themeType === 'primary';
   };
 
   // Get consistent text colors for each theme
@@ -173,14 +170,6 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
           strong: 'text-white',
           link: 'text-brand-dark hover:text-brand-dark-light'
         };
-      case 'accent':
-        return {
-          heading: 'text-white',
-          body: 'text-gray-100',
-          strong: 'text-white',
-          link: 'text-brand-green-light hover:text-white'
-        };
-      case 'brand':
       case 'subtle':
         return {
           heading: 'text-brand-dark',
@@ -189,7 +178,6 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
           link: 'text-brand-green-dark hover:text-brand-dark'
         };
       case 'light':
-      case 'pattern':
       case 'default':
       default:
         return {
@@ -209,15 +197,12 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
     
     switch (themeType) {
       case 'dark':
-      case 'accent':
         return "bg-brand-green text-brand-dark hover:bg-brand-green-light";
       case 'primary':
         return "bg-white text-brand-dark hover:bg-gray-100";
-      case 'brand':
       case 'subtle':
-        return "bg-brand-dark text-white hover:bg-brand-dark-light";
+        return "bg-brand-green text-white hover:bg-brand-green-dark";
       case 'light':
-      case 'pattern':
       case 'default':
       default:
         return "bg-brand-green text-white hover:bg-brand-green-dark";
@@ -348,22 +333,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
       )}
       style={theme?.background ? { backgroundColor: theme.background } : {}}
     >
-      {/* Pattern overlay for pattern theme */}
-      {settings?.theme === 'pattern' && (
-        <div 
-          className="absolute inset-0 opacity-5 pointer-events-none"
-          style={{
-            backgroundImage: `repeating-linear-gradient(
-              45deg,
-              transparent,
-              transparent 10px,
-              rgba(132, 219, 65, 0.1) 10px,
-              rgba(132, 219, 65, 0.1) 20px
-            )`
-          }}
-        />
-      )}
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto px-4">
         {isTextOnly ? (
           // Text-only layout
           <div className={`max-w-4xl mx-auto ${textAlignClass}`}>

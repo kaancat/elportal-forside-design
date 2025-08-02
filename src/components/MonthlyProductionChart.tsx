@@ -128,11 +128,16 @@ const MonthlyProductionChart: React.FC<MonthlyProductionChartProps> = ({ block }
           {loading ? <div className="flex items-center justify-center h-full">Indlæser data...</div> : 
            error ? <div className="flex items-center justify-center h-full text-red-600">{error}</div> :
            (
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={processedData} margin={{ top: 10, right: 30, left: 30, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis tickFormatter={(tick) => tick.toLocaleString('da-DK')} tick={{ fontSize: 12 }} label={{ value: 'MWh', angle: -90, position: 'insideLeft', offset: -20, style: { fill: '#6b7280' } }} />
+            <div className="relative h-full">
+              {/* Y-axis label positioned absolute for mobile */}
+              <div className="md:hidden absolute top-2 left-2 z-10 text-xs text-gray-600 bg-white/90 px-2 py-1 rounded">
+                MWh
+              </div>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={processedData} margin={{ top: 10, right: 30, left: 30, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                  <YAxis tickFormatter={(tick) => tick.toLocaleString('da-DK')} tick={{ fontSize: 12 }} label={{ value: 'MWh', angle: -90, position: 'insideLeft', offset: -20, style: { fill: '#6b7280' }, className: 'hidden md:block' }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Area dataKey="Sol" name="Sol" stackId="1" stroke={chartColors.sol} fill={chartColors.sol} color={chartColors.sol} />
                 <Area dataKey="Landvind" name="Landvind" stackId="1" stroke={chartColors.landvind} fill={chartColors.landvind} color={chartColors.landvind} />
@@ -141,6 +146,7 @@ const MonthlyProductionChart: React.FC<MonthlyProductionChartProps> = ({ block }
                 <Area dataKey="Centrale" name="Centrale værker" stackId="1" stroke={chartColors.centrale} fill={chartColors.centrale} color={chartColors.centrale} />
               </AreaChart>
             </ResponsiveContainer>
+            </div>
           )}
         </div>
 

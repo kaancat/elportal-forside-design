@@ -566,27 +566,33 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                   </div>
                 </div>
               ) : (
-                <ResponsiveContainer width="100%" height={400}>
-                  <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 60 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis 
-                      dataKey="time" 
-                      tick={{ fontSize: isMobile ? 8 : 10 }}
-                      angle={isMobile ? -90 : -45}
-                      textAnchor="end"
-                      height={isMobile ? 80 : 60}
-                      interval={0}
-                      tickFormatter={formatXAxisTick}
-                    />
-                    <YAxis 
-                      tick={{ fontSize: 12 }}
-                      label={{ 
-                        value: 'MW', 
-                        angle: -90, 
-                        position: 'insideLeft',
-                        style: { fontSize: 12 }
-                      }}
-                    />
+                <div className="relative h-[400px]">
+                  {/* Y-axis label positioned absolute for mobile */}
+                  <div className="md:hidden absolute top-2 left-2 z-10 text-xs text-gray-600 bg-white/90 px-2 py-1 rounded">
+                    MW
+                  </div>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 60 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis 
+                        dataKey="time" 
+                        tick={{ fontSize: isMobile ? 8 : 10 }}
+                        angle={isMobile ? -90 : -45}
+                        textAnchor="end"
+                        height={isMobile ? 80 : 60}
+                        interval={0}
+                        tickFormatter={formatXAxisTick}
+                      />
+                      <YAxis 
+                        tick={{ fontSize: 12 }}
+                        label={{ 
+                          value: 'MW', 
+                          angle: -90, 
+                          position: 'insideLeft',
+                          style: { fontSize: 12 },
+                          className: 'hidden md:block'
+                        }}
+                      />
                     <Tooltip content={<ProductionTooltip />} />
                     
                     {/* Current time marker overlay */}
@@ -654,6 +660,7 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                       ))}
                   </AreaChart>
                 </ResponsiveContainer>
+                </div>
               )}
             </div>
           )}
@@ -706,27 +713,33 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                   <div className="text-gray-500">Ingen data tilgængelig</div>
                 </div>
               ) : (
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 60 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis 
-                      dataKey="time" 
-                      tick={{ fontSize: isMobile ? 8 : 10 }}
-                      angle={isMobile ? -90 : -45}
-                      textAnchor="end"
-                      height={isMobile ? 80 : 60}
-                      interval={0}
-                      tickFormatter={formatXAxisTick}
-                    />
-                    <YAxis 
-                      tick={{ fontSize: 12 }}
-                      label={{ 
-                        value: 'g CO₂/kWh', 
-                        angle: -90, 
-                        position: 'insideLeft',
-                        style: { fontSize: 12 }
-                      }}
-                    />
+                <div className="relative h-[300px]">
+                  {/* Y-axis label positioned absolute for mobile */}
+                  <div className="md:hidden absolute top-2 left-2 z-10 text-xs text-gray-600 bg-white/90 px-2 py-1 rounded">
+                    g CO₂/kWh
+                  </div>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 60 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis 
+                        dataKey="time" 
+                        tick={{ fontSize: isMobile ? 8 : 10 }}
+                        angle={isMobile ? -90 : -45}
+                        textAnchor="end"
+                        height={isMobile ? 80 : 60}
+                        interval={0}
+                        tickFormatter={formatXAxisTick}
+                      />
+                      <YAxis 
+                        tick={{ fontSize: 12 }}
+                        label={{ 
+                          value: 'g CO₂/kWh', 
+                          angle: -90, 
+                          position: 'insideLeft',
+                          style: { fontSize: 12 },
+                          className: 'hidden md:block'
+                        }}
+                      />
                     <Tooltip content={<CO2Tooltip />} />
                     <Line 
                       type="monotone" 
@@ -775,6 +788,7 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                     />
                   </LineChart>
                 </ResponsiveContainer>
+                </div>
               )}
             </div>
           )}

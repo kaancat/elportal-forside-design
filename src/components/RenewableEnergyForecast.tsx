@@ -137,16 +137,21 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
         <div className="w-full h-[450px] bg-white p-4 rounded-lg">
           {loading ? <div className="flex items-center justify-center h-full">Indlæser data...</div> :
            (
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={processedData} margin={{ top: 10, right: 20, left: 20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorSolar" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={chartColors.solar} stopOpacity={0.7}/><stop offset="95%" stopColor={chartColors.solar} stopOpacity={0.1}/></linearGradient>
-                  <linearGradient id="colorOnshore" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={chartColors.onshore} stopOpacity={0.7}/><stop offset="95%" stopColor={chartColors.onshore} stopOpacity={0.1}/></linearGradient>
-                  <linearGradient id="colorOffshore" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={chartColors.offshore} stopOpacity={0.7}/><stop offset="95%" stopColor={chartColors.offshore} stopOpacity={0.1}/></linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" vertical={false} />
-                <XAxis dataKey="hour" tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
-                <YAxis domain={[0, yAxisMax]} tickFormatter={(tick) => Math.round(tick).toString()} tick={{ fontSize: 12, fill: '#6b7280' }} label={{ value: 'MWh', angle: -90, position: 'insideLeft', offset: -10, style: { fill: '#6b7280' } }} />
+            <div className="relative h-full">
+              {/* Y-axis label positioned absolute for mobile */}
+              <div className="md:hidden absolute top-2 left-2 z-10 text-xs text-gray-600 bg-white/90 px-2 py-1 rounded">
+                MWh
+              </div>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={processedData} margin={{ top: 10, right: 20, left: 20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorSolar" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={chartColors.solar} stopOpacity={0.7}/><stop offset="95%" stopColor={chartColors.solar} stopOpacity={0.1}/></linearGradient>
+                    <linearGradient id="colorOnshore" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={chartColors.onshore} stopOpacity={0.7}/><stop offset="95%" stopColor={chartColors.onshore} stopOpacity={0.1}/></linearGradient>
+                    <linearGradient id="colorOffshore" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={chartColors.offshore} stopOpacity={0.7}/><stop offset="95%" stopColor={chartColors.offshore} stopOpacity={0.1}/></linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" vertical={false} />
+                  <XAxis dataKey="hour" tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
+                  <YAxis domain={[0, yAxisMax]} tickFormatter={(tick) => Math.round(tick).toString()} tick={{ fontSize: 12, fill: '#6b7280' }} label={{ value: 'MWh', angle: -90, position: 'insideLeft', offset: -10, style: { fill: '#6b7280' }, className: 'hidden md:block' }} />
                 <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#374151', strokeWidth: 1.5, strokeDasharray: '4 4' }} />
                 
                 <Area type="monotone" dataKey="Offshore Wind" name="Vind (Hav)" stackId="1" stroke={chartColors.offshore} fill="url(#colorOffshore)" color={chartColors.offshore} strokeWidth={2} />
@@ -154,6 +159,7 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
                 <Area type="monotone" dataKey="Solar" name="Solenergi" stackId="1" stroke={chartColors.solar} fill="url(#colorSolar)" color={chartColors.solar} strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
+            </div>
           )}
         </div>
         

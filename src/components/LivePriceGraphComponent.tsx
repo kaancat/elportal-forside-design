@@ -32,6 +32,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentRegion, setCurrentRegion] = useState<'DK1' | 'DK2'>(block.apiRegion);
+  const [selectedHour, setSelectedHour] = useState<number | null>(null);
 
   const [hoveredHourData, setHoveredHourData] = useState<{
     hour: number;
@@ -313,15 +314,15 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
       {/* CHART AREA */}
       {loading ? <div className="text-center h-72 flex items-center justify-center">Indlæser graf...</div> : error ? <div className="text-center h-72 flex items-center justify-center text-red-600">{error}</div> : (
         <>
-          {/* Mobile vertical layout */}
+          {/* Mobile vertical layout - horizontal bars similar to the example */}
           <div className="md:hidden w-full">
-            <div className="space-y-1">
+            <div className="flex items-end h-64 border-b border-gray-200 mb-2">
               {calculatedData.map(({ hour, spotPrice, total, fees: feesAmount }) => {
                 const currentHour = new Date().getHours();
                 const isCurrentHour = hour === currentHour && isToday;
                 const priceCategory = stats ? getPriceCategory(total, stats.average.price, stats.standardDeviation) : 'medium';
-                const barWidth = Math.max((total / maxPrice) * 100, 5);
-                const spotWidth = Math.max((spotPrice / maxPrice) * 100, 2);
+                const barHeight = Math.max((total / maxPrice) * 100, 5);
+                const spotHeight = Math.max((spotPrice / total) * 100, 10);
                 
                 const getBarColor = (category: 'low' | 'medium' | 'high') => {
                   switch (category) {
@@ -334,86 +335,119 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                 return (
                   <div 
                     key={hour} 
-                    className={cn(
-                      "flex items-center gap-2 py-2",
-                      isCurrentHour && "bg-blue-50 -mx-4 px-4 border-l-4 border-blue-500"
-                    )}
+                    className="flex-1 flex flex-col items-center justify-end px-[1px]"
+                    onClick={() => setSelectedHour(selectedHour === hour ? null : hour)}
                   >
-                    {/* Hour label */}
-                    <div className="w-12 text-sm text-gray-600 font-medium">
-                      {String(hour).padStart(2, '0')}
-                    </div>
-                    
-                    {/* Bar container */}
-                    <div className="flex-1 relative">
-                      <div className="relative h-8 bg-gray-100 rounded overflow-hidden">
-                        {/* Total bar (spot + fees) */}
-                        <div 
-                          className={`absolute left-0 top-0 h-full ${getBarColor(priceCategory)} transition-all duration-300`}
-                          style={{ width: `${barWidth}%` }}
-                        >
-                          {/* Striped pattern for spot price portion */}
-                          <div 
-                            className="absolute left-0 top-0 h-full"
-                            style={{ 
-                              width: `${(spotWidth / barWidth) * 100}%`,
-                              backgroundImage: `repeating-linear-gradient(
-                                -45deg,
-                                transparent,
-                                transparent 3px,
-                                rgba(0, 0, 0, 0.1) 3px,
-                                rgba(0, 0, 0, 0.1) 6px
-                              )`
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Price label */}
-                    <div className="w-20 text-right">
-                      <div className="text-sm font-semibold text-gray-800">
-                        {(total ?? 0).toFixed(2)}
-                      </div>
-                      <div className="text-xs text-gray-500">kr/kWh</div>
+                    {/* Bar */}
+                    <div 
+                      className={cn(
+                        "w-full relative rounded-t transition-all duration-300",
+                        getBarColor(priceCategory),
+                        isCurrentHour && "ring-2 ring-blue-500 ring-offset-1",
+                        selectedHour === hour && "ring-2 ring-gray-800 ring-offset-1"
+                      )}
+                      style={{ height: `${barHeight}%`, minHeight: '10px' }}
+                    >
+                      {/* Striped pattern for spot price portion */}
+                      <div 
+                        className="absolute bottom-0 left-0 right-0"
+                        style={{ 
+                          height: `${spotHeight}%`,
+                          backgroundImage: `repeating-linear-gradient(
+                            -45deg,
+                            transparent,
+                            transparent 2px,
+                            rgba(0, 0, 0, 0.1) 2px,
+                            rgba(0, 0, 0, 0.1) 4px
+                          )`
+                        }}
+                      />
                     </div>
                   </div>
                 );
               })}
             </div>
             
-            {/* Mobile legend */}
-            <div className="mt-6 space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-green-500 rounded"></div>
-                  <span className="text-gray-600">Lav pris</span>
+            {/* Hour labels */}
+            <div className="flex">
+              {calculatedData.map(({ hour }) => (
+                <div key={hour} className="flex-1 text-center">
+                  <div className="text-[10px] text-gray-500">
+                    {hour % 3 === 0 ? `${String(hour).padStart(2, '0')}:00` : ''}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-yellow-400 rounded"></div>
-                  <span className="text-gray-600">Mellem</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-red-500 rounded"></div>
-                  <span className="text-gray-600">Høj pris</span>
-                </div>
+              ))}
+            </div>
+            
+            {/* Price details for selected hour */}
+            {selectedHour !== null && (
+              <div className="mt-4 bg-gray-50 rounded-lg p-4">
+                {(() => {
+                  const selectedData = calculatedData.find(d => d.hour === selectedHour);
+                  if (!selectedData) return null;
+                  
+                  return (
+                    <div className="space-y-2">
+                      <div className="font-semibold text-gray-800">
+                        Kl. {String(selectedHour).padStart(2, '0')}:00
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div className="text-gray-600">Spotpris:</div>
+                        <div className="text-right font-medium">{selectedData.spotPrice.toFixed(2)} kr/kWh</div>
+                        
+                        {fees.system.enabled && (
+                          <>
+                            <div className="text-gray-600">Systemgebyr:</div>
+                            <div className="text-right font-medium">{fees.system.value.toFixed(2)} kr/kWh</div>
+                          </>
+                        )}
+                        
+                        {fees.elafgift.enabled && (
+                          <>
+                            <div className="text-gray-600">Elafgift:</div>
+                            <div className="text-right font-medium">{fees.elafgift.value.toFixed(2)} kr/kWh</div>
+                          </>
+                        )}
+                        
+                        <div className="border-t pt-2 font-semibold text-gray-800">Total pris:</div>
+                        <div className="border-t pt-2 text-right font-semibold">{selectedData.total.toFixed(2)} kr/kWh</div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
-              <div className="flex items-center gap-2 text-sm">
-                <div className="w-4 h-4 bg-gray-400 rounded relative overflow-hidden">
+            )}
+            
+            {/* Mobile legend - compact */}
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs">
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-green-500 rounded"></div>
+                <span className="text-gray-600">Lav</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-yellow-400 rounded"></div>
+                <span className="text-gray-600">Mellem</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-red-500 rounded"></div>
+                <span className="text-gray-600">Høj</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-gray-400 rounded relative overflow-hidden">
                   <div 
                     className="absolute inset-0"
                     style={{
                       backgroundImage: `repeating-linear-gradient(
                         -45deg,
                         transparent,
-                        transparent 2px,
-                        rgba(0, 0, 0, 0.15) 2px,
-                        rgba(0, 0, 0, 0.15) 4px
+                        transparent 1px,
+                        rgba(0, 0, 0, 0.15) 1px,
+                        rgba(0, 0, 0, 0.15) 2px
                       )`
                     }}
                   />
                 </div>
-                <span className="text-gray-600">Spotpris (inkluderet i total)</span>
+                <span className="text-gray-600">Spotpris</span>
               </div>
             </div>
           </div>

@@ -99,25 +99,21 @@ export function ApplianceSelector({
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl p-0 gap-0">
-          <DialogHeader className="px-6 pt-6 pb-4">
-            <DialogTitle className="text-2xl font-bold">Vælg et apparat</DialogTitle>
+        <DialogContent className="max-w-2xl p-0 gap-0 h-[85vh] md:h-auto flex flex-col">
+          <DialogHeader className="px-4 md:px-6 pt-4 md:pt-6 pb-2 md:pb-4 flex-shrink-0">
+            <DialogTitle className="text-xl md:text-2xl font-bold">Vælg et apparat</DialogTitle>
           </DialogHeader>
 
-          <Command className="border-0">
-            <div className="px-6 pb-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <CommandInput
-                  placeholder="Søg efter apparater..."
-                  value={search}
-                  onValueChange={setSearch}
-                  className="pl-10"
-                />
-              </div>
+          <Command className="border-0 flex-1 overflow-hidden flex flex-col">
+            <div className="px-4 md:px-6 pb-2 md:pb-4 flex-shrink-0">
+              <CommandInput
+                placeholder="Søg efter apparater..."
+                value={search}
+                onValueChange={setSearch}
+              />
             </div>
 
-            <CommandList className="max-h-[400px] px-6 pb-6">
+            <CommandList className="max-h-[calc(85vh-200px)] md:max-h-[400px] px-4 md:px-6 pb-4 md:pb-6 overflow-y-auto">
               <CommandEmpty className="py-12 text-center">
                 <div className="space-y-3">
                   <Zap className="mx-auto h-12 w-12 text-gray-300" />
@@ -136,13 +132,13 @@ export function ApplianceSelector({
                   <CommandGroup
                     key={category}
                     heading={
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="font-semibold text-gray-900">
+                      <div className="flex items-center gap-2 mb-1 md:mb-2">
+                        <span className="font-semibold text-gray-900 text-sm md:text-base">
                           {categoryLabels[category as keyof typeof categoryLabels]}
                         </span>
                         <Badge
                           variant="secondary"
-                          className={`text-xs ${
+                          className={`text-[10px] md:text-xs ${
                             categoryColors[category as keyof typeof categoryColors]
                           }`}
                         >
@@ -163,24 +159,24 @@ export function ApplianceSelector({
                             key={appliance._id}
                             value={appliance.name}
                             onSelect={() => handleSelect(appliance)}
-                            className="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors"
+                            className="flex items-center gap-2 md:gap-3 p-2 md:p-3 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors"
                           >
-                            <div className="p-2 bg-gray-100 rounded-lg">
-                              <Icon className="h-5 w-5 text-gray-600" />
+                            <div className="p-1.5 md:p-2 bg-gray-100 rounded-lg flex-shrink-0">
+                              <Icon className="h-4 w-4 md:h-5 md:w-5 text-gray-600" />
                             </div>
-                            <div className="flex-1">
-                              <p className="font-medium text-gray-900">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-gray-900 text-sm md:text-base truncate">
                                 {appliance.name}
                               </p>
-                              <p className="text-sm text-gray-500">
+                              <p className="text-xs md:text-sm text-gray-500">
                                 {appliance.powerWatts}W
                                 {appliance.powerRangeMin &&
                                   appliance.powerRangeMax &&
                                   ` (${appliance.powerRangeMin}-${appliance.powerRangeMax}W)`}
                               </p>
                             </div>
-                            <div className="text-right">
-                              <Badge variant="outline" className="text-xs">
+                            <div className="text-right flex-shrink-0">
+                              <Badge variant="outline" className="text-[10px] md:text-xs">
                                 {appliance.usageUnit === 'hours_per_day' && 'Timer/dag'}
                                 {appliance.usageUnit === 'minutes_per_day' && 'Min/dag'}
                                 {appliance.usageUnit === 'cycles_per_week' && 'Gange/uge'}

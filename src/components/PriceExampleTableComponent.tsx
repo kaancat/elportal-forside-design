@@ -51,8 +51,76 @@ const PriceExampleTableComponent: React.FC<PriceExampleTableComponentProps> = ({
           </div>
         )}
 
-        {/* Price Comparison Table */}
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+        {/* Mobile Card Layout */}
+        <div className="md:hidden space-y-4">
+          {/* Example 1 Card */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="bg-brand-green p-4">
+              <h3 className="text-white font-bold text-lg text-center">
+                {block.example1_title}
+              </h3>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                <span className="font-semibold text-gray-800">Pris pr. kWh</span>
+                <span className="font-medium text-gray-700">{formatCurrency(block.example1_kwh_price)}</span>
+              </div>
+              <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                <span className="font-semibold text-gray-800">Abonnement pr. måned</span>
+                <span className="font-medium text-gray-700">{formatCurrency(block.example1_subscription)}</span>
+              </div>
+              <div className="bg-gray-50 -mx-6 -mb-6 px-6 py-4 mt-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="font-bold text-gray-900">Samlet pris pr. måned</p>
+                    <p className="text-sm text-gray-600">(ved {monthlyConsumption} kWh forbrug)</p>
+                  </div>
+                  <span className="font-bold text-lg text-brand-dark">{formatCurrency(example1Total)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Example 2 Card */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="bg-brand-green p-4">
+              <h3 className="text-white font-bold text-lg text-center">
+                {block.example2_title}
+              </h3>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                <span className="font-semibold text-gray-800">Pris pr. kWh</span>
+                <span className="font-medium text-gray-700">{formatCurrency(block.example2_kwh_price)}</span>
+              </div>
+              <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                <span className="font-semibold text-gray-800">Abonnement pr. måned</span>
+                <span className="font-medium text-gray-700">{formatCurrency(block.example2_subscription)}</span>
+              </div>
+              <div className="bg-gray-50 -mx-6 -mb-6 px-6 py-4 mt-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="font-bold text-gray-900">Samlet pris pr. måned</p>
+                    <p className="text-sm text-gray-600">(ved {monthlyConsumption} kWh forbrug)</p>
+                  </div>
+                  <span className="font-bold text-lg text-brand-dark">{formatCurrency(example2Total)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Savings Highlight (if example2 is cheaper) */}
+          {example2Total < example1Total && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+              <p className="text-green-800 font-semibold">
+                Spar {formatCurrency(example1Total - example2Total)} pr. måned med {block.example2_title}!
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Table (hidden on mobile) */}
+        <div className="hidden md:block bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
           <Table>
             <TableHeader>
               <TableRow className="bg-brand-green hover:bg-brand-green">

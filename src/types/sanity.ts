@@ -137,6 +137,16 @@ export interface RealPriceComparisonTable {
   showSpotPrice?: boolean
   showProviderFee?: boolean
   showTotalPrice?: boolean
+  settings?: {
+    theme?: 'default' | 'light' | 'subtle' | 'dark' | 'primary'
+    padding?: 'none' | 'small' | 'medium' | 'large'
+    fullWidth?: boolean
+    textAlignment?: 'left' | 'center' | 'right'
+    separator?: boolean
+    layoutRatio?: '50/50' | '60/40' | '40/60'
+    verticalAlign?: 'start' | 'center' | 'end'
+    stickyImage?: boolean
+  }
   // Deprecated field for backward compatibility
   leadingText?: string
 }

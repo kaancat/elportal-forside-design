@@ -289,14 +289,14 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
             ) : (
               <div className="w-full">
                 {/* Mobile chart */}
-                <div className="md:hidden">
-                  <div className="text-xs text-gray-600 mb-1 ml-12">kr/kWh</div>
-                  <div className="h-[320px]">
+                <div className="md:hidden -mx-3">
+                  <div className="text-xs text-gray-600 mb-1 ml-9 pl-3">kr/kWh</div>
+                  <div className="h-[320px] px-3">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={data} margin={{ 
                       top: 5, 
-                      right: 5, 
-                      left: 45, 
+                      right: 0, 
+                      left: 35, 
                       bottom: 50 
                     }}>
                       <defs>
@@ -319,7 +319,7 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
                       />
                       <YAxis 
                         tick={{ fontSize: 10, fill: '#6b7280' }}
-                        width={45}
+                        width={35}
                       />
                       <Tooltip content={<CustomTooltip />} wrapperStyle={{ outline: 'none' }} />
                       

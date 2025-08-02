@@ -17,4 +17,4 @@ export function urlFor(source: SanityImageSource) {
   return builder.image(source)
 }
 
-// Trigger Vercel rebuild
+// Homepage fixed - using public document ID

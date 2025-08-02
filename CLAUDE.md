@@ -267,13 +267,7 @@ function calculateTotalPrice(spotPrice: number, provider: Provider): number {
   - Error: `{ "data": null, "error": {"message": "...", "code": "..."} }`
 
 
-## 4. Multi-Agent Workflows & Context Injection
-
-### Automatic Context Injection for Sub-Agents
-When using the Task tool to spawn sub-agents, the core project context (CLAUDE.md, project-structure.md, docs-overview.md) is automatically injected into their prompts via the subagent-context-injector hook. This ensures all sub-agents have immediate access to essential project documentation without the need of manual specification in each Task prompt.
-
-
-## 5. MCP Server Integrations
+## 4. MCP Server Integrations
 
 ### Gemini Consultation Server
 **When to use:**
@@ -284,15 +278,13 @@ When using the Task tool to spawn sub-agents, the core project context (CLAUDE.m
 - Detailed explanations of complex implementations
 - Highly security relevant tasks
 
-**Automatic Context Injection:**
-- The kit's `gemini-context-injector.sh` hook automatically includes two key files for new sessions:
-  - `/docs/ai-context/project-structure.md` - Complete project structure and tech stack
-  - `/MCP-ASSISTANT-RULES.md` - Your project-specific coding standards and guidelines
-- This ensures Gemini always has comprehensive understanding of your technology stack, architecture, and project standards
+**Key context files:**
+- Attach `/docs/ai-context/project-structure.md` - Complete project structure and tech stack
+- Include relevant code files for the specific problem
 
 **Usage patterns:**
 ```python
-# New consultation session (project structure auto-attached by hooks)
+# New consultation session with context
 mcp__gemini__consult_gemini(
     specific_question="How should I optimize this voice pipeline?",
     problem_description="Need to reduce latency in real-time audio processing",
@@ -376,7 +368,7 @@ npm run mcp:use @smithery-ai/fetch --list
 
 
 
-## 6. ElPortal-Specific Patterns
+## 5. ElPortal-Specific Patterns
 
 ### Content Block Rendering
 When adding new content blocks:
@@ -406,7 +398,7 @@ const LiveComponent = ({ block }: { block: LiveDataBlock }) => {
 - Cache provider data appropriately
 - Show transparent pricing breakdown
 
-## 7. Technical Debt & Known Issues
+## 6. Technical Debt & Known Issues
 
 ### High Priority
 - **TypeScript strict mode disabled** - Gradual migration needed
@@ -424,7 +416,7 @@ const LiveComponent = ({ block }: { block: LiveDataBlock }) => {
 - **Historical data analysis** - Trends and predictions
 - **Smart energy recommendations** - Based on real-time data
 
-## 8. Post-Task Completion Protocol
+## 7. Post-Task Completion Protocol
 After completing any coding task, follow this checklist:
 
 ### 1. Type Safety & Quality Checks
@@ -438,6 +430,13 @@ Run the appropriate commands based on what was modified:
 - Test Vindstød ranking is maintained
 - Verify real-time data updates work
 - Check responsive design on mobile
+
+## 8. Icon Management
+ElPortal uses `sanity-plugin-icon-manager` with a sophisticated fallback system. See [/docs/ICON-USAGE-GUIDE.md](/docs/ICON-USAGE-GUIDE.md) for:
+- Priority-based icon display system (handles VP1/VP2 format differences)
+- Available icon collections and common ElPortal icons
+- Troubleshooting guide for icon display issues
+- Best practices for icon implementation
 
 ## 9. SEO Page Generation Process (Direct API Method)
 

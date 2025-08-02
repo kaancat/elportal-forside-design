@@ -23,6 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 .env
+scripts/.env
 
 # Claude files with sensitive patterns
 .claude/

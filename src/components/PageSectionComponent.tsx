@@ -34,6 +34,11 @@ const fadeUpVariant = {
 
 const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   const { title, content, image, imagePosition = 'left', theme, cta, settings, headerAlignment } = section;
+  
+  // Extract layout settings with defaults
+  const layoutRatio = settings?.layoutRatio || '50/50';
+  const verticalAlign = settings?.verticalAlign || 'start';
+  const stickyImage = settings?.stickyImage || false;
 
   // Define custom components for embedded blocks in Portable Text
   const customComponents = {
@@ -146,6 +151,58 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
 
   // Check if this is a text-only section (no image)
   const isTextOnly = !image;
+  
+  // Get grid layout classes based on ratio
+  const getGridClasses = () => {
+    switch (layoutRatio) {
+      case '60/40':
+        return 'md:grid-cols-12';
+      case '40/60':
+        return 'md:grid-cols-12';
+      case '50/50':
+      default:
+        return 'md:grid-cols-2';
+    }
+  };
+  
+  // Get column span classes for text
+  const getTextColumnClasses = () => {
+    switch (layoutRatio) {
+      case '60/40':
+        return 'md:col-span-7';
+      case '40/60':
+        return 'md:col-span-5';
+      case '50/50':
+      default:
+        return '';
+    }
+  };
+  
+  // Get column span classes for image
+  const getImageColumnClasses = () => {
+    switch (layoutRatio) {
+      case '60/40':
+        return 'md:col-span-5';
+      case '40/60':
+        return 'md:col-span-7';
+      case '50/50':
+      default:
+        return '';
+    }
+  };
+  
+  // Get vertical alignment class
+  const getVerticalAlignClass = () => {
+    switch (verticalAlign) {
+      case 'center':
+        return 'md:items-center';
+      case 'end':
+        return 'md:items-end';
+      case 'start':
+      default:
+        return 'md:items-start';
+    }
+  };
 
   return (
     <motion.section 
@@ -206,9 +263,18 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
           </div>
         ) : (
           // Image + text layout
-          <div className="grid md:grid-cols-2 gap-12 md:gap-16 lg:gap-20 items-center">
+          <div className={cn(
+            "grid gap-12 md:gap-16 lg:gap-20",
+            getGridClasses(),
+            getVerticalAlignClass()
+          )}>
             {/* Image Column */}
-            <div className={`order-1 ${imagePosition === 'right' ? 'md:order-2' : ''}`}>
+            <div className={cn(
+              "order-1",
+              imagePosition === 'right' ? 'md:order-2' : '',
+              getImageColumnClasses(),
+              stickyImage ? 'md:sticky md:top-24 md:self-start' : ''
+            )}>
               <div className="relative">
                 <img
                   src={urlFor(image).width(1000).quality(85).url()}
@@ -219,7 +285,12 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
             </div>
 
             {/* Text Column */}
-            <div className={`order-2 ${imagePosition === 'right' ? 'md:order-1' : ''} ${textAlignClass}`}>
+            <div className={cn(
+              "order-2",
+              imagePosition === 'right' ? 'md:order-1' : '',
+              textAlignClass,
+              getTextColumnClasses()
+            )}>
               {title && (
                 <h2 className={cn(
                   "text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-6",
@@ -229,7 +300,8 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
                 </h2>
               )}
               <div className={cn(
-                "prose prose-lg max-w-none",
+                "prose prose-lg",
+                layoutRatio === '60/40' ? 'max-w-prose' : 'max-w-none',
                 settings?.theme === 'dark' && "prose-invert"
               )}>
                 {content && Array.isArray(content) && content.length > 0 && (

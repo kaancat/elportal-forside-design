@@ -77,25 +77,47 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
     },
     block: {
       h1: ({ children }: { children: React.ReactNode }) => (
-        <h1 className="text-3xl md:text-4xl font-bold mb-6 text-brand-dark leading-tight">{children}</h1>
+        <h1 className={cn(
+          "text-3xl md:text-4xl font-bold mb-6 leading-tight",
+          isDarkTheme() ? "text-white" : "text-brand-dark"
+        )}>{children}</h1>
       ),
       h2: ({ children }: { children: React.ReactNode }) => (
-        <h2 className="text-2xl md:text-3xl font-bold mb-4 text-brand-dark leading-tight">{children}</h2>
+        <h2 className={cn(
+          "text-2xl md:text-3xl font-bold mb-4 leading-tight",
+          isDarkTheme() ? "text-white" : "text-brand-dark"
+        )}>{children}</h2>
       ),
       h3: ({ children }: { children: React.ReactNode }) => (
-        <h3 className="text-xl md:text-2xl font-bold mb-3 text-brand-dark leading-tight">{children}</h3>
+        <h3 className={cn(
+          "text-xl md:text-2xl font-bold mb-3 leading-tight",
+          isDarkTheme() ? "text-white" : "text-brand-dark"
+        )}>{children}</h3>
       ),
       blockquote: ({ children }: { children: React.ReactNode }) => (
-        <blockquote className="relative border-l-4 border-brand-green pl-6 py-2 italic mb-6 text-neutral-700 bg-brand-green/5 rounded-r-lg">
+        <blockquote className={cn(
+          "relative border-l-4 border-brand-green pl-6 py-2 italic mb-6 rounded-r-lg",
+          isDarkTheme() 
+            ? "text-gray-200 bg-white/10" 
+            : "text-neutral-700 bg-brand-green/5"
+        )}>
           {children}
         </blockquote>
       ),
       normal: ({ children }: { children: React.ReactNode }) => (
-        <p className="mb-6 text-neutral-600 leading-relaxed text-lg">{children}</p>
+        <p className={cn(
+          "mb-6 leading-relaxed text-lg",
+          isDarkTheme() ? "text-gray-100" : "text-neutral-600"
+        )}>{children}</p>
       ),
     },
     marks: {
-      strong: ({ children }: { children: React.ReactNode }) => <strong className="font-semibold text-brand-dark">{children}</strong>,
+      strong: ({ children }: { children: React.ReactNode }) => (
+        <strong className={cn(
+          "font-semibold",
+          isDarkTheme() ? "text-white" : "text-brand-dark"
+        )}>{children}</strong>
+      ),
       em: ({ children }: { children: React.ReactNode }) => <em className="italic">{children}</em>,
       link: ({ value, children }: { value?: { href: string }, children: React.ReactNode }) => (
         <a 

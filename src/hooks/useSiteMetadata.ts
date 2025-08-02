@@ -1,17 +1,8 @@
 import { useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { SanityService } from '@/services/sanityService'
+import { useSiteSettings } from './useSiteSettings'
 
 export function useSiteMetadata() {
-  const { data: settings } = useQuery({
-    queryKey: ['site-metadata'],
-    queryFn: async () => {
-      const data = await SanityService.getSiteSettings()
-      return data
-    },
-    staleTime: 1000 * 60 * 30, // 30 minutes
-    gcTime: 1000 * 60 * 60, // 1 hour
-  })
+  const { settings } = useSiteSettings()
 
   useEffect(() => {
     if (!settings) return

@@ -13,7 +13,7 @@ export const useNavigationRefresh = () => {
   const refreshNavigation = async () => {
     console.log('[Navigation] Manual refresh triggered');
     await queryClient.invalidateQueries({ 
-      queryKey: ['navigation', 'site-settings'],
+      queryKey: ['site-settings'],
       exact: true 
     });
   };

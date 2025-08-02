@@ -65,8 +65,9 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
           <span className="sr-only">Open menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="bg-brand-dark border-l border-neutral-800 text-white w-full max-w-sm p-0 flex flex-col h-full [&>button]:hidden">
-        <div className="p-4 flex justify-between items-center border-b border-neutral-800 flex-shrink-0">
+      <SheetContent side="left" className="bg-brand-dark border-l border-neutral-800 text-white w-full max-w-sm p-0 [&>button]:hidden">
+        {/* Fixed header */}
+        <div className="sticky top-0 z-10 bg-brand-dark p-4 flex justify-between items-center border-b border-neutral-800">
           <RouterLink to="/" className="flex items-center" onClick={() => setIsOpen(false)}>
             <img 
               src={logoSrc || "/lovable-uploads/97984f7d-d542-490c-9e04-5a0744d1b6a2.png"} 
@@ -80,8 +81,9 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
           </Button>
         </div>
         
-        <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
-          <div className="p-4 space-y-2 pb-8">
+        {/* Scrollable content */}
+        <div className="h-[calc(100vh-73px)] overflow-y-auto overflow-x-hidden">
+          <div className="p-4 space-y-2">
             {/* Render Simple Links First */}
             {simpleLinks.map(item => (
                <div key={item._key} onClick={() => setIsOpen(false)}>
@@ -100,7 +102,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
                 <div className="px-3 pt-4 pb-2">
                   <h3 className="text-base font-semibold text-neutral-400 uppercase tracking-wider">{megaMenu.title}</h3>
                 </div>
-                <Accordion type="multiple" className="w-full pb-4">
+                <Accordion type="multiple" className="w-full">
                   {megaMenu.content.map(column => (
                      <div key={column._key} onClick={(e) => {
                        // This prevents the whole accordion from closing when a link inside is clicked
@@ -114,6 +116,8 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
                 </Accordion>
               </>
             )}
+            {/* Bottom padding to ensure last items are accessible */}
+            <div className="h-20" />
           </div>
         </div>
       </SheetContent>

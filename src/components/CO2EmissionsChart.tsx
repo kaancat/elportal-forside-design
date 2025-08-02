@@ -352,7 +352,7 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
             ) : (
               <div className="relative">
                 {/* Y-axis label positioned absolute for mobile */}
-                <div className="md:hidden absolute top-2 left-2 z-10 text-xs text-gray-600 bg-white/90 px-2 py-1 rounded">
+                <div className="md:hidden absolute top-10 left-2 z-10 text-xs text-gray-600 bg-white/90 px-2 py-1 rounded">
                   g CO₂/kWh
                 </div>
                 <ResponsiveContainer width="100%" height={450}>
@@ -430,7 +430,7 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
         {/* Legend */}
         <div className="mt-8 flex justify-center">
           <div className="bg-gray-50 rounded-lg p-4 w-full max-w-2xl">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 text-center">CO₂-intensitet niveauer</h3>
+            <h3 className="text-sm font-semibold text-gray-700 mb-3 text-left md:text-center">CO₂-intensitet niveauer</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
               {Object.entries(emissionLevels).map(([key, config]) => (
                 <div key={key} className="flex items-center gap-2">

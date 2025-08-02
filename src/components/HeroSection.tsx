@@ -96,11 +96,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({ block }) => {
             )}
             
             {/* Statistics display */}
-            <div className="flex flex-wrap gap-8 mb-10">
+            <div className="flex flex-col sm:flex-row sm:flex-nowrap gap-4 sm:gap-6 lg:gap-8 mb-10">
               {stats.map((stat, index) => (
-                <div key={index} className="text-center">
-                  <p className="text-3xl lg:text-4xl font-display font-bold text-brand-green">{stat.value}</p>
-                  <p className="text-sm lg:text-base">{stat.label}</p>
+                <div key={index} className="text-center flex-1 min-w-0">
+                  <p className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-brand-green">{stat.value}</p>
+                  <p className="text-xs sm:text-sm lg:text-base">{stat.label}</p>
                 </div>
               ))}
             </div>

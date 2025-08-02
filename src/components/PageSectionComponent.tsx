@@ -140,7 +140,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
       light: 'bg-gray-50',
       subtle: 'bg-green-50/60',
       dark: 'bg-brand-dark text-white',
-      primary: 'bg-brand-green text-white'
+      primary: 'bg-brand-green'
     }
     return themes[themeType as keyof typeof themes] || themes.default;
   };
@@ -148,7 +148,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   // Check if theme has dark background (needs light text)
   const isDarkTheme = () => {
     const themeType = settings?.theme;
-    return themeType === 'dark' || themeType === 'primary';
+    return themeType === 'dark';
   };
 
   // Get consistent text colors for each theme
@@ -165,10 +165,10 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
         };
       case 'primary':
         return {
-          heading: 'text-white',
-          body: 'text-white',
-          strong: 'text-white',
-          link: 'text-brand-dark hover:text-brand-dark-light'
+          heading: 'text-brand-dark',
+          body: 'text-brand-dark-light',
+          strong: 'text-brand-dark',
+          link: 'text-white hover:text-gray-100'
         };
       case 'subtle':
         return {
@@ -199,7 +199,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
       case 'dark':
         return "bg-brand-green text-brand-dark hover:bg-brand-green-light";
       case 'primary':
-        return "bg-white text-brand-dark hover:bg-gray-100";
+        return "bg-brand-dark text-white hover:bg-brand-dark-light";
       case 'subtle':
         return "bg-brand-green text-white hover:bg-brand-green-dark";
       case 'light':

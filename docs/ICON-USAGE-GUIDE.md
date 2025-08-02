@@ -1,7 +1,9 @@
 # Icon Usage Guide for ElPortal
 
+> **📌 Important**: For the complete unified icon approach including migration details and component-specific implementations, see [UNIFIED-ICON-APPROACH.md](./UNIFIED-ICON-APPROACH.md)
+
 ## Overview
-ElPortal uses the `sanity-plugin-icon-manager` for managing icons. This guide provides accurate information about the plugin's requirements and best practices to prevent validation errors.
+ElPortal uses the `sanity-plugin-icon-manager` v1.5.2 for managing icons. This guide provides accurate information about the plugin's requirements and best practices to prevent validation errors.
 
 ## ⚠️ Critical Requirements
 

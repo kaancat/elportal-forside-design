@@ -269,7 +269,7 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
               )}
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-2 md:p-6">
+          <CardContent className="p-3 md:p-6">
             {loading ? (
               <div className="flex items-center justify-center h-[400px]">
                 <div className="text-gray-500">Indlæser reelle prisdata fra energinet.dk...</div>
@@ -287,15 +287,15 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
                 <div className="text-gray-500">Ingen prisdata tilgængelig for denne dato</div>
               </div>
             ) : (
-              <div className="w-full">
-                {/* Mobile chart */}
-                <div className="md:hidden h-[300px] -mx-2">
+              <div className="w-full -mx-3 md:mx-0">
+                {/* Mobile chart - full width on mobile */}
+                <div className="md:hidden h-[320px] px-3">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={data} margin={{ 
-                      top: 10, 
-                      right: 10, 
-                      left: 35, 
-                      bottom: 60 
+                      top: 5, 
+                      right: 5, 
+                      left: 50, 
+                      bottom: 50 
                     }}>
                       <defs>
                         <linearGradient id="colorPriceMobile" x1="0" y1="0" x2="0" y2="1">
@@ -313,19 +313,21 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
                           textAnchor: 'end'
                         }}
                         interval={3}
-                        height={60}
+                        height={50}
                       />
                       <YAxis 
                         tick={{ fontSize: 10, fill: '#6b7280' }}
-                        width={35}
+                        width={50}
                         label={{ 
                           value: 'kr/kWh', 
                           angle: -90, 
                           position: 'insideLeft',
                           style: { 
                             fill: '#6b7280',
-                            fontSize: 11
-                          }
+                            fontSize: 11,
+                            textAnchor: 'middle'
+                          },
+                          offset: 15
                         }}
                       />
                       <Tooltip content={<CustomTooltip />} wrapperStyle={{ outline: 'none' }} />

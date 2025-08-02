@@ -568,7 +568,7 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
               ) : (
                 <div className="relative h-[400px]">
                   {/* Y-axis label positioned absolute for mobile */}
-                  <div className="md:hidden absolute top-2 left-2 z-10 text-xs text-gray-600 bg-white/90 px-2 py-1 rounded">
+                  <div className="md:hidden absolute top-10 left-2 z-10 text-xs text-gray-600 bg-white/90 px-2 py-1 rounded">
                     MW
                   </div>
                   <ResponsiveContainer width="100%" height="100%">
@@ -715,7 +715,7 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
               ) : (
                 <div className="relative h-[300px]">
                   {/* Y-axis label positioned absolute for mobile */}
-                  <div className="md:hidden absolute top-2 left-2 z-10 text-xs text-gray-600 bg-white/90 px-2 py-1 rounded">
+                  <div className="md:hidden absolute top-10 left-2 z-10 text-xs text-gray-600 bg-white/90 px-2 py-1 rounded">
                     g CO₂/kWh
                   </div>
                   <ResponsiveContainer width="100%" height="100%">

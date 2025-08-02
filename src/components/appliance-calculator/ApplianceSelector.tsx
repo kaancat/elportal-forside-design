@@ -99,12 +99,12 @@ export function ApplianceSelector({
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl p-0 gap-0 h-[85vh] md:h-auto flex flex-col">
+        <DialogContent className="max-w-2xl p-0 gap-0 flex flex-col max-h-[calc(100vh-8rem)] md:max-h-[calc(100vh-10rem)]">
           <DialogHeader className="px-4 md:px-6 pt-4 md:pt-6 pb-2 md:pb-4 flex-shrink-0">
             <DialogTitle className="text-xl md:text-2xl font-bold">Vælg et apparat</DialogTitle>
           </DialogHeader>
 
-          <Command className="border-0 flex-1 overflow-hidden flex flex-col">
+          <Command className="border-0 flex-1 overflow-hidden flex flex-col min-h-0">
             <div className="px-4 md:px-6 pb-2 md:pb-4 flex-shrink-0">
               <CommandInput
                 placeholder="Søg efter apparater..."
@@ -113,7 +113,7 @@ export function ApplianceSelector({
               />
             </div>
 
-            <CommandList className="max-h-[calc(85vh-200px)] md:max-h-[400px] px-4 md:px-6 pb-4 md:pb-6 overflow-y-auto">
+            <CommandList className="max-h-none flex-1 px-4 md:px-6 pb-4 md:pb-6 overflow-y-auto">
               <CommandEmpty className="py-12 text-center">
                 <div className="space-y-3">
                   <Zap className="mx-auto h-12 w-12 text-gray-300" />

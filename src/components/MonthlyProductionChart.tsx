@@ -130,7 +130,7 @@ const MonthlyProductionChart: React.FC<MonthlyProductionChartProps> = ({ block }
            (
             <div className="relative h-full">
               {/* Y-axis label positioned absolute for mobile */}
-              <div className="md:hidden absolute top-2 left-2 z-10 text-xs text-gray-600 bg-white/90 px-2 py-1 rounded">
+              <div className="md:hidden absolute top-10 left-2 z-10 text-xs text-gray-600 bg-white/90 px-2 py-1 rounded">
                 MWh
               </div>
               <ResponsiveContainer width="100%" height="100%">

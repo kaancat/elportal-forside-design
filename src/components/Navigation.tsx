@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { SanityService } from '@/services/sanityService';
@@ -10,15 +10,51 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { resolveLink, checkLinksHealth } from '@/utils/linkResolver';
 import { useNavigationRefresh } from '@/hooks/useNavigationRefresh';
 
+const NAVIGATION_STORAGE_KEY = 'elportal_navigation_cache';
+
 const Navigation = () => {
   const [openMenuKey, setOpenMenuKey] = useState<string | null>(null);
   const { refreshNavigation } = useNavigationRefresh();
 
+  // Try to get cached navigation data from localStorage
+  const getCachedNavigation = (): SiteSettings | null => {
+    try {
+      const cached = localStorage.getItem(NAVIGATION_STORAGE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        // Check if cache is less than 1 hour old
+        if (parsed.timestamp && Date.now() - parsed.timestamp < 3600000) {
+          return parsed.data;
+        }
+      }
+    } catch (e) {
+      console.error('[Navigation] Failed to parse cached data:', e);
+    }
+    return null;
+  };
+
   // Use React Query for navigation data fetching
-  const { data: settings, isLoading, error, dataUpdatedAt } = useQuery({
+  const { data: settings, isLoading, error, dataUpdatedAt, isFetching } = useQuery({
     queryKey: ['navigation', 'site-settings'],
     queryFn: async () => {
+      console.log('[Navigation] Fetching navigation data...');
       const data = await SanityService.getSiteSettings();
+      
+      // Cache successful response
+      if (data) {
+        console.log('[Navigation] Successfully fetched navigation data');
+        try {
+          localStorage.setItem(NAVIGATION_STORAGE_KEY, JSON.stringify({
+            data,
+            timestamp: Date.now()
+          }));
+          console.log('[Navigation] Cached navigation data to localStorage');
+        } catch (e) {
+          console.error('[Navigation] Failed to cache data:', e);
+        }
+      } else {
+        console.warn('[Navigation] Received null navigation data from Sanity');
+      }
       
       // Health check navigation links in development
       if (process.env.NODE_ENV === 'development' && data?.headerLinks) {
@@ -27,26 +63,88 @@ const Navigation = () => {
       
       return data;
     },
-    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
-    gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes (formerly cacheTime)
-    refetchOnWindowFocus: true, // Refetch when user returns to tab
+    staleTime: 1000 * 60 * 10, // Consider data fresh for 10 minutes (increased)
+    gcTime: 1000 * 60 * 60, // Keep in cache for 60 minutes (increased)
+    refetchOnWindowFocus: false, // Disable auto-refetch on focus
     refetchOnReconnect: true, // Refetch when network reconnects
-    retry: 3, // Retry failed requests 3 times
+    retry: (failureCount, error) => {
+      // Custom retry logic with exponential backoff
+      if (failureCount < 3) {
+        setTimeout(() => {
+          console.log(`[Navigation] Retrying fetch (attempt ${failureCount + 1})`);
+        }, Math.min(1000 * Math.pow(2, failureCount), 10000));
+        return true;
+      }
+      return false;
+    },
+    initialData: getCachedNavigation, // Use cached data as initial data
+    placeholderData: getCachedNavigation, // Keep showing previous data while fetching
   });
 
-  // Show loading state
-  if (isLoading) {
-    return <header className="sticky top-0 z-50 w-full bg-brand-dark h-16" />;
+  // Get fallback data if available
+  const fallbackSettings = getCachedNavigation();
+  const navigationData = settings || fallbackSettings;
+
+  // Log navigation state changes
+  useEffect(() => {
+    console.log('[Navigation] State:', {
+      isLoading,
+      isFetching,
+      hasError: !!error,
+      hasSettings: !!settings,
+      hasFallback: !!fallbackSettings,
+      hasNavigationData: !!navigationData,
+    });
+  }, [isLoading, isFetching, error, settings, fallbackSettings, navigationData]);
+
+  // Show loading skeleton with structure
+  if (isLoading && !navigationData) {
+    return (
+      <header className="sticky top-0 z-50 w-full bg-brand-dark h-16">
+        <div className="container mx-auto px-4 flex items-center justify-between h-16">
+          <div className="h-8 w-32 bg-white/20 rounded animate-pulse" />
+          <div className="hidden md:flex items-center space-x-8">
+            <div className="h-4 w-20 bg-white/20 rounded animate-pulse" />
+            <div className="h-4 w-20 bg-white/20 rounded animate-pulse" />
+            <div className="h-4 w-20 bg-white/20 rounded animate-pulse" />
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="h-8 w-24 bg-yellow-400/20 rounded-full animate-pulse" />
+            <div className="md:hidden h-8 w-8 bg-white/20 rounded animate-pulse" />
+          </div>
+        </div>
+      </header>
+    );
   }
 
-  // Handle error state
-  if (error || !settings) {
-    console.error('Navigation error:', error);
+  // Handle error state but still show cached navigation if available
+  if (error && !navigationData) {
+    console.error('[Navigation] Error loading navigation:', error);
+    // Return minimal navigation structure
+    return (
+      <header className="sticky top-0 z-50 w-full bg-brand-dark h-16">
+        <div className="container mx-auto px-4 flex items-center justify-between h-16">
+          <RouterLink to="/" className="flex-shrink-0">
+            <img 
+              src="/lovable-uploads/97984f7d-d542-490c-9e04-5a0744d1b6a2.png"
+              alt="ElPortal.dk" 
+              className="h-8 sm:h-10" 
+            />
+          </RouterLink>
+          <div className="text-white text-sm">Navigation unavailable</div>
+        </div>
+      </header>
+    );
+  }
+
+  // If no data at all (shouldn't happen with fallbacks)
+  if (!navigationData) {
+    console.error('[Navigation] No navigation data available');
     return <header className="sticky top-0 z-50 w-full bg-brand-dark h-16" />;
   }
   
-  const ctaButton = settings.headerLinks.find(link => link._type === 'link' && link.isButton) as LinkType | undefined;
-  const navItems = settings.headerLinks.filter(link => !(link._type === 'link' && link.isButton));
+  const ctaButton = navigationData.headerLinks.find(link => link._type === 'link' && link.isButton) as LinkType | undefined;
+  const navItems = navigationData.headerLinks.filter(link => !(link._type === 'link' && link.isButton));
   const megaMenu = navItems.find(item => item._type === 'megaMenu') as MegaMenu | undefined;
 
   return (
@@ -57,11 +155,11 @@ const Navigation = () => {
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
         <RouterLink to="/" className="flex-shrink-0">
           <img 
-            src={settings.logo?.asset?._ref ? 
-              `https://cdn.sanity.io/images/yxesi03x/production/${settings.logo.asset._ref.replace('image-', '').replace('-png', '.png').replace('-jpg', '.jpg').replace('-webp', '.webp')}` :
+            src={navigationData.logo?.asset?._ref ? 
+              `https://cdn.sanity.io/images/yxesi03x/production/${navigationData.logo.asset._ref.replace('image-', '').replace('-png', '.png').replace('-jpg', '.jpg').replace('-webp', '.webp')}` :
               "/lovable-uploads/97984f7d-d542-490c-9e04-5a0744d1b6a2.png"
             } 
-            alt={settings.title || "ElPortal.dk"} 
+            alt={navigationData.title || "ElPortal.dk"} 
             className="h-8 sm:h-10" 
           />
         </RouterLink>
@@ -103,11 +201,11 @@ const Navigation = () => {
           <MobileNav 
             navItems={navItems} 
             resolveLink={(link: LinkType) => resolveLink(link, 'Navigation')}
-            logoSrc={settings.logo?.asset?._ref ? 
-              `https://cdn.sanity.io/images/yxesi03x/production/${settings.logo.asset._ref.replace('image-', '').replace('-png', '.png').replace('-jpg', '.jpg').replace('-webp', '.webp')}` :
+            logoSrc={navigationData.logo?.asset?._ref ? 
+              `https://cdn.sanity.io/images/yxesi03x/production/${navigationData.logo.asset._ref.replace('image-', '').replace('-png', '.png').replace('-jpg', '.jpg').replace('-webp', '.webp')}` :
               "/lovable-uploads/97984f7d-d542-490c-9e04-5a0744d1b6a2.png"
             }
-            logoAlt={settings.title || "ElPortal.dk"}
+            logoAlt={navigationData.title || "ElPortal.dk"}
           />
         </div>
       </div>

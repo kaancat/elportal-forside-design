@@ -697,7 +697,11 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                     Viser data for: {dataDateRange.single ? dataDateRange.start : `${dataDateRange.start} - ${dataDateRange.end}`}
                   </div>
                 )}
-                <div className="h-[450px]">
+                <div className="h-[450px] relative">
+                  {/* Y-axis label positioned absolute for mobile */}
+                  <div className="md:hidden absolute top-10 left-2 z-10 text-xs text-gray-600 bg-white/90 px-2 py-1 rounded">
+                    %
+                  </div>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       layout="vertical"

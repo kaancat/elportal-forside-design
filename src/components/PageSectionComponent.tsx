@@ -79,19 +79,19 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
       h1: ({ children }: { children: React.ReactNode }) => (
         <h1 className={cn(
           "text-3xl md:text-4xl font-bold mb-6 leading-tight",
-          isDarkTheme() ? "text-white" : "text-brand-dark"
+          themeColors.heading
         )}>{children}</h1>
       ),
       h2: ({ children }: { children: React.ReactNode }) => (
         <h2 className={cn(
           "text-2xl md:text-3xl font-bold mb-4 leading-tight",
-          isDarkTheme() ? "text-white" : "text-brand-dark"
+          themeColors.heading
         )}>{children}</h2>
       ),
       h3: ({ children }: { children: React.ReactNode }) => (
         <h3 className={cn(
           "text-xl md:text-2xl font-bold mb-3 leading-tight",
-          isDarkTheme() ? "text-white" : "text-brand-dark"
+          themeColors.heading
         )}>{children}</h3>
       ),
       blockquote: ({ children }: { children: React.ReactNode }) => (
@@ -107,7 +107,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
       normal: ({ children }: { children: React.ReactNode }) => (
         <p className={cn(
           "mb-6 leading-relaxed text-lg",
-          isDarkTheme() ? "text-gray-100" : "text-neutral-600"
+          themeColors.body
         )}>{children}</p>
       ),
     },
@@ -115,14 +115,14 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
       strong: ({ children }: { children: React.ReactNode }) => (
         <strong className={cn(
           "font-semibold",
-          isDarkTheme() ? "text-white" : "text-brand-dark"
+          themeColors.strong
         )}>{children}</strong>
       ),
       em: ({ children }: { children: React.ReactNode }) => <em className="italic">{children}</em>,
       link: ({ value, children }: { value?: { href: string }, children: React.ReactNode }) => (
         <a 
           href={value?.href} 
-          className="text-brand-green hover:text-brand-green-dark underline transition-colors duration-200"
+          className={cn("underline transition-colors duration-200", themeColors.link)}
           target={value?.href?.startsWith('http') ? '_blank' : undefined}
           rel={value?.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
         >
@@ -152,6 +152,76 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   const isDarkTheme = () => {
     const themeType = settings?.theme;
     return themeType === 'dark' || themeType === 'primary' || themeType === 'accent';
+  };
+
+  // Get consistent text colors for each theme
+  const getThemeTextColors = () => {
+    const themeType = settings?.theme || 'default';
+    
+    switch (themeType) {
+      case 'dark':
+        return {
+          heading: 'text-white',
+          body: 'text-gray-100',
+          strong: 'text-white',
+          link: 'text-brand-green hover:text-brand-green-light'
+        };
+      case 'primary':
+        return {
+          heading: 'text-white',
+          body: 'text-white',
+          strong: 'text-white',
+          link: 'text-brand-dark hover:text-brand-dark-light'
+        };
+      case 'accent':
+        return {
+          heading: 'text-white',
+          body: 'text-gray-100',
+          strong: 'text-white',
+          link: 'text-brand-green-light hover:text-white'
+        };
+      case 'brand':
+      case 'subtle':
+        return {
+          heading: 'text-brand-dark',
+          body: 'text-neutral-700',
+          strong: 'text-brand-dark',
+          link: 'text-brand-green-dark hover:text-brand-dark'
+        };
+      case 'light':
+      case 'pattern':
+      case 'default':
+      default:
+        return {
+          heading: 'text-brand-dark',
+          body: 'text-neutral-600',
+          strong: 'text-brand-dark',
+          link: 'text-brand-green hover:text-brand-green-dark'
+        };
+    }
+  };
+
+  const themeColors = getThemeTextColors();
+
+  // Get button styling based on theme
+  const getButtonClasses = () => {
+    const themeType = settings?.theme || 'default';
+    
+    switch (themeType) {
+      case 'dark':
+      case 'accent':
+        return "bg-brand-green text-brand-dark hover:bg-brand-green-light";
+      case 'primary':
+        return "bg-white text-brand-dark hover:bg-gray-100";
+      case 'brand':
+      case 'subtle':
+        return "bg-brand-dark text-white hover:bg-brand-dark-light";
+      case 'light':
+      case 'pattern':
+      case 'default':
+      default:
+        return "bg-brand-green text-white hover:bg-brand-green-dark";
+    }
   };
 
   // Get padding classes based on settings
@@ -300,7 +370,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
             {title && (
               <h2 className={cn(
                 "text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-8",
-                isDarkTheme() ? "text-white" : "text-brand-dark"
+                themeColors.heading
               )}>
                 {title}
               </h2>
@@ -320,9 +390,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
                   className={cn(
                     "inline-flex items-center px-8 py-4 font-semibold rounded-xl transition-colors duration-200",
                     "shadow-lg",
-                    isDarkTheme() 
-                      ? "bg-brand-green text-brand-dark hover:bg-brand-green-light" 
-                      : "bg-brand-green text-white hover:bg-brand-green-dark"
+                    getButtonClasses()
                   )}
                 >
                   {cta.text}
@@ -365,7 +433,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
               {title && (
                 <h2 className={cn(
                   "text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-6",
-                  isDarkTheme() ? "text-white" : "text-brand-dark"
+                  themeColors.heading
                 )}>
                   {title}
                 </h2>
@@ -386,9 +454,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
                     className={cn(
                       "inline-flex items-center px-8 py-4 font-semibold rounded-xl transition-colors duration-200",
                       "shadow-lg",
-                      isDarkTheme() 
-                        ? "bg-brand-green text-brand-dark hover:bg-brand-green-light" 
-                        : "bg-brand-green text-white hover:bg-brand-green-dark"
+                      getButtonClasses()
                     )}
                   >
                     {cta.text}

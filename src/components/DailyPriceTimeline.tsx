@@ -259,17 +259,17 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
 
         {/* Main Chart */}
         <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-xl font-bold text-gray-900">
+          <CardHeader className="pb-2 md:pb-4">
+            <CardTitle className="text-lg md:text-xl font-bold text-gray-900">
               Prisudvikling gennem døgnet
               {error && (
-                <Badge variant="destructive" className="ml-2">
+                <Badge variant="destructive" className="ml-2 text-xs">
                   Data ikke tilgængelig
                 </Badge>
               )}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-2 md:p-6">
             {loading ? (
               <div className="flex items-center justify-center h-[400px]">
                 <div className="text-gray-500">Indlæser reelle prisdata fra energinet.dk...</div>
@@ -287,66 +287,155 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
                 <div className="text-gray-500">Ingen prisdata tilgængelig for denne dato</div>
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={400}>
-                <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                  <XAxis 
-                    dataKey="hour" 
-                    tick={{ fontSize: 12, fill: '#6b7280' }}
-                    interval={2}
-                  />
-                  <YAxis 
-                    tick={{ fontSize: 12, fill: '#6b7280' }}
-                    label={{ 
-                      value: 'Pris (kr/kWh)', 
-                      angle: -90, 
-                      position: 'insideLeft',
-                      style: { fill: '#6b7280' }
-                    }}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  
-                  {showAveragePrice && (
-                    <ReferenceLine 
-                      y={averagePrice} 
-                      stroke="#ef4444" 
-                      strokeDasharray="5 5"
-                      label={{ 
-                        value: "Gennemsnit", 
-                        position: "insideTopRight",
-                        offset: 10,
-                        style: { fontSize: 12, fill: '#ef4444' }
-                      }}
-                    />
-                  )}
-                  
-                  {highlightPeakHours && data.map((item, index) => (
-                    item.isPeak && (
-                      <ReferenceLine 
-                        key={index}
-                        x={item.hour} 
-                        stroke="#fbbf24" 
-                        strokeWidth={2}
-                        opacity={0.3}
+              <div className="w-full">
+                {/* Mobile chart */}
+                <div className="md:hidden h-[300px] -mx-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={data} margin={{ 
+                      top: 10, 
+                      right: 10, 
+                      left: 35, 
+                      bottom: 60 
+                    }}>
+                      <defs>
+                        <linearGradient id="colorPriceMobile" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                      <XAxis 
+                        dataKey="hour" 
+                        tick={{ 
+                          fontSize: 10, 
+                          fill: '#6b7280',
+                          angle: -45,
+                          textAnchor: 'end'
+                        }}
+                        interval={3}
+                        height={60}
                       />
-                    )
-                  ))}
-                  
-                  <Area 
-                    type="monotone" 
-                    dataKey="price" 
-                    stroke="#3b82f6" 
-                    fill="url(#colorPrice)"
-                    strokeWidth={2}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+                      <YAxis 
+                        tick={{ fontSize: 10, fill: '#6b7280' }}
+                        width={35}
+                        label={{ 
+                          value: 'kr/kWh', 
+                          angle: -90, 
+                          position: 'insideLeft',
+                          style: { 
+                            fill: '#6b7280',
+                            fontSize: 11
+                          }
+                        }}
+                      />
+                      <Tooltip content={<CustomTooltip />} wrapperStyle={{ outline: 'none' }} />
+                      
+                      {showAveragePrice && (
+                        <ReferenceLine 
+                          y={averagePrice} 
+                          stroke="#ef4444" 
+                          strokeDasharray="5 5"
+                          label={{ 
+                            value: "Gns.", 
+                            position: "insideTopRight",
+                            offset: 5,
+                            style: { fontSize: 10, fill: '#ef4444' }
+                          }}
+                        />
+                      )}
+                      
+                      {highlightPeakHours && data.map((item, index) => (
+                        item.isPeak && (
+                          <ReferenceLine 
+                            key={index}
+                            x={item.hour} 
+                            stroke="#fbbf24" 
+                            strokeWidth={2}
+                            opacity={0.3}
+                          />
+                        )
+                      ))}
+                      
+                      <Area 
+                        type="monotone" 
+                        dataKey="price" 
+                        stroke="#3b82f6" 
+                        fill="url(#colorPriceMobile)"
+                        strokeWidth={2}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Desktop chart */}
+                <div className="hidden md:block h-[400px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={data} margin={{ 
+                      top: 10, 
+                      right: 30, 
+                      left: 60, 
+                      bottom: 40 
+                    }}>
+                      <defs>
+                        <linearGradient id="colorPriceDesktop" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                      <XAxis 
+                        dataKey="hour" 
+                        tick={{ fontSize: 12, fill: '#6b7280' }}
+                        interval={2}
+                      />
+                      <YAxis 
+                        tick={{ fontSize: 12, fill: '#6b7280' }}
+                        label={{ 
+                          value: 'Pris (kr/kWh)', 
+                          angle: -90, 
+                          position: 'insideLeft',
+                          style: { fill: '#6b7280' }
+                        }}
+                      />
+                      <Tooltip content={<CustomTooltip />} wrapperStyle={{ outline: 'none' }} />
+                      
+                      {showAveragePrice && (
+                        <ReferenceLine 
+                          y={averagePrice} 
+                          stroke="#ef4444" 
+                          strokeDasharray="5 5"
+                          label={{ 
+                            value: "Gennemsnit", 
+                            position: "insideTopRight",
+                            offset: 10,
+                            style: { fontSize: 12, fill: '#ef4444' }
+                          }}
+                        />
+                      )}
+                      
+                      {highlightPeakHours && data.map((item, index) => (
+                        item.isPeak && (
+                          <ReferenceLine 
+                            key={index}
+                            x={item.hour} 
+                            stroke="#fbbf24" 
+                            strokeWidth={2}
+                            opacity={0.3}
+                          />
+                        )
+                      ))}
+                      
+                      <Area 
+                        type="monotone" 
+                        dataKey="price" 
+                        stroke="#3b82f6" 
+                        fill="url(#colorPriceDesktop)"
+                        strokeWidth={2}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>

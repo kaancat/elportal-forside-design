@@ -297,7 +297,7 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
                       top: 5, 
                       right: 0, 
                       left: 0, 
-                      bottom: 50 
+                      bottom: 40 
                     }}>
                       <defs>
                         <linearGradient id="colorPriceMobile" x1="0" y1="0" x2="0" y2="1">
@@ -315,7 +315,7 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
                           textAnchor: 'end'
                         }}
                         interval={3}
-                        height={50}
+                        height={40}
                       />
                       <YAxis 
                         tick={{ fontSize: 10, fill: '#6b7280' }}

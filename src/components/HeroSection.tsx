@@ -79,7 +79,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ block }) => {
             {subheadline && (
               <div className="text-xl mb-8">
                 {typeof subheadline === 'string' ? (
-                  <p>{subheadline}</p>
+                  <p>{renderHeadlineWithHighlight(subheadline, block?.highlightWords)}</p>
                 ) : (
                   <div className="prose prose-invert max-w-none">
                     <PortableText value={subheadline} />

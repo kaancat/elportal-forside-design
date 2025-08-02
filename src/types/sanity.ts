@@ -61,6 +61,9 @@ export interface PageSection {
     fullWidth?: boolean;
     textAlignment?: 'left' | 'center' | 'right';
     separator?: boolean;
+    layoutRatio?: '50/50' | '60/40' | '40/60';
+    verticalAlign?: 'start' | 'center' | 'end';
+    stickyImage?: boolean;
   };
 }
 

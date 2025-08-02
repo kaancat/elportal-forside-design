@@ -33,6 +33,9 @@ const Navigation = () => {
     return null;
   };
 
+  // Get cached data once
+  const cachedData = getCachedNavigation();
+
   // Use React Query for navigation data fetching
   const { data: settings, isLoading, error, dataUpdatedAt, isFetching } = useQuery({
     queryKey: ['navigation', 'site-settings'],
@@ -77,13 +80,13 @@ const Navigation = () => {
       }
       return false;
     },
-    initialData: getCachedNavigation, // Use cached data as initial data
-    placeholderData: getCachedNavigation, // Keep showing previous data while fetching
+    // Only use initialData if we actually have cached data
+    ...(cachedData && { initialData: cachedData }),
+    placeholderData: cachedData, // Keep showing previous data while fetching
   });
 
-  // Get fallback data if available
-  const fallbackSettings = getCachedNavigation();
-  const navigationData = settings || fallbackSettings;
+  // Use settings if available, otherwise use cached data as fallback
+  const navigationData = settings || cachedData;
 
   // Log navigation state changes
   useEffect(() => {
@@ -92,10 +95,10 @@ const Navigation = () => {
       isFetching,
       hasError: !!error,
       hasSettings: !!settings,
-      hasFallback: !!fallbackSettings,
+      hasCachedData: !!cachedData,
       hasNavigationData: !!navigationData,
     });
-  }, [isLoading, isFetching, error, settings, fallbackSettings, navigationData]);
+  }, [isLoading, isFetching, error, settings, cachedData, navigationData]);
 
   // Show loading skeleton with structure
   if (isLoading && !navigationData) {

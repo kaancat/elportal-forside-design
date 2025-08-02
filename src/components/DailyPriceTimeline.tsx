@@ -287,14 +287,16 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
                 <div className="text-gray-500">Ingen prisdata tilgængelig for denne dato</div>
               </div>
             ) : (
-              <div className="w-full -mx-3 md:mx-0">
-                {/* Mobile chart - full width on mobile */}
-                <div className="md:hidden h-[320px] px-3">
+              <div className="w-full">
+                {/* Mobile chart */}
+                <div className="md:hidden">
+                  <div className="text-xs text-gray-600 mb-1 ml-12">kr/kWh</div>
+                  <div className="h-[320px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={data} margin={{ 
                       top: 5, 
                       right: 5, 
-                      left: 50, 
+                      left: 45, 
                       bottom: 50 
                     }}>
                       <defs>
@@ -317,18 +319,7 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
                       />
                       <YAxis 
                         tick={{ fontSize: 10, fill: '#6b7280' }}
-                        width={50}
-                        label={{ 
-                          value: 'kr/kWh', 
-                          angle: -90, 
-                          position: 'insideLeft',
-                          style: { 
-                            fill: '#6b7280',
-                            fontSize: 11,
-                            textAnchor: 'middle'
-                          },
-                          offset: 15
-                        }}
+                        width={45}
                       />
                       <Tooltip content={<CustomTooltip />} wrapperStyle={{ outline: 'none' }} />
                       
@@ -367,6 +358,7 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
                       />
                     </AreaChart>
                   </ResponsiveContainer>
+                  </div>
                 </div>
 
                 {/* Desktop chart */}

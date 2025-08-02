@@ -272,10 +272,12 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
             <div className={cn(
               "order-1",
               imagePosition === 'right' ? 'md:order-2' : '',
-              getImageColumnClasses(),
-              stickyImage ? 'md:sticky md:top-24 md:self-start' : ''
+              getImageColumnClasses()
             )}>
-              <div className="relative">
+              <div className={cn(
+                "relative",
+                stickyImage && verticalAlign === 'start' ? 'md:sticky md:top-20 md:h-fit' : ''
+              )}>
                 <img
                   src={urlFor(image).width(1000).quality(85).url()}
                   alt={image.alt || title}

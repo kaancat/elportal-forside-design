@@ -1,5 +1,5 @@
-import React, { useRef } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import React, { useRef, useEffect, useState } from 'react'
+import { motion, useScroll, useTransform, useMotionValue } from 'framer-motion'
 import { urlFor } from '@/lib/sanity'
 import { PortableText } from '@portabletext/react'
 import type { PageSection } from '@/types/sanity'
@@ -13,24 +13,37 @@ interface StickyImageSectionProps {
 const StickyImageSection: React.FC<StickyImageSectionProps> = ({ section, customComponents }) => {
   const { title, content, image, imagePosition = 'left', settings, headerAlignment } = section
   const containerRef = useRef<HTMLDivElement>(null)
+  const [isDesktop, setIsDesktop] = useState(false)
+  
+  // Check if we're on desktop
+  useEffect(() => {
+    const checkDesktop = () => {
+      setIsDesktop(window.innerWidth >= 768) // md breakpoint
+    }
+    checkDesktop()
+    window.addEventListener('resize', checkDesktop)
+    return () => window.removeEventListener('resize', checkDesktop)
+  }, [])
   
   // Get layout settings
   const layoutRatio = settings?.layoutRatio || '50/50'
   const textAlignClass = headerAlignment === 'left' ? 'text-left' : headerAlignment === 'right' ? 'text-right' : 'text-center'
   
-  // Set up scroll tracking
+  // Set up scroll tracking (only used on desktop)
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end start"]
   })
   
-  // Transform scroll progress to sticky behavior
-  // Image stays in view while text scrolls
+  // Transform scroll progress to sticky behavior (only on desktop)
   const imageY = useTransform(
     scrollYProgress,
     [0, 1],
-    ["0%", "50%"] // Adjust these values to control how much the image moves
+    ["0%", "50%"]
   )
+  
+  // Use a static value for mobile
+  const staticY = useMotionValue("0%")
   
   // Get grid classes based on ratio
   const getGridClasses = () => {
@@ -79,33 +92,37 @@ const StickyImageSection: React.FC<StickyImageSectionProps> = ({ section, custom
         "grid gap-12 md:gap-16 lg:gap-20",
         getGridClasses()
       )}>
-        {/* Image Column - Sticky with Framer Motion */}
-        <motion.div 
+        {/* Image Column - Sticky only on desktop */}
+        <div 
           className={cn(
-            "order-1 relative h-screen md:h-auto",
+            "order-1 relative",
             imagePosition === 'right' ? 'md:order-2' : '',
-            getImageColumnClasses()
+            getImageColumnClasses(),
+            // Desktop sticky styles
+            "md:sticky md:top-20 md:h-[calc(100vh-8rem)]",
+            // Mobile styles
+            "h-auto"
           )}
-          style={{
-            position: 'sticky',
-            top: '5rem', // Account for header
-            height: 'calc(100vh - 8rem)',
-            display: 'flex',
-            alignItems: 'center'
-          }}
         >
-          <motion.div 
-            className="relative w-full"
-            style={{ y: imageY }}
-          >
-            <img
-              src={urlFor(image).width(1000).quality(85).url()}
-              alt={image.alt || title}
-              className="w-full h-auto rounded-2xl object-cover"
-              style={{ maxHeight: 'calc(100vh - 10rem)' }}
-            />
-          </motion.div>
-        </motion.div>
+          <div className={cn(
+            "relative w-full",
+            "md:h-full md:flex md:items-center"
+          )}>
+            <motion.div 
+              className="relative w-full"
+              style={{ y: isDesktop ? imageY : staticY }}
+            >
+              <img
+                src={urlFor(image).width(1000).quality(85).url()}
+                alt={image.alt || title}
+                className={cn(
+                  "w-full h-auto rounded-2xl object-cover",
+                  "md:max-h-[calc(100vh-10rem)]"
+                )}
+              />
+            </motion.div>
+          </div>
+        </div>
 
         {/* Text Column - Scrolls normally */}
         <div className={cn(
@@ -113,7 +130,7 @@ const StickyImageSection: React.FC<StickyImageSectionProps> = ({ section, custom
           imagePosition === 'right' ? 'md:order-1' : '',
           textAlignClass,
           getTextColumnClasses(),
-          "py-20 md:py-32" // Extra padding for scroll effect
+          "py-8 md:py-32" // Normal padding on mobile, extra on desktop for scroll effect
         )}>
           {title && (
             <h2 className={cn(

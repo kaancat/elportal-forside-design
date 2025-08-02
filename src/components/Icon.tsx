@@ -11,8 +11,36 @@ interface IconProps {
 }
 
 /**
- * Simple icon component that displays icons from sanity-plugin-icon-manager
- * The plugin handles all URL construction including color, size, and transformations
+ * Icon component that displays icons from sanity-plugin-icon-manager v1.5.2
+ * 
+ * CRITICAL: The plugin has strict validation requirements in Sanity Studio.
+ * Icons MUST have the following structure:
+ * 
+ * {
+ *   _type: 'icon.manager',
+ *   icon: 'provider:icon-name',  // e.g., 'lucide:sun'
+ *   metadata: {
+ *     iconName: string,          // REQUIRED
+ *     size: {                    // REQUIRED OBJECT (not direct width/height)
+ *       width: number,
+ *       height: number
+ *     },
+ *     hFlip: boolean,
+ *     vFlip: boolean,
+ *     rotate: 0 | 1 | 2 | 3,
+ *     color?: {                  // Optional, but if present must have both:
+ *       hex: string,
+ *       rgba: { r, g, b, a }
+ *     }
+ *   }
+ * }
+ * 
+ * Common errors:
+ * - "Cannot read properties of undefined (reading 'width')": Missing size object
+ * - Direct width/height properties instead of size object
+ * - Manual color manipulation without rgba structure
+ * 
+ * @see /docs/ICON-USAGE-GUIDE.md for full documentation
  */
 export const Icon: React.FC<IconProps> = ({ 
   icon,
@@ -25,6 +53,26 @@ export const Icon: React.FC<IconProps> = ({
   // Early return for no icon data
   if (!icon) {
     return fallbackIcon || <HelpCircle size={size} className={className} />;
+  }
+
+  // Development warning for malformed icons
+  if (process.env.NODE_ENV === 'development') {
+    if (icon.metadata) {
+      // Check for common structural issues
+      if (!icon.metadata.size && (icon.metadata.width || icon.metadata.height)) {
+        console.warn(
+          '[Icon Component] Malformed icon structure detected:', 
+          icon.metadata.iconName || 'unknown',
+          '- Has direct width/height instead of size object. This will break in Sanity Studio!'
+        );
+      }
+      if (!icon.metadata.iconName) {
+        console.warn(
+          '[Icon Component] Missing required iconName in metadata for icon:', 
+          icon.icon || 'unknown'
+        );
+      }
+    }
   }
 
   // Priority 1: Non-placeholder SVG (highest quality)

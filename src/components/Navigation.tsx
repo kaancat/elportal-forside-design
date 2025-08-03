@@ -22,8 +22,8 @@ const Navigation = () => {
     checkLinksHealth(settings.headerLinks, 'Navigation');
   }
 
-  // Show loading skeleton when loading or fetching without data
-  if ((isLoading || isFetching) && !settings) {
+  // Show loading skeleton only when initially loading without data (not during background refetch)
+  if (isLoading && !settings) {
     return (
       <header className="sticky top-0 z-50 w-full bg-brand-dark h-16">
         <div className="container mx-auto px-4 flex items-center justify-between h-16">

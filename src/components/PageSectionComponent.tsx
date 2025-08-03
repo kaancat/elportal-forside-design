@@ -327,7 +327,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
       }}
       variants={fadeUpVariant}
       className={cn(
-        "relative overflow-hidden",
+        "relative", // Removed overflow-hidden to fix sticky navigation conflict
         getThemeClasses(),
         getPaddingClasses()
       )}

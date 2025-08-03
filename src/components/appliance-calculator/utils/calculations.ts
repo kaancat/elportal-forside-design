@@ -34,7 +34,10 @@ export function calculateYearlyKwh(appliance: UserAppliance): number {
 }
 
 export function calculateCost(kwh: number, pricePerKwh: number): number {
-  return kwh * pricePerKwh
+  // Ensure both values are valid numbers
+  const validKwh = isNaN(kwh) || kwh == null ? 0 : kwh
+  const validPrice = isNaN(pricePerKwh) || pricePerKwh == null ? 0 : pricePerKwh
+  return validKwh * validPrice
 }
 
 export function createApplianceSummary(
@@ -57,14 +60,16 @@ export function createApplianceSummary(
 }
 
 export function formatCost(cost: number): string {
-  return cost.toFixed(2).replace('.', ',')
+  const validCost = isNaN(cost) || cost == null ? 0 : cost
+  return validCost.toFixed(2).replace('.', ',')
 }
 
 export function formatKwh(kwh: number): string {
-  if (kwh < 0.01) return '< 0,01'
-  if (kwh < 1) return kwh.toFixed(2).replace('.', ',')
-  if (kwh < 10) return kwh.toFixed(1).replace('.', ',')
-  return Math.round(kwh).toLocaleString('da-DK')
+  const validKwh = isNaN(kwh) || kwh == null ? 0 : kwh
+  if (validKwh < 0.01) return '< 0,01'
+  if (validKwh < 1) return validKwh.toFixed(2).replace('.', ',')
+  if (validKwh < 10) return validKwh.toFixed(1).replace('.', ',')
+  return Math.round(validKwh).toLocaleString('da-DK')
 }
 
 // Helper to get human-readable usage labels

@@ -57,12 +57,15 @@ export function ConsumptionDashboard({
 }: ConsumptionDashboardProps) {
   // Prepare data for pie chart
   const chartData = appliances
+    .filter((app) => app.monthlyCost != null && !isNaN(app.monthlyCost))
     .sort((a, b) => b.monthlyCost - a.monthlyCost)
     .slice(0, 10) // Top 10 consumers
     .map((app) => ({
       name: app.name,
-      value: parseFloat(app.monthlyCost.toFixed(2)),
-      percentage: ((app.monthlyCost / totalMonthlyCost) * 100).toFixed(1),
+      value: parseFloat((app.monthlyCost || 0).toFixed(2)),
+      percentage: totalMonthlyCost > 0 
+        ? ((app.monthlyCost / totalMonthlyCost) * 100).toFixed(1)
+        : '0',
     }))
 
   const hasAppliances = appliances.length > 0

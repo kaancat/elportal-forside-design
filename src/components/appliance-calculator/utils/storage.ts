@@ -14,7 +14,19 @@ export function loadCalculatorState(): CalculatorState | null {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
-      return JSON.parse(stored)
+      const parsed = JSON.parse(stored)
+      // Validate the loaded state
+      if (parsed && typeof parsed === 'object') {
+        // Ensure electricityPriceKwh is a valid number
+        if (!parsed.electricityPriceKwh || isNaN(parsed.electricityPriceKwh)) {
+          parsed.electricityPriceKwh = 3.21 // Default price
+        }
+        // Ensure userAppliances is an array
+        if (!Array.isArray(parsed.userAppliances)) {
+          parsed.userAppliances = []
+        }
+        return parsed
+      }
     }
   } catch (error) {
     console.error('Failed to load calculator state:', error)

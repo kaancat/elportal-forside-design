@@ -107,7 +107,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
       <SheetContent 
         id="mobile-navigation"
         side="left" 
-        className="bg-brand-dark border-l border-neutral-800 text-white w-full max-w-sm p-0 [&>button]:hidden z-[9999]"
+        className="bg-brand-dark border-l border-neutral-800 text-white w-full max-w-sm p-0 [&>button]:hidden z-[9999] flex flex-col h-full"
         aria-label="Mobile navigation"
         aria-modal="true"
         role="dialog"
@@ -171,7 +171,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
                 <div className="px-3 pt-4 pb-2">
                   <h3 className="text-base font-semibold text-neutral-400 uppercase tracking-wider">{megaMenu.title}</h3>
                 </div>
-                <Accordion type="multiple" className="w-full">
+                <Accordion type="multiple" className="w-full" defaultValue={[megaMenu.content.find(col => col.title === 'Priser')?._key || '']}>
                   {megaMenu.content.map(column => (
                      <div key={column._key} onClick={(e) => {
                        // This prevents the whole accordion from closing when a link inside is clicked

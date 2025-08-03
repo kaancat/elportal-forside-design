@@ -21,12 +21,12 @@ export function useSiteSettings() {
       
       return data;
     },
-    // Consider data fresh for 30 minutes
-    staleTime: 1000 * 60 * 30,
-    // Keep in cache for 24 hours
-    gcTime: 1000 * 60 * 60 * 24,
-    // Don't refetch on window focus
-    refetchOnWindowFocus: false,
+    // Consider data fresh for 5 minutes
+    staleTime: 1000 * 60 * 5,
+    // Keep in cache for 1 hour
+    gcTime: 1000 * 60 * 60,
+    // Refetch on window focus for fresh navigation
+    refetchOnWindowFocus: true,
     // Refetch when network reconnects
     refetchOnReconnect: true,
     // Retry with exponential backoff

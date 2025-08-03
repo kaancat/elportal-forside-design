@@ -82,7 +82,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
           <span className="sr-only">Open menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="bg-brand-dark border-l border-neutral-800 text-white w-full max-w-sm p-0 [&>button]:hidden">
+      <SheetContent side="left" className="bg-brand-dark border-l border-neutral-800 text-white w-full max-w-sm p-0 [&>button]:hidden z-[9999]">
         {/* Fixed header */}
         <div className="sticky top-0 z-10 bg-brand-dark p-4 flex justify-between items-center border-b border-neutral-800">
           <RouterLink to="/" className="flex items-center" onClick={() => setIsOpen(false)}>
@@ -103,8 +103,15 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
         </div>
         
         {/* Scrollable content */}
-        <div className="h-[calc(100vh-73px)] overflow-y-auto overflow-x-hidden">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ maxHeight: 'calc(100vh - 73px)' }}>
           <div className="p-4 space-y-2">
+            {console.log('[MobileNav] Rendering content:', {
+              simpleLinksCount: simpleLinks.length,
+              hasMegaMenu: !!megaMenu,
+              containerHeight: 'calc(100vh-73px)',
+              isOpen: isOpen
+            })}
+            
             {/* Render Simple Links First */}
             {simpleLinks.map(item => (
                <div key={item._key} onClick={() => setIsOpen(false)}>
@@ -137,6 +144,15 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
                 </Accordion>
               </>
             )}
+            
+            {/* Empty state check */}
+            {simpleLinks.length === 0 && !megaMenu && (
+              <div className="p-4 text-white">
+                <p>No navigation items available</p>
+                <p className="text-sm text-gray-400 mt-2">Debug: navItems length = {navItems.length}</p>
+              </div>
+            )}
+            
             {/* Bottom padding to ensure last items are accessible */}
             <div className="h-20" />
           </div>

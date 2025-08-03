@@ -25,8 +25,8 @@ export function useSiteSettings() {
     staleTime: 1000 * 60 * 5,
     // Keep in cache for 1 hour
     gcTime: 1000 * 60 * 60,
-    // Refetch on window focus for fresh navigation (disabled on mobile to prevent scroll issues)
-    refetchOnWindowFocus: !('ontouchstart' in window),
+    // Refetch on window focus disabled completely to debug scroll issues
+    refetchOnWindowFocus: false,
     // Refetch when network reconnects
     refetchOnReconnect: true,
     // Retry with exponential backoff

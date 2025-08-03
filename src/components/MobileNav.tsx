@@ -56,6 +56,13 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
   const [isOpen, setIsOpen] = React.useState(false);
   const location = useLocation();
 
+  // Debug logging for scroll issue
+  console.log('[MobileNav] Props received:', {
+    navItemsLength: navItems?.length || 0,
+    navItems: navItems,
+    isOpen: isOpen
+  });
+
   // Close menu on route change
   useEffect(() => {
     setIsOpen(false);

@@ -76,8 +76,34 @@ const Navigation = () => {
     return <header className="sticky top-0 z-50 w-full bg-brand-dark h-16" />;
   }
   
+  // Debug logging to trace the scroll issue
+  console.log('[Navigation] Data state:', {
+    hasSettings: !!settings,
+    headerLinksLength: settings?.headerLinks?.length || 0,
+    headerLinks: settings?.headerLinks,
+    isLoading,
+    isFetching
+  });
+
+  // Defensive check for headerLinks
+  if (!settings?.headerLinks || !Array.isArray(settings.headerLinks) || settings.headerLinks.length === 0) {
+    console.error('[Navigation] headerLinks is missing or empty:', settings);
+    return <header className="sticky top-0 z-50 w-full bg-brand-dark h-16" />;
+  }
+
   const ctaButton = settings.headerLinks.find(link => link._type === 'link' && link.isButton) as LinkType | undefined;
-  const navItems = settings.headerLinks.filter(link => !(link._type === 'link' && link.isButton));
+  const navItems = (settings?.headerLinks || []).filter(link => 
+    link && link._type && !(link._type === 'link' && link.isButton)
+  );
+  
+  // Add validation after filtering
+  if (navItems.length === 0) {
+    console.warn('[Navigation] No nav items after filtering:', {
+      originalLength: settings?.headerLinks?.length,
+      headerLinks: settings?.headerLinks
+    });
+  }
+  
   const megaMenu = navItems.find(item => item._type === 'megaMenu') as MegaMenu | undefined;
 
   return (

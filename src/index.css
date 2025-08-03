@@ -129,8 +129,24 @@
   
   /* Optimize animations for mobile devices */
   @media (max-width: 768px) {
-    * {
-      /* Disable transform transitions on scroll to prevent flicker */
+    /* REMOVED: Global transform that broke fixed positioning
+     * The rule below was causing mobile menu to scroll with page
+     * because transforms create new stacking contexts
+     * 
+     * OLD CODE:
+     * * {
+     *   -webkit-transform: translateZ(0);
+     *   -webkit-backface-visibility: hidden;
+     *   -webkit-perspective: 1000;
+     * }
+     */
+    
+    /* Apply transform only to specific elements that need performance optimization */
+    /* This preserves fixed positioning for modals while optimizing animations */
+    .will-change-transform,
+    [data-animate="true"],
+    .animate-in,
+    .animate-out {
       -webkit-transform: translateZ(0);
       -webkit-backface-visibility: hidden;
       -webkit-perspective: 1000;
@@ -140,6 +156,16 @@
   /* Smooth animation utilities */
   .will-change-transform {
     will-change: transform, opacity;
+  }
+  
+  /* Optimize sticky scroll sections on desktop */
+  @media (min-width: 768px) {
+    .sticky-image-section,
+    [data-sticky="true"] {
+      -webkit-transform: translateZ(0);
+      -webkit-backface-visibility: hidden;
+      will-change: transform;
+    }
   }
   
   /* Reduce motion for users who prefer it */

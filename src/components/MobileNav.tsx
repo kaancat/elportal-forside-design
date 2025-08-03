@@ -55,7 +55,6 @@ interface MobileNavProps {
 
 const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, logoAlt }) => {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [forceUpdate, setForceUpdate] = React.useState(0);
   const location = useLocation();
 
   // Debug logging for scroll issue
@@ -88,23 +87,8 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
-  // Debug scroll issues and force repaint
-  useEffect(() => {
-    if (isOpen) {
-      const handleScroll = () => {
-        console.log('[MobileNav] Scroll detected while menu open:', {
-          scrollY: window.scrollY,
-          bodyScrollHeight: document.body.scrollHeight,
-          isOpen: isOpen
-        });
-        // Force a repaint to debug rendering issues
-        setForceUpdate(prev => prev + 1);
-      };
-      
-      window.addEventListener('scroll', handleScroll);
-      return () => window.removeEventListener('scroll', handleScroll);
-    }
-  }, [isOpen]);
+  // Clean up: Removed debug scroll listener since we fixed the root cause
+  // The issue was the global transform rule breaking fixed positioning
 
   // Scroll lock is handled automatically by Radix UI Sheet component
   // No manual implementation needed - this prevents conflicts
@@ -129,11 +113,10 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
       <SheetContent 
         id="mobile-navigation"
         side="left" 
-        className="bg-brand-dark border-l border-neutral-800 text-white w-full max-w-sm p-0 [&>button]:hidden z-[9999] flex flex-col h-screen"
+        className="bg-brand-dark border-l border-neutral-800 text-white w-full max-w-sm p-0 [&>button]:hidden z-[9999]"
         aria-label="Mobile navigation"
         aria-modal="true"
         role="dialog"
-        style={{ position: 'fixed', top: 0, bottom: 0 }}
       >
         {/* Accessibility: Required by Radix UI Dialog/Sheet to prevent content hiding */}
         <SheetTitle style={{ position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', borderWidth: 0 }}>
@@ -174,9 +157,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
             {console.log('[MobileNav] Rendering content:', {
               simpleLinksCount: simpleLinks.length,
               hasMegaMenu: !!megaMenu,
-              containerHeight: 'flexbox',
-              isOpen: isOpen,
-              forceUpdate: forceUpdate
+              isOpen: isOpen
             })}
             
             {/* Render Simple Links First */}

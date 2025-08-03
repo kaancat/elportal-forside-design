@@ -86,7 +86,7 @@ const StickyImageSection: React.FC<StickyImageSectionProps> = ({ section, custom
   if (!image) return null
   
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative sticky-image-section">
       <div className={cn(
         "container mx-auto px-4",
         "grid gap-12 md:gap-16 lg:gap-20",

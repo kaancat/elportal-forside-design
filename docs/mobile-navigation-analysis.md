@@ -2523,3 +2523,176 @@ Despite fixing accessibility warnings, menu content still disappeared after scro
 5. Verify if forceUpdate changes trigger visibility
 
 This comprehensive fix addresses all potential CSS rendering issues that could cause content to disappear.
+
+## 🚨 Critical Discovery: The Menu is Scrolling with the Page!
+
+### User Observation (2025-08-03)
+The user made a brilliant observation that completely changes our understanding:
+
+> "My thesis as to why the menu disappears, is because the menu 'scrolls' with the page. If I am at the top of the page, freshly loaded and open the menu, it looks normal. But if I scroll just half a screen down, and open the menu, the menu content is left at the top of the page."
+
+### Visual Evidence
+- **Screenshot 1**: Menu opened at top of page → Content visible
+- **Screenshot 2**: Menu opened after scrolling → Content missing (actually off-screen above)
+
+### What This Means
+The mobile menu content is NOT disappearing - it's scrolling with the page! When you scroll down and open the menu, the content remains positioned at the top of the document (where it would be if the page hadn't scrolled), making it invisible in the current viewport.
+
+### Technical Implications
+This indicates one of these critical issues:
+1. **Portal Failure**: The Radix UI portal is not properly creating a fixed overlay
+2. **Stacking Context Break**: A parent element with `transform`, `will-change`, or other properties is breaking the fixed positioning
+3. **Wrong Container**: The portal might be appending to a scrollable container instead of document.body
+4. **CSS Inheritance**: Fixed positioning is being overridden or ignored
+
+### Why Previous Fixes Failed
+All our previous attempts failed because we were solving the wrong problem:
+- ❌ We thought content was being hidden (visibility issue)
+- ❌ We thought data was missing (React Query issue)
+- ❌ We thought it was an accessibility compliance issue
+- ✅ The real issue: Content is physically scrolled off-screen!
+
+### Research Needed
+Before implementing any fix, we need to understand:
+1. Where exactly is the Sheet portal rendering in the DOM?
+2. What CSS properties on parent elements could break fixed positioning?
+3. Is the Radix UI Portal component configured correctly?
+4. Are there any global styles affecting portal behavior?
+
+## 🔬 Research Findings: The Transform Breaking Fixed Positioning
+
+### Critical CSS Discovery
+In `/src/index.css` lines 131-138, we found the smoking gun:
+
+```css
+@media (max-width: 768px) {
+  * {
+    /* Disable transform transitions on scroll to prevent flicker */
+    -webkit-transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    -webkit-perspective: 1000;
+  }
+}
+```
+
+**This applies transform to EVERY element on mobile devices!**
+
+### Why This Breaks Everything
+According to CSS specifications and confirmed by web search:
+- Elements with `transform`, `filter`, or `perspective` properties create a new containing block
+- Any descendant with `position: fixed` will be positioned relative to the transformed parent, NOT the viewport
+- This is not a bug but expected CSS behavior
+
+### The Chain of Events
+1. On mobile devices, ALL elements get `transform: translateZ(0)`
+2. The Navigation component (or any parent) now has a transform
+3. The Sheet portal renders with `position: fixed`
+4. Instead of being fixed to viewport, it's fixed to the transformed parent
+5. When you scroll, the "fixed" menu content scrolls with the page!
+
+### Additional Evidence
+- The comment says "Disable transform transitions on scroll to prevent flicker"
+- This was likely added to fix a different mobile performance issue
+- But it inadvertently broke all fixed positioning on mobile
+
+### Radix UI Portal Behavior
+Research confirms:
+- Radix UI Portal is designed to avoid this by rendering at document.body
+- But if ANY parent has a transform, the portal's fixed positioning breaks
+- This is a fundamental CSS limitation, not a Radix UI bug
+
+### Solution Directions
+1. **Remove the global transform** - But this might reintroduce the flicker issue
+2. **Use a custom portal container** - Render outside any transformed elements
+3. **Selective transform application** - Only apply to elements that need it
+4. **Alternative performance optimization** - Use different techniques for mobile
+
+## ✅ Phase 7: The Root Cause Fix - Removing Global Transform
+
+### Implementation Date: 2025-08-03
+
+After discovering that the mobile menu was scrolling with the page due to a global CSS transform rule, we implemented a targeted fix.
+
+#### The Fix Applied
+
+##### 1. Removed Global Transform Rule ✅
+**File**: `/src/index.css`
+**Changes**:
+- Removed the universal selector that applied transform to ALL elements on mobile
+- This was breaking fixed positioning for portals and modals
+
+```css
+/* OLD CODE REMOVED:
+@media (max-width: 768px) {
+  * {
+    -webkit-transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    -webkit-perspective: 1000;
+  }
+}
+*/
+```
+
+##### 2. Added Targeted Transform Rules ✅
+**Changes**:
+- Applied transforms only to elements that need performance optimization
+- Preserved sticky scroll animations on desktop
+- Mobile-specific rules target only animated elements
+
+```css
+/* Mobile: Only optimize elements that need it */
+@media (max-width: 768px) {
+  .will-change-transform,
+  [data-animate="true"],
+  .animate-in,
+  .animate-out {
+    -webkit-transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    -webkit-perspective: 1000;
+  }
+}
+
+/* Desktop: Optimize sticky sections */
+@media (min-width: 768px) {
+  .sticky-image-section,
+  [data-sticky="true"] {
+    -webkit-transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    will-change: transform;
+  }
+}
+```
+
+##### 3. Cleaned Up MobileNav ✅
+**File**: `/src/components/MobileNav.tsx`
+**Changes**:
+- Removed inline position styles that were workarounds
+- Removed force update debug mechanism
+- Let Radix UI handle all positioning naturally
+
+##### 4. Enhanced StickyImageSection ✅
+**File**: `/src/components/StickyImageSection.tsx`
+**Changes**:
+- Added `sticky-image-section` class for targeted optimization
+- Ensures scroll animations still perform well
+
+### Why This Works
+1. **Fixed positioning restored**: Removing global transform allows `position: fixed` to work correctly
+2. **Portal behavior fixed**: Radix UI portals now render relative to viewport, not transformed parents
+3. **Performance maintained**: Targeted rules still optimize animations where needed
+4. **Sticky animations preserved**: Desktop sticky sections retain their transform optimizations
+
+### Testing Results
+- ✅ Mobile menu stays fixed to viewport at all scroll positions
+- ✅ Menu content visible regardless of scroll position
+- ✅ Sticky scroll animations continue to work on desktop
+- ✅ No performance regressions observed
+
+### Phase 7 Conclusion
+The root cause was a well-intentioned performance optimization that had unintended consequences. By removing the global transform and applying it selectively, we've:
+- Fixed the mobile menu scrolling issue completely
+- Preserved performance optimizations where needed
+- Maintained all existing animations and effects
+- Created a more maintainable CSS architecture
+
+This was a perfect example of how global CSS rules can have far-reaching effects, especially with modern CSS behaviors around stacking contexts and containing blocks.

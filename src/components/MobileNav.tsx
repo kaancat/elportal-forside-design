@@ -55,6 +55,7 @@ interface MobileNavProps {
 
 const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, logoAlt }) => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [forceUpdate, setForceUpdate] = React.useState(0);
   const location = useLocation();
 
   // Debug logging for scroll issue
@@ -87,6 +88,24 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
+  // Debug scroll issues and force repaint
+  useEffect(() => {
+    if (isOpen) {
+      const handleScroll = () => {
+        console.log('[MobileNav] Scroll detected while menu open:', {
+          scrollY: window.scrollY,
+          bodyScrollHeight: document.body.scrollHeight,
+          isOpen: isOpen
+        });
+        // Force a repaint to debug rendering issues
+        setForceUpdate(prev => prev + 1);
+      };
+      
+      window.addEventListener('scroll', handleScroll);
+      return () => window.removeEventListener('scroll', handleScroll);
+    }
+  }, [isOpen]);
+
   // Scroll lock is handled automatically by Radix UI Sheet component
   // No manual implementation needed - this prevents conflicts
 
@@ -110,19 +129,22 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
       <SheetContent 
         id="mobile-navigation"
         side="left" 
-        className="bg-brand-dark border-l border-neutral-800 text-white w-full max-w-sm p-0 [&>button]:hidden z-[9999]"
+        className="bg-brand-dark border-l border-neutral-800 text-white w-full max-w-sm p-0 [&>button]:hidden z-[9999] flex flex-col h-screen"
         aria-label="Mobile navigation"
         aria-modal="true"
         role="dialog"
+        style={{ position: 'fixed', top: 0, bottom: 0 }}
       >
         {/* Accessibility: Required by Radix UI Dialog/Sheet to prevent content hiding */}
-        <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-        <SheetDescription className="sr-only">
+        <SheetTitle style={{ position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', borderWidth: 0 }}>
+          Navigation Menu
+        </SheetTitle>
+        <SheetDescription style={{ position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', borderWidth: 0 }}>
           Main navigation menu with links and product categories
         </SheetDescription>
         
         {/* Fixed header */}
-        <div className="sticky top-0 z-10 bg-brand-dark p-4 flex justify-between items-center border-b border-neutral-800">
+        <div className="flex-shrink-0 bg-brand-dark p-4 flex justify-between items-center border-b border-neutral-800">
           <RouterLink to="/" className="flex items-center" onClick={() => setIsOpen(false)}>
             <img 
               src={logoSrc || FALLBACK_LOGO} 
@@ -147,13 +169,14 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
         </div>
         
         {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ maxHeight: 'calc(100vh - 73px)' }}>
-          <div className="p-4 space-y-2">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="p-4 space-y-2 relative z-10">
             {console.log('[MobileNav] Rendering content:', {
               simpleLinksCount: simpleLinks.length,
               hasMegaMenu: !!megaMenu,
-              containerHeight: 'calc(100vh-73px)',
-              isOpen: isOpen
+              containerHeight: 'flexbox',
+              isOpen: isOpen,
+              forceUpdate: forceUpdate
             })}
             
             {/* Render Simple Links First */}

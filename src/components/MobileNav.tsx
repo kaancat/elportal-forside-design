@@ -57,12 +57,6 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
   const [isOpen, setIsOpen] = React.useState(false);
   const location = useLocation();
 
-  // Debug logging for scroll issue
-  console.log('[MobileNav] Props received:', {
-    navItemsLength: navItems?.length || 0,
-    navItems: navItems,
-    isOpen: isOpen
-  });
 
   // Close menu on route change
   useEffect(() => {
@@ -154,11 +148,6 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div className="p-4 space-y-2 relative z-10">
-            {console.log('[MobileNav] Rendering content:', {
-              simpleLinksCount: simpleLinks.length,
-              hasMegaMenu: !!megaMenu,
-              isOpen: isOpen
-            })}
             
             {/* Render Simple Links First */}
             {simpleLinks.map(item => (
@@ -201,7 +190,6 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
             {simpleLinks.length === 0 && !megaMenu && (
               <div className="p-4 text-white">
                 <p>No navigation items available</p>
-                <p className="text-sm text-gray-400 mt-2">Debug: navItems length = {navItems.length}</p>
               </div>
             )}
             

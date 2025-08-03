@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import { EnergyTips } from "./pages/EnergyTips";
 import IconTest from "./pages/IconTest";
 import { useSiteMetadata } from "@/hooks/useSiteMetadata";
+import ScrollToTop from "@/components/ScrollToTop";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,6 +45,7 @@ const AppContent = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <ErrorBoundary level="page">
             <Layout>
               <Routes>

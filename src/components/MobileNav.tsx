@@ -1,9 +1,9 @@
 // src/components/MobileNav.tsx
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { Link as LinkType, MegaMenu, MegaMenuColumn } from '@/types/sanity';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Icon, hasValidIcon } from './Icon';
@@ -53,6 +53,30 @@ interface MobileNavProps {
 
 const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, logoAlt }) => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const location = useLocation();
+
+  // Close menu on route change
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
+
+  // Implement scroll lock when menu is open
+  useEffect(() => {
+    const originalOverflow = window.getComputedStyle(document.body).overflow;
+    
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      // iOS Safari specific fix
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+    }
+    
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.position = '';
+      document.body.style.width = '';
+    };
+  }, [isOpen]);
 
   const simpleLinks = navItems.filter(item => item._type === 'link') as LinkType[];
   const megaMenu = navItems.find(item => item._type === 'megaMenu') as MegaMenu | undefined;

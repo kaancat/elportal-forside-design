@@ -316,7 +316,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
         <>
           {/* Mobile vertical layout - list style like the example */}
           <div className="md:hidden w-full">
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {calculatedData.map(({ hour, spotPrice, total, fees: feesAmount }) => {
                 const currentHour = new Date().getHours();
                 const isCurrentHour = hour === currentHour && isToday;
@@ -336,18 +336,18 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                   <div 
                     key={hour} 
                     className={cn(
-                      "flex items-center gap-2 py-2",
+                      "flex items-center gap-2 py-1",
                       isCurrentHour && "bg-blue-50 -mx-4 px-4 border-l-4 border-blue-500"
                     )}
                   >
                     {/* Hour label */}
-                    <div className="w-8 text-xs text-gray-600 font-medium">
-                      {String(hour).padStart(2, '0')}
+                    <div className="w-10 text-xs text-gray-600 font-medium">
+                      {String(hour).padStart(2, '0')}:00
                     </div>
                     
                     {/* Bar container */}
                     <div className="flex-1 relative">
-                      <div className="relative h-8 bg-gray-100 rounded overflow-hidden">
+                      <div className="relative h-5 bg-gray-100 rounded-sm overflow-hidden">
                         {/* Total bar (spot + fees) */}
                         <div 
                           className={`absolute left-0 top-0 h-full ${getBarColor(priceCategory)} transition-all duration-300`}
@@ -361,9 +361,9 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                               backgroundImage: `repeating-linear-gradient(
                                 -45deg,
                                 transparent,
-                                transparent 3px,
-                                rgba(0, 0, 0, 0.1) 3px,
-                                rgba(0, 0, 0, 0.1) 6px
+                                transparent 2px,
+                                rgba(0, 0, 0, 0.1) 2px,
+                                rgba(0, 0, 0, 0.1) 4px
                               )`
                             }}
                           />
@@ -383,21 +383,21 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
             </div>
             
             {/* Mobile legend - compact */}
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs">
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[10px]">
               <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-green-500 rounded"></div>
+                <div className="w-2.5 h-2.5 bg-green-500 rounded-sm"></div>
                 <span className="text-gray-600">Lav</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-yellow-400 rounded"></div>
+                <div className="w-2.5 h-2.5 bg-yellow-400 rounded-sm"></div>
                 <span className="text-gray-600">Mellem</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-red-500 rounded"></div>
+                <div className="w-2.5 h-2.5 bg-red-500 rounded-sm"></div>
                 <span className="text-gray-600">Høj</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-gray-400 rounded relative overflow-hidden">
+                <div className="w-2.5 h-2.5 bg-gray-400 rounded-sm relative overflow-hidden">
                   <div 
                     className="absolute inset-0"
                     style={{
@@ -413,6 +413,11 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                 </div>
                 <span className="text-gray-600">Spotpris</span>
               </div>
+            </div>
+            
+            {/* Fees note */}
+            <div className="mt-2 text-center text-[10px] text-gray-500">
+              Priser vist inkl. moms, afgifter og gebyrer
             </div>
           </div>
 
@@ -532,7 +537,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                                     {/* Labels container, placed directly below the bar */}
                                     <div className="text-center mt-2 px-0.5">
                                         <div className="text-xs font-medium text-gray-600 leading-none">{(total ?? 0).toFixed(2)}</div>
-                                        <div className="text-xs text-gray-500 leading-none mt-0.5">kl. {String(hour).padStart(2, '0')}</div>
+                                        <div className="text-xs text-gray-500 leading-none mt-0.5">{String(hour).padStart(2, '0')}:00</div>
                                     </div>
                                 </div>
                             );

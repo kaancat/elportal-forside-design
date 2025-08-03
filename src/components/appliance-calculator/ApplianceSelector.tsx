@@ -99,7 +99,7 @@ export function ApplianceSelector({
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl p-0 gap-0 flex flex-col max-h-[calc(100vh-8rem)] md:max-h-[calc(100vh-10rem)]">
+        <DialogContent className="sm:max-w-2xl p-0 gap-0 flex flex-col h-[calc(100vh-4rem)] max-h-[600px] md:h-auto md:max-h-[calc(100vh-6rem)]">
           <DialogHeader className="px-4 md:px-6 pt-4 md:pt-6 pb-2 md:pb-4 flex-shrink-0">
             <DialogTitle className="text-xl md:text-2xl font-bold">Vælg et apparat</DialogTitle>
           </DialogHeader>

@@ -53,7 +53,11 @@ const Navigation = () => {
             <img 
               src={FALLBACK_LOGO}
               alt={FALLBACK_ALT} 
-              className="h-8 sm:h-10" 
+              className="h-8 sm:h-10"
+              onError={(e) => {
+                console.error('Navigation logo failed to load');
+                e.currentTarget.style.display = 'none';
+              }}
             />
           </RouterLink>
           <div className="text-white text-sm">Navigation unavailable</div>
@@ -89,7 +93,11 @@ const Navigation = () => {
               FALLBACK_LOGO
             } 
             alt={settings.title || FALLBACK_ALT} 
-            className="h-8 sm:h-10" 
+            className="h-8 sm:h-10"
+            onError={(e) => {
+              console.error('Navigation logo failed to load');
+              e.currentTarget.style.display = 'none';
+            }}
           />
         </RouterLink>
         

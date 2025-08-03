@@ -69,12 +69,20 @@ const Footer = () => {
                   }
                   alt={FALLBACK_ALT} 
                   className="h-10 mb-4"
+                  onError={(e) => {
+                    console.error('Footer logo failed to load');
+                    e.currentTarget.style.display = 'none';
+                  }}
                 />
               ) : (
                 <img 
                   src={FALLBACK_LOGO} 
                   alt={FALLBACK_ALT} 
                   className="h-10 mb-4"
+                  onError={(e) => {
+                    console.error('Footer fallback logo failed to load');
+                    e.currentTarget.style.display = 'none';
+                  }}
                 />
               )}
               <p className="max-w-xs text-gray-300 text-sm">
@@ -140,6 +148,10 @@ const Footer = () => {
               src={FALLBACK_LOGO} 
               alt={FALLBACK_ALT} 
               className="h-10 mb-4"
+              onError={(e) => {
+                console.error('Footer skeleton logo failed to load');
+                e.currentTarget.style.display = 'none';
+              }}
             />
             <p className="max-w-xs text-gray-300 text-sm">
               ElPortal.dk er Danmarks sammenligningstjeneste for elpriser.

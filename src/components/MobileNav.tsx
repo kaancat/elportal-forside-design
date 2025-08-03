@@ -82,7 +82,11 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
             <img 
               src={logoSrc || FALLBACK_LOGO} 
               alt={logoAlt || FALLBACK_ALT} 
-              className="h-8" 
+              className="h-8"
+              onError={(e) => {
+                console.error('Mobile nav logo failed to load');
+                e.currentTarget.style.display = 'none';
+              }}
             />
           </RouterLink>
           <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>

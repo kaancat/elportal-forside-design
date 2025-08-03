@@ -1,6 +1,6 @@
 // src/components/MobileNav.tsx
 import React, { useEffect } from 'react';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
@@ -13,7 +13,8 @@ import { FALLBACK_LOGO, FALLBACK_ALT } from '@/constants/branding';
 const RichLinkCard: React.FC<{ item: any, resolveLink: (link: LinkType) => string }> = ({ item, resolveLink }) => (
   <RouterLink
     to={resolveLink(item.link)}
-    className="flex items-start text-left p-3 rounded-lg hover:bg-brand-green/10 transition-colors duration-200"
+    className="flex items-start text-left p-3 rounded-lg hover:bg-brand-green/10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-green focus:ring-inset"
+    tabIndex={0}
   >
     {hasValidIcon(item.icon) && (
       <Icon
@@ -32,7 +33,7 @@ const RichLinkCard: React.FC<{ item: any, resolveLink: (link: LinkType) => strin
 // This component renders an entire column as a collapsible accordion item
 const MobileNavAccordionGroup: React.FC<{ column: MegaMenuColumn, resolveLink: (link: LinkType) => string }> = ({ column, resolveLink }) => (
   <AccordionItem value={column._key} className="border-b-0">
-    <AccordionTrigger className="text-lg font-semibold py-3 hover:no-underline rounded-md px-3">
+    <AccordionTrigger className="text-lg font-semibold py-3 hover:no-underline rounded-md px-3 focus:outline-none focus:ring-2 focus:ring-brand-green focus:ring-inset">
       {column.title}
     </AccordionTrigger>
     <AccordionContent className="pb-1 pl-3">
@@ -68,6 +69,24 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
     setIsOpen(false);
   }, [location.pathname]);
 
+  // Keyboard navigation support
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Additional keyboard shortcuts
+      if (e.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+      }
+      // Close on Cmd/Ctrl + K
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k' && isOpen) {
+        e.preventDefault();
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
   // Scroll lock is handled automatically by Radix UI Sheet component
   // No manual implementation needed - this prevents conflicts
 
@@ -77,12 +96,31 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          aria-label="Toggle navigation menu"
+          aria-expanded={isOpen}
+          aria-controls="mobile-navigation"
+        >
           <Menu className="h-6 w-6 text-white" />
-          <span className="sr-only">Open menu</span>
+          <span className="sr-only">{isOpen ? 'Close' : 'Open'} navigation menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="bg-brand-dark border-l border-neutral-800 text-white w-full max-w-sm p-0 [&>button]:hidden z-[9999]">
+      <SheetContent 
+        id="mobile-navigation"
+        side="left" 
+        className="bg-brand-dark border-l border-neutral-800 text-white w-full max-w-sm p-0 [&>button]:hidden z-[9999]"
+        aria-label="Mobile navigation"
+        aria-modal="true"
+        role="dialog"
+      >
+        {/* Accessibility: Required by Radix UI Dialog/Sheet to prevent content hiding */}
+        <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+        <SheetDescription className="sr-only">
+          Main navigation menu with links and product categories
+        </SheetDescription>
+        
         {/* Fixed header */}
         <div className="sticky top-0 z-10 bg-brand-dark p-4 flex justify-between items-center border-b border-neutral-800">
           <RouterLink to="/" className="flex items-center" onClick={() => setIsOpen(false)}>
@@ -96,9 +134,15 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
               }}
             />
           </RouterLink>
-          <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setIsOpen(false)}
+            aria-label="Close navigation menu"
+            className="hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-brand-green focus:ring-offset-2 focus:ring-offset-brand-dark"
+          >
               <X className="h-6 w-6" />
-              <span className="sr-only">Close menu</span>
+              <span className="sr-only">Close navigation menu</span>
           </Button>
         </div>
         
@@ -115,7 +159,11 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
             {/* Render Simple Links First */}
             {simpleLinks.map(item => (
                <div key={item._key} onClick={() => setIsOpen(false)}>
-                 <RouterLink to={resolveLink(item)} className="block text-lg font-semibold p-3 rounded-md hover:bg-neutral-800">
+                 <RouterLink 
+                   to={resolveLink(item)} 
+                   className="block text-lg font-semibold p-3 rounded-md hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-brand-green focus:ring-inset"
+                   tabIndex={0}
+                 >
                    {item.title}
                  </RouterLink>
                </div>

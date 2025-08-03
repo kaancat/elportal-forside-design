@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog'
 import {
   Command,
@@ -102,6 +103,9 @@ export function ApplianceSelector({
         <DialogContent className="sm:max-w-2xl p-0 gap-0 flex flex-col h-[calc(100vh-4rem)] max-h-[600px] md:h-auto md:max-h-[calc(100vh-6rem)]">
           <DialogHeader className="px-4 md:px-6 pt-4 md:pt-6 pb-2 md:pb-4 flex-shrink-0">
             <DialogTitle className="text-xl md:text-2xl font-bold">Vælg et apparat</DialogTitle>
+            <DialogDescription className="text-sm text-gray-600">
+              Søg og vælg det apparat du vil tilføje til din beregning
+            </DialogDescription>
           </DialogHeader>
 
           <Command className="border-0 flex-1 overflow-hidden flex flex-col min-h-0">

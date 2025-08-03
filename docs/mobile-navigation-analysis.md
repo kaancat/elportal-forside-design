@@ -2468,3 +2468,58 @@ The mobile navigation now has comprehensive accessibility support that should re
 - Visual focus management
 
 This was the likely root cause of the menu content disappearing after scroll events.
+
+## 🎯 Phase 6: Advanced CSS Rendering Fix
+
+### Implementation Date: 2025-08-03
+
+After Phase 5 failed to resolve the issue, we implemented a comprehensive CSS rendering fix targeting the root cause.
+
+#### Problem Persisted
+Despite fixing accessibility warnings, menu content still disappeared after scrolling. Logs showed:
+- Data present: `navItemsLength: 4, simpleLinksCount: 3`
+- Rendering happening: Components rendered
+- But content became invisible after scroll
+
+#### Deep CSS Fix Applied
+
+##### 1. Replaced sr-only Class with Inline Styles ✅
+**Changes**:
+- Removed potential undefined sr-only class
+- Used explicit inline styles for screen reader content
+- Ensures accessibility elements don't interfere with rendering
+
+##### 2. Fixed Z-index Stacking Context ✅
+**Changes**:
+- Added `flex flex-col h-screen` to SheetContent
+- Added explicit `position: fixed, top: 0, bottom: 0`
+- Changed header from `sticky` to `flex-shrink-0`
+- Added `relative z-10` to content container
+
+##### 3. Replaced Height Calculation with Flexbox ✅
+**Changes**:
+- Removed `calc(100vh - 73px)` calculation
+- Used `flex-1 overflow-y-auto min-h-0` instead
+- Added `-webkit-overflow-scrolling: touch` for iOS
+
+##### 4. Added Debug Mechanisms ✅
+**Changes**:
+- Scroll event listener to detect when issue occurs
+- Force update mechanism to trigger re-renders
+- Enhanced logging with forceUpdate counter
+
+### Why This Should Work
+1. **Pure CSS Layout**: No JavaScript-based calculations
+2. **Proper Flexbox**: Content sizes correctly without viewport units
+3. **Fixed Positioning**: Ensures Sheet stays in place
+4. **Z-index Hierarchy**: Prevents content from being hidden by other layers
+5. **Force Repaint**: Helps identify if it's a rendering issue
+
+### Testing Instructions
+1. Open the page
+2. Scroll down
+3. Open mobile menu
+4. Check console for scroll events
+5. Verify if forceUpdate changes trigger visibility
+
+This comprehensive fix addresses all potential CSS rendering issues that could cause content to disappear.

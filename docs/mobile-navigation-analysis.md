@@ -1907,3 +1907,83 @@ Phase 2 can proceed with:
 - Portal rendering complications not fully addressed (future consideration)
 
 The implementation successfully addresses the most critical user-facing issues while laying groundwork for future enhancements.
+
+## 🚨 Critical Fix: Scroll Lock Conflict Resolution
+
+### Date: 2025-08-03 (Same day as Phase 1)
+
+### Critical Issue Discovered
+During testing of Phase 1 implementation, a severe bug was discovered where the main page would become permanently unscrollable after interacting with the mobile menu. This was a production-critical issue that required immediate resolution.
+
+### Root Cause Analysis
+After deep investigation, including consultation with Gemini AI and research into Radix UI issues, the root cause was identified:
+
+**We had a conflict between our manual scroll lock implementation and Radix UI's built-in scroll lock mechanism.**
+
+The problem occurred because:
+1. **Double Management**: Both our code AND Radix UI Dialog (which Sheet is based on) were trying to control body scroll
+2. **Race Condition**: When the menu opened/closed, both systems fought for control
+3. **State Corruption**: Our effect captured the "original" overflow value AFTER Radix had already modified it
+
+```javascript
+// The problematic code:
+useEffect(() => {
+  const originalOverflow = window.getComputedStyle(document.body).overflow; // Captured "hidden"!
+  
+  if (isOpen) {
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+  }
+  
+  return () => {
+    document.body.style.overflow = originalOverflow; // Restored to "hidden" permanently!
+    document.body.style.position = '';
+    document.body.style.width = '';
+  };
+}, [isOpen]);
+```
+
+### The Solution
+**Removed the entire manual scroll lock implementation and trusted Radix UI's battle-tested built-in scroll lock.**
+
+**File**: `src/components/MobileNav.tsx`
+**Change**: Removed lines 63-79 (the entire scroll lock useEffect)
+**Result**: 
+```typescript
+// Before: Complex manual scroll lock causing conflicts
+// After: Simple comment explaining Radix handles it
+// Scroll lock is handled automatically by Radix UI Sheet component
+// No manual implementation needed - this prevents conflicts
+```
+
+### Why This is the Correct Solution
+1. **Simplicity**: Less code = fewer bugs
+2. **Single Source of Truth**: Only Radix UI manages scroll, no conflicts
+3. **Battle-tested**: Radix UI has years of experience handling edge cases
+4. **Maintainability**: No custom scroll lock code to maintain
+5. **Cross-browser**: Radix handles Safari, Chrome mobile, etc. correctly
+
+### Testing Results After Fix
+- ✅ Menu opens → Background scroll locked by Radix
+- ✅ Menu closes → Background scroll restored properly
+- ✅ Navigate with menu open → Menu closes, scroll normal
+- ✅ No permanent scroll lock bugs
+- ✅ Works on iOS Safari without custom fixes
+
+### Lessons Learned
+1. **Don't fight the framework**: When using a UI library, trust its built-in features
+2. **Investigate conflicts first**: Before adding custom implementations, check if the library already handles it
+3. **Test thoroughly**: Complex interactions between systems can cause subtle bugs
+4. **Senior developer mindset**: Sometimes the best code is no code
+
+### Emergency Recovery
+If users experience scroll lock issues, they can run this in console:
+```javascript
+document.body.style.overflow = '';
+document.body.style.position = '';
+document.body.style.width = '';
+document.body.style.top = '';
+```
+
+This critical fix ensures the mobile navigation is stable and production-ready without the scroll lock conflicts.

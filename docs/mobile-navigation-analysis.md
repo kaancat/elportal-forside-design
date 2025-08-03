@@ -2307,3 +2307,85 @@ if (isLoading && !settings) { // Only hide when NO data exists
 
 ### Final Phase 3 Status: COMPLETE
 The mobile navigation is now production-ready with all critical scroll-related issues resolved through this comprehensive fix addressing both the trigger and the symptom.
+
+## 🔍 Phase 3.6: Comprehensive Debugging & Defensive Programming
+
+### Implementation Date: 2025-08-03 (Same day)
+
+After the scroll issue persisted despite previous fixes, we implemented comprehensive debugging and defensive programming.
+
+#### The Elusive Issue
+- **Symptom**: Page loads → Menu works. Scroll → Open menu → Content empty
+- **Behavior**: Consistent across Chrome mobile and desktop (mobile mode)
+- **Challenge**: Root cause remained elusive after extensive analysis
+
+#### Comprehensive Fix Applied
+
+##### 1. Added Extensive Logging ✅
+**File**: `src/components/Navigation.tsx` (line 80)
+```typescript
+console.log('[Navigation] Data state:', {
+  hasSettings: !!settings,
+  headerLinksLength: settings?.headerLinks?.length || 0,
+  headerLinks: settings?.headerLinks,
+  isLoading,
+  isFetching
+});
+```
+
+**File**: `src/components/MobileNav.tsx` (line 60)
+```typescript
+console.log('[MobileNav] Props received:', {
+  navItemsLength: navItems?.length || 0,
+  navItems: navItems,
+  isOpen: isOpen
+});
+```
+
+##### 2. Defensive Data Validation ✅
+**File**: `src/components/Navigation.tsx` (line 89)
+```typescript
+if (!settings?.headerLinks || !Array.isArray(settings.headerLinks) || settings.headerLinks.length === 0) {
+  console.error('[Navigation] headerLinks is missing or empty:', settings);
+  return <header className="sticky top-0 z-50 w-full bg-brand-dark h-16" />;
+}
+```
+
+##### 3. Safeguarded navItems Creation ✅
+```typescript
+const navItems = (settings?.headerLinks || []).filter(link => 
+  link && link._type && !(link._type === 'link' && link.isButton)
+);
+
+if (navItems.length === 0) {
+  console.warn('[Navigation] No nav items after filtering:', {
+    originalLength: settings?.headerLinks?.length,
+    headerLinks: settings?.headerLinks
+  });
+}
+```
+
+##### 4. Completely Disabled refetchOnWindowFocus ✅
+**File**: `src/hooks/useSiteSettings.ts` (line 29)
+```typescript
+refetchOnWindowFocus: false, // Disabled completely to debug scroll issues
+```
+
+### Testing Instructions
+1. Open browser DevTools Console
+2. Load the page - observe initial logs
+3. Scroll the page
+4. Open mobile menu
+5. Check console for data state logs
+
+### Expected Outcomes
+Either:
+- **A) Issue is fixed** through defensive programming preventing edge cases
+- **B) Logs reveal the exact issue** showing when/why navItems becomes empty
+
+### Next Steps
+Based on console logs, we can determine:
+- If headerLinks is becoming empty/undefined
+- If filtering is removing all items
+- If React Query is returning incomplete data
+- If there's a race condition or timing issue

@@ -316,7 +316,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
         <>
           {/* Mobile vertical layout - list style like the example */}
           <div className="md:hidden w-full">
-            <div className="space-y-0.5">
+            <div className="space-y-[3px]">
               {calculatedData.map(({ hour, spotPrice, total, fees: feesAmount }) => {
                 const currentHour = new Date().getHours();
                 const isCurrentHour = hour === currentHour && isToday;
@@ -347,7 +347,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
                     
                     {/* Bar container */}
                     <div className="flex-1 relative">
-                      <div className="relative h-5 bg-gray-100 rounded-sm overflow-hidden">
+                      <div className="relative h-4 bg-gray-100 rounded-sm overflow-hidden">
                         {/* Total bar (spot + fees) */}
                         <div 
                           className={`absolute left-0 top-0 h-full ${getBarColor(priceCategory)} transition-all duration-300`}

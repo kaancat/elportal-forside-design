@@ -7,6 +7,7 @@ import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { Link as LinkType, MegaMenu, MegaMenuColumn } from '@/types/sanity';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Icon, hasValidIcon } from './Icon';
+import { FALLBACK_LOGO, FALLBACK_ALT } from '@/constants/branding';
 
 // Helper for the rich, icon-driven link style
 const RichLinkCard: React.FC<{ item: any, resolveLink: (link: LinkType) => string }> = ({ item, resolveLink }) => (
@@ -79,8 +80,8 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
         <div className="sticky top-0 z-10 bg-brand-dark p-4 flex justify-between items-center border-b border-neutral-800">
           <RouterLink to="/" className="flex items-center" onClick={() => setIsOpen(false)}>
             <img 
-              src={logoSrc || "/lovable-uploads/97984f7d-d542-490c-9e04-5a0744d1b6a2.png"} 
-              alt={logoAlt || "ElPortal.dk Logo"} 
+              src={logoSrc || FALLBACK_LOGO} 
+              alt={logoAlt || FALLBACK_ALT} 
               className="h-8" 
             />
           </RouterLink>

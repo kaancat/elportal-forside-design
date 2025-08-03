@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { resolveLink, checkLinksHealth } from '@/utils/linkResolver';
 import { useNavigationRefresh } from '@/hooks/useNavigationRefresh';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { FALLBACK_LOGO, FALLBACK_ALT } from '@/constants/branding';
 
 const Navigation = () => {
   const [openMenuKey, setOpenMenuKey] = useState<string | null>(null);
@@ -50,8 +51,8 @@ const Navigation = () => {
         <div className="container mx-auto px-4 flex items-center justify-between h-16">
           <RouterLink to="/" className="flex-shrink-0">
             <img 
-              src="/lovable-uploads/97984f7d-d542-490c-9e04-5a0744d1b6a2.png"
-              alt="ElPortal.dk" 
+              src={FALLBACK_LOGO}
+              alt={FALLBACK_ALT} 
               className="h-8 sm:h-10" 
             />
           </RouterLink>
@@ -85,9 +86,9 @@ const Navigation = () => {
           <img 
             src={settings.logo?.asset?._ref ? 
               `https://cdn.sanity.io/images/yxesi03x/production/${settings.logo.asset._ref.replace('image-', '').replace('-png', '.png').replace('-jpg', '.jpg').replace('-webp', '.webp')}` :
-              "/lovable-uploads/97984f7d-d542-490c-9e04-5a0744d1b6a2.png"
+              FALLBACK_LOGO
             } 
-            alt={settings.title || "ElPortal.dk"} 
+            alt={settings.title || FALLBACK_ALT} 
             className="h-8 sm:h-10" 
           />
         </RouterLink>
@@ -131,9 +132,9 @@ const Navigation = () => {
             resolveLink={(link: LinkType) => resolveLink(link, 'Navigation')}
             logoSrc={settings.logo?.asset?._ref ? 
               `https://cdn.sanity.io/images/yxesi03x/production/${settings.logo.asset._ref.replace('image-', '').replace('-png', '.png').replace('-jpg', '.jpg').replace('-webp', '.webp')}` :
-              "/lovable-uploads/97984f7d-d542-490c-9e04-5a0744d1b6a2.png"
+              FALLBACK_LOGO
             }
-            logoAlt={settings.title || "ElPortal.dk"}
+            logoAlt={settings.title || FALLBACK_ALT}
           />
         </div>
       </div>

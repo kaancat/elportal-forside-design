@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useFooterData } from '@/hooks/useFooterData';
 import { resolveLink } from '@/utils/linkResolver';
 import { Skeleton } from '@/components/ui/skeleton';
+import { FALLBACK_LOGO, FALLBACK_ALT } from '@/constants/branding';
 
 const Footer = () => {
   const { data: settings, isLoading } = useFooterData();
@@ -64,15 +65,15 @@ const Footer = () => {
                 <img 
                   src={footer.footerLogo.asset?._ref ? 
                     `https://cdn.sanity.io/images/yxesi03x/production/${footer.footerLogo.asset._ref.replace('image-', '').replace('-png', '.png').replace('-jpg', '.jpg')}` :
-                    "/lovable-uploads/97984f7d-d542-490c-9e04-5a0744d1b6a2.png"
+                    FALLBACK_LOGO
                   }
-                  alt="ElPortal.dk Logo" 
+                  alt={FALLBACK_ALT} 
                   className="h-10 mb-4"
                 />
               ) : (
                 <img 
-                  src="/lovable-uploads/97984f7d-d542-490c-9e04-5a0744d1b6a2.png" 
-                  alt="ElPortal.dk Logo" 
+                  src={FALLBACK_LOGO} 
+                  alt={FALLBACK_ALT} 
                   className="h-10 mb-4"
                 />
               )}
@@ -136,8 +137,8 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row justify-between">
           <div className="mb-8 md:mb-0">
             <img 
-              src="/lovable-uploads/97984f7d-d542-490c-9e04-5a0744d1b6a2.png" 
-              alt="ElPortal.dk Logo" 
+              src={FALLBACK_LOGO} 
+              alt={FALLBACK_ALT} 
               className="h-10 mb-4"
             />
             <p className="max-w-xs text-gray-300 text-sm">

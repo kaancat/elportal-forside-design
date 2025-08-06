@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,13 +7,27 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Layout from "@/components/Layout";
-import Index from "./pages/Index";
-import GenericPage from "./pages/GenericPage";
-import NotFound from "./pages/NotFound";
-import { EnergyTips } from "./pages/EnergyTips";
-import IconTest from "./pages/IconTest";
 import { useSiteMetadata } from "@/hooks/useSiteMetadata";
 import ScrollToTop from "@/components/ScrollToTop";
+import { initWebVitals, observePerformance } from "@/utils/webVitals";
+import CanonicalUrl from "@/components/CanonicalUrl";
+
+// Lazy load pages for code splitting
+const Index = lazy(() => import("./pages/Index"));
+const GenericPage = lazy(() => import("./pages/GenericPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const EnergyTips = lazy(() => import("./pages/EnergyTips").then(m => ({ default: m.EnergyTips })));
+const IconTest = lazy(() => import("./pages/IconTest"));
+
+// Loading component for Suspense fallback
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-[50vh]">
+    <div className="animate-pulse">
+      <div className="h-8 w-48 bg-gray-200 rounded mb-4"></div>
+      <div className="h-4 w-32 bg-gray-200 rounded"></div>
+    </div>
+  </div>
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,6 +53,12 @@ const AppContent = () => {
   // Initialize site metadata (favicon, title, etc.)
   useSiteMetadata();
   
+  // Initialize Core Web Vitals monitoring
+  useEffect(() => {
+    initWebVitals();
+    observePerformance();
+  }, []);
+  
   return (
     <TooltipProvider delayDuration={0}>
       <div className="min-h-screen w-full">
@@ -46,19 +66,22 @@ const AppContent = () => {
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
+          <CanonicalUrl />
           <ErrorBoundary level="page">
             <Layout>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="/energispareraad" element={<EnergyTips />} />
-                <Route path="/icon-test" element={<IconTest />} />
-                
-                {/* Dynamic route for generic pages - must be before the 404 catch-all */}
-                <Route path="/:slug" element={<GenericPage />} />
-                
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="/energispareraad" element={<EnergyTips />} />
+                  <Route path="/icon-test" element={<IconTest />} />
+                  
+                  {/* Dynamic route for generic pages - must be before the 404 catch-all */}
+                  <Route path="/:slug" element={<GenericPage />} />
+                  
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
             </Layout>
           </ErrorBoundary>
         </BrowserRouter>

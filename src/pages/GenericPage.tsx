@@ -4,6 +4,8 @@ import { SanityService } from '@/services/sanityService';
 import { UnifiedPage } from '@/types/sanity';
 import UnifiedContentBlocks from '@/components/UnifiedContentBlocks';
 import { getSanityImageUrl } from '@/lib/sanityImage';
+import StructuredData from '@/components/StructuredData';
+import { FAQItem } from '@/utils/structuredData';
 
 const GenericPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -137,8 +139,42 @@ const GenericPage = () => {
   }
 
 
+  // Extract FAQ items from content blocks if they exist
+  const faqItems: FAQItem[] = [];
+  if (pageData.contentBlocks && Array.isArray(pageData.contentBlocks)) {
+    pageData.contentBlocks.forEach((block: any) => {
+      if (block._type === 'faqGroup' && block.items) {
+        block.items.forEach((item: any) => {
+          if (item.question && item.answer) {
+            faqItems.push({
+              question: item.question,
+              answer: typeof item.answer === 'string' 
+                ? item.answer 
+                : item.answer?.[0]?.children?.[0]?.text || ''
+            });
+          }
+        });
+      }
+    });
+  }
+
+  // Determine page type based on content
+  const pageType = faqItems.length > 0 ? 'faq' : 'webpage';
+
   return (
     <>
+      <StructuredData
+        pageTitle={pageData.seoMetaTitle || pageData.title}
+        pageDescription={pageData.seoMetaDescription || pageData.description}
+        pageType={pageType}
+        faqItems={faqItems}
+        breadcrumbs={[
+          {
+            name: pageData.title || slug || 'Side',
+            url: `https://elportal.dk/${slug}`
+          }
+        ]}
+      />
       {pageData.contentBlocks && Array.isArray(pageData.contentBlocks) && pageData.contentBlocks.length > 0 ? (
         <UnifiedContentBlocks page={pageData} enableBreadcrumbs={true} />
       ) : (

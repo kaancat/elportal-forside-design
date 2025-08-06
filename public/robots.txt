@@ -1,8 +1,21 @@
+# ElPortal Robots.txt
+# Allow all legitimate crawlers
+
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 0
 
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 1
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 1
+
+User-agent: DuckDuckBot
+Allow: /
+Crawl-delay: 1
 
 User-agent: Twitterbot
 Allow: /
@@ -10,5 +23,26 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: applebot
+Allow: /
+
+# Default for all other bots
 User-agent: *
 Allow: /
+Crawl-delay: 2
+
+# Disallow access to admin and API paths
+User-agent: *
+Disallow: /admin/
+Disallow: /api/
+Disallow: /_app/
+Disallow: /src/
+
+# Sitemap location
+Sitemap: https://elportal.dk/sitemap.xml

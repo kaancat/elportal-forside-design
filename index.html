@@ -6,7 +6,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sammenlign Elpriser - Find Billigste Elaftale</title>
     <meta name="description" content="Spar penge på din elregning! Sammenlign aktuelle elpriser og find den bedste elaftale for dig. Gratis sammenligning af danske eludbydere." />
-    <meta name="author" content="Lovable" />
+    <meta name="author" content="ElPortal" />
+    
+    <!-- Preconnect to external domains for faster resource loading -->
+    <link rel="preconnect" href="https://cdn.sanity.io" crossorigin>
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.sanity.io">
+    <link rel="dns-prefetch" href="https://images.unsplash.com">
+    
+    <!-- Preload critical fonts -->
+    <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin>
+    
+    <!-- Critical CSS for above-the-fold content -->
+    <style>
+      /* Critical CSS to prevent layout shift and improve FCP */
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      #root {
+        min-height: 100vh;
+      }
+      /* Prevent CLS from loading animations */
+      .animate-pulse {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: .5; }
+      }
+    </style>
 
     <meta property="og:title" content="Sammenlign Elpriser - Find Billigste Elaftale" />
     <meta property="og:description" content="Spar penge på din elregning! Sammenlign aktuelle elpriser og find den bedste elaftale for dig." />

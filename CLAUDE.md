@@ -113,9 +113,10 @@ When creating or modifying Sanity content, you MUST follow these rules to preven
    - Images must be image objects with asset references
    - Rich text fields use Portable Text array structure
 4. **CRITICAL: PageSection content restrictions**:
-   - ✅ ALLOWED in pageSection.content: `block`, `image`, `livePriceGraph`, `renewableEnergyForecast`, `monthlyProductionChart`, `priceCalculator`, `realPriceComparisonTable`, `videoSection`
-   - ❌ NOT ALLOWED in pageSection.content: `valueProposition`, `priceExampleTable`, `faqGroup`, `featureList`, `providerList`, `hero`, `heroWithCalculator`, `callToActionSection`
-   - Complex components must be top-level contentBlocks, NOT nested inside pageSection.content
+   - ✅ ALLOWED in pageSection.content: `block` (text), `image` ONLY
+   - ❌ NOT ALLOWED in pageSection.content: ANY dynamic components (`livePriceGraph`, `renewableEnergyForecast`, `monthlyProductionChart`, `priceCalculator`, `realPriceComparisonTable`, `videoSection`, `valueProposition`, `priceExampleTable`, `faqGroup`, `featureList`, `providerList`, `hero`, `heroWithCalculator`, `callToActionSection`)
+   - ALL dynamic components must be top-level contentBlocks, NOT nested inside pageSection.content
+   - PageSection is for text and image content only - use top-level blocks for interactive components
 5. **Validate before saving**: Use the generated Zod schemas at `src/lib/sanity-schemas.zod.ts`
 6. **Include all required fields**: Check schema documentation for validation rules
 

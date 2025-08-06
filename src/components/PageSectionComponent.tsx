@@ -2,14 +2,8 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import { urlFor } from '@/lib/sanity'
 import { PortableText } from '@portabletext/react'
-import LivePriceGraphComponent from './LivePriceGraphComponent'
-import RenewableEnergyForecastComponent from './RenewableEnergyForecast'
-import PriceCalculatorWidget from './PriceCalculatorWidget'
-import RealPriceComparisonTableComponent from './RealPriceComparisonTable'
-import MonthlyProductionChart from './MonthlyProductionChart'
-import VideoSectionComponent from './VideoSectionComponent'
 import StickyImageSection from './StickyImageSection'
-import type { PageSection, LivePriceGraph, RenewableEnergyForecast, PriceCalculator, RealPriceComparisonTable, MonthlyProductionChartBlock, VideoSection } from '@/types/sanity'
+import type { PageSection } from '@/types/sanity'
 import { cn } from '@/lib/utils'
 
 interface PageSectionProps {
@@ -41,40 +35,8 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   const verticalAlign = settings?.verticalAlign || 'start';
   const stickyImage = settings?.stickyImage || false;
 
-  // Define custom components for embedded blocks in Portable Text
+  // Define custom components for Portable Text
   const customComponents = {
-    types: {
-      livePriceGraph: ({ value }: { value: LivePriceGraph }) => (
-        <div className="not-prose -mx-4 sm:-mx-6 lg:-mx-16 my-12">
-          <LivePriceGraphComponent block={value} />
-        </div>
-      ),
-      renewableEnergyForecast: ({ value }: { value: RenewableEnergyForecast }) => (
-        <div className="not-prose -mx-4 sm:-mx-6 lg:-mx-16 my-12">
-          <RenewableEnergyForecastComponent block={value} />
-        </div>
-      ),
-      priceCalculator: ({ value }: { value: PriceCalculator }) => (
-         <div className="my-12">
-           <PriceCalculatorWidget block={value} variant="standalone" />
-         </div>
-      ),
-      realPriceComparisonTable: ({ value }: { value: RealPriceComparisonTable }) => (
-        <div className="not-prose -mx-4 sm:-mx-6 lg:-mx-16 my-12">
-          <RealPriceComparisonTableComponent block={value} />
-        </div>
-      ),
-      monthlyProductionChart: ({ value }: { value: MonthlyProductionChartBlock }) => (
-        <div className="not-prose -mx-4 sm:-mx-6 lg:-mx-16 my-12">
-          <MonthlyProductionChart block={value} />
-        </div>
-      ),
-      videoSection: ({ value }: { value: VideoSection }) => (
-        <div className="not-prose my-12">
-          <VideoSectionComponent block={value} />
-        </div>
-      ),
-    },
     block: {
       h1: ({ children }: { children: React.ReactNode }) => (
         <h1 className={cn(

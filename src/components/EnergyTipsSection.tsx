@@ -11,7 +11,6 @@ import {
 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Calculator } from 'lucide-react'
@@ -115,118 +114,75 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
   const allTipsData = block.tips && block.tips.length > 0 
     ? block.tips 
     : FALLBACK_TIPS
-    
-  // Early return if no tips available
-  if (!allTipsData || allTipsData.length === 0) {
-    return (
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center py-12">
-            <p className="text-gray-500">Indlæser energispare tips...</p>
-          </div>
-        </div>
-      </section>
-    )
-  }
-  
-  // Debug logging (only in development)
-  if (process.env.NODE_ENV === 'development') {
-    console.log('EnergyTipsSection Debug:', {
-      tipsCount: allTipsData.length,
-      selectedCategory,
-      showCategories: block.showCategories,
-      maxTipsPerCategory: block.maxTipsPerCategory,
-      hasTips: !!block.tips,
-      firstTips: allTipsData.slice(0, 3).map(t => ({ 
-        title: t.title, 
-        category: t.category,
-        hasShortDescription: !!t.shortDescription 
-      }))
-    })
-  }
-  
-  // Filter tips based on configuration
-  const categoriesToShow = block.showCategories && block.showCategories.length > 0 
-    ? block.showCategories 
-    : Object.keys(categoryConfig)
 
-  // Debug categoriesToShow
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Categories Debug:', {
-      selectedCategory,
-      categoriesToShow,
-      blockShowCategories: block.showCategories,
-      tipsCount: allTipsData.length
-    })
-  }
-  
-  // Filter and organize tips
-  const { filteredTips, categoryTips } = useMemo(() => {
-    // Filter tips by allowed categories - SIMPLIFIED: Just use all tips if we have showCategories
-    const allowedTips = (block.showCategories && block.showCategories.length > 0) 
-      ? allTipsData.filter(tip => block.showCategories.includes(tip.category))
-      : allTipsData.filter(tip => categoriesToShow.includes(tip.category))
-    
-    // Group tips by category
+  // Determine which categories to show
+  const categoriesToShow = useMemo(() => {
+    // If showCategories is defined and has items, use it
+    if (block.showCategories && block.showCategories.length > 0) {
+      return block.showCategories
+    }
+    // Otherwise, use all category keys
+    return Object.keys(categoryConfig)
+  }, [block.showCategories])
+
+  // Filter and organize tips - SIMPLIFIED LOGIC
+  const { displayTips, categoryTips } = useMemo(() => {
+    // Group all tips by category
     const grouped: Record<string, CMSEnergyTip[]> = {}
-    const validCategories = (block.showCategories && block.showCategories.length > 0) 
-      ? block.showCategories 
-      : categoriesToShow
     
-    validCategories.forEach(cat => {
-      grouped[cat] = allowedTips.filter(tip => tip.category === cat)
+    // Initialize all categories with empty arrays
+    categoriesToShow.forEach(cat => {
+      grouped[cat] = []
     })
     
-    // Get filtered tips based on selected category
-    const filtered = selectedCategory === 'all' 
-      ? allowedTips 
-      : grouped[selectedCategory] || []
+    // Populate groups with actual tips
+    allTipsData.forEach(tip => {
+      if (categoriesToShow.includes(tip.category)) {
+        if (!grouped[tip.category]) {
+          grouped[tip.category] = []
+        }
+        grouped[tip.category].push(tip)
+      }
+    })
     
-    // Debug logging for filtering
+    // Determine what to display based on selected category
+    let tipsToDisplay: CMSEnergyTip[] = []
+    
+    if (selectedCategory === 'all') {
+      // Show all tips from all categories
+      tipsToDisplay = allTipsData.filter(tip => 
+        categoriesToShow.includes(tip.category)
+      )
+    } else {
+      // Show tips from selected category only
+      tipsToDisplay = grouped[selectedCategory] || []
+    }
+    
+    // Apply max tips limit if needed
+    if (block.maxTipsPerCategory && 
+        block.maxTipsPerCategory > 0 && 
+        selectedCategory !== 'all') {
+      tipsToDisplay = tipsToDisplay.slice(0, block.maxTipsPerCategory)
+    }
+    
+    // Debug logging
     if (process.env.NODE_ENV === 'development') {
-      console.log(`🔍 [${selectedCategory}] Filter Debug:`, {
+      console.log('🔍 EnergyTips Debug:', {
+        selectedCategory,
+        categoriesToShow,
         allTipsCount: allTipsData.length,
-        allowedTipsCount: allowedTips.length,
-        filteredCount: filtered.length,
-        blockShowCategories: block.showCategories,
-        validCategories: validCategories,
-        groupedKeys: Object.keys(grouped),
-        selectedCategoryTips: grouped[selectedCategory]?.length || 0
+        displayCount: tipsToDisplay.length,
+        categoryBreakdown: Object.entries(grouped).map(([cat, tips]) => 
+          `${cat}: ${tips.length}`
+        ).join(', ')
       })
     }
     
     return { 
-      filteredTips: filtered,
+      displayTips: tipsToDisplay,
       categoryTips: grouped 
     }
-  }, [allTipsData, categoriesToShow, selectedCategory, block.showCategories])
-  
-  // Apply max tips limit if set (0 means show all)
-  const displayTips = useMemo(() => {
-    let result;
-    if (selectedCategory === 'all') {
-      // For "all" category, show all tips regardless of maxTipsPerCategory
-      result = filteredTips
-    } else if (block.maxTipsPerCategory && block.maxTipsPerCategory > 0) {
-      // For specific categories, apply the limit if set
-      result = filteredTips.slice(0, block.maxTipsPerCategory)
-    } else {
-      // If maxTipsPerCategory is 0 or not set, show all tips
-      result = filteredTips
-    }
-    
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Display tips calculation:', {
-        selectedCategory,
-        filteredCount: filteredTips.length,
-        displayCount: result.length,
-        maxPerCategory: block.maxTipsPerCategory,
-        filteredTipsTitles: filteredTips.slice(0, 3).map(t => t.title)
-      })
-    }
-    
-    return result
-  }, [filteredTips, selectedCategory, block.maxTipsPerCategory])
+  }, [allTipsData, categoriesToShow, selectedCategory, block.maxTipsPerCategory])
 
   const renderTipCard = (tip: CMSEnergyTip, index: number) => {
     const Icon = tip.icon && Icons[tip.icon as keyof typeof Icons] 
@@ -342,7 +298,6 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
                   const category = categoryConfig[categoryKey as keyof typeof categoryConfig]
                   if (!category) return null
                   const Icon = category.icon
-                  const tipCount = categoryTips[categoryKey]?.length || 0
                   
                   return (
                     <button

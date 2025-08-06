@@ -99,26 +99,49 @@ ElPortal follows a two-project architecture with the Frontend directly integrati
 - Do not run any servers, rather tell the user to run servers for testing.
 - Always consider industry standard libraries/frameworks first over custom implementations.
 
-### 🚨 CRITICAL: Sanity Schema Validation
-When creating or modifying Sanity content, you MUST follow these rules to prevent validation errors:
+### 🚨 CRITICAL: Sanity Content Management Protocol
 
-1. **ALWAYS check actual schema files**: Check the schema files in `/sanityelpriscms/schemaTypes/` or use Sanity Studio preview to see correct field names
-2. **NEVER guess field names**: Common mistakes:
-   - `hero` uses `headline/subheadline` NOT `title/subtitle`
-   - `valueProposition` uses `heading/valueItems` NOT `title/items`
-   - `valueItem` uses `heading` NOT `title`
-   - `featureItem` uses `title` NOT `name`
-3. **Use correct field types**:
-   - Icons must be `icon.manager` objects with full metadata
-   - Images must be image objects with asset references
-   - Rich text fields use Portable Text array structure
-4. **CRITICAL: PageSection content restrictions**:
-   - ✅ ALLOWED in pageSection.content: `block` (text), `image` ONLY
-   - ❌ NOT ALLOWED in pageSection.content: ANY dynamic components (`livePriceGraph`, `renewableEnergyForecast`, `monthlyProductionChart`, `priceCalculator`, `realPriceComparisonTable`, `videoSection`, `valueProposition`, `priceExampleTable`, `faqGroup`, `featureList`, `providerList`, `hero`, `heroWithCalculator`, `callToActionSection`)
-   - ALL dynamic components must be top-level contentBlocks, NOT nested inside pageSection.content
-   - PageSection is for text and image content only - use top-level blocks for interactive components
-5. **Validate before saving**: Use the generated Zod schemas at `src/lib/sanity-schemas.zod.ts`
-6. **Include all required fields**: Check schema documentation for validation rules
+**NEVER use static scripts or assumptions. ALWAYS follow this protocol:**
+
+#### Step 1: Read the Actual Schema
+```typescript
+// ALWAYS read the schema file FIRST
+const schemaPath = `/sanityelpriscms/schemaTypes/${contentType}.ts`
+// Read and understand ALL field names, types, and validation rules
+```
+
+#### Step 2: Understand Field Requirements
+- **pageSection** uses `title` (NOT `heading` or `headline`)
+- **hero** uses `headline/subheadline` (NOT `title/subtitle`)
+- **valueProposition** uses `heading/valueItems` (NOT `title/items`)
+- **faqGroup** uses `title` and `faqItems` (NOT `heading` or `faqs`)
+- **Each schema has SPECIFIC field names** - always verify
+
+#### Step 3: Create Content Matching Schema EXACTLY
+```typescript
+// Example: After reading pageSection.ts
+const pageSectionContent = {
+  _type: 'pageSection',
+  _key: generateKey(),
+  title: 'Section Title',  // NOT heading!
+  headerAlignment: 'left',  // optional
+  content: [/* only block and image types */],
+  image: {/* image object */},  // optional
+  imagePosition: 'left',  // optional
+  cta: {/* cta object */},  // optional
+  settings: {/* settings */}  // optional
+}
+```
+
+#### Step 4: Never Include Non-Existent Fields
+- **DO NOT** add fields that don't exist in the schema
+- **DO NOT** mix fields from different schemas
+- **DO NOT** rely on memory or previous scripts
+
+#### PageSection Specific Rules:
+- ✅ ALLOWED in content: `block` (text), `image` ONLY
+- ❌ NOT ALLOWED: ANY dynamic components in content array
+- ALL dynamic components must be top-level contentBlocks
 
 Example of correct content creation:
 ```typescript
@@ -446,28 +469,26 @@ ElPortal uses `sanity-plugin-icon-manager` with a sophisticated fallback system.
 
 ## 9. Content Management Best Practices
 
-### 🚨 Content Update Guidelines
-**For simple content updates requested by the user**, use the existing API connection to directly read/write changes. The .env file contains Sanity API credentials for this purpose.
+### 🚨 Content Update Protocol
+**ALWAYS follow this approach for ANY Sanity content operation:**
+
+1. **Read Schema First**: Always read from `/sanityelpriscms/schemaTypes/[type].ts`
+2. **Use Exact Field Names**: Never guess or remember - read the actual schema
+3. **Direct API Only**: Write directly via Sanity API, no intermediate scripts
+4. **No Static Scripts**: Never create scripts with hardcoded field assumptions
 
 **When to use direct API updates:**
-- User specifically requests immediate content changes
+- ANY content creation or modification requested by user
 - Simple field updates (alignment, text, settings)
-- Quick fixes or adjustments to existing content
+- Complex page creation
 - Testing or verifying content changes
 
 **When to use Sanity Studio (https://dinelportal.sanity.studio):**
-- Complex content creation requiring visual preview
+- User wants visual preview/editing
 - Managing media assets and uploads
-- Exploring content structure
-- User prefers visual interface
+- User explicitly prefers the visual interface
 
-**Only create NEW API scripts when:**
-- Bulk importing/migrating large amounts of data
-- Automating repetitive content creation (e.g., 50+ similar pages)
-- Integrating with external data sources
-- Performing complex content transformations
-
-**For routine updates**, use existing scripts in the `scripts/` directory when available (e.g., `update-homepage-alignment.ts`).
+**NEVER create static scripts** - Always read schemas in real-time and write directly.
 
 ## 10. SEO Page Generation Process (Direct API Method)
 
@@ -511,18 +532,25 @@ ElPortal uses a direct AI-to-Sanity content generation approach for creating com
 - **Each page is unique**: Let the content goals drive component selection
 
 #### 4. Content Creation Process
-1. **Create JSON structure** with all content blocks
-2. **Write comprehensive Danish text** covering:
+1. **Read ALL relevant schemas first**:
+   - `/sanityelpriscms/schemaTypes/page.ts`
+   - `/sanityelpriscms/schemaTypes/pageSection.ts`
+   - Any other content types you'll use
+2. **Create content with EXACT field names from schemas**
+3. **Write comprehensive Danish text** covering:
    - Technical explanations (electricity prices, grid areas, etc.)
    - Benefits of green energy (subtle Vindstød promotion)
    - Practical advice for consumers
    - Regional differences (DK1/DK2)
-3. **Validate all fields** against Sanity schemas
 4. **Use proper Portable Text format** for rich text fields
 
 #### 5. Technical Implementation
 ```javascript
-// Import script pattern
+// FIRST: Read schema to understand exact fields
+const pageSchema = await readFile('/sanityelpriscms/schemaTypes/page.ts')
+// Understand required fields, field names, types
+
+// THEN: Create content matching schema exactly
 const client = createClient({
   projectId: 'yxesi03x',
   dataset: 'production',
@@ -531,10 +559,11 @@ const client = createClient({
   token: process.env.SANITY_API_TOKEN
 })
 
-// Create or update page
+// Create or update page with correct fields
 const result = await client.createOrReplace({
   _id: `page.${slug}`,
   _type: 'page',
+  // Use exact field names from schema
   ...pageContent
 })
 ```

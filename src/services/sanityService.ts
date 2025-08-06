@@ -390,9 +390,24 @@ export class SanityService {
           subtitle,
           showCategories,
           displayMode,
+          headerAlignment,
           showDifficultyBadges,
           showSavingsPotential,
-          maxTipsPerCategory
+          showSavingsCalculator,
+          maxTipsPerCategory,
+          tips[]-> {
+            _id,
+            title,
+            slug,
+            category,
+            shortDescription,
+            savingsPotential,
+            difficulty,
+            icon,
+            estimatedSavings,
+            implementationTime,
+            priority
+          }
         },
         _type == "chargingBoxShowcase" => {
           _key,
@@ -831,9 +846,24 @@ export class SanityService {
           subtitle,
           showCategories,
           displayMode,
+          headerAlignment,
           showDifficultyBadges,
           showSavingsPotential,
-          maxTipsPerCategory
+          showSavingsCalculator,
+          maxTipsPerCategory,
+          tips[]-> {
+            _id,
+            title,
+            slug,
+            category,
+            shortDescription,
+            savingsPotential,
+            difficulty,
+            icon,
+            estimatedSavings,
+            implementationTime,
+            priority
+          }
         },
         _type == "chargingBoxShowcase" => {
           ...,

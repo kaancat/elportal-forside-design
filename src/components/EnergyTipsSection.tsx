@@ -1,150 +1,53 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
+import * as Icons from 'lucide-react'
 import { 
   Lightbulb, 
   Home, 
   Thermometer, 
   Zap, 
   Shield, 
-  Smartphone,
-  Power,
-  Shirt,
-  Clock,
-  Sun,
-  Snowflake,
-  Activity
+  Smartphone
 } from 'lucide-react'
-import * as Icons from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Calculator } from 'lucide-react'
-import { EnergyTip } from '@/types/appliance'
 import { useScrollAnimation, staggerContainer, animationClasses } from '@/hooks/useScrollAnimation'
 
-// Hardcoded energy tips data
-const ENERGY_TIPS_DATA: EnergyTip[] = [
+// Fallback tips for when no CMS data is available
+const FALLBACK_TIPS = [
   {
-    _id: '1',
+    _id: 'fallback-1',
     title: 'Udskift til LED-pærer',
     slug: { current: 'udskift-til-led-paerer' },
     category: 'lighting',
-    shortDescription: 'LED-pærer bruger op til 85% mindre strøm end traditionelle glødepærer og holder 25 gange længere.',
-    savingsPotential: 'medium',
+    shortDescription: 'LED-pærer bruger op til 85% mindre strøm end traditionelle glødepærer.',
+    savingsPotential: 'high',
     difficulty: 'easy',
     icon: 'Lightbulb'
   },
   {
-    _id: '2',
+    _id: 'fallback-2',
     title: 'Installer en smart termostat',
     slug: { current: 'installer-smart-termostat' },
     category: 'smart_tech',
-    shortDescription: 'En smart termostat kan reducere dit varmeforbrug med op til 20% ved at tilpasse temperaturen efter dit behov.',
+    shortDescription: 'En smart termostat kan reducere dit varmeforbrug med op til 20%.',
     savingsPotential: 'high',
     difficulty: 'medium',
     icon: 'Thermometer'
   },
   {
-    _id: '3',
+    _id: 'fallback-3',
     title: 'Sluk standby-apparater',
     slug: { current: 'sluk-standby-apparater' },
     category: 'daily_habits',
-    shortDescription: 'Standby-forbrug kan udgøre op til 10% af din elregning. Brug stikdåser med afbryder.',
-    savingsPotential: 'low',
+    shortDescription: 'Standby-forbrug kan udgøre op til 10% af din elregning.',
+    savingsPotential: 'medium',
     difficulty: 'easy',
     icon: 'Power'
-  },
-  {
-    _id: '4',
-    title: 'Vask tøj ved lavere temperaturer',
-    slug: { current: 'vask-toej-lavere-temp' },
-    category: 'appliances',
-    shortDescription: 'Ved at vaske ved 30°C i stedet for 60°C kan du spare op til 40% af energiforbruget pr. vask.',
-    savingsPotential: 'medium',
-    difficulty: 'easy',
-    icon: 'Shirt'
-  },
-  {
-    _id: '5',
-    title: 'Isoler din bolig bedre',
-    slug: { current: 'isoler-bolig-bedre' },
-    category: 'insulation',
-    shortDescription: 'God isolering kan reducere dit varmeforbrug med op til 30% og forbedre indeklimaet.',
-    savingsPotential: 'high',
-    difficulty: 'hard',
-    icon: 'Home'
-  },
-  {
-    _id: '6',
-    title: 'Brug tidsindstillinger',
-    slug: { current: 'brug-tidsindstillinger' },
-    category: 'smart_tech',
-    shortDescription: 'Programmér dine apparater til at køre når elprisen er lavest - typisk om natten.',
-    savingsPotential: 'medium',
-    difficulty: 'easy',
-    icon: 'Clock'
-  },
-  {
-    _id: '7',
-    title: 'Luk for radiatorer i ubrugte rum',
-    slug: { current: 'luk-radiatorer-ubrugte-rum' },
-    category: 'heating',
-    shortDescription: 'Spar op til 10% på varmeregningen ved at lukke for radiatorer i rum du ikke bruger.',
-    savingsPotential: 'medium',
-    difficulty: 'easy',
-    icon: 'Thermometer'
-  },
-  {
-    _id: '8',
-    title: 'Skift til A+++ hvidevarer',
-    slug: { current: 'skift-til-a-plus-hvidevarer' },
-    category: 'appliances',
-    shortDescription: 'Nye energieffektive hvidevarer kan spare op til 50% strøm sammenlignet med 10 år gamle modeller.',
-    savingsPotential: 'high',
-    difficulty: 'hard',
-    icon: 'Zap'
-  },
-  {
-    _id: '9',
-    title: 'Brug naturligt lys',
-    slug: { current: 'brug-naturligt-lys' },
-    category: 'lighting',
-    shortDescription: 'Udnyt dagslyset og sluk kunstigt lys når det ikke er nødvendigt.',
-    savingsPotential: 'low',
-    difficulty: 'easy',
-    icon: 'Sun'
-  },
-  {
-    _id: '10',
-    title: 'Afrim din fryser regelmæssigt',
-    slug: { current: 'afrim-fryser-regelmaessigt' },
-    category: 'daily_habits',
-    shortDescription: 'Is i fryseren reducerer effektiviteten med op til 20%. Afrim hver 3. måned.',
-    savingsPotential: 'low',
-    difficulty: 'easy',
-    icon: 'Snowflake'
-  },
-  {
-    _id: '11',
-    title: 'Installer bevægelsessensorer',
-    slug: { current: 'installer-bevaegelsessensorer' },
-    category: 'smart_tech',
-    shortDescription: 'Automatisk tænd/sluk af lys kan spare op til 30% på belysning.',
-    savingsPotential: 'medium',
-    difficulty: 'medium',
-    icon: 'Activity'
-  },
-  {
-    _id: '12',
-    title: 'Tætne vinduer og døre',
-    slug: { current: 'taetne-vinduer-doere' },
-    category: 'insulation',
-    shortDescription: 'Stop varmetab gennem utætte vinduer og døre med tætningslister.',
-    savingsPotential: 'medium',
-    difficulty: 'easy',
-    icon: 'Shield'
   }
 ]
 
@@ -170,6 +73,21 @@ const difficultyLabels = {
   hard: 'Svær',
 }
 
+// Type for CMS energy tip
+interface CMSEnergyTip {
+  _id: string
+  title: string
+  slug?: { current: string }
+  category: string
+  shortDescription: string
+  savingsPotential?: 'low' | 'medium' | 'high'
+  difficulty?: 'easy' | 'medium' | 'hard'
+  icon?: string
+  estimatedSavings?: string
+  implementationTime?: string
+  priority?: number
+}
+
 interface EnergyTipsSectionProps {
   block: {
     _type: 'energyTipsSection'
@@ -182,6 +100,7 @@ interface EnergyTipsSectionProps {
     showSavingsPotential?: boolean
     showSavingsCalculator?: boolean
     maxTipsPerCategory?: number
+    tips?: CMSEnergyTip[] // Tips from CMS
   }
 }
 
@@ -191,26 +110,87 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
   // Use professional animations
   const headerAnimation = useScrollAnimation({ duration: 0.6, type: 'fadeUp' });
   
+  // Use CMS tips if available, otherwise use fallback
+  const allTipsData = block.tips && block.tips.length > 0 
+    ? block.tips 
+    : FALLBACK_TIPS
+  
+  // Debug logging (only in development)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('EnergyTipsSection Debug:', {
+      tipsCount: allTipsData.length,
+      selectedCategory,
+      showCategories: block.showCategories,
+      maxTipsPerCategory: block.maxTipsPerCategory,
+      hasTips: !!block.tips,
+      firstTips: allTipsData.slice(0, 3).map(t => ({ 
+        title: t.title, 
+        category: t.category,
+        hasShortDescription: !!t.shortDescription 
+      }))
+    })
+  }
+  
   // Filter tips based on configuration
   const categoriesToShow = block.showCategories && block.showCategories.length > 0 
     ? block.showCategories 
     : Object.keys(categoryConfig)
   
-  const allTips = ENERGY_TIPS_DATA.filter(tip => 
-    categoriesToShow.includes(tip.category)
-  )
+  // Filter and organize tips
+  const { filteredTips, categoryTips } = useMemo(() => {
+    // Filter tips by allowed categories
+    const allowedTips = allTipsData.filter(tip => 
+      categoriesToShow.includes(tip.category)
+    )
+    
+    // Group tips by category
+    const grouped: Record<string, CMSEnergyTip[]> = {}
+    categoriesToShow.forEach(cat => {
+      grouped[cat] = allowedTips.filter(tip => tip.category === cat)
+    })
+    
+    // Get filtered tips based on selected category
+    const filtered = selectedCategory === 'all' 
+      ? allowedTips 
+      : grouped[selectedCategory] || []
+    
+    return { 
+      filteredTips: filtered,
+      categoryTips: grouped 
+    }
+  }, [allTipsData, categoriesToShow, selectedCategory])
   
-  const filteredTips = selectedCategory === 'all' 
-    ? allTips 
-    : allTips.filter(tip => tip.category === selectedCategory)
-  
-  // Apply max tips limit if set
-  const displayTips = block.maxTipsPerCategory && block.maxTipsPerCategory > 0
-    ? filteredTips.slice(0, block.maxTipsPerCategory)
-    : filteredTips
+  // Apply max tips limit if set (0 means show all)
+  const displayTips = useMemo(() => {
+    let result;
+    if (selectedCategory === 'all') {
+      // For "all" category, show all tips regardless of maxTipsPerCategory
+      result = filteredTips
+    } else if (block.maxTipsPerCategory && block.maxTipsPerCategory > 0) {
+      // For specific categories, apply the limit if set
+      result = filteredTips.slice(0, block.maxTipsPerCategory)
+    } else {
+      // If maxTipsPerCategory is 0 or not set, show all tips
+      result = filteredTips
+    }
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Display tips calculation:', {
+        selectedCategory,
+        filteredCount: filteredTips.length,
+        displayCount: result.length,
+        maxPerCategory: block.maxTipsPerCategory
+      })
+    }
+    
+    return result
+  }, [filteredTips, selectedCategory, block.maxTipsPerCategory])
 
-  const renderTipCard = (tip: EnergyTip, index: number) => {
-    const Icon = tip.icon ? Icons[tip.icon as keyof typeof Icons] : Lightbulb
+  const renderTipCard = (tip: CMSEnergyTip, index: number) => {
+    const Icon = tip.icon && Icons[tip.icon as keyof typeof Icons] 
+      ? Icons[tip.icon as keyof typeof Icons] 
+      : Lightbulb
+      
     const cardAnimation = useScrollAnimation({ 
       type: 'stagger', 
       index, 
@@ -255,12 +235,18 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
           <p className="text-gray-600 text-sm leading-relaxed">
             {tip.shortDescription}
           </p>
+          
+          {tip.estimatedSavings && (
+            <p className="text-sm font-medium text-green-600 mt-3">
+              {tip.estimatedSavings}
+            </p>
+          )}
         </Card>
       </motion.div>
     )
   }
 
-  const content = (
+  const renderContent = () => (
     <motion.div 
       className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
       variants={staggerContainer}
@@ -294,39 +280,63 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
         </motion.div>
 
         {block.displayMode === 'tabs' ? (
-          <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="mb-8">
-            <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 h-auto p-1 bg-gray-100">
-              <TabsTrigger
-                value="all"
-                className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-              >
-                <Zap className="h-4 w-4" />
-                <span className="hidden sm:inline">Alle tips</span>
-              </TabsTrigger>
-              {categoriesToShow.map((categoryKey) => {
-                const category = categoryConfig[categoryKey as keyof typeof categoryConfig]
-                if (!category) return null
-                const Icon = category.icon
-                
-                return (
-                  <TabsTrigger
-                    key={categoryKey}
-                    value={categoryKey}
-                    className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span className="hidden sm:inline">{category.label}</span>
-                  </TabsTrigger>
-                )
-              })}
-            </TabsList>
+          <div>
+            {/* Tab List */}
+            <div className="mb-8">
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 p-1 bg-gray-100 rounded-lg">
+                <button
+                  onClick={() => setSelectedCategory('all')}
+                  className={`flex items-center justify-center gap-2 px-3 py-2 rounded-md transition-colors ${
+                    selectedCategory === 'all' 
+                      ? 'bg-white shadow-sm text-gray-900' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <Zap className="h-4 w-4" />
+                  <span className="hidden sm:inline">Alle tips</span>
+                  <span className="sm:hidden">Alle</span>
+                </button>
+                {categoriesToShow.map((categoryKey) => {
+                  const category = categoryConfig[categoryKey as keyof typeof categoryConfig]
+                  if (!category) return null
+                  const Icon = category.icon
+                  const tipCount = categoryTips[categoryKey]?.length || 0
+                  
+                  return (
+                    <button
+                      key={categoryKey}
+                      onClick={() => setSelectedCategory(categoryKey)}
+                      className={`flex items-center justify-center gap-2 px-3 py-2 rounded-md transition-colors ${
+                        selectedCategory === categoryKey 
+                          ? 'bg-white shadow-sm text-gray-900' 
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span className="hidden sm:inline">{category.label}</span>
+                      <span className="sm:hidden text-xs">{category.label.split(' ')[0]}</span>
+                      {tipCount > 0 && (
+                        <span className="ml-1 text-xs text-gray-500">({tipCount})</span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
 
-            <TabsContent value={selectedCategory} className="mt-8">
-              {content}
-            </TabsContent>
-          </Tabs>
+            {/* Content */}
+            <div className="mt-8">
+              {displayTips.length > 0 ? (
+                renderContent()
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  <p>Ingen tips fundet for denne kategori.</p>
+                </div>
+              )}
+            </div>
+          </div>
         ) : (
-          content
+          renderContent()
         )}
         
         {/* Savings Calculator Section */}
@@ -383,6 +393,16 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
               </div>
             </Card>
           </motion.div>
+        )}
+        
+        {/* Debug info for development */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-8 p-4 bg-gray-100 rounded text-xs text-gray-600">
+            <p>Debug: {allTipsData.length} tips loaded</p>
+            <p>Categories shown: {categoriesToShow.join(', ')}</p>
+            <p>Selected category: {selectedCategory}</p>
+            <p>Tips displayed: {displayTips.length}</p>
+          </div>
         )}
       </div>
     </section>

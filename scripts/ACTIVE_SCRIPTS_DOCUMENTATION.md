@@ -1,68 +1,58 @@
 # Active Scripts Documentation
 
-Last Updated: 2025-08-01
+Last Updated: 2025-08-06
 
 ## Overview
 
-This directory contains active TypeScript scripts and utilities for the ElPortal project. All scripts have been audited and verified to be in active use or necessary for ongoing operations.
+This directory contains only essential infrastructure and utility scripts for the ElPortal project. All static Sanity content manipulation scripts have been removed in favor of real-time schema reading.
 
-## Script Categories
+## Philosophy
 
-### 1. MCP Integration Scripts
+**NO STATIC CONTENT SCRIPTS**: We do not maintain scripts that write to Sanity with static assumptions about schemas. Instead, we read schemas directly from `/sanityelpriscms/schemaTypes/` whenever content needs to be created or modified.
+
+## Active Scripts
+
+### MCP Integration Tools
 - `mcp-search.ts` - Search for MCP servers in Smithery registry
 - `mcp-use.ts` - Use specific MCP servers with dynamic tool discovery
 - `mcp-browserbase.ts` - Browser automation using Browserbase MCP server
 
-### 2. Validation & Schema Scripts
-- `comprehensive-validation.ts` - Run comprehensive validation across all Sanity content
-- `validate-faq-structure.ts` - Validate FAQ content structure
-- `validate-final.ts` - Final validation before deployment
-- `comprehensive-schema-validation-fix.ts` - Fix schema validation errors automatically
-- `auto-fix-schema-issues.ts` - Automated schema issue resolution
-- `quick-fix-valueitem-title.ts` - Fix common valueItem title→heading errors
-
-### 3. SEO & Content Creation
-- `create-seo-page-with-validation.ts` - Create SEO-optimized pages with validation
-- `seo-page-creator-agent.ts` - AI-powered SEO page generation
-- `create-icon-helper.ts` - Helper for creating icon metadata
-
-### 4. Navigation & Health Checks
+### Infrastructure & Monitoring
 - `check-navigation-health.ts` - Verify navigation structure integrity
 - `force-navigation-refresh.ts` - Force CDN cache refresh for navigation
-- `check-ladeboks-structure.ts` - Check ladeboks page structure
+- `generate-sitemap.ts` - Generate sitemap.xml for SEO
 
-### 5. Content Management
-- `add-all-images-to-ladeboks.ts` - Add images to ladeboks products
-- `fix-faq-references-to-inline.ts` - Convert FAQ references to inline content
-
-### 6. Testing & Debugging
-- `test-sanity-query.ts` - Test GROQ queries against Sanity
-
+### Testing & Debugging
+- `test-sanity-query.ts` - Test GROQ queries against Sanity (read-only)
 
 ## Usage
 
-Most scripts can be run directly with tsx:
+Run scripts directly with tsx:
 ```bash
 npx tsx scripts/[script-name].ts
 ```
 
-Or via npm scripts defined in package.json:
+Or via npm scripts:
 ```bash
-npm run validate:comprehensive
+npm run mcp:search "query"
+npm run mcp:use @server/name
 npm run navigation:health
-npm run seo:create
+npm run generate:sitemap
 ```
 
 ## Environment Variables
 
-All scripts expect these environment variables (from .env):
+Required (from .env):
 - `SANITY_API_TOKEN` - Sanity write token
 - `VITE_SANITY_PROJECT_ID` - Sanity project ID (yxesi03x)
 - `VITE_SANITY_DATASET` - Sanity dataset name (production)
 
+## Content Management Protocol
 
-## Maintenance Notes
+When writing to Sanity:
+1. Read the actual schema from `/sanityelpriscms/schemaTypes/[type].ts`
+2. Use exact field names and types from the schema
+3. Write directly via Sanity API
+4. No intermediate scripts or cached assumptions
 
-- Run `check-navigation-health.ts` weekly
-- Run `validate-final.ts` before any deployment
-- All scripts are part of ongoing operations
+This ensures we never have schema drift or field name mismatches.

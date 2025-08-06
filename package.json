@@ -16,16 +16,7 @@
     "mcp:browserbase": "tsx scripts/mcp-browserbase.ts",
     "mcp:screenshot": "tsx scripts/mcp-browserbase.ts screenshot",
     "mcp:analyze": "tsx scripts/mcp-browserbase.ts analyze",
-    "validate:comprehensive": "tsx scripts/comprehensive-validation.ts",
-    "validate:faq": "tsx scripts/validate-faq-structure.ts",
-    "fix:faq-references": "tsx scripts/fix-faq-references-to-inline.ts",
-    "ladeboks:check": "tsx scripts/check-ladeboks-structure.ts",
-    "ladeboks:add-images": "tsx scripts/add-all-images-to-ladeboks.ts",
     "navigation:health": "tsx scripts/check-navigation-health.ts",
-    "seo:create": "tsx scripts/create-seo-page-with-validation.ts",
-    "seo:agent": "tsx scripts/seo-page-creator-agent.ts",
-    "seo:validate": "tsx scripts/agent-actions/test-prompt-validation-fixer.ts",
-    "icon:validate": "node scripts/validate-icon-structure.js",
     "generate:sitemap": "tsx scripts/generate-sitemap.ts"
   },
   "dependencies": {

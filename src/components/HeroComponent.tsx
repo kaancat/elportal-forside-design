@@ -1,6 +1,7 @@
 ﻿import React from "react";
 import { Button } from "@/components/ui/button";
 import { urlFor } from "@/lib/sanity";
+import OptimizedImage from "@/components/OptimizedImage";
 // Note: We don't need the carousel for this simpler, more robust design.
 
 interface HeroProps {
@@ -40,17 +41,25 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
           <div className="absolute inset-0">
             {hasBackgroundUrl ? (
               // Direct URL image (e.g., from Unsplash)
-              <img
+              <OptimizedImage
                 src={backgroundImageUrl}
                 alt={imageAlt || "Hero background showing Danish offshore wind turbines"}
                 className="w-full h-full object-cover"
+                priority={true} // Hero images should load immediately
+                width={1920}
+                height={1080}
+                sizes="100vw"
               />
             ) : heroImage ? (
               // Sanity asset image
-              <img
-                src={urlFor(heroImage).width(1600).quality(80).url()}
+              <OptimizedImage
+                src={heroImage}
                 alt={heroImage.alt || "Hero background"}
                 className="w-full h-full object-cover"
+                priority={true} // Hero images should load immediately
+                width={1920}
+                height={1080}
+                sizes="100vw"
               />
             ) : null}
           </div>

@@ -6,6 +6,8 @@ import { useApiErrorHandler } from '@/hooks/useErrorHandler';
 import { SanityService } from '@/services/sanityService';
 import { UnifiedPage } from '@/types/sanity';
 import { getSanityImageUrl } from '@/lib/sanityImage';
+import StructuredData from '@/components/StructuredData';
+import { FAQItem } from '@/utils/structuredData';
 
 const Index = () => {
   const [homepageData, setHomepageData] = useState<UnifiedPage | null>(null)
@@ -85,8 +87,35 @@ const Index = () => {
     )
   }
 
+  // Extract FAQ items from content blocks if they exist
+  const faqItems: FAQItem[] = [];
+  if (homepageData?.contentBlocks && Array.isArray(homepageData.contentBlocks)) {
+    homepageData.contentBlocks.forEach((block: any) => {
+      if (block._type === 'faqGroup' && block.items) {
+        block.items.forEach((item: any) => {
+          if (item.question && item.answer) {
+            faqItems.push({
+              question: item.question,
+              answer: typeof item.answer === 'string' 
+                ? item.answer 
+                : item.answer?.[0]?.children?.[0]?.text || ''
+            });
+          }
+        });
+      }
+    });
+  }
+
   return (
     <>
+      {/* Structured Data for SEO */}
+      <StructuredData
+        pageTitle={homepageData?.seoMetaTitle || 'Sammenlign Elpriser - Find Billigste Elaftale'}
+        pageDescription={homepageData?.seoMetaDescription || 'Spar penge på din elregning! Sammenlign aktuelle elpriser og find den bedste elaftale for dig. Gratis sammenligning af danske eludbydere.'}
+        pageType={faqItems.length > 0 ? 'faq' : 'webpage'}
+        faqItems={faqItems}
+      />
+      
       {/* Error Test Component - only in development */}
       <ErrorTestComponent />
       

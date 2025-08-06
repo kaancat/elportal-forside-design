@@ -878,4 +878,37 @@ export class SanityService {
       }
     `
   }
+
+  // Fetch all pages for sitemap generation
+  static async getAllPages(): Promise<Array<{
+    _id: string;
+    _type: string;
+    slug: string;
+    title?: string;
+    seoMetaTitle?: string;
+    seoMetaDescription?: string;
+    noIndex?: boolean;
+    _createdAt?: string;
+    _updatedAt?: string;
+  }>> {
+    const query = `*[_type == "page"]{
+      _id,
+      _type,
+      "slug": slug.current,
+      title,
+      seoMetaTitle,
+      seoMetaDescription,
+      noIndex,
+      _createdAt,
+      _updatedAt
+    }`
+    
+    try {
+      const pages = await client.fetch(query)
+      return pages || []
+    } catch (error) {
+      console.error('Error fetching all pages:', error)
+      return []
+    }
+  }
 }

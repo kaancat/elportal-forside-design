@@ -25,7 +25,8 @@
     "seo:create": "tsx scripts/create-seo-page-with-validation.ts",
     "seo:agent": "tsx scripts/seo-page-creator-agent.ts",
     "seo:validate": "tsx scripts/agent-actions/test-prompt-validation-fixer.ts",
-    "icon:validate": "node scripts/validate-icon-structure.js"
+    "icon:validate": "node scripts/validate-icon-structure.js",
+    "generate:sitemap": "tsx scripts/generate-sitemap.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -87,6 +88,7 @@
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^0.9.3",
+    "web-vitals": "^5.1.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -110,6 +112,7 @@
     "node-fetch": "^3.3.2",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.11",
+    "terser": "^5.43.1",
     "tsx": "^4.20.3",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",

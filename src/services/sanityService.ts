@@ -395,6 +395,7 @@ export class SanityService {
           showSavingsPotential,
           showSavingsCalculator,
           maxTipsPerCategory,
+          defaultCategory,
           tips[]-> {
             _id,
             title,
@@ -851,6 +852,7 @@ export class SanityService {
           showSavingsPotential,
           showSavingsCalculator,
           maxTipsPerCategory,
+          defaultCategory,
           tips[]-> {
             _id,
             title,

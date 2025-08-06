@@ -100,12 +100,13 @@ interface EnergyTipsSectionProps {
     showSavingsPotential?: boolean
     showSavingsCalculator?: boolean
     maxTipsPerCategory?: number
+    defaultCategory?: 'all' | 'daily_habits' | 'heating' | 'lighting' | 'appliances' | 'insulation' | 'smart_tech'
     tips?: CMSEnergyTip[] // Tips from CMS
   }
 }
 
 export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
-  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [selectedCategory, setSelectedCategory] = useState(block.defaultCategory || 'daily_habits')
   
   // Use professional animations
   const headerAnimation = useScrollAnimation({ duration: 0.6, type: 'fadeUp' });
@@ -114,6 +115,19 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
   const allTipsData = block.tips && block.tips.length > 0 
     ? block.tips 
     : FALLBACK_TIPS
+    
+  // Early return if no tips available
+  if (!allTipsData || allTipsData.length === 0) {
+    return (
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center py-12">
+            <p className="text-gray-500">Indlæser energispare tips...</p>
+          </div>
+        </div>
+      </section>
+    )
+  }
   
   // Debug logging (only in development)
   if (process.env.NODE_ENV === 'development') {
@@ -135,17 +149,31 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
   const categoriesToShow = block.showCategories && block.showCategories.length > 0 
     ? block.showCategories 
     : Object.keys(categoryConfig)
+
+  // Debug categoriesToShow
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Categories Debug:', {
+      selectedCategory,
+      categoriesToShow,
+      blockShowCategories: block.showCategories,
+      tipsCount: allTipsData.length
+    })
+  }
   
   // Filter and organize tips
   const { filteredTips, categoryTips } = useMemo(() => {
-    // Filter tips by allowed categories
-    const allowedTips = allTipsData.filter(tip => 
-      categoriesToShow.includes(tip.category)
-    )
+    // Filter tips by allowed categories - SIMPLIFIED: Just use all tips if we have showCategories
+    const allowedTips = (block.showCategories && block.showCategories.length > 0) 
+      ? allTipsData.filter(tip => block.showCategories.includes(tip.category))
+      : allTipsData.filter(tip => categoriesToShow.includes(tip.category))
     
     // Group tips by category
     const grouped: Record<string, CMSEnergyTip[]> = {}
-    categoriesToShow.forEach(cat => {
+    const validCategories = (block.showCategories && block.showCategories.length > 0) 
+      ? block.showCategories 
+      : categoriesToShow
+    
+    validCategories.forEach(cat => {
       grouped[cat] = allowedTips.filter(tip => tip.category === cat)
     })
     
@@ -154,11 +182,24 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
       ? allowedTips 
       : grouped[selectedCategory] || []
     
+    // Debug logging for filtering
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`🔍 [${selectedCategory}] Filter Debug:`, {
+        allTipsCount: allTipsData.length,
+        allowedTipsCount: allowedTips.length,
+        filteredCount: filtered.length,
+        blockShowCategories: block.showCategories,
+        validCategories: validCategories,
+        groupedKeys: Object.keys(grouped),
+        selectedCategoryTips: grouped[selectedCategory]?.length || 0
+      })
+    }
+    
     return { 
       filteredTips: filtered,
       categoryTips: grouped 
     }
-  }, [allTipsData, categoriesToShow, selectedCategory])
+  }, [allTipsData, categoriesToShow, selectedCategory, block.showCategories])
   
   // Apply max tips limit if set (0 means show all)
   const displayTips = useMemo(() => {
@@ -179,7 +220,8 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
         selectedCategory,
         filteredCount: filteredTips.length,
         displayCount: result.length,
-        maxPerCategory: block.maxTipsPerCategory
+        maxPerCategory: block.maxTipsPerCategory,
+        filteredTipsTitles: filteredTips.slice(0, 3).map(t => t.title)
       })
     }
     
@@ -315,9 +357,6 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
                       <Icon className="h-4 w-4" />
                       <span className="hidden sm:inline">{category.label}</span>
                       <span className="sm:hidden text-xs">{category.label.split(' ')[0]}</span>
-                      {tipCount > 0 && (
-                        <span className="ml-1 text-xs text-gray-500">({tipCount})</span>
-                      )}
                     </button>
                   )
                 })}

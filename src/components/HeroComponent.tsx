@@ -51,10 +51,10 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
                 sizes="100vw"
               />
             ) : heroImage ? (
-              // Sanity asset image
+              // Sanity asset image - pass the asset reference or the entire image object
               <OptimizedImage
-                src={heroImage}
-                alt={heroImage.alt || "Hero background"}
+                src={heroImage.asset || heroImage}
+                alt={heroImage.alt || image?.alt || "Hero background"}
                 className="w-full h-full object-cover"
                 priority={true} // Hero images should load immediately
                 width={1920}

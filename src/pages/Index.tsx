@@ -91,8 +91,9 @@ const Index = () => {
   const faqItems: FAQItem[] = [];
   if (homepageData?.contentBlocks && Array.isArray(homepageData.contentBlocks)) {
     homepageData.contentBlocks.forEach((block: any) => {
-      if (block._type === 'faqGroup' && block.items) {
-        block.items.forEach((item: any) => {
+      const items = block._type === 'faqGroup' ? (block.faqItems || block.items) : null
+      if (items && Array.isArray(items)) {
+        items.forEach((item: any) => {
           if (item.question && item.answer) {
             faqItems.push({
               question: item.question,

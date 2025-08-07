@@ -109,6 +109,18 @@ export const ConsumptionMapSchema = z.object({
   _key: z.string(),
   title: z.string().optional(),
   subtitle: z.string().optional(),
+  leadingText: z.array(z.any()).optional(),
+  headerAlignment: z.enum(['left', 'center', 'right']).optional(),
+  dataSource: z.enum(['latest', 'daily', 'monthly', 'peak']).optional(),
+  consumerType: z.enum(['all', 'private', 'industry', 'both']).optional(),
+  colorScheme: z.enum(['green', 'blue', 'heat', 'brand']).optional(),
+  showLegend: z.boolean().optional(),
+  showTooltips: z.boolean().optional(),
+  enableInteraction: z.boolean().optional(),
+  updateInterval: z.number().optional(),
+  defaultView: z.enum(['24h', '7d', '30d', 'month']).optional(),
+  showStatistics: z.boolean().optional(),
+  mobileLayout: z.enum(['responsive', 'list', 'simplified']).optional(),
 });
 
 export const DailyPriceTimelineSchema = z.object({
@@ -123,6 +135,10 @@ export const DeclarationGridmixSchema = z.object({
   _key: z.string(),
   title: z.string().optional(),
   subtitle: z.string().optional(),
+  leadingText: z.array(z.any()).optional(),
+  headerAlignment: z.enum(['left', 'center', 'right']).optional(),
+  showSummary: z.boolean().optional(),
+  view: z.enum(['7d', '30d']).optional(),
 });
 
 export const DeclarationProductionSchema = z.object({
@@ -130,6 +146,12 @@ export const DeclarationProductionSchema = z.object({
   _key: z.string(),
   title: z.string().optional(),
   subtitle: z.string().optional(),
+  leadingText: z.array(z.any()).optional(),
+  headerAlignment: z.enum(['left', 'center', 'right']).optional(),
+  showProductionBreakdown: z.boolean().optional(),
+  showCO2Intensity: z.boolean().optional(),
+  showRenewableShare: z.boolean().optional(),
+  defaultView: z.enum(['24h', '7d', '30d']).optional(),
 });
 
 export const EnergyTipsSectionSchema = z.object({
@@ -137,18 +159,34 @@ export const EnergyTipsSectionSchema = z.object({
   _key: z.string(),
   title: z.string().optional(),
   subtitle: z.string().optional(),
+  showCategories: z.array(z.string()).optional(),
+  displayMode: z.enum(['tabs', 'grid', 'list']).optional(),
+  headerAlignment: z.enum(['left', 'center', 'right']).optional(),
+  showDifficultyBadges: z.boolean().optional(),
+  showSavingsPotential: z.boolean().optional(),
+  showSavingsCalculator: z.boolean().optional(),
+  maxTipsPerCategory: z.number().optional(),
+  defaultCategory: z.enum(['all', 'daily_habits', 'heating', 'lighting', 'appliances', 'insulation', 'smart_tech']).optional(),
+  tips: z.array(z.any()).optional(),
 });
 
 export const FaqGroupSchema = z.object({
   _type: z.literal('faqGroup'),
   _key: z.string(),
   title: z.string(),
+  faqItems: z.array(z.object({
+    _type: z.literal('faqItem'),
+    _key: z.string(),
+    question: z.string(),
+    answer: z.array(z.any()),
+  })),
 });
 
 export const FaqItemSchema = z.object({
   _type: z.literal('faqItem'),
   _key: z.string(),
   question: z.string(),
+  answer: z.array(z.any()),
 });
 
 export const FeatureItemSchema = z.object({
@@ -179,6 +217,7 @@ export const HeroWithCalculatorSchema = z.object({
   _key: z.string(),
   headline: z.string(),
   subheadline: z.string().optional(),
+  highlightWords: z.array(z.string()).optional(),
   content: z.array(z.any()).optional(), // Portable Text blocks
   calculatorTitle: z.string().optional(),
   showLivePrice: z.boolean().optional(),
@@ -308,6 +347,9 @@ export const ProviderListSchema = z.object({
   _type: z.literal('providerList'),
   _key: z.string(),
   title: z.string().optional(),
+  subtitle: z.string().optional(),
+  headerAlignment: z.enum(['left', 'center', 'right']).optional(),
+  providers: z.array(z.any()).optional(),
 });
 
 export const RealPriceComparisonTableSchema = z.object({

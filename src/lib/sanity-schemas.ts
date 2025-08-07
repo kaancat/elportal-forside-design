@@ -118,6 +118,12 @@ export interface DeclarationProduction extends ContentBlockBase {
   _type: 'declarationProduction';
   title?: string;
   subtitle?: string;
+  leadingText?: any[];
+  headerAlignment?: 'left' | 'center' | 'right';
+  showProductionBreakdown?: boolean;
+  showCO2Intensity?: boolean;
+  showRenewableShare?: boolean;
+  defaultView?: '24h' | '7d' | '30d';
 }
 
 export interface EnergyTipsSection extends ContentBlockBase {
@@ -131,11 +137,18 @@ export interface EnergyTipsSection extends ContentBlockBase {
   showSavingsPotential?: boolean;
   showSavingsCalculator?: boolean;
   maxTipsPerCategory?: number;
+  defaultCategory?: 'all' | 'daily_habits' | 'heating' | 'lighting' | 'appliances' | 'insulation' | 'smart_tech';
 }
 
 export interface FaqGroup extends ContentBlockBase {
   _type: 'faqGroup';
   title: string;
+  faqItems: Array<{
+    _type: 'faqItem';
+    _key: string;
+    question: string;
+    answer: any[];
+  }>;
 }
 
 export interface FaqItem extends ContentBlockBase {
@@ -167,6 +180,7 @@ export interface HeroWithCalculator extends ContentBlockBase {
   _type: 'heroWithCalculator';
   headline: string;
   subheadline?: string;
+  highlightWords?: string[];
   content?: Array<any>; // Portable Text blocks
   calculatorTitle?: string;
   showLivePrice?: boolean;

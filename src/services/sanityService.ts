@@ -2,6 +2,7 @@ import { client } from '@/lib/sanity'
 import { BlogPost, SiteSettings, SanityPage, ProviderProductBlock, UnifiedPage } from '@/types/sanity'
 import { UnifiedPageService } from './unifiedPageService'
 import { sanitizeContentBlocks } from '@/lib/sanitizeContentBlocks'
+import { validateAndFilterUnifiedPage } from '@/lib/validation'
 
 export class SanityService {
 
@@ -450,11 +451,17 @@ export class SanityService {
     
     try {
       const page = await client.fetch<SanityPage>(query, { slug })
-      // Sanitize content blocks to ensure all have keys
+      // Sanitize and validate
       if (page && page.contentBlocks) {
         page.contentBlocks = sanitizeContentBlocks(page.contentBlocks)
       }
-      
+      if (page) {
+        const { page: validated, valid, errors } = validateAndFilterUnifiedPage(page)
+        if (!valid && errors.length > 0) {
+          console.warn('[SanityService] Unified page schema mismatches:', errors)
+        }
+        return validated as SanityPage
+      }
       return page
     } catch (error) {
       console.error('Error fetching page by slug:', error)
@@ -501,11 +508,17 @@ export class SanityService {
         }`
       )
       
-      // Sanitize content blocks to ensure all have keys
+      // Sanitize and validate
       if (page && page.contentBlocks) {
         page.contentBlocks = sanitizeContentBlocks(page.contentBlocks)
       }
-      
+      if (page) {
+        const { page: validated, valid, errors } = validateAndFilterUnifiedPage(page)
+        if (!valid && errors.length > 0) {
+          console.warn('[SanityService] Unified page schema mismatches:', errors)
+        }
+        return validated as UnifiedPage
+      }
       return page
     } catch (error) {
       console.error('Error fetching unified homepage:', error)

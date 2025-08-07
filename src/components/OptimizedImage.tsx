@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { getSanityImageUrl } from '@/lib/sanityImage';
 
 interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'src'> {
-  src: string | { _ref?: string };
+  src: string | { _ref?: string; asset?: any };
   alt: string;
   width?: number;
   height?: number;
@@ -51,13 +51,29 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         return url.toString();
       }
       return src;
-    } else if (src._ref) {
-      // Sanity image reference
-      return getSanityImageUrl(src._ref, {
-        width: imgWidth || width,
-        quality,
-        format: 'webp'
-      });
+    } else if (typeof src === 'object' && src !== null) {
+      // Handle various Sanity image object formats
+      let ref = '';
+      
+      // Check for different possible structures
+      if (src._ref) {
+        // Direct reference object
+        ref = src._ref;
+      } else if (src.asset && typeof src.asset === 'object' && src.asset._ref) {
+        // Full image object with asset
+        ref = src.asset._ref;
+      } else if (src.asset && typeof src.asset === 'string') {
+        // Asset as string reference
+        ref = src.asset;
+      }
+      
+      if (ref) {
+        return getSanityImageUrl(ref, {
+          width: imgWidth || width,
+          quality,
+          format: 'webp'
+        });
+      }
     }
     return '';
   };

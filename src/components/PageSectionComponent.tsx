@@ -348,9 +348,9 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
       )}
       style={theme?.background ? { backgroundColor: theme.background } : {}}
     >
-      {/* Subtle gradient overlay for depth */}
-      <div className={cn('pointer-events-none absolute inset-0 bg-gradient-to-b', getBackgroundOverlayClasses())} />
-      <div className={getContainerClasses()}>
+      {/* Subtle gradient overlay for depth (always behind content) */}
+      <div className={cn('pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b', getBackgroundOverlayClasses())} />
+      <div className={cn('relative z-[1]', getContainerClasses())}>
         {isTextOnly ? (
           // Text-only layout
           <div className={`max-w-4xl mx-auto ${textAlignClass}`}>

@@ -1,5 +1,5 @@
 import React from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { urlFor } from '@/lib/sanity'
 import { PortableText } from '@portabletext/react'
 import StickyImageSection from './StickyImageSection'
@@ -27,8 +27,39 @@ const fadeUpVariant = {
   }
 }
 
+// Container variant to gently stagger child elements for a refined feel
+const containerVariant = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.06,
+      delayChildren: 0.06,
+    },
+  },
+}
+
+// Subtle item fade-and-lift
+const itemVariant = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
+}
+
+// Image: very soft slide + tiny scale ease-in
+const imageVariant = {
+  hidden: { opacity: 0, y: 12, scale: 0.99 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: 'easeOut' } },
+}
+
 const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   const { title, content, image, imagePosition = 'left', theme, cta, settings, headerAlignment } = section;
+  const prefersReducedMotion = useReducedMotion();
+  const sectionMotionProps = prefersReducedMotion
+    ? {}
+    : {
+        initial: 'hidden' as const,
+        whileInView: 'visible' as const,
+        viewport: { once: true, margin: '0px 0px -50px 0px', amount: 0.1 } as const,
+      };
   
   // Extract layout settings with defaults
   const layoutRatio = settings?.layoutRatio || '50/50';
@@ -259,13 +290,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   if (stickyImage && image) {
     return (
       <motion.section 
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ 
-          once: true, 
-          margin: "0px 0px -50px 0px",
-          amount: 0.1
-        }}
+        {...sectionMotionProps}
         variants={fadeUpVariant}
         className={cn(
           "relative", // Remove overflow-hidden for sticky to work
@@ -274,7 +299,10 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
         )}
         style={theme?.background ? { backgroundColor: theme.background } : {}}
       >
-        <StickyImageSection section={section} customComponents={customComponents} />
+        {/* Wrap the sticky section in a motion container for consistent staggering when visible */}
+        <motion.div variants={containerVariant}>
+          <StickyImageSection section={section} customComponents={customComponents} />
+        </motion.div>
       </motion.section>
     );
   }
@@ -333,13 +361,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
 
   return (
     <motion.section 
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ 
-        once: true, 
-        margin: "0px 0px -50px 0px",
-        amount: 0.1
-      }}
+      {...sectionMotionProps}
       variants={fadeUpVariant}
       className={cn(
         "relative", // Removed overflow-hidden to fix sticky navigation conflict
@@ -350,31 +372,31 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
     >
       {/* Subtle gradient overlay for depth (always behind content) */}
       <div className={cn('pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b', getBackgroundOverlayClasses())} />
-      <div className={cn('relative z-[1]', getContainerClasses())}>
+      <motion.div className={cn('relative z-[1]', getContainerClasses())} variants={containerVariant}>
         {isTextOnly ? (
           // Text-only layout
           <div className={`max-w-4xl mx-auto ${textAlignClass}`}>
             {title && (
-              <h2 className={cn(
+              <motion.h2 variants={itemVariant} className={cn(
                 "text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-8",
                 themeColors.heading
               )}>
                 {title}
-              </h2>
+              </motion.h2>
             )}
             {title && (
-              <div className={cn('h-1 w-16 rounded-full bg-gradient-to-r from-brand-green to-emerald-400', getHeadingAccentAlign(), 'mb-8')} />
+              <motion.div variants={itemVariant} className={cn('h-1 w-16 rounded-full bg-gradient-to-r from-brand-green to-emerald-400', getHeadingAccentAlign(), 'mb-8')} />
             )}
-            <div className={cn(
+            <motion.div variants={itemVariant} className={cn(
               "prose prose-lg max-w-none space-y-6",
               isDarkTheme() && "prose-invert"
             )}>
               {content && Array.isArray(content) && content.length > 0 && (
                 <PortableText value={content} components={customComponents} />
               )}
-            </div>
+            </motion.div>
             {cta && cta.text && cta.url && (
-              <div className={`mt-10 ${textAlignClass === 'text-center' ? 'flex justify-center' : textAlignClass === 'text-right' ? 'flex justify-end' : ''}`}>
+              <motion.div variants={itemVariant} className={`mt-10 ${textAlignClass === 'text-center' ? 'flex justify-center' : textAlignClass === 'text-right' ? 'flex justify-end' : ''}`}>
                 <a 
                   href={cta.url} 
                   className={cn(
@@ -388,7 +410,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </a>
-              </div>
+              </motion.div>
             )}
           </div>
         ) : (
@@ -399,7 +421,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
             getVerticalAlignClass()
           )}>
             {/* Image Column */}
-            <div className={cn(
+            <motion.div variants={imageVariant} className={cn(
               "order-1 group",
               imagePosition === 'right' ? 'md:order-2' : '',
               getImageColumnClasses()
@@ -416,7 +438,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
                   )}
                 />
               </div>
-            </div>
+            </motion.div>
 
             {/* Text Column */}
             <div className={cn(
@@ -426,17 +448,17 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
               getTextColumnClasses()
             )}>
               {title && (
-                <h2 className={cn(
+                <motion.h2 variants={itemVariant} className={cn(
                   "text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-6",
                   themeColors.heading
                 )}>
                   {title}
-                </h2>
+                </motion.h2>
               )}
               {title && (
-                <div className={cn('h-1 w-16 rounded-full bg-gradient-to-r from-brand-green to-emerald-400', getHeadingAccentAlign(), 'mb-6')} />
+                <motion.div variants={itemVariant} className={cn('h-1 w-16 rounded-full bg-gradient-to-r from-brand-green to-emerald-400', getHeadingAccentAlign(), 'mb-6')} />
               )}
-              <div className={cn(
+              <motion.div variants={itemVariant} className={cn(
                 "prose prose-lg space-y-6",
                 layoutRatio === '60/40' ? 'max-w-prose' : 'max-w-none',
                 isDarkTheme() && "prose-invert"
@@ -444,9 +466,9 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
                 {content && Array.isArray(content) && content.length > 0 && (
                 <PortableText value={content} components={customComponents} />
               )}
-              </div>
+              </motion.div>
               {cta && cta.text && cta.url && (
-                <div className={`mt-10 ${textAlignClass === 'text-center' ? 'flex justify-center' : textAlignClass === 'text-right' ? 'flex justify-end' : ''}`}>
+                <motion.div variants={itemVariant} className={`mt-10 ${textAlignClass === 'text-center' ? 'flex justify-center' : textAlignClass === 'text-right' ? 'flex justify-end' : ''}`}>
                   <a 
                     href={cta.url} 
                     className={cn(
@@ -460,7 +482,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
                   </a>
-                </div>
+                </motion.div>
               )}
             </div>
           </div>
@@ -468,7 +490,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
         {settings?.separator && (
           <div className="mt-12 border-t border-black/5 dark:border-white/10" />
         )}
-      </div>
+      </motion.div>
     </motion.section>
   );
 }

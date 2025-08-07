@@ -77,16 +77,28 @@ export const CallToActionSectionSchema = z.object({
 });
 
 export const ChargingBoxProductSchema = z.object({
-  _type: z.literal('chargingBoxProduct'),
-  _key: z.string(),
+  // When dereferenced in GROQ we receive a document with _id (and sometimes _type)
+  _id: z.string().optional(),
+  _type: z.literal('chargingBoxProduct').optional(),
   name: z.string(),
-});
+  description: z.array(z.any()).optional(),
+  originalPrice: z.number().optional(),
+  currentPrice: z.number().optional(),
+  badge: z.string().optional(),
+  features: z.array(z.string()).optional(),
+  productImage: SanityImageSchema.optional(),
+  ctaLink: z.string().url().optional(),
+  ctaText: z.string().optional(),
+}).passthrough();
 
 export const ChargingBoxShowcaseSchema = z.object({
   _type: z.literal('chargingBoxShowcase'),
   _key: z.string(),
   heading: z.string(),
-});
+  description: z.array(z.any()).optional(),
+  headerAlignment: z.enum(['left', 'center', 'right']).optional(),
+  products: z.array(ChargingBoxProductSchema).optional(),
+}).passthrough();
 
 export const Co2EmissionsChartSchema = z.object({
   _type: z.literal('co2EmissionsChart'),

@@ -12,7 +12,6 @@ import {
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useScrollAnimation, staggerContainer } from '@/hooks/useScrollAnimation'
-import { ImprovedSavingsCalculator } from './ImprovedSavingsCalculator'
 
 // Fallback tips for when no CMS data is available
 const FALLBACK_TIPS = [
@@ -328,18 +327,6 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
           </div>
         ) : (
           renderContent()
-        )}
-        
-        {/* Savings Calculator Section */}
-        {block.showSavingsCalculator && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-12"
-          >
-            <ImprovedSavingsCalculator tips={displayTips} />
-          </motion.div>
         )}
         
         {/* Debug info for development */}

@@ -45,7 +45,6 @@ export function ImprovedSavingsCalculator({ tips = [], className }: ImprovedSavi
   const [currentPrice, setCurrentPrice] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
   const [selectedTips, setSelectedTips] = useState<Set<string>>(new Set())
-  const [showBreakdown, setShowBreakdown] = useState(false)
 
   // Fetch current electricity price
   useEffect(() => {
@@ -94,13 +93,12 @@ export function ImprovedSavingsCalculator({ tips = [], className }: ImprovedSavi
   // Calculate potential savings
   const calculateSavings = useMemo(() => {
     if (!currentPrice || monthlyUsage <= 0) {
-      return { min: 0, max: 0, typical: 0, breakdown: [] }
+      return { min: 0, max: 0, typical: 0, percentSaved: 0 }
     }
 
     let totalMinPercent = 0
     let totalMaxPercent = 0
     let totalTypicalPercent = 0
-    const breakdown: any[] = []
 
     // Calculate based on selected tips or all tips if none selected
     const tipsToCalculate = selectedTips.size > 0 
@@ -137,13 +135,6 @@ export function ImprovedSavingsCalculator({ tips = [], className }: ImprovedSavi
       totalMinPercent += groupMinPercent
       totalMaxPercent += groupMaxPercent
       totalTypicalPercent += groupTypicalPercent
-      
-      breakdown.push({
-        potential,
-        count,
-        savingsPercent: groupTypicalPercent,
-        monthlySavings: Math.round(monthlyUsage * groupTypicalPercent * currentPrice)
-      })
     })
 
     // Cap total savings at realistic maximum (30%)
@@ -159,7 +150,6 @@ export function ImprovedSavingsCalculator({ tips = [], className }: ImprovedSavi
       min: monthlyMin,
       max: monthlyMax,
       typical: monthlyTypical,
-      breakdown,
       percentSaved: Math.round(totalTypicalPercent * 100)
     }
   }, [monthlyUsage, currentPrice, selectedTips, tips])
@@ -276,40 +266,6 @@ export function ImprovedSavingsCalculator({ tips = [], className }: ImprovedSavi
           </div>
         </div>
 
-        {/* Breakdown Section */}
-        {calculateSavings.breakdown.length > 0 && (
-          <div className="border-t pt-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowBreakdown(!showBreakdown)}
-              className="text-green-700 hover:text-green-800"
-            >
-              {showBreakdown ? 'Skjul' : 'Vis'} beregningsdetaljer
-            </Button>
-            
-            {showBreakdown && (
-              <div className="mt-4 space-y-2 text-sm">
-                <p className="font-semibold text-gray-700 mb-2">Besparelse fordelt på tip-kategorier:</p>
-                {calculateSavings.breakdown.map((item, index) => (
-                  <div key={index} className="flex justify-between items-center py-1">
-                    <span className="text-gray-600">
-                      {item.count} {item.potential === 'high' ? 'høj-effekt' : item.potential === 'medium' ? 'mellem-effekt' : 'lav-effekt'} tips
-                    </span>
-                    <span className="font-medium text-gray-900">
-                      {item.monthlySavings} kr/måned
-                    </span>
-                  </div>
-                ))}
-                <div className="border-t pt-2 mt-2">
-                  <p className="text-xs text-gray-500">
-                    * Beregningen tager højde for diminishing returns - hver ekstra tip i samme kategori har lidt mindre effekt
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* CTA */}
         <div className="flex flex-col sm:flex-row gap-3">

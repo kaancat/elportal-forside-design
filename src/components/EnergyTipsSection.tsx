@@ -11,10 +11,8 @@ import {
 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Calculator } from 'lucide-react'
 import { useScrollAnimation, staggerContainer } from '@/hooks/useScrollAnimation'
+import { ImprovedSavingsCalculator } from './ImprovedSavingsCalculator'
 
 // Fallback tips for when no CMS data is available
 const FALLBACK_TIPS = [
@@ -340,53 +338,7 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
             transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className="mt-12"
           >
-            <Card className="p-8 bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
-              <div className="flex items-center gap-3 mb-6">
-                <Calculator className="h-8 w-8 text-green-600" />
-                <h3 className="text-2xl font-bold text-gray-900">
-                  Beregn dine potentielle besparelser
-                </h3>
-              </div>
-              
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Dit nuværende månedlige elforbrug (kWh)
-                  </label>
-                  <Input
-                    type="number"
-                    placeholder="300"
-                    className="bg-white"
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value) || 0
-                      const savings = Math.round(value * 0.15 * 2.5) // 15% savings at 2.5 kr/kWh
-                      const savingsElement = document.getElementById('estimated-savings')
-                      if (savingsElement) {
-                        savingsElement.textContent = savings.toString()
-                      }
-                    }}
-                  />
-                </div>
-                
-                <div className="flex flex-col justify-center">
-                  <p className="text-sm text-gray-600 mb-2">
-                    Estimeret månedlig besparelse
-                  </p>
-                  <p className="text-3xl font-bold text-green-600">
-                    <span id="estimated-savings">0</span> kr
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Ved implementering af vores energispare tips
-                  </p>
-                </div>
-              </div>
-              
-              <div className="mt-6">
-                <Button className="w-full md:w-auto bg-green-600 hover:bg-green-700">
-                  Se alle besparelsesmuligheder
-                </Button>
-              </div>
-            </Card>
+            <ImprovedSavingsCalculator tips={displayTips} />
           </motion.div>
         )}
         

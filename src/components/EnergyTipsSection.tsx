@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Calculator } from 'lucide-react'
-import { useScrollAnimation, staggerContainer, animationClasses } from '@/hooks/useScrollAnimation'
+import { useScrollAnimation, staggerContainer } from '@/hooks/useScrollAnimation'
 
 // Fallback tips for when no CMS data is available
 const FALLBACK_TIPS = [
@@ -188,19 +188,18 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
     const Icon = tip.icon && Icons[tip.icon as keyof typeof Icons] 
       ? Icons[tip.icon as keyof typeof Icons] 
       : Lightbulb
-      
-    const cardAnimation = useScrollAnimation({ 
-      type: 'stagger', 
-      index, 
-      duration: 0.5,
-      staggerDelay: 0.08 
-    });
     
     return (
       <motion.div
         key={tip._id}
-        {...cardAnimation}
-        className={animationClasses}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ 
+          duration: 0.5,
+          delay: index * 0.08,
+          ease: [0.22, 1, 0.36, 1]
+        }}
+        className="will-change-transform"
       >
         <Card className="p-6 h-full hover:shadow-lg transition-shadow duration-300">
           <div className="flex items-start justify-between mb-4">
@@ -265,7 +264,7 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
             block.headerAlignment === 'center' ? 'text-center' : 
             block.headerAlignment === 'right' ? 'text-right' : 
             'text-left'
-          } ${animationClasses}`}
+          }`}
         >
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             {block.title || 'Praktiske energispare tips'}
@@ -336,8 +335,10 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
         {/* Savings Calculator Section */}
         {block.showSavingsCalculator && (
           <motion.div
-            {...useScrollAnimation({ duration: 0.7, type: 'fadeUp', delay: 0.3 })}
-            className={`mt-12 ${animationClasses}`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="mt-12"
           >
             <Card className="p-8 bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
               <div className="flex items-center gap-3 mb-6">

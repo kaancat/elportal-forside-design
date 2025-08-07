@@ -95,8 +95,7 @@ export function useOptimizedHandler<T extends (...args: any[]) => any>(
     debounce((...args: Parameters<T>) => {
       handlerRef.current(...args);
     }, delay) as T,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [delay, ...deps]
+    [delay, handlerRef, ...deps]
   );
 }
 

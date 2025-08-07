@@ -107,6 +107,24 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
     return themes[themeType as keyof typeof themes] || themes.default;
   };
 
+  // Subtle background overlay to add enterprise-grade depth per theme
+  const getBackgroundOverlayClasses = () => {
+    const themeType = settings?.theme || 'default';
+    switch (themeType) {
+      case 'dark':
+        return 'from-transparent to-white/[0.04]';
+      case 'primary':
+        return 'from-transparent to-white/10';
+      case 'subtle':
+        return 'from-transparent to-brand-green/10';
+      case 'light':
+        return 'from-transparent to-gray-100';
+      case 'default':
+      default:
+        return 'from-transparent to-gray-50';
+    }
+  }
+
   // Check if theme has dark background (needs light text)
   const isDarkTheme = () => {
     const themeType = settings?.theme;
@@ -198,6 +216,22 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   };
   
   const textAlignClass = getTextAlignClass();
+
+  // Container width control (supports fullWidth from Sanity settings)
+  const isFullWidth = settings?.fullWidth === true;
+  const getContainerClasses = () => {
+    if (isFullWidth) {
+      return 'mx-auto w-full px-0';
+    }
+    return 'container mx-auto px-4';
+  }
+
+  // Heading accent alignment helper
+  const getHeadingAccentAlign = () => {
+    if (textAlignClass === 'text-left') return 'ml-0';
+    if (textAlignClass === 'text-right') return 'mr-0 ml-auto';
+    return 'mx-auto';
+  }
 
   // Check if this is a text-only section (no image)
   const isTextOnly = !image;
@@ -295,7 +329,9 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
       )}
       style={theme?.background ? { backgroundColor: theme.background } : {}}
     >
-      <div className="container mx-auto px-4">
+      {/* Subtle gradient overlay for depth */}
+      <div className={cn('pointer-events-none absolute inset-0 bg-gradient-to-b', getBackgroundOverlayClasses())} />
+      <div className={getContainerClasses()}>
         {isTextOnly ? (
           // Text-only layout
           <div className={`max-w-4xl mx-auto ${textAlignClass}`}>
@@ -307,8 +343,11 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
                 {title}
               </h2>
             )}
+            {title && (
+              <div className={cn('h-1 w-16 rounded-full bg-gradient-to-r from-brand-green to-emerald-400', getHeadingAccentAlign(), 'mb-8')} />
+            )}
             <div className={cn(
-              "prose prose-lg max-w-none",
+              "prose prose-lg max-w-none space-y-6",
               isDarkTheme() && "prose-invert"
             )}>
               {content && Array.isArray(content) && content.length > 0 && (
@@ -320,8 +359,8 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
                 <a 
                   href={cta.url} 
                   className={cn(
-                    "inline-flex items-center px-8 py-4 font-semibold rounded-xl transition-colors duration-200",
-                    "shadow-lg",
+                    "inline-flex items-center px-8 py-4 font-semibold rounded-full transition-all duration-200",
+                    "shadow-lg ring-1 ring-black/10 dark:ring-white/10 hover:shadow-xl hover:-translate-y-0.5",
                     getButtonClasses()
                   )}
                 >
@@ -342,15 +381,20 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
           )}>
             {/* Image Column */}
             <div className={cn(
-              "order-1",
+              "order-1 group",
               imagePosition === 'right' ? 'md:order-2' : '',
               getImageColumnClasses()
             )}>
               <div className="relative">
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-black/0 to-black/[0.03] dark:from-white/0 dark:to-white/[0.06]" />
                 <img
                   src={urlFor(image).width(1000).quality(85).url()}
                   alt={image.alt || title}
-                  className="w-full h-auto rounded-2xl"
+                  className={cn(
+                    "w-full h-auto rounded-2xl object-cover",
+                    "shadow-xl shadow-black/5",
+                    "transition-transform duration-500 group-hover:scale-[1.01]"
+                  )}
                 />
               </div>
             </div>
@@ -370,8 +414,11 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
                   {title}
                 </h2>
               )}
+              {title && (
+                <div className={cn('h-1 w-16 rounded-full bg-gradient-to-r from-brand-green to-emerald-400', getHeadingAccentAlign(), 'mb-6')} />
+              )}
               <div className={cn(
-                "prose prose-lg",
+                "prose prose-lg space-y-6",
                 layoutRatio === '60/40' ? 'max-w-prose' : 'max-w-none',
                 isDarkTheme() && "prose-invert"
               )}>
@@ -384,8 +431,8 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
                   <a 
                     href={cta.url} 
                     className={cn(
-                      "inline-flex items-center px-8 py-4 font-semibold rounded-xl transition-colors duration-200",
-                      "shadow-lg",
+                      "inline-flex items-center px-8 py-4 font-semibold rounded-full transition-all duration-200",
+                      "shadow-lg ring-1 ring-black/10 dark:ring-white/10 hover:shadow-xl hover:-translate-y-0.5",
                       getButtonClasses()
                     )}
                   >
@@ -398,6 +445,9 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
               )}
             </div>
           </div>
+        )}
+        {settings?.separator && (
+          <div className="mt-12 border-t border-black/5 dark:border-white/10" />
         )}
       </div>
     </motion.section>

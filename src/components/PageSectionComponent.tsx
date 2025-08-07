@@ -125,17 +125,36 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
     }
   }
 
+  // Utility: detect if a hex color is dark
+  const isHexDark = (hex?: string) => {
+    if (!hex || typeof hex !== 'string') return false;
+    const h = hex.replace('#', '');
+    if (!(h.length === 3 || h.length === 6)) return false;
+    const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+    const r = parseInt(full.substring(0, 2), 16) / 255;
+    const g = parseInt(full.substring(2, 4), 16) / 255;
+    const b = parseInt(full.substring(4, 6), 16) / 255;
+    // Relative luminance (sRGB)
+    const srgb = [r, g, b].map(v => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)));
+    const luminance = 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
+    return luminance < 0.45; // threshold for dark backgrounds
+  }
+
   // Check if theme has dark background (needs light text)
   const isDarkTheme = () => {
     const themeType = settings?.theme;
-    return themeType === 'dark';
+    if (themeType === 'dark') return true;
+    // If a custom color theme is applied via theme.background, detect darkness
+    if (theme?.background && isHexDark(theme.background)) return true;
+    return false;
   };
 
   // Get consistent text colors for each theme
   const getThemeTextColors = () => {
     const themeType = settings?.theme || 'default';
     
-    switch (themeType) {
+    const computedDark = isDarkTheme();
+    switch (computedDark ? 'dark' : themeType) {
       case 'dark':
         return {
           heading: 'text-white',
@@ -146,9 +165,9 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
       case 'primary':
         return {
           heading: 'text-brand-dark',
-          body: 'text-brand-dark-light',
+          body: 'text-brand-dark',
           strong: 'text-brand-dark',
-          link: 'text-white hover:text-gray-100'
+          link: 'text-brand-dark hover:text-brand-dark'
         };
       case 'subtle':
         return {

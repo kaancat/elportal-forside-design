@@ -38,14 +38,20 @@ export function validateAndFilterUnifiedPage(page: any): {
   const cloned = { ...page }
 
   if (Array.isArray(cloned?.contentBlocks)) {
-    const filtered = cloned.contentBlocks.filter((block: any, index: number) => {
+    // Non-destructive validation: never drop blocks; log issues and gently normalize known mismatches
+    cloned.contentBlocks = cloned.contentBlocks.map((rawBlock: any, index: number) => {
+      let block = rawBlock
+      // Normalize faqGroup legacy field name
+      if (block?._type === 'faqGroup' && Array.isArray(block.items) && !Array.isArray(block.faqItems)) {
+        block = { ...block, faqItems: block.items }
+      }
       const result = ContentBlockSchema.safeParse(block)
       if (!result.success) {
         errors.push(`Invalid content block at index ${index} (_type=${block?._type || 'unknown'}): ${result.error.message}`)
+        return block // keep original to avoid data loss
       }
-      return result.success
+      return result.data
     })
-    cloned.contentBlocks = filtered
   }
 
   const overall = UnifiedPageSchema.safeParse(cloned)

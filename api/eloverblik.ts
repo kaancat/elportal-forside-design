@@ -301,10 +301,22 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
   }
 
   // Accept multiple identifiers for flexibility
-  const { authorizationId, customerCVR, customerId, customerKey, dateFrom, dateTo, aggregation = 'Day' } = req.body
+  const { authorizationId, customerCVR, customerId, customerKey, meteringPointIds, dateFrom, dateTo, aggregation = 'Day' } = req.body
   // Priority: authorizationId > customerCVR > customerKey > customerId
   const identifier = authorizationId || customerCVR || customerKey || customerId
   const scope = authorizationId ? 'authorizationId' : 'customerCVR'
+  
+  console.log('Consumption request received:', {
+    authorizationId,
+    customerCVR,
+    customerId,
+    customerKey,
+    meteringPointIds,
+    identifier,
+    scope,
+    dateFrom,
+    dateTo
+  })
   
   // Try both possible environment variable names
   const refreshToken = process.env.ELOVERBLIK_API_TOKEN || process.env.ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN
@@ -355,42 +367,51 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
       })
     }
 
-    // Get metering point IDs using the appropriate scope
-    const meteringPointUrl = `${ELOVERBLIK_API_BASE}/thirdpartyapi/api/authorization/authorization/meteringpointids/${scope}/${identifier}`
-    console.log(`Fetching metering points from: ${meteringPointUrl}`)
+    // Check if metering points were passed directly (from frontend cache)
+    let finalMeteringPointIds = meteringPointIds
     
-    const meteringResponse = await fetch(meteringPointUrl, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Accept': 'application/json',
-        'api-version': '1.0', // Required header
-      },
-    })
-
-    if (!meteringResponse.ok) {
-      const errorText = await meteringResponse.text()
-      console.error(`Failed to fetch metering points for ${identifier}:`, errorText)
-      return res.status(meteringResponse.status).json({ 
-        error: 'Failed to fetch metering points',
-        identifier,
-        scope,
-        details: errorText
+    if (!finalMeteringPointIds || finalMeteringPointIds.length === 0) {
+      // Only fetch metering points if not provided
+      const meteringPointUrl = `${ELOVERBLIK_API_BASE}/thirdpartyapi/api/authorization/authorization/meteringpointids/${scope}/${identifier}`
+      console.log(`Fetching metering points from: ${meteringPointUrl}`)
+      
+      const meteringResponse = await fetch(meteringPointUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Accept': 'application/json',
+          'api-version': '1.0', // Required header
+        },
       })
-    }
 
-    const meteringData = await meteringResponse.json()
-    const meteringPointIds = meteringData.result || []
+      if (!meteringResponse.ok) {
+        const errorText = await meteringResponse.text()
+        console.error(`Failed to fetch metering points for ${identifier}:`, errorText)
+        console.error('Response status:', meteringResponse.status)
+        console.error('Scope used:', scope)
+        console.error('Identifier used:', identifier)
+        return res.status(meteringResponse.status).json({ 
+          error: 'Failed to fetch metering points',
+          identifier,
+          scope,
+          details: errorText
+        })
+      }
+
+      const meteringData = await meteringResponse.json()
+      finalMeteringPointIds = meteringData.result || []
+    }
     
-    if (!meteringPointIds || meteringPointIds.length === 0) {
+    if (!finalMeteringPointIds || finalMeteringPointIds.length === 0) {
       return res.status(404).json({ 
         error: 'No metering points found for customer',
         identifier,
-        scope
+        scope,
+        meteringPointIds: finalMeteringPointIds
       })
     }
 
-    console.log(`Found ${meteringPointIds.length} metering points:`, meteringPointIds)
+    console.log(`Using ${finalMeteringPointIds.length} metering points:`, finalMeteringPointIds)
 
     // Get consumption data using the third-party timeseries endpoint
     // According to Swagger docs, this is a POST request with path parameters
@@ -400,7 +421,7 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
     // Prepare request body with metering points
     const requestBody = {
       meteringPoints: {
-        meteringPoint: meteringPointIds
+        meteringPoint: finalMeteringPointIds
       }
     }
 
@@ -432,7 +453,7 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
       dateFrom,
       dateTo,
       aggregation,
-      meteringPoints: meteringPointIds,
+      meteringPoints: finalMeteringPointIds,
       authorizationId,
       customerCVR,
       customerKey: customerCVR, // Keep for backwards compatibility

@@ -35,7 +35,7 @@ export function ConsumptionChart({ data }: ConsumptionChartProps) {
     )
   }
 
-  // Process the consumption data from Eloverblik format
+  // Process the consumption data from Eloverblik format (robust to shape)
   const processedData = processConsumptionData(data.result)
 
   return (
@@ -110,47 +110,46 @@ export function ConsumptionChart({ data }: ConsumptionChartProps) {
   )
 }
 
-function processConsumptionData(result: any[]): any[] {
-  const dataMap = new Map()
+function processConsumptionData(result: any): any[] {
+  try {
+    const dataMap = new Map()
+    const list = Array.isArray(result) ? result : []
 
-  // Process each metering point's data
-  result.forEach(meteringPoint => {
-    if (meteringPoint.MyEnergyData_MarketDocument?.TimeSeries) {
-      meteringPoint.MyEnergyData_MarketDocument.TimeSeries.forEach((ts: any) => {
-        if (ts.Period) {
-          ts.Period.forEach((period: any) => {
-            const start = period['timeInterval.start']
-            const end = period['timeInterval.end']
-            
-            if (period.Point) {
-              period.Point.forEach((point: any) => {
-                const quantity = parseFloat(point['out_Quantity.quantity'] || 0)
-                const position = parseInt(point.position || 1)
-                
-                // Calculate the date for this point
-                const startDate = new Date(start)
-                const date = new Date(startDate.getTime() + (position - 1) * 24 * 60 * 60 * 1000)
-                const dateKey = date.toISOString().split('T')[0]
-                
-                // Aggregate consumption by date
-                if (dataMap.has(dateKey)) {
-                  dataMap.set(dateKey, dataMap.get(dateKey) + quantity)
-                } else {
-                  dataMap.set(dateKey, quantity)
-                }
-              })
-            }
-          })
-        }
-      })
-    }
-  })
+    // Process each metering point's data
+    list.forEach((meteringPoint: any) => {
+      const timeSeries = meteringPoint?.MyEnergyData_MarketDocument?.TimeSeries
+      if (Array.isArray(timeSeries)) {
+        timeSeries.forEach((ts: any) => {
+          const periods = ts?.Period
+          if (Array.isArray(periods)) {
+            periods.forEach((period: any) => {
+              const start = period?.['timeInterval.start']
+              if (!start) return
+              if (Array.isArray(period?.Point)) {
+                period.Point.forEach((point: any) => {
+                  const quantity = parseFloat(point?.['out_Quantity.quantity'] || 0)
+                  const position = parseInt(point?.position || 1)
+                  const startDate = new Date(start)
+                  const date = new Date(startDate.getTime() + (position - 1) * 24 * 60 * 60 * 1000)
+                  const dateKey = date.toISOString().split('T')[0]
+                  dataMap.set(dateKey, (dataMap.get(dateKey) || 0) + (Number.isNaN(quantity) ? 0 : quantity))
+                })
+              }
+            })
+          }
+        })
+      }
+    })
 
-  // Convert to array and sort by date
-  return Array.from(dataMap.entries())
-    .map(([date, consumption]) => ({
-      date,
-      consumption
-    }))
-    .sort((a, b) => a.date.localeCompare(b.date))
+    // Convert to array and sort by date
+    return Array.from(dataMap.entries())
+      .map(([date, consumption]) => ({
+        date,
+        consumption
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date))
+  } catch (e) {
+    console.warn('Failed to process consumption data:', e)
+    return []
+  }
 }

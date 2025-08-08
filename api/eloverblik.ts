@@ -125,8 +125,20 @@ async function handleGetConsumption(req: VercelRequest, res: VercelResponse) {
   }
 }
 
+// Simple in-memory cache to prevent rate limiting
+const authCache = new Map<string, { data: any; timestamp: number }>()
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
 // Third-party API handlers
 async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelResponse) {
+  // Check cache first
+  const cacheKey = 'authorizations'
+  const cached = authCache.get(cacheKey)
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    console.log('Returning cached authorizations')
+    return res.status(200).json(cached.data)
+  }
+
   // Try both possible environment variable names
   const refreshToken = process.env.ELOVERBLIK_API_TOKEN || process.env.ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN
 
@@ -214,23 +226,60 @@ async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelRes
     const authData = await authResponse.json()
     console.log('Raw authorization data from Eloverblik:', authData) // Debug log
     
-    // Map the authorization data to a consistent format
-    const authorizations = authData.result ? authData.result.map((auth: any) => ({
-      customerId: auth.customerKey || auth.customerId,
-      customerKey: auth.customerKey,
-      validFrom: auth.validFrom,
-      validTo: auth.validTo,
-      status: auth.status,
-      meteringPointIds: auth.meteringPointIds || []
-    })) : []
+    // For each authorization, fetch metering point IDs
+    const authorizationsWithMeteringPoints = []
     
-    return res.status(200).json({
-      authorizations,
+    if (authData.result && Array.isArray(authData.result)) {
+      for (const auth of authData.result) {
+        try {
+          // Fetch metering point IDs for this customer
+          const meteringPointUrl = `${ELOVERBLIK_API_BASE}/thirdpartyapi/api/authorization/authorization/meteringpointids/customerKey/${auth.customerKey}`
+          console.log(`Fetching metering points for customer ${auth.customerKey}`)
+          
+          const meteringResponse = await fetch(meteringPointUrl, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Accept': 'application/json',
+            },
+          })
+          
+          let meteringPointIds = []
+          if (meteringResponse.ok) {
+            const meteringData = await meteringResponse.json()
+            meteringPointIds = meteringData.result || []
+            console.log(`Found ${meteringPointIds.length} metering points for customer ${auth.customerKey}`)
+          } else {
+            console.error(`Failed to fetch metering points for customer ${auth.customerKey}`)
+          }
+          
+          authorizationsWithMeteringPoints.push({
+            customerId: auth.customerKey, // Keep for backwards compatibility
+            customerKey: auth.customerKey,
+            customerName: auth.customerName,
+            customerCVR: auth.customerCVR,
+            validFrom: auth.validFrom,
+            validTo: auth.validTo,
+            meteringPointIds: meteringPointIds
+          })
+        } catch (error) {
+          console.error(`Error fetching metering points for ${auth.customerKey}:`, error)
+        }
+      }
+    }
+    
+    const responseData = {
+      authorizations: authorizationsWithMeteringPoints,
       metadata: {
         fetchedAt: new Date().toISOString(),
-        count: authorizations.length
+        count: authorizationsWithMeteringPoints.length
       }
-    })
+    }
+    
+    // Cache the response
+    authCache.set(cacheKey, { data: responseData, timestamp: Date.now() })
+    
+    return res.status(200).json(responseData)
   } catch (error) {
     console.error('Error in third-party authorization:', error)
     return res.status(500).json({ 
@@ -245,7 +294,10 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { customerId, dateFrom, dateTo, aggregation = 'Day' } = req.body
+  // Accept both customerId and customerKey for backwards compatibility
+  const { customerId, customerKey, dateFrom, dateTo, aggregation = 'Day' } = req.body
+  const customerIdentifier = customerKey || customerId
+  
   // Try both possible environment variable names
   const refreshToken = process.env.ELOVERBLIK_API_TOKEN || process.env.ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN
 
@@ -255,12 +307,15 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
     })
   }
 
-  if (!customerId || !dateFrom || !dateTo) {
+  if (!customerIdentifier || !dateFrom || !dateTo) {
     return res.status(400).json({ 
       error: 'Missing required parameters',
-      required: ['customerId', 'dateFrom', 'dateTo']
+      required: ['customerKey/customerId', 'dateFrom', 'dateTo'],
+      received: { customerKey, customerId, dateFrom, dateTo }
     })
   }
+
+  console.log(`Fetching consumption for customer: ${customerIdentifier}, dates: ${dateFrom} to ${dateTo}`)
 
   try {
     // Get access token
@@ -273,59 +328,68 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
     })
 
     if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text()
+      console.error('Token refresh failed:', errorText)
       return res.status(tokenResponse.status).json({ 
-        error: 'Failed to refresh access token'
+        error: 'Failed to refresh access token',
+        details: errorText
       })
     }
 
     const tokenData = await tokenResponse.json()
-    const accessToken = tokenData.result
+    const accessToken = tokenData.result || tokenData.access_token || tokenData.token
+    
+    if (!accessToken) {
+      console.error('No access token in response:', tokenData)
+      return res.status(500).json({ 
+        error: 'Invalid token response',
+        details: 'No access token found in response'
+      })
+    }
 
-    // Get metering points for customer
-    // According to Swagger docs, we need to get metering points from the authorization data
-    // or use the metering point IDs directly from the authorization response
-    const meteringResponse = await fetch(
-      `${ELOVERBLIK_API_BASE}/thirdpartyapi/api/authorization/authorizations`,
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    )
+    // Get metering point IDs for this customer directly
+    const meteringPointUrl = `${ELOVERBLIK_API_BASE}/thirdpartyapi/api/authorization/authorization/meteringpointids/customerKey/${customerIdentifier}`
+    console.log(`Fetching metering points from: ${meteringPointUrl}`)
+    
+    const meteringResponse = await fetch(meteringPointUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Accept': 'application/json',
+      },
+    })
 
     if (!meteringResponse.ok) {
+      const errorText = await meteringResponse.text()
+      console.error(`Failed to fetch metering points for ${customerIdentifier}:`, errorText)
       return res.status(meteringResponse.status).json({ 
-        error: 'Failed to fetch metering points'
+        error: 'Failed to fetch metering points',
+        customerKey: customerIdentifier,
+        details: errorText
       })
     }
 
     const meteringData = await meteringResponse.json()
+    const meteringPointIds = meteringData.result || []
     
-    // Find the specific customer's authorization
-    let customerAuth = null
-    if (meteringData.result && Array.isArray(meteringData.result)) {
-      customerAuth = meteringData.result.find((auth: any) => 
-        auth.customerKey === customerId || auth.customerId === customerId
-      )
-    }
-    
-    if (!customerAuth || !customerAuth.meteringPointIds || customerAuth.meteringPointIds.length === 0) {
+    if (!meteringPointIds || meteringPointIds.length === 0) {
       return res.status(404).json({ 
         error: 'No metering points found for customer',
-        customerId
+        customerKey: customerIdentifier
       })
     }
+
+    console.log(`Found ${meteringPointIds.length} metering points:`, meteringPointIds)
 
     // Get consumption data using the third-party timeseries endpoint
     // According to Swagger docs, this is a POST request with path parameters
     const consumptionUrl = `${ELOVERBLIK_API_BASE}/thirdpartyapi/api/meterdata/gettimeseries/${dateFrom}/${dateTo}/${aggregation}`
+    console.log(`Fetching consumption from: ${consumptionUrl}`)
     
     // Prepare request body with metering points
     const requestBody = {
       meteringPoints: {
-        meteringPoint: customerAuth.meteringPointIds
+        meteringPoint: meteringPointIds
       }
     }
 
@@ -340,20 +404,25 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
     })
 
     if (!consumptionResponse.ok) {
+      const errorText = await consumptionResponse.text()
+      console.error('Failed to fetch consumption data:', errorText)
       return res.status(consumptionResponse.status).json({ 
-        error: 'Failed to fetch consumption data'
+        error: 'Failed to fetch consumption data',
+        details: errorText
       })
     }
 
     const consumptionData = await consumptionResponse.json()
+    console.log('Consumption data received successfully')
 
     return res.status(200).json({
       result: consumptionData.result,
       dateFrom,
       dateTo,
       aggregation,
-      meteringPoints: customerAuth.meteringPointIds,
-      customerId,
+      meteringPoints: meteringPointIds,
+      customerKey: customerIdentifier,
+      customerId: customerIdentifier, // Keep for backwards compatibility
       metadata: {
         unit: 'kWh',
         timezone: 'Europe/Copenhagen',

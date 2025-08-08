@@ -355,6 +355,12 @@ async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelRes
 const meteringPointCache = new Map<string, { ids: string[]; timestamp: number }>()
 const METERING_POINT_TTL = 15 * 60 * 1000 // 15 minutes
 
+// In-memory cache for consumption responses keyed by identifier/date/aggregation
+// WHAT: Avoid repeated identical timeseries calls that can trigger 429s
+// WHY: Users may reload quickly; cache for a short period
+const consumptionCache = new Map<string, { payload: any; timestamp: number }>()
+const CONSUMPTION_TTL = 2 * 60 * 1000 // 2 minutes
+
 async function handleThirdPartyConsumption(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -496,27 +502,62 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
       }
     }
 
-    const consumptionResponse = await fetch(consumptionUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'api-version': '1.0', // Required header
-      },
-      body: JSON.stringify(requestBody),
-    })
+    // Check short-term cache first
+    const cacheKey = JSON.stringify({ identifier, safeFrom, safeTo, aggregation, mp: finalMeteringPointIds.slice(0, 10) })
+    const cachedConsumption = consumptionCache.get(cacheKey)
+    if (cachedConsumption && Date.now() - cachedConsumption.timestamp < CONSUMPTION_TTL) {
+      console.log('Returning cached consumption response')
+      return res.status(200).json(cachedConsumption.payload)
+    }
 
-    if (!consumptionResponse.ok) {
-      const errorText = await consumptionResponse.text()
-      console.error('Failed to fetch consumption data:', errorText)
-      return res.status(consumptionResponse.status).json({ 
+    // Retry/backoff for 429/503 as recommended by docs
+    const maxAttempts = 3
+    const baseDelayMs = 1000
+    let lastStatus = 0
+    let lastBody = ''
+    let consumptionData: any = null
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const response = await fetch(consumptionUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'api-version': '1.0',
+          // Optionally pass a correlation id; useful for support
+          // 'X-User-Correlation-ID': crypto.randomUUID(),
+        },
+        body: JSON.stringify(requestBody),
+      })
+
+      if (response.ok) {
+        consumptionData = await response.json()
+        lastStatus = 200
+        break
+      }
+
+      lastStatus = response.status
+      lastBody = await response.text()
+      console.warn(`Consumption request failed (status ${lastStatus}) attempt ${attempt}/${maxAttempts}`)
+      if ((lastStatus === 429 || lastStatus === 503) && attempt < maxAttempts) {
+        const delay = baseDelayMs * Math.pow(2, attempt - 1) // 1s, 2s
+        await new Promise(r => setTimeout(r, delay))
+        continue
+      } else {
+        break
+      }
+    }
+
+    if (lastStatus !== 200 || !consumptionData) {
+      console.error('Failed to fetch consumption data:', { status: lastStatus, body: lastBody })
+      const retrySeconds = lastStatus === 429 || lastStatus === 503 ? 60 : undefined
+      return res.status(lastStatus || 500).json({ 
         error: 'Failed to fetch consumption data',
-        details: errorText
+        details: lastBody,
+        suggestedRetrySeconds: retrySeconds
       })
     }
 
-    const consumptionData = await consumptionResponse.json()
     console.log('Consumption data received successfully')
 
     // Compute total consumption in kWh for convenience
@@ -545,7 +586,7 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
       }
     } catch {}
 
-    return res.status(200).json({
+    const payload = {
       result: consumptionData.result,
       dateFrom: safeFrom,
       dateTo: safeTo,
@@ -562,7 +603,11 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
         timezone: 'Europe/Copenhagen',
         fetchedAt: new Date().toISOString()
       }
-    })
+    }
+
+    // Store in cache
+    consumptionCache.set(cacheKey, { payload, timestamp: Date.now() })
+    return res.status(200).json(payload)
   } catch (error) {
     console.error('Error fetching third-party consumption:', error)
     return res.status(500).json({ 

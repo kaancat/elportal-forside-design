@@ -48,6 +48,7 @@ export function ForbrugTracker({
   const [customerData, setCustomerData] = useState<any>(null)
   const [consumptionData, setConsumptionData] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
+  const [isRequestInFlight, setIsRequestInFlight] = useState(false)
 
   // Check if user has been authorized (returned from Eloverblik)
   useEffect(() => {
@@ -122,6 +123,8 @@ export function ForbrugTracker({
 
   const fetchConsumptionData = async (params: { authorizationId?: string; customerCVR?: string; meteringPointIds?: string[] }) => {
     try {
+      if (isRequestInFlight) return
+      setIsRequestInFlight(true)
       console.log('Fetching consumption with params:', params) // Debug log
       
       // Get metering points from customerData if available
@@ -187,7 +190,9 @@ export function ForbrugTracker({
         try {
           const errorData = await response.json()
           console.error('Error details:', errorData)
-          if (errorData.details) {
+          if (response.status === 429 || response.status === 503) {
+            setError('Tjenesten er midlertidigt overbelastet (429/503). Vent 1 minut og prøv igen.')
+          } else if (errorData.details) {
             setError(`Kunne ikke hente forbrugsdata: ${errorData.details}`)
           } else {
             setError(`Kunne ikke hente forbrugsdata: ${errorData.error || 'Ukendt fejl'}`)
@@ -201,6 +206,8 @@ export function ForbrugTracker({
     } catch (err) {
       console.error('Error fetching consumption:', err)
       setError('Kunne ikke hente forbrugsdata')
+    } finally {
+      setIsRequestInFlight(false)
     }
   }
 

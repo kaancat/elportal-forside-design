@@ -10,6 +10,17 @@ Goal: Fix Forbrug Tracker component not rendering (error fallback shown)
 
 ## 2025-08-08 – Update
 Goal: Fix Eloverblik third-party flow for Forbrug Tracker (metering points + date handling)
+## 2025-08-08 – Update
+Goal: Reduce 429s on third-party consumption calls and improve UX
+
+- Backend `api/eloverblik.ts`:
+  - Added short-term cache (2 min) for identical consumption queries (keyed by identifier/date/MPs).
+  - Implemented retry with exponential backoff (1s, 2s) for 429/503 per API recommendations.
+  - Returns `suggestedRetrySeconds` on 429/503 to guide client messaging.
+- Frontend `ForbrugTracker.tsx`:
+  - Prevent duplicate in-flight requests; show clear 429/503 message instructing to wait.
+- Impact: Fewer immediate 429s after refresh; clearer user feedback when upstream is rate-limiting.
+- TO VERIFY: Rapidly refresh `/forbrug-tracker` and ensure second request within 2 minutes returns cached response or shows friendly 429 note instead of crashing fallback.
 
 - Backend `api/eloverblik.ts`:
   - Added cached third-party access token helper to reduce 429s.

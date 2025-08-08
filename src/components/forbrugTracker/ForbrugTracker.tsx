@@ -95,8 +95,8 @@ export function ForbrugTracker({
           if (auth) {
             console.log('Using authorization:', auth) // Debug log
             setCustomerData(auth)
-            // Fetch consumption data using authorizationId (primary) or customerCVR (fallback)
-            await fetchConsumptionData(auth.authorizationId || auth.customerCVR || auth.customerKey || auth.customerId)
+            // Fetch consumption data - pass the whole auth object to include metering points
+            await fetchConsumptionData(auth)
           }
         } else {
           console.log('No authorizations found')
@@ -114,9 +114,20 @@ export function ForbrugTracker({
     }
   }
 
-  const fetchConsumptionData = async (customerIdentifier: string) => {
+  const fetchConsumptionData = async (authData: any) => {
     try {
-      console.log('Fetching consumption for customer:', customerIdentifier) // Debug log
+      // Extract identifier - could be auth object or string for backwards compatibility
+      const identifier = typeof authData === 'string' 
+        ? authData 
+        : (authData.authorizationId || authData.customerCVR || authData.customerKey || authData.customerId)
+      
+      const meteringPointIds = typeof authData === 'object' ? authData.meteringPointIds : undefined
+      
+      console.log('Fetching consumption for:', { 
+        identifier, 
+        meteringPointIds,
+        authData: typeof authData === 'object' ? authData : 'string identifier'
+      })
       
       // Get last 30 days of data, but ensure we don't request future dates
       // Use yesterday as the end date to avoid timezone issues
@@ -138,11 +149,12 @@ export function ForbrugTracker({
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          // Try to parse the identifier to determine its type
-          authorizationId: customerIdentifier.includes('-') ? customerIdentifier : undefined,
-          customerCVR: customerIdentifier.match(/^\d{8}$/) ? customerIdentifier : undefined,
-          customerKey: customerIdentifier, // Keep for backwards compatibility
-          customerId: customerIdentifier, // Keep for backwards compatibility
+          // Pass all possible identifiers
+          authorizationId: typeof authData === 'object' ? authData.authorizationId : (identifier.includes('-') ? identifier : undefined),
+          customerCVR: typeof authData === 'object' ? authData.customerCVR : (identifier.match(/^\d{8}$/) ? identifier : undefined),
+          customerKey: identifier, // Keep for backwards compatibility
+          customerId: identifier, // Keep for backwards compatibility
+          meteringPointIds: meteringPointIds, // Pass cached metering points if available
           dateFrom,
           dateTo,
           aggregation: 'Day'
@@ -345,8 +357,13 @@ export function ForbrugTracker({
                           size="sm"
                           variant="ghost"
                           onClick={() => {
-                            console.log('Refreshing data...')
-                            checkAuthorization(customerData?.authorizationId || customerData?.customerCVR || customerData?.customerKey || customerData?.customerId)
+                            console.log('Refreshing data...', customerData)
+                            // If we have the full customer data, pass it to fetch consumption
+                            if (customerData?.meteringPointIds) {
+                              fetchConsumptionData(customerData)
+                            } else {
+                              checkAuthorization(customerData?.authorizationId || customerData?.customerCVR || customerData?.customerKey || customerData?.customerId)
+                            }
                           }}
                           title="Opdater data"
                         >

@@ -150,8 +150,8 @@ export function ForbrugTracker({
         },
         body: JSON.stringify({
           // Pass all possible identifiers
-          authorizationId: typeof authData === 'object' ? authData.authorizationId : (identifier.includes('-') ? identifier : undefined),
-          customerCVR: typeof authData === 'object' ? authData.customerCVR : (identifier.match(/^\d{8}$/) ? identifier : undefined),
+          authorizationId: typeof authData === 'object' ? authData.authorizationId : (identifier && identifier.includes('-') ? identifier : undefined),
+          customerCVR: typeof authData === 'object' ? authData.customerCVR : (identifier && identifier.match(/^\d{8}$/) ? identifier : undefined),
           customerKey: identifier, // Keep for backwards compatibility
           customerId: identifier, // Keep for backwards compatibility
           meteringPointIds: meteringPointIds, // Pass cached metering points if available
@@ -356,13 +356,13 @@ export function ForbrugTracker({
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => {
+                          onClick={async () => {
                             console.log('Refreshing data...', customerData)
                             // If we have the full customer data, pass it to fetch consumption
                             if (customerData?.meteringPointIds) {
-                              fetchConsumptionData(customerData)
+                              await fetchConsumptionData(customerData)
                             } else {
-                              checkAuthorization(customerData?.authorizationId || customerData?.customerCVR || customerData?.customerKey || customerData?.customerId)
+                              await checkAuthorization(customerData?.authorizationId || customerData?.customerCVR || customerData?.customerKey || customerData?.customerId)
                             }
                           }}
                           title="Opdater data"

@@ -144,8 +144,8 @@ async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelRes
 
   try {
     // Get access token using refresh token
-    // According to docs, this should be a GET request with Bearer token
-    const tokenUrl = `${ELOVERBLIK_API_BASE}/api/token`
+    // According to Swagger docs, third-party token endpoint is /thirdpartyapi/api/token
+    const tokenUrl = `${ELOVERBLIK_API_BASE}/thirdpartyapi/api/token`
     console.log('Requesting access token from:', tokenUrl)
     
     const tokenResponse = await fetch(tokenUrl, {
@@ -185,7 +185,7 @@ async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelRes
 
     // Get list of authorized customers (power of attorney)
     // According to Swagger docs, the correct endpoint is:
-    const authUrl = `${ELOVERBLIK_API_BASE}/api/1/customerdata/thirdpartydata/authorization`
+    const authUrl = `${ELOVERBLIK_API_BASE}/thirdpartyapi/api/authorization/authorizations`
     console.log('Fetching authorizations from:', authUrl)
     
     const authResponse = await fetch(authUrl, {
@@ -264,7 +264,7 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
 
   try {
     // Get access token
-    const tokenResponse = await fetch(`${ELOVERBLIK_API_BASE}/api/token`, {
+    const tokenResponse = await fetch(`${ELOVERBLIK_API_BASE}/thirdpartyapi/api/token`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${refreshToken}`,
@@ -285,7 +285,7 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
     // According to Swagger docs, we need to get metering points from the authorization data
     // or use the metering point IDs directly from the authorization response
     const meteringResponse = await fetch(
-      `${ELOVERBLIK_API_BASE}/api/1/customerdata/thirdpartydata/authorization`,
+      `${ELOVERBLIK_API_BASE}/thirdpartyapi/api/authorization/authorizations`,
       {
         method: 'GET',
         headers: {
@@ -319,24 +319,24 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
     }
 
     // Get consumption data using the third-party timeseries endpoint
-    // According to Swagger, this is a GET request with query parameters
-    const consumptionUrl = new URL(`${ELOVERBLIK_API_BASE}/api/1/customerdata/thirdpartydata/timeseries`)
-    consumptionUrl.searchParams.append('customerKey', customerId)
-    consumptionUrl.searchParams.append('dateFrom', dateFrom)
-    consumptionUrl.searchParams.append('dateTo', dateTo)
-    consumptionUrl.searchParams.append('aggregation', aggregation)
+    // According to Swagger docs, this is a POST request with path parameters
+    const consumptionUrl = `${ELOVERBLIK_API_BASE}/thirdpartyapi/api/meterdata/gettimeseries/${dateFrom}/${dateTo}/${aggregation}`
     
-    // Add each metering point ID as a separate query parameter
-    customerAuth.meteringPointIds.forEach((mpId: string) => {
-      consumptionUrl.searchParams.append('meteringPoints', mpId)
-    })
+    // Prepare request body with metering points
+    const requestBody = {
+      meteringPoints: {
+        meteringPoint: customerAuth.meteringPointIds
+      }
+    }
 
-    const consumptionResponse = await fetch(consumptionUrl.toString(), {
-      method: 'GET',
+    const consumptionResponse = await fetch(consumptionUrl, {
+      method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Accept': 'application/json',
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify(requestBody),
     })
 
     if (!consumptionResponse.ok) {
@@ -352,7 +352,7 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
       dateFrom,
       dateTo,
       aggregation,
-      meteringPoints: meteringPointIds,
+      meteringPoints: customerAuth.meteringPointIds,
       customerId,
       metadata: {
         unit: 'kWh',

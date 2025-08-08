@@ -52,13 +52,19 @@ export function ForbrugTracker({
 
   // Check if user has been authorized (returned from Eloverblik)
   useEffect(() => {
+    // Check URL parameters for callback from Eloverblik
     const authorized = searchParams.get('authorized')
     const customerId = searchParams.get('customer')
     
-    if (authorized === 'true') {
+    // Also check if we're coming back from Eloverblik callback
+    // The redirect from mondaybrew.dk should include these params
+    if (authorized === 'true' || window.location.href.includes('eloverblik-callback')) {
       setIsAuthorized(true)
       // Check for authorization and fetch data
       checkAuthorization(customerId)
+    } else {
+      // Check if we already have active authorizations
+      checkAuthorization(null)
     }
   }, [searchParams])
 
@@ -72,19 +78,29 @@ export function ForbrugTracker({
       
       if (response.ok) {
         const data = await response.json()
+        console.log('Authorization data:', data) // Debug log
         
         if (data.authorizations && data.authorizations.length > 0) {
+          setIsAuthorized(true) // We have authorizations
+          
           // For simplicity, use the first authorization or match by customerId
           const auth = customerId 
             ? data.authorizations.find((a: any) => a.customerId === customerId)
             : data.authorizations[0]
           
           if (auth) {
+            console.log('Using authorization:', auth) // Debug log
             setCustomerData(auth)
             // Fetch consumption data
-            await fetchConsumptionData(auth.customerId)
+            await fetchConsumptionData(auth.customerId || auth.customerKey)
           }
+        } else {
+          console.log('No authorizations found')
+          setIsAuthorized(false)
         }
+      } else {
+        console.error('Authorization check failed:', response.status)
+        setError('Kunne ikke hente autorisationsdata')
       }
     } catch (err) {
       console.error('Error checking authorization:', err)
@@ -96,6 +112,8 @@ export function ForbrugTracker({
 
   const fetchConsumptionData = async (customerId: string) => {
     try {
+      console.log('Fetching consumption for customer:', customerId) // Debug log
+      
       // Get last 30 days of data
       const today = new Date()
       const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
@@ -115,10 +133,37 @@ export function ForbrugTracker({
       
       if (response.ok) {
         const data = await response.json()
+        console.log('Consumption data received:', data) // Debug log
         setConsumptionData(data)
+        
+        // Calculate total consumption for display
+        if (data.result && Array.isArray(data.result)) {
+          let total = 0
+          data.result.forEach((mp: any) => {
+            if (mp.MyEnergyData_MarketDocument?.TimeSeries) {
+              mp.MyEnergyData_MarketDocument.TimeSeries.forEach((ts: any) => {
+                if (ts.Period) {
+                  ts.Period.forEach((period: any) => {
+                    if (period.Point) {
+                      period.Point.forEach((point: any) => {
+                        total += parseFloat(point['out_Quantity.quantity'] || 0)
+                      })
+                    }
+                  })
+                }
+              })
+            }
+          })
+          console.log('Total consumption calculated:', total, 'kWh')
+        }
+      } else {
+        console.error('Failed to fetch consumption:', response.status)
+        const errorText = await response.text()
+        console.error('Error details:', errorText)
       }
     } catch (err) {
       console.error('Error fetching consumption:', err)
+      setError('Kunne ikke hente forbrugsdata')
     }
   }
 

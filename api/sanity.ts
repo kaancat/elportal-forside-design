@@ -71,38 +71,37 @@ async function handleUpdateContent(req: VercelRequest, res: VercelResponse) {
 
     // Apply operations
     for (const op of operations) {
-      const patch = transaction.patch(documentId)
-      
       switch (op.type) {
         case 'set':
-          patch.set(op.path ? { [op.path]: op.value } : op.value)
+          transaction.patch(documentId).set(op.path ? { [op.path]: op.value } : op.value)
           break
         
         case 'unset':
-          patch.unset(op.path)
+          transaction.patch(documentId).unset([op.path])
           break
         
         case 'insert':
+          const patchForInsert = transaction.patch(documentId)
           if (op.position === 'after') {
             // TypeScript workaround - we know this method exists
-            (patch as any).insertAfter(op.path, op.items)
+            (patchForInsert as any).insertAfter(op.path, op.items)
           } else if (op.position === 'before') {
             // TypeScript workaround - we know this method exists
-            (patch as any).insertBefore(op.path, op.items)
+            (patchForInsert as any).insertBefore(op.path, op.items)
           }
           break
         
         case 'append':
-          patch.append(op.path, op.items)
+          transaction.patch(documentId).append(op.path, op.items)
           break
         
         case 'prepend':
-          patch.prepend(op.path, op.items)
+          transaction.patch(documentId).prepend(op.path, op.items)
           break
         
         case 'remove':
           // For array removal
-          patch.unset([op.path])
+          transaction.patch(documentId).unset([op.path])
           break
         
         default:

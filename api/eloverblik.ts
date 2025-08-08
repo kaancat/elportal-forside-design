@@ -385,29 +385,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     })
   }
+  
+  // Debug endpoint to test authorization endpoint
+  if (action === 'test-auth') {
+    return res.status(200).json({
+      message: 'Authorization endpoint is reachable',
+      hasToken: !!(process.env.ELOVERBLIK_API_TOKEN || process.env.ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN),
+      action: 'test-auth'
+    })
+  }
 
-  switch (action) {
-    case 'get-token':
-      return handleGetToken(req, res)
-    case 'get-metering-points':
-      return handleGetMeteringPoints(req, res)
-    case 'get-consumption':
-      return handleGetConsumption(req, res)
-    case 'thirdparty-authorizations':
-      return handleThirdPartyAuthorizations(req, res)
-    case 'thirdparty-consumption':
-      return handleThirdPartyConsumption(req, res)
-    default:
-      return res.status(400).json({ 
-        error: 'Invalid action',
-        validActions: [
-          'test-config',
-          'get-token',
-          'get-metering-points', 
-          'get-consumption',
-          'thirdparty-authorizations',
-          'thirdparty-consumption'
-        ]
-      })
+  try {
+    switch (action) {
+      case 'get-token':
+        return await handleGetToken(req, res)
+      case 'get-metering-points':
+        return await handleGetMeteringPoints(req, res)
+      case 'get-consumption':
+        return await handleGetConsumption(req, res)
+      case 'thirdparty-authorizations':
+        return await handleThirdPartyAuthorizations(req, res)
+      case 'thirdparty-consumption':
+        return await handleThirdPartyConsumption(req, res)
+      default:
+        return res.status(400).json({ 
+          error: 'Invalid action',
+          validActions: [
+            'test-config',
+            'get-token',
+            'get-metering-points', 
+            'get-consumption',
+            'thirdparty-authorizations',
+            'thirdparty-consumption'
+          ]
+        })
+    }
+  } catch (error) {
+    console.error('Error in eloverblik handler:', error)
+    return res.status(500).json({ 
+      error: 'Internal server error',
+      message: error instanceof Error ? error.message : 'Unknown error occurred',
+      action: action
+    })
   }
 }

@@ -33,7 +33,8 @@ interface ForbrugTrackerProps {
 }
 
 // The authorization URL with your third-party ID
-const AUTHORIZATION_URL = 'https://eloverblik.dk/power-of-attorney?thirdPartyId=945ac027-559a-4923-a670-66bfda8d27c6&fromDate=2021-08-08&toDate=2028-08-08&returnUrl=https%3A%2F%2Fmondaybrew.dk%2Feloverblik-callback'
+// Must match the redirect configured in WordPress on mondaybrew.dk
+const AUTHORIZATION_URL = 'https://eloverblik.dk/power-of-attorney?thirdPartyId=945ac027-559a-4923-a670-66bfda8d27c6&fromDate=2021-08-08&toDate=2028-08-08&returnUrl=https%3A%2F%2Fmondaybrew.dk%2Fdinelportal-callback%2F'
 
 export function ForbrugTracker({
   title = 'Start Din Forbrug Tracker',

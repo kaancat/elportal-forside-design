@@ -118,9 +118,19 @@ export function ForbrugTracker({
     try {
       console.log('Fetching consumption for customer:', customerIdentifier) // Debug log
       
-      // Get last 30 days of data
-      const today = new Date()
-      const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
+      // Get last 30 days of data, but ensure we don't request future dates
+      // Use yesterday as the end date to avoid timezone issues
+      const yesterday = new Date()
+      yesterday.setDate(yesterday.getDate() - 1)
+      yesterday.setHours(12, 0, 0, 0) // Set to midday to avoid timezone edge cases
+      
+      const thirtyDaysAgo = new Date(yesterday.getTime() - 30 * 24 * 60 * 60 * 1000)
+      
+      // Format dates in Danish timezone
+      const dateFrom = thirtyDaysAgo.toISOString().split('T')[0]
+      const dateTo = yesterday.toISOString().split('T')[0]
+      
+      console.log(`Requesting consumption data from ${dateFrom} to ${dateTo}`)
       
       const response = await fetch('/api/eloverblik?action=thirdparty-consumption', {
         method: 'POST',
@@ -130,8 +140,8 @@ export function ForbrugTracker({
         body: JSON.stringify({
           customerKey: customerIdentifier, // Use customerKey as primary field
           customerId: customerIdentifier, // Keep for backwards compatibility
-          dateFrom: thirtyDaysAgo.toISOString().split('T')[0],
-          dateTo: today.toISOString().split('T')[0],
+          dateFrom,
+          dateTo,
           aggregation: 'Day'
         })
       })
@@ -163,8 +173,19 @@ export function ForbrugTracker({
         }
       } else {
         console.error('Failed to fetch consumption:', response.status)
-        const errorText = await response.text()
-        console.error('Error details:', errorText)
+        try {
+          const errorData = await response.json()
+          console.error('Error details:', errorData)
+          if (errorData.details) {
+            setError(`Kunne ikke hente forbrugsdata: ${errorData.details}`)
+          } else {
+            setError(`Kunne ikke hente forbrugsdata: ${errorData.error || 'Ukendt fejl'}`)
+          }
+        } catch {
+          const errorText = await response.text()
+          console.error('Error text:', errorText)
+          setError('Kunne ikke hente forbrugsdata')
+        }
       }
     } catch (err) {
       console.error('Error fetching consumption:', err)

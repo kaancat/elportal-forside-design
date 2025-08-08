@@ -95,8 +95,8 @@ export function ForbrugTracker({
           if (auth) {
             console.log('Using authorization:', auth) // Debug log
             setCustomerData(auth)
-            // Fetch consumption data using customerKey (primary) or customerId (fallback)
-            await fetchConsumptionData(auth.customerKey || auth.customerId)
+            // Fetch consumption data using authorizationId (primary) or customerCVR (fallback)
+            await fetchConsumptionData(auth.authorizationId || auth.customerCVR || auth.customerKey || auth.customerId)
           }
         } else {
           console.log('No authorizations found')
@@ -138,7 +138,10 @@ export function ForbrugTracker({
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          customerKey: customerIdentifier, // Use customerKey as primary field
+          // Try to parse the identifier to determine its type
+          authorizationId: customerIdentifier.includes('-') ? customerIdentifier : undefined,
+          customerCVR: customerIdentifier.match(/^\d{8}$/) ? customerIdentifier : undefined,
+          customerKey: customerIdentifier, // Keep for backwards compatibility
           customerId: customerIdentifier, // Keep for backwards compatibility
           dateFrom,
           dateTo,
@@ -343,7 +346,7 @@ export function ForbrugTracker({
                           variant="ghost"
                           onClick={() => {
                             console.log('Refreshing data...')
-                            checkAuthorization(customerData?.customerKey || customerData?.customerId)
+                            checkAuthorization(customerData?.authorizationId || customerData?.customerCVR || customerData?.customerKey || customerData?.customerId)
                           }}
                           title="Opdater data"
                         >
@@ -450,7 +453,7 @@ export function ForbrugTracker({
                           <span className="text-sm">Kundenummer</span>
                         </div>
                         <p className="text-lg font-bold truncate">
-                          {(customerData?.customerKey || customerData?.customerId)?.slice(0, 8) || 'N/A'}...
+                          {(customerData?.customerCVR || customerData?.customerKey || customerData?.customerId)?.slice(0, 8) || 'N/A'}...
                         </p>
                       </CardContent>
                     </Card>

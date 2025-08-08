@@ -21,6 +21,8 @@ import {
 } from 'lucide-react'
 import { ConsumptionChart } from './ConsumptionChart'
 import { TrueCostCalculator } from './TrueCostCalculator'
+import ErrorBoundary from '@/components/ErrorBoundary'
+import { ContentErrorFallback } from '@/components/ErrorFallbacks'
 
 interface ForbrugTrackerProps {
   title?: string
@@ -228,6 +230,19 @@ export function ForbrugTracker({
   }
 
   return (
+    <ErrorBoundary
+      level="component"
+      fallback={
+        <div className="w-full py-12">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <ContentErrorFallback 
+              onRetry={() => checkAuthorization(null)} 
+              message="Forbrug Tracker stødte på en fejl"
+            />
+          </div>
+        </div>
+      }
+    >
     <div className="w-full py-12">
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Header */}
@@ -491,5 +506,6 @@ export function ForbrugTracker({
         )}
       </div>
     </div>
+    </ErrorBoundary>
   )
 }

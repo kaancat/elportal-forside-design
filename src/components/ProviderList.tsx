@@ -72,7 +72,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
     const fetchProviders = async () => {
       setProvidersLoading(true);
       try {
-        const query = `*[_type == "provider" && isActive == true] {
+        const query = `*[_type == "provider" && isActive != false] {
           _id,
           providerName,
           productName,
@@ -98,7 +98,8 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
         }`;
         
         const sanityProviders = await client.fetch(query);
-        setProviders(sanityProviders);
+        console.log('Fetched providers from Sanity:', sanityProviders);
+        setProviders(sanityProviders || []);
       } catch (error) {
         console.error('Failed to fetch providers from Sanity:', error);
         // Could fall back to hardcoded providers here if needed

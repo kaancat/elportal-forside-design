@@ -1,3 +1,6 @@
+/* Import icon fixes - must come before tailwind directives */
+@import './styles/icon-fixes.css';
+
 /* Variable Font Definitions */
 @font-face {
   font-family: 'Inter';
@@ -26,9 +29,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import icon fixes */
-@import './styles/icon-fixes.css';
 
 @layer base {
   :root {

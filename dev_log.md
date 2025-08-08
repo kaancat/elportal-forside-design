@@ -1,6 +1,14 @@
 # Dev Log
 
 ## 2025-08-08 – Update
+Goal: Fix Forbrug Tracker component not rendering (error fallback shown)
+
+- Issue: The component read search params via `useSearchParams` which caused SSR/client mismatch and triggered the ContentBlocks error boundary (“Dette indhold kunne ikke vises”).
+- Action: In `src/components/forbrugTracker/ForbrugTracker.tsx`, replaced `useSearchParams` with a client-only `window.location.search` read guarded by `typeof window !== 'undefined'` to avoid SSR usage.
+- Impact: Forbrug Tracker renders reliably on initial load; avoids error boundary in SSR.
+- TO VERIFY: Navigate to `/forbrug-tracker` and confirm component mounts and shows connect flow; check console for any API errors.
+
+## 2025-08-08 – Update
 Goal: Fix Eloverblik third-party flow for Forbrug Tracker (metering points + date handling)
 
 - Backend `api/eloverblik.ts`:

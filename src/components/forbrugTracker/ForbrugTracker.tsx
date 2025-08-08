@@ -19,7 +19,6 @@ import {
   Home,
   RefreshCw
 } from 'lucide-react'
-import { useSearchParams } from 'react-router-dom'
 import { ConsumptionChart } from './ConsumptionChart'
 import { TrueCostCalculator } from './TrueCostCalculator'
 
@@ -44,7 +43,6 @@ export function ForbrugTracker({
   showBenefits = true,
   headerAlignment = 'center'
 }: ForbrugTrackerProps) {
-  const [searchParams] = useSearchParams()
   const [isAuthorized, setIsAuthorized] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [customerData, setCustomerData] = useState<any>(null)
@@ -53,10 +51,14 @@ export function ForbrugTracker({
 
   // Check if user has been authorized (returned from Eloverblik)
   useEffect(() => {
+    // Only run on client
+    if (typeof window === 'undefined') return
+
     // Check URL parameters for callback from Eloverblik
-    const authorized = searchParams.get('authorized')
-    const customerId = searchParams.get('customer')
-    
+    const params = new URLSearchParams(window.location.search)
+    const authorized = params.get('authorized')
+    const customerId = params.get('customer')
+
     // If we see authorized=true in URL, the user just came back from Eloverblik
     if (authorized === 'true') {
       console.log('User returned from Eloverblik authorization')
@@ -70,7 +72,7 @@ export function ForbrugTracker({
       console.log('Checking for existing authorizations...')
       checkAuthorization(null)
     }
-  }, [searchParams])
+  }, [])
 
   const checkAuthorization = async (customerId?: string | null) => {
     setIsLoading(true)

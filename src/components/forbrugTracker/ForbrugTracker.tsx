@@ -16,12 +16,12 @@ import {
   Calendar,
   Loader2,
   User,
-  Home
+  Home,
+  RefreshCw
 } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
 import { ConsumptionChart } from './ConsumptionChart'
 import { TrueCostCalculator } from './TrueCostCalculator'
-import { formatCurrency } from '@/utils/formatting'
 
 interface ForbrugTrackerProps {
   title?: string
@@ -56,14 +56,17 @@ export function ForbrugTracker({
     const authorized = searchParams.get('authorized')
     const customerId = searchParams.get('customer')
     
-    // Also check if we're coming back from Eloverblik callback
-    // The redirect from mondaybrew.dk should include these params
-    if (authorized === 'true' || window.location.href.includes('eloverblik-callback')) {
+    // If we see authorized=true in URL, the user just came back from Eloverblik
+    if (authorized === 'true') {
+      console.log('User returned from Eloverblik authorization')
       setIsAuthorized(true)
-      // Check for authorization and fetch data
-      checkAuthorization(customerId)
-    } else {
-      // Check if we already have active authorizations
+      // Small delay to ensure Eloverblik has processed the authorization
+      setTimeout(() => {
+        checkAuthorization(customerId)
+      }, 1000)
+    } else if (window.location.pathname.includes('forbrug-tracker')) {
+      // Always check for authorizations when on the forbrug-tracker page
+      console.log('Checking for existing authorizations...')
       checkAuthorization(null)
     }
   }, [searchParams])
@@ -277,12 +280,23 @@ export function ForbrugTracker({
                 <CardContent className="p-12 text-center">
                   <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
                   <p className="text-gray-600">Henter dine forbrugsdata...</p>
+                  <p className="text-sm text-gray-500 mt-2">Dette kan tage et øjeblik...</p>
                 </CardContent>
               </Card>
             ) : error ? (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
+              <div className="space-y-4">
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+                <div className="text-center">
+                  <Button 
+                    onClick={() => checkAuthorization(null)}
+                    variant="outline"
+                  >
+                    Prøv igen
+                  </Button>
+                </div>
+              </div>
             ) : (
               <div className="space-y-6">
                 {/* Connection Status */}
@@ -300,9 +314,22 @@ export function ForbrugTracker({
                           )}
                         </div>
                       </div>
-                      <Badge variant="outline" className="border-green-600 text-green-700">
-                        Aktiv
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            console.log('Refreshing data...')
+                            checkAuthorization(customerData?.customerId)
+                          }}
+                          title="Opdater data"
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                        </Button>
+                        <Badge variant="outline" className="border-green-600 text-green-700">
+                          Aktiv
+                        </Badge>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

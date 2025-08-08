@@ -127,15 +127,16 @@ async function handleGetConsumption(req: VercelRequest, res: VercelResponse) {
 
 // Third-party API handlers
 async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelResponse) {
-  const refreshToken = process.env.ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN
+  // Try both possible environment variable names
+  const refreshToken = process.env.ELOVERBLIK_API_TOKEN || process.env.ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN
 
   console.log('Checking for refresh token...')
   
   if (!refreshToken) {
-    console.error('ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN not found in environment variables')
+    console.error('Neither ELOVERBLIK_API_TOKEN nor ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN found in environment variables')
     return res.status(500).json({ 
       error: 'Third-party refresh token not configured',
-      message: 'The server is not configured with Eloverblik third-party credentials. Please set ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN in Vercel environment variables.'
+      message: 'The server is not configured with Eloverblik third-party credentials. Please set ELOVERBLIK_API_TOKEN in Vercel environment variables.'
     })
   }
 
@@ -244,7 +245,8 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
   }
 
   const { customerId, dateFrom, dateTo, aggregation = 'Day' } = req.body
-  const refreshToken = process.env.ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN
+  // Try both possible environment variable names
+  const refreshToken = process.env.ELOVERBLIK_API_TOKEN || process.env.ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN
 
   if (!refreshToken) {
     return res.status(500).json({ 
@@ -371,12 +373,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Test endpoint to check if token is configured
   if (action === 'test-config') {
-    const hasToken = !!process.env.ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN
+    const hasToken = !!(process.env.ELOVERBLIK_API_TOKEN || process.env.ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN)
     return res.status(200).json({
       tokenConfigured: hasToken,
       message: hasToken 
         ? 'Refresh token is configured' 
-        : 'Refresh token is NOT configured. Please add ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN to Vercel environment variables.'
+        : 'Refresh token is NOT configured. Please add ELOVERBLIK_API_TOKEN to Vercel environment variables.',
+      envVars: {
+        ELOVERBLIK_API_TOKEN: !!process.env.ELOVERBLIK_API_TOKEN,
+        ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN: !!process.env.ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN
+      }
     })
   }
 

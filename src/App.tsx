@@ -18,6 +18,7 @@ const GenericPage = lazy(() => import("./pages/GenericPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const EnergyTips = lazy(() => import("./pages/EnergyTips").then(m => ({ default: m.EnergyTips })));
 const IconTest = lazy(() => import("./pages/IconTest"));
+const TestEloverblik = lazy(() => import("./pages/TestEloverblik").then(m => ({ default: m.TestEloverblik })));
 
 // Loading component for Suspense fallback
 const PageLoader = () => (
@@ -75,6 +76,7 @@ const AppContent = () => {
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="/energispareraad" element={<EnergyTips />} />
                   <Route path="/icon-test" element={<IconTest />} />
+                  <Route path="/test-eloverblik" element={<TestEloverblik />} />
                   
                   {/* Dynamic route for generic pages - must be before the 404 catch-all */}
                   <Route path="/:slug" element={<GenericPage />} />

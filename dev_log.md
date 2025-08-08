@@ -1,6 +1,21 @@
 # Dev Log
 
 ## 2025-08-08 – Update
+Goal: Fix Eloverblik third-party flow for Forbrug Tracker (metering points + date handling)
+
+- Backend `api/eloverblik.ts`:
+  - Added cached third-party access token helper to reduce 429s.
+  - Implemented `isGuidLike` scope detection and correct mapping: prefer `authorizationId`, fallback to `customerCVR`.
+  - Added `clampDateRange` to prevent future `dateTo` (avoids error 30003).
+  - Cached metering points by `authorizationId` (15 min TTL) and added CVR fallback if needed.
+  - Improved error responses with scope/identifier context. Included `totalConsumption` in successful payloads.
+- Frontend `src/components/forbrugTracker/ForbrugTracker.tsx`:
+  - Now passes `authorizationId`, `customerCVR`, and cached `meteringPointIds` explicitly to consumption request (removed string heuristics).
+  - Refresh button uses explicit identifiers as well.
+- Impact: Prevents 404 “No metering points found” due to wrong scope/identifier, avoids future-date rejections, and reduces rate-limiting via caching.
+- TO VERIFY: After completing MitID flow, `thirdparty-authorizations` returns authorizations with `meteringPointIds`, and `thirdparty-consumption` returns non-empty `result` for last 30 days with `aggregation=Day`.
+
+## 2025-08-08 – Update
 Goal: ProviderList fails to render due to invalid Sanity references
 
 - Hardened `src/components/ProviderList.tsx` to sanitize `block.providers`:

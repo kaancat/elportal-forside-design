@@ -95,9 +95,12 @@ export function ForbrugTracker({
           if (auth) {
             console.log('Using authorization:', auth) // Debug log
             setCustomerData(auth)
-            // Fetch consumption data using the appropriate identifier
-            const identifier = auth.authorizationId || auth.customerCVR || auth.customerKey || auth.customerId
-            await fetchConsumptionData(identifier)
+            // Fetch consumption using explicit authorizationId and cached metering points when available
+            await fetchConsumptionData({
+              authorizationId: auth.authorizationId,
+              customerCVR: auth.customerCVR,
+              meteringPointIds: auth.meteringPointIds,
+            })
           }
         } else {
           console.log('No authorizations found')
@@ -115,12 +118,12 @@ export function ForbrugTracker({
     }
   }
 
-  const fetchConsumptionData = async (customerIdentifier: string) => {
+  const fetchConsumptionData = async (params: { authorizationId?: string; customerCVR?: string; meteringPointIds?: string[] }) => {
     try {
-      console.log('Fetching consumption for customer:', customerIdentifier) // Debug log
+      console.log('Fetching consumption with params:', params) // Debug log
       
       // Get metering points from customerData if available
-      const meteringPointIds = customerData?.meteringPointIds
+      const meteringPointIds = params.meteringPointIds || customerData?.meteringPointIds
       
       // Get last 30 days of data, but ensure we don't request future dates
       // Use yesterday as the end date to avoid timezone issues
@@ -142,11 +145,9 @@ export function ForbrugTracker({
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          // Pass the identifier with smart type detection
-          authorizationId: customerIdentifier.includes('-') ? customerIdentifier : undefined,
-          customerCVR: customerIdentifier.match(/^\d{8}$/) ? customerIdentifier : undefined,
-          customerKey: customerIdentifier, // Keep for backwards compatibility
-          customerId: customerIdentifier, // Keep for backwards compatibility
+          // Prefer explicit identifiers and cached metering point ids
+          authorizationId: params.authorizationId,
+          customerCVR: params.customerCVR,
           meteringPointIds: meteringPointIds, // Pass cached metering points if available
           dateFrom,
           dateTo,
@@ -351,10 +352,12 @@ export function ForbrugTracker({
                           variant="ghost"
                           onClick={async () => {
                             console.log('Refreshing data...', customerData)
-                            // Get the appropriate identifier
-                            const identifier = customerData?.authorizationId || customerData?.customerCVR || customerData?.customerKey || customerData?.customerId
-                            if (identifier) {
-                              await fetchConsumptionData(identifier)
+                            if (customerData?.authorizationId || customerData?.customerCVR) {
+                              await fetchConsumptionData({
+                                authorizationId: customerData?.authorizationId,
+                                customerCVR: customerData?.customerCVR,
+                                meteringPointIds: customerData?.meteringPointIds,
+                              })
                             } else {
                               await checkAuthorization(null)
                             }

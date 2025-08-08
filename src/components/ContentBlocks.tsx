@@ -29,6 +29,7 @@ import RegionalComparison from './RegionalComparison'
 import PricingComparison from './PricingComparison'
 import DailyPriceTimeline from './DailyPriceTimeline'
 import InfoCardsSection from './InfoCardsSection'
+import { ForbrugTracker } from './forbrugTracker/ForbrugTracker'
 import ErrorBoundary from './ErrorBoundary'
 import { ContentErrorFallback, ChartErrorFallback, CalculatorErrorFallback } from './ErrorFallbacks'
 import { reportError } from '@/lib/errorReporting'
@@ -209,6 +210,9 @@ const renderContentBlock = (block: ContentBlock) => {
     
     case 'infoCardsSection':
       return <InfoCardsSection block={block} />;
+    
+    case 'forbrugTracker':
+      return <ForbrugTracker {...(block as any)} />;
     
     default:
       // Handle unknown block types

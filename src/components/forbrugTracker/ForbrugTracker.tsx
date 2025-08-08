@@ -95,8 +95,8 @@ export function ForbrugTracker({
           if (auth) {
             console.log('Using authorization:', auth) // Debug log
             setCustomerData(auth)
-            // Fetch consumption data
-            await fetchConsumptionData(auth.customerId || auth.customerKey)
+            // Fetch consumption data using customerKey (primary) or customerId (fallback)
+            await fetchConsumptionData(auth.customerKey || auth.customerId)
           }
         } else {
           console.log('No authorizations found')
@@ -114,9 +114,9 @@ export function ForbrugTracker({
     }
   }
 
-  const fetchConsumptionData = async (customerId: string) => {
+  const fetchConsumptionData = async (customerIdentifier: string) => {
     try {
-      console.log('Fetching consumption for customer:', customerId) // Debug log
+      console.log('Fetching consumption for customer:', customerIdentifier) // Debug log
       
       // Get last 30 days of data
       const today = new Date()
@@ -128,7 +128,8 @@ export function ForbrugTracker({
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          customerId,
+          customerKey: customerIdentifier, // Use customerKey as primary field
+          customerId: customerIdentifier, // Keep for backwards compatibility
           dateFrom: thirtyDaysAgo.toISOString().split('T')[0],
           dateTo: today.toISOString().split('T')[0],
           aggregation: 'Day'
@@ -321,7 +322,7 @@ export function ForbrugTracker({
                           variant="ghost"
                           onClick={() => {
                             console.log('Refreshing data...')
-                            checkAuthorization(customerData?.customerId)
+                            checkAuthorization(customerData?.customerKey || customerData?.customerId)
                           }}
                           title="Opdater data"
                         >
@@ -428,7 +429,7 @@ export function ForbrugTracker({
                           <span className="text-sm">Kundenummer</span>
                         </div>
                         <p className="text-lg font-bold truncate">
-                          {customerData?.customerId?.slice(0, 8) || 'N/A'}...
+                          {(customerData?.customerKey || customerData?.customerId)?.slice(0, 8) || 'N/A'}...
                         </p>
                       </CardContent>
                     </Card>

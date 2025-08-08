@@ -157,10 +157,10 @@ export function TestEloverblik() {
               </AlertDescription>
             </Alert>
 
-        {!isConnected ? (
-          <ConnectEloverblik onConnect={handleConnect} />
-        ) : (
-          <div className="space-y-6">
+            {!isConnected ? (
+              <ConnectEloverblik onConnect={handleConnect} />
+            ) : (
+              <div className="space-y-6">
             {/* Connection Status */}
             <Card className="border-green-200 bg-green-50">
               <CardHeader>
@@ -265,6 +265,8 @@ export function TestEloverblik() {
                 </CardContent>
               </Card>
             )}
+          </div>
+        )}
           </TabsContent>
         </Tabs>
       </div>

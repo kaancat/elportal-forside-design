@@ -11,8 +11,12 @@ import {
   Info
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { formatCurrency } from '@/utils/formatting'
-import { fetchProviders } from '@/services/sanity'
+import { SanityService } from '@/services/sanityService'
+
+// Format currency helper
+const formatCurrency = (amount: number): string => {
+  return `${amount.toFixed(0)} kr`
+}
 
 interface TrueCostCalculatorProps {
   consumptionData: any
@@ -24,7 +28,7 @@ export function TrueCostCalculator({ consumptionData }: TrueCostCalculatorProps)
   // Fetch providers from Sanity
   const { data: providers, isLoading } = useQuery({
     queryKey: ['providers'],
-    queryFn: fetchProviders,
+    queryFn: () => SanityService.getAllProviders(),
     staleTime: 5 * 60 * 1000
   })
 
@@ -62,8 +66,8 @@ export function TrueCostCalculator({ consumptionData }: TrueCostCalculatorProps)
       const electricityTax = 0.90
       const fixedFees = systemFee + electricityTax
       
-      // Provider's spot price fee
-      const spotPriceFee = provider.spotPriceFee || 0.05
+      // Provider's spot price fee (using display price as approximation)
+      const spotPriceFee = parseFloat(provider.displayPrice_kWh || '0.05')
       
       // Average spot price (this should ideally come from actual historical data)
       const avgSpotPrice = 0.50 // kr/kWh - placeholder
@@ -75,14 +79,15 @@ export function TrueCostCalculator({ consumptionData }: TrueCostCalculatorProps)
       const totalCost = totalConsumption * pricePerKwh
       
       // Monthly subscription
-      const monthlyFee = provider.monthlyFee || 0
+      const monthlyFee = parseFloat(provider.displayMonthlyFee || '0')
       const totalMonthlyFees = monthlyFee // For 30 days
       
       return {
-        provider: provider.name,
-        slug: provider.slug,
-        logo: provider.logo,
-        isGreen: provider.greenPercentage >= 100,
+        provider: provider.providerName || provider.productName,
+        slug: provider.id,
+        logo: provider.logoUrl,
+        isGreen: provider.benefits?.includes('100% grøn strøm'),
+        isVindstod: provider.isVindstoedProduct,
         spotPriceFee: spotPriceFee,
         monthlyFee: monthlyFee,
         totalConsumption: totalConsumption,
@@ -94,8 +99,8 @@ export function TrueCostCalculator({ consumptionData }: TrueCostCalculatorProps)
 
     // Sort by total cost (Vindstød first if equal)
     providerCosts.sort((a, b) => {
-      if (a.slug === 'vindstod') return -1
-      if (b.slug === 'vindstod') return 1
+      if (a.isVindstod) return -1
+      if (b.isVindstod) return 1
       return a.totalCost - b.totalCost
     })
 
@@ -192,7 +197,7 @@ export function TrueCostCalculator({ consumptionData }: TrueCostCalculatorProps)
                           100% Grøn
                         </Badge>
                       )}
-                      {calc.slug === 'vindstod' && (
+                      {calc.isVindstod && (
                         <Badge className="bg-blue-600">
                           <Award className="h-3 w-3 mr-1" />
                           Anbefalet
@@ -233,7 +238,7 @@ export function TrueCostCalculator({ consumptionData }: TrueCostCalculatorProps)
                   </div>
                 </div>
                 
-                {calc.slug === 'vindstod' && (
+                {calc.isVindstod && (
                   <div className="mt-3 pt-3 border-t">
                     <Button className="w-full" variant="default">
                       Skift til {calc.provider}

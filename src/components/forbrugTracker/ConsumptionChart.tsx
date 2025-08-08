@@ -13,7 +13,6 @@ import {
   Area,
   AreaChart
 } from 'recharts'
-import { formatDate } from '@/utils/formatting'
 
 interface ConsumptionChartProps {
   data: any

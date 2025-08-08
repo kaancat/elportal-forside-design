@@ -40,13 +40,17 @@ export const PRICE_CONSTANTS = {
  */
 export function calculatePricePerKwh(
   spotPrice: number,
-  providerMarkup: number
+  providerMarkup: number,
+  networkTariff?: number
 ): number {
+  // Use provided network tariff or fall back to average
+  const actualNetworkTariff = networkTariff ?? PRICE_CONSTANTS.NETWORK_TARIFF_AVG;
+  
   // Sum all components before VAT
   const priceBeforeVat = 
     spotPrice +
     providerMarkup +
-    PRICE_CONSTANTS.NETWORK_TARIFF_AVG +
+    actualNetworkTariff +
     PRICE_CONSTANTS.SYSTEM_TARIFF +
     PRICE_CONSTANTS.ELECTRICITY_TAX +
     PRICE_CONSTANTS.TRANSMISSION_FEE;
@@ -87,9 +91,11 @@ export function calculateAnnualCost(
  */
 export function getPriceBreakdown(
   spotPrice: number,
-  providerMarkup: number
+  providerMarkup: number,
+  networkTariff?: number
 ) {
-  const networkFees = PRICE_CONSTANTS.NETWORK_TARIFF_AVG + 
+  const actualNetworkTariff = networkTariff ?? PRICE_CONSTANTS.NETWORK_TARIFF_AVG;
+  const networkFees = actualNetworkTariff + 
                      PRICE_CONSTANTS.SYSTEM_TARIFF + 
                      PRICE_CONSTANTS.TRANSMISSION_FEE;
   
@@ -100,6 +106,7 @@ export function getPriceBreakdown(
     spotPrice,
     providerMarkup,
     networkFees,
+    networkTariff: actualNetworkTariff,
     electricityTax: PRICE_CONSTANTS.ELECTRICITY_TAX,
     subtotal,
     vatAmount,

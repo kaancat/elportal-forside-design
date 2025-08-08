@@ -68,7 +68,7 @@ export function ForbrugTracker({
     
     try {
       // Fetch list of authorized customers
-      const response = await fetch('/api/eloverblik/thirdparty/get-authorizations')
+      const response = await fetch('/api/eloverblik?action=thirdparty-authorizations')
       
       if (response.ok) {
         const data = await response.json()
@@ -100,7 +100,7 @@ export function ForbrugTracker({
       const today = new Date()
       const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
       
-      const response = await fetch('/api/eloverblik/thirdparty/get-customer-consumption', {
+      const response = await fetch('/api/eloverblik?action=thirdparty-consumption', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -269,10 +269,10 @@ export async function GET(request: Request) {
         end: end.split('T')[0]
       },
       filters: {
-        municipality,
+        municipality: municipality || undefined,
         municipalityName: municipality ? MUNICIPALITY_NAMES[municipality] : undefined,
-        housingCategory,
-        heatingCategory
+        housingCategory: housingCategory || undefined,
+        heatingCategory: heatingCategory || undefined
       },
       availableCategories
     };

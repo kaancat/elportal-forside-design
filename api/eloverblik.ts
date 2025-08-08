@@ -184,7 +184,8 @@ async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelRes
     }
 
     // Get list of authorized customers (power of attorney)
-    const authUrl = `${ELOVERBLIK_API_BASE}/api/authorization/v1/authorizations`
+    // According to Swagger docs, the correct endpoint is:
+    const authUrl = `${ELOVERBLIK_API_BASE}/api/1/customerdata/thirdpartydata/authorization`
     console.log('Fetching authorizations from:', authUrl)
     
     const authResponse = await fetch(authUrl, {
@@ -281,8 +282,10 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
     const accessToken = tokenData.result
 
     // Get metering points for customer
+    // According to Swagger docs, we need to get metering points from the authorization data
+    // or use the metering point IDs directly from the authorization response
     const meteringResponse = await fetch(
-      `${ELOVERBLIK_API_BASE}/api/authorization/v1/authorizations/${customerId}/meteringpoints`,
+      `${ELOVERBLIK_API_BASE}/api/1/customerdata/thirdpartydata/authorization`,
       {
         method: 'GET',
         headers: {
@@ -299,32 +302,42 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
     }
 
     const meteringData = await meteringResponse.json()
-    const meteringPointIds = meteringData.result?.map((mp: any) => mp.meteringPointId) || []
-
-    if (meteringPointIds.length === 0) {
+    
+    // Find the specific customer's authorization
+    let customerAuth = null
+    if (meteringData.result && Array.isArray(meteringData.result)) {
+      customerAuth = meteringData.result.find((auth: any) => 
+        auth.customerKey === customerId || auth.customerId === customerId
+      )
+    }
+    
+    if (!customerAuth || !customerAuth.meteringPointIds || customerAuth.meteringPointIds.length === 0) {
       return res.status(404).json({ 
-        error: 'No metering points found for customer'
+        error: 'No metering points found for customer',
+        customerId
       })
     }
 
-    // Get consumption data
-    const requestBody = {
-      meteringPoints: {
-        meteringPoint: meteringPointIds
-      }
-    }
+    // Get consumption data using the third-party timeseries endpoint
+    // According to Swagger, this is a GET request with query parameters
+    const consumptionUrl = new URL(`${ELOVERBLIK_API_BASE}/api/1/customerdata/thirdpartydata/timeseries`)
+    consumptionUrl.searchParams.append('customerKey', customerId)
+    consumptionUrl.searchParams.append('dateFrom', dateFrom)
+    consumptionUrl.searchParams.append('dateTo', dateTo)
+    consumptionUrl.searchParams.append('aggregation', aggregation)
+    
+    // Add each metering point ID as a separate query parameter
+    customerAuth.meteringPointIds.forEach((mpId: string) => {
+      consumptionUrl.searchParams.append('meteringPoints', mpId)
+    })
 
-    const consumptionResponse = await fetch(
-      `${ELOVERBLIK_API_BASE}/api/meterdata/gettimeseries/${dateFrom}/${dateTo}/${aggregation}`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      }
-    )
+    const consumptionResponse = await fetch(consumptionUrl.toString(), {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Accept': 'application/json',
+      },
+    })
 
     if (!consumptionResponse.ok) {
       return res.status(consumptionResponse.status).json({ 

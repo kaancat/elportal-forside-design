@@ -16,9 +16,10 @@ interface ProviderCardProps {
   product: ElectricityProduct;
   annualConsumption: number;
   spotPrice: number | null;
+  networkTariff?: number;
 }
 
-const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption, spotPrice }) => {
+const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption, spotPrice, networkTariff }) => {
   // Add safety checks
   if (!product) {
     console.error('ProviderCard: product is undefined');
@@ -31,11 +32,11 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
     }
   };
 
-  // Use the shared calculation service
+  // Use the shared calculation service with network tariff
   const baseSpotPrice = spotPrice !== null ? spotPrice : PRICE_CONSTANTS.DEFAULT_SPOT_PRICE;
-  const pricePerKwh = calculatePricePerKwh(baseSpotPrice, product.displayPrice_kWh || 0);
+  const pricePerKwh = calculatePricePerKwh(baseSpotPrice, product.displayPrice_kWh || 0, networkTariff);
   const estimatedMonthlyPrice = calculateMonthlyCost(annualConsumption, pricePerKwh, product.displayMonthlyFee || 0);
-  const breakdown = getPriceBreakdown(baseSpotPrice, product.displayPrice_kWh || 0);
+  const breakdown = getPriceBreakdown(baseSpotPrice, product.displayPrice_kWh || 0, networkTariff);
   
 
   return (

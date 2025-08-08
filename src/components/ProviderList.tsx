@@ -2,11 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import ProviderCard from './ProviderCard';
 import HouseholdTypeSelector, { HouseholdType } from './HouseholdTypeSelector';
+import { LocationSelector } from './LocationSelector';
+import { useLocation } from '@/hooks/useLocation';
 import { Slider } from '@/components/ui/slider';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Info } from 'lucide-react';
-import type { ProviderListBlock, ProviderProductBlock } from '../types/sanity';
+import { Info, MapPin } from 'lucide-react';
+import type { ProviderListBlock } from '../types/sanity';
 import { useScrollAnimation, staggerContainer, animationClasses } from '@/hooks/useScrollAnimation';
+import { hardcodedProviders, getSortedProviders } from '@/data/hardcodedProviders';
+import { ElectricityProduct } from '@/types/product';
 
 interface ProviderListProps {
   block: ProviderListBlock;
@@ -26,33 +30,40 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
   const [spotPrice, setSpotPrice] = useState<number | null>(null);
   const [priceLoading, setPriceLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  
+  // Location hook for postal code based pricing
+  const { location, loading: locationLoading, updateLocation } = useLocation();
 
-
-  // Fetch live spot price when component mounts
+  // Fetch live spot price when component mounts or location changes
   useEffect(() => {
     const fetchSpotPrice = async () => {
       try {
-        const response = await fetch('/api/electricity-prices'); // Your existing API route
+        // Use region from location if available
+        const region = location?.region || 'DK2';
+        const response = await fetch(`/api/electricity-prices?region=${region}`);
+        
         if (!response.ok) throw new Error('Could not fetch spot price');
         const data = await response.json();
+        
         // Find the price for the current hour
         const currentHour = new Date().getHours();
         const currentPriceData = data.records.find((r: any) => new Date(r.HourDK).getHours() === currentHour);
+        
         if (currentPriceData) {
           setSpotPrice(currentPriceData.SpotPriceKWh);
-          setLastUpdated(new Date()); // SET THE TIMESTAMP HERE
+          setLastUpdated(new Date());
         }
       } catch (error) {
         console.error("Failed to fetch live spot price:", error);
-        // We can set a fallback price or show an error
-        setSpotPrice(1.5); // Fallback to a default value
+        // Fallback to a default value
+        setSpotPrice(1.5);
       } finally {
         setPriceLoading(false);
       }
     };
 
     fetchSpotPrice();
-  }, []);
+  }, [location?.region]); // Re-fetch when region changes
 
   const handleHouseholdTypeSelect = (type: HouseholdType | null) => {
     if (type) {
@@ -74,16 +85,16 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
     setSelectedHouseholdType('custom');
   };
 
-  // Sort products to ensure the featured one is first
-  const sortedProviders = [...(block.providers || [])].sort((a, b) => {
-    if (a.isVindstoedProduct && !b.isVindstoedProduct) return -1;
-    if (!a.isVindstoedProduct && b.isVindstoedProduct) return 1;
-    // Add other sorting logic if needed, e.g., by price
-    return (a.displayPrice_kWh || 0) - (b.displayPrice_kWh || 0);
-  });
+  const handleLocationChange = (newLocation: any) => {
+    updateLocation(newLocation);
+  };
 
-  // Convert ProviderProductBlock to ElectricityProduct format for ProviderCard
-  const convertToElectricityProduct = (provider: ProviderProductBlock) => ({
+  // Get sorted providers based on current spot price and network tariff
+  const networkTariff = location?.gridProvider?.networkTariff || 0.30;
+  const sortedProviders = getSortedProviders(spotPrice || 1.5, networkTariff);
+
+  // Convert hardcoded provider to ElectricityProduct format for ProviderCard
+  const convertToElectricityProduct = (provider: any): ElectricityProduct => ({
     id: provider.id,
     supplierName: provider.providerName,
     productName: provider.productName,
@@ -92,10 +103,9 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
     displayMonthlyFee: provider.displayMonthlyFee,
     signupLink: provider.signupLink,
     supplierLogoURL: provider.logoUrl,
-    // Map benefits to existing boolean properties
-    isVariablePrice: provider.benefits?.find(b => b.text?.toLowerCase().includes('variabel'))?.included || true,
-    hasNoBinding: provider.benefits?.find(b => b.text?.toLowerCase().includes('binding'))?.included || true,
-    hasFreeSignup: provider.benefits?.find(b => b.text?.toLowerCase().includes('gratis'))?.included || true,
+    isVariablePrice: provider.isVariablePrice,
+    hasNoBinding: provider.hasNoBinding,
+    hasFreeSignup: provider.hasFreeSignup,
     internalNotes: '',
     lastUpdated: new Date().toISOString(),
     sortOrderVindstoed: provider.isVindstoedProduct ? 1 : undefined,
@@ -103,30 +113,6 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
   });
 
   const headerAlignmentClass = block.headerAlignment === 'left' ? 'text-left' : block.headerAlignment === 'right' ? 'text-right' : 'text-center';
-
-  if (!block.providers || block.providers.length === 0) {
-    return (
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="mb-12">
-            <h1 className={`text-4xl font-display font-bold ${headerAlignmentClass} mb-4 text-brand-dark`}>
-              {block.title || 'Sammenlign eludbydere'}
-            </h1>
-            {block.subtitle && (
-              <p className={`${headerAlignmentClass} text-gray-600 text-lg mb-8`}>
-                {block.subtitle}
-              </p>
-            )}
-          </div>
-          <div className="flex justify-center">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-              <div className="text-center text-brand-dark">Ingen produkter tilgængelige i øjeblikket.</div>
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
 
   return (
     <section className="py-16 bg-gray-50">
@@ -140,6 +126,14 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
               {block.subtitle}
             </p>
           )}
+        </div>
+        
+        {/* Location Selector - NEW */}
+        <div className="mb-8">
+          <LocationSelector 
+            onLocationChange={handleLocationChange}
+            className=""
+          />
         </div>
         
         {/* Household Type Selector */}
@@ -183,20 +177,32 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
         >
-          <h2 className="text-2xl font-display font-bold text-center text-brand-dark mb-8">
+          <h2 className="text-2xl font-display font-bold text-center text-brand-dark mb-4">
             Aktuelle tilbud
-            {priceLoading && (
-              <span className="text-sm text-gray-500 ml-2">(Henter live priser...)</span>
+            {(priceLoading || locationLoading) && (
+              <span className="text-sm text-gray-500 ml-2">(Henter priser...)</span>
             )}
           </h2>
-          
-          {/* Last Updated Timestamp with Tooltip */}
-          <div className="flex justify-center items-center gap-2 mb-8">
+
+          {/* Location and Price Info */}
+          <div className="flex flex-col items-center gap-2 mb-8">
+            {location && (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <MapPin className="h-4 w-4" />
+                <span>
+                  Priser for {location.municipality.name} ({location.region}) 
+                  - Netselskab: {location.gridProvider.name}
+                </span>
+              </div>
+            )}
+            
+            {/* Last Updated Timestamp with Tooltip */}
             {lastUpdated && (
+              <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <p className="text-sm text-gray-500 cursor-pointer flex items-center gap-1">
-                      Priser sidst opdateret: {lastUpdated.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                      Spotpris opdateret: {lastUpdated.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit', hour12: false })}
                       <Info size={14} />
                     </p>
                   </TooltipTrigger>
@@ -204,18 +210,19 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
                     <p>De viste priser er estimater baseret på live spotpriser, <br /> som opdateres hver time.</p>
                   </TooltipContent>
                 </Tooltip>
+              </TooltipProvider>
             )}
           </div>
+
+          {/* Provider Cards */}
           {sortedProviders.map(provider => {
-            if (!provider || !provider.id) {
-              return null;
-            }
             return (
               <ProviderCard 
                 key={provider.id} 
                 product={convertToElectricityProduct(provider)}
                 annualConsumption={annualConsumption[0]}
                 spotPrice={spotPrice}
+                networkTariff={networkTariff}
               />
             );
           })}

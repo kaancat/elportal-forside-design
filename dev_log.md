@@ -1,5 +1,12 @@
 # Dev Log
 
+## 2025-08-08 – Update
+Goal: Fix empty-looking select fields in desktop comparison table
+
+- Adjusted desktop select trigger styles in `src/components/RealPriceComparisonTable.tsx` to ensure placeholder and text are visible on light theme (`text-brand-dark` and `placeholder:text-gray-600`).
+- Impact: Prevents an apparent "empty white bar" on desktop by making the select content clearly visible when no provider is chosen. Mobile cards were already fine.
+- TODO: Consider auto-selecting first two providers after fetch to reduce empty state friction.
+
 ## 2025-08-07 – Update
 Goal: Align FE schemas with Studio and elevate PageSection visuals
 

@@ -374,7 +374,9 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
                 <div className="text-center">
                   <Select onValueChange={handleSelect1} value={selectedProvider1?.id}>
                     <SelectTrigger className={cn(
-                      isDarkTheme(theme) || theme === 'primary' ? "bg-white/20 border-white/30 text-white" : themeColors.selectBg
+                      isDarkTheme(theme) || theme === 'primary'
+                        ? "bg-white/20 border-white/30 text-white"
+                        : `${themeColors.selectBg} text-brand-dark placeholder:text-gray-600`
                     )}>
                       <SelectValue placeholder="Vælg elselskab 1" />
                     </SelectTrigger>
@@ -390,7 +392,9 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
                 <div className="text-center">
                   <Select onValueChange={handleSelect2} value={selectedProvider2?.id}>
                     <SelectTrigger className={cn(
-                      isDarkTheme(theme) || theme === 'primary' ? "bg-white/20 border-white/30 text-white" : themeColors.selectBg
+                      isDarkTheme(theme) || theme === 'primary'
+                        ? "bg-white/20 border-white/30 text-white"
+                        : `${themeColors.selectBg} text-brand-dark placeholder:text-gray-600`
                     )}>
                       <SelectValue placeholder="Vælg elselskab 2" />
                     </SelectTrigger>

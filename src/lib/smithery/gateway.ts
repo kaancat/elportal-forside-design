@@ -1,14 +1,19 @@
+/**
+ * @deprecated This file is deprecated for security reasons.
+ * Use /src/services/smithery.ts instead, which calls secure server-side API routes.
+ * 
+ * SECURITY WARNING: This file attempted to use client-side API keys,
+ * which would expose sensitive credentials to the browser.
+ * All Smithery operations should go through /api/smithery/* endpoints.
+ */
+
 import { SmitheryRegistry } from '@smithery/registry'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
 
-// Get API key from environment
+// DEPRECATED: Do not use client-side API keys
 const getApiKey = () => {
-  const apiKey = process.env.VITE_SMITHERY_API_KEY || ''
-  if (!apiKey) {
-    throw new Error('VITE_SMITHERY_API_KEY not found in environment variables')
-  }
-  return apiKey
+  throw new Error('Client-side Smithery API usage is disabled for security. Use /src/services/smithery.ts instead.')
 }
 
 // Initialize Smithery Registry for discovering servers

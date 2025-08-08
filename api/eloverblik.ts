@@ -129,50 +129,83 @@ async function handleGetConsumption(req: VercelRequest, res: VercelResponse) {
 async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelResponse) {
   const refreshToken = process.env.ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN
 
+  console.log('Checking for refresh token...')
+  
   if (!refreshToken) {
+    console.error('ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN not found in environment variables')
     return res.status(500).json({ 
       error: 'Third-party refresh token not configured',
-      message: 'The server is not configured with Eloverblik third-party credentials'
+      message: 'The server is not configured with Eloverblik third-party credentials. Please set ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN in Vercel environment variables.'
     })
   }
 
+  console.log('Refresh token found, attempting to get access token...')
+
   try {
     // Get access token using refresh token
-    const tokenResponse = await fetch(`${ELOVERBLIK_API_BASE}/api/token`, {
+    // According to docs, this should be a GET request with Bearer token
+    const tokenUrl = `${ELOVERBLIK_API_BASE}/api/token`
+    console.log('Requesting access token from:', tokenUrl)
+    
+    const tokenResponse = await fetch(tokenUrl, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${refreshToken}`,
+        'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
     })
 
     if (!tokenResponse.ok) {
-      const error = await tokenResponse.text()
-      console.error('Token refresh failed:', error)
+      const errorText = await tokenResponse.text()
+      console.error('Token refresh failed:', {
+        status: tokenResponse.status,
+        statusText: tokenResponse.statusText,
+        error: errorText
+      })
       return res.status(tokenResponse.status).json({ 
         error: 'Failed to refresh access token',
-        details: error 
+        status: tokenResponse.status,
+        details: errorText 
       })
     }
 
     const tokenData = await tokenResponse.json()
-    const accessToken = tokenData.result
+    console.log('Access token received successfully')
+    const accessToken = tokenData.result || tokenData.access_token || tokenData.token
 
-    // Get list of authorized customers
-    const authResponse = await fetch(`${ELOVERBLIK_API_BASE}/api/authorization/v1/authorizations`, {
+    if (!accessToken) {
+      console.error('No access token in response:', tokenData)
+      return res.status(500).json({ 
+        error: 'Invalid token response',
+        details: 'No access token found in response'
+      })
+    }
+
+    // Get list of authorized customers (power of attorney)
+    const authUrl = `${ELOVERBLIK_API_BASE}/api/authorization/v1/authorizations`
+    console.log('Fetching authorizations from:', authUrl)
+    
+    const authResponse = await fetch(authUrl, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
+        'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
     })
 
     if (!authResponse.ok) {
-      const error = await authResponse.text()
-      console.error('Authorization fetch failed:', error)
+      const errorText = await authResponse.text()
+      console.error('Authorization fetch failed:', {
+        status: authResponse.status,
+        statusText: authResponse.statusText,
+        error: errorText
+      })
       return res.status(authResponse.status).json({ 
         error: 'Failed to fetch authorizations',
-        details: error 
+        status: authResponse.status,
+        details: errorText 
       })
     }
 
@@ -336,6 +369,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Route based on action parameter
   const { action } = req.query
 
+  // Test endpoint to check if token is configured
+  if (action === 'test-config') {
+    const hasToken = !!process.env.ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN
+    return res.status(200).json({
+      tokenConfigured: hasToken,
+      message: hasToken 
+        ? 'Refresh token is configured' 
+        : 'Refresh token is NOT configured. Please add ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN to Vercel environment variables.'
+    })
+  }
+
   switch (action) {
     case 'get-token':
       return handleGetToken(req, res)
@@ -351,6 +395,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ 
         error: 'Invalid action',
         validActions: [
+          'test-config',
           'get-token',
           'get-metering-points', 
           'get-consumption',

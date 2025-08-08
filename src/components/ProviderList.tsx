@@ -10,7 +10,6 @@ import { Info, MapPin } from 'lucide-react';
 import type { ProviderListBlock } from '../types/sanity';
 import { useScrollAnimation, staggerContainer, animationClasses } from '@/hooks/useScrollAnimation';
 import { ElectricityProduct } from '@/types/product';
-import { client } from '@/lib/sanity';
 
 interface ProviderListProps {
   block: ProviderListBlock;
@@ -30,11 +29,12 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
   const [spotPrice, setSpotPrice] = useState<number | null>(null);
   const [priceLoading, setPriceLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [providers, setProviders] = useState<any[]>([]);
-  const [providersLoading, setProvidersLoading] = useState(true);
   
   // Location hook for postal code based pricing
   const { location, loading: locationLoading, updateLocation } = useLocation();
+  
+  // Use providers from block.providers (from Sanity page)
+  const providers = block.providers || [];
 
   // Fetch live spot price when component mounts or location changes
   useEffect(() => {
@@ -66,50 +66,6 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
 
     fetchSpotPrice();
   }, [location?.region]); // Re-fetch when region changes
-
-  // Fetch providers from Sanity
-  useEffect(() => {
-    const fetchProviders = async () => {
-      setProvidersLoading(true);
-      try {
-        const query = `*[_type == "provider" && isActive != false] {
-          _id,
-          providerName,
-          productName,
-          "logoUrl": logo.asset->url,
-          spotPriceMarkup,
-          greenCertificateFee,
-          tradingCosts,
-          monthlySubscription,
-          signupFee,
-          yearlySubscription,
-          signupLink,
-          isVindstoedProduct,
-          isVariablePrice,
-          bindingPeriod,
-          isGreenEnergy,
-          benefits,
-          lastPriceUpdate,
-          priceUpdateFrequency,
-          notes,
-          // Legacy fields for compatibility
-          displayPrice_kWh,
-          displayMonthlyFee
-        }`;
-        
-        const sanityProviders = await client.fetch(query);
-        console.log('Fetched providers from Sanity:', sanityProviders);
-        setProviders(sanityProviders || []);
-      } catch (error) {
-        console.error('Failed to fetch providers from Sanity:', error);
-        // Could fall back to hardcoded providers here if needed
-      } finally {
-        setProvidersLoading(false);
-      }
-    };
-
-    fetchProviders();
-  }, []); // Fetch once on mount
 
   const handleHouseholdTypeSelect = (type: HouseholdType | null) => {
     if (type) {
@@ -159,18 +115,22 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
 
   // Convert Sanity provider to ElectricityProduct format for ProviderCard
   const convertToElectricityProduct = (provider: any): ElectricityProduct => ({
-    id: provider._id,
+    id: provider.id || provider._id,
     supplierName: provider.providerName,
     productName: provider.productName,
     isVindstoedProduct: provider.isVindstoedProduct || false,
     // Use new detailed pricing or fall back to legacy fields
-    displayPrice_kWh: provider.spotPriceMarkup ? provider.spotPriceMarkup / 100 : (provider.displayPrice_kWh || 0),
-    displayMonthlyFee: provider.monthlySubscription || provider.displayMonthlyFee || 0,
+    displayPrice_kWh: provider.spotPriceMarkup !== undefined 
+      ? provider.spotPriceMarkup / 100  // Convert øre to kr
+      : (provider.displayPrice_kWh || 0),
+    displayMonthlyFee: provider.monthlySubscription !== undefined 
+      ? provider.monthlySubscription 
+      : (provider.displayMonthlyFee || 0),
     signupLink: provider.signupLink,
     supplierLogoURL: provider.logoUrl,
     isVariablePrice: provider.isVariablePrice !== undefined ? provider.isVariablePrice : true,
-    hasNoBinding: provider.bindingPeriod === 0,
-    hasFreeSignup: provider.signupFee === 0,
+    hasNoBinding: provider.bindingPeriod === 0 || provider.bindingPeriod === undefined,
+    hasFreeSignup: provider.signupFee === 0 || provider.signupFee === undefined,
     internalNotes: provider.notes || '',
     lastUpdated: provider.lastPriceUpdate || new Date().toISOString(),
     sortOrderVindstoed: provider.isVindstoedProduct ? 1 : undefined,
@@ -247,7 +207,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
         >
           <h2 className="text-2xl font-display font-bold text-center text-brand-dark mb-4">
             Aktuelle tilbud
-            {(priceLoading || locationLoading || providersLoading) && (
+            {(priceLoading || locationLoading) && (
               <span className="text-sm text-gray-500 ml-2">(Henter priser...)</span>
             )}
           </h2>
@@ -283,11 +243,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
           </div>
 
           {/* Provider Cards */}
-          {providersLoading ? (
-            <div className="text-center py-8">
-              <p className="text-gray-500">Henter leverandører...</p>
-            </div>
-          ) : sortedProviders.length === 0 ? (
+          {sortedProviders.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-500">Ingen leverandører tilgængelige</p>
             </div>

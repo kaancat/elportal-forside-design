@@ -245,11 +245,28 @@ export class SanityService {
             providerName,
             productName,
             "logoUrl": logo.asset->url,
-            displayPrice_kWh,
-            displayMonthlyFee,
-            signupLink,
+            // New detailed pricing fields
+            spotPriceMarkup,
+            greenCertificateFee,
+            tradingCosts,
+            monthlySubscription,
+            signupFee,
+            yearlySubscription,
+            // Product features
             isVindstoedProduct,
-            benefits
+            isVariablePrice,
+            bindingPeriod,
+            isGreenEnergy,
+            benefits,
+            signupLink,
+            // Metadata
+            lastPriceUpdate,
+            priceUpdateFrequency,
+            notes,
+            isActive,
+            // Legacy fields for backward compatibility
+            displayPrice_kWh,
+            displayMonthlyFee
           }
         },
         _type == "featureList" => {
@@ -768,11 +785,28 @@ export class SanityService {
             providerName,
             productName,
             "logoUrl": logo.asset->url,
-            displayPrice_kWh,
-            displayMonthlyFee,
-            signupLink,
+            // New detailed pricing fields
+            spotPriceMarkup,
+            greenCertificateFee,
+            tradingCosts,
+            monthlySubscription,
+            signupFee,
+            yearlySubscription,
+            // Product features
             isVindstoedProduct,
-            benefits
+            isVariablePrice,
+            bindingPeriod,
+            isGreenEnergy,
+            benefits,
+            signupLink,
+            // Metadata
+            lastPriceUpdate,
+            priceUpdateFrequency,
+            notes,
+            isActive,
+            // Legacy fields for backward compatibility
+            displayPrice_kWh,
+            displayMonthlyFee
           }
         },
         _type == "featureList" => {

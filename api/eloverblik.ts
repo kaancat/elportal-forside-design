@@ -177,12 +177,23 @@ async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelRes
     }
 
     const authData = await authResponse.json()
+    console.log('Raw authorization data from Eloverblik:', authData) // Debug log
+    
+    // Map the authorization data to a consistent format
+    const authorizations = authData.result ? authData.result.map((auth: any) => ({
+      customerId: auth.customerKey || auth.customerId,
+      customerKey: auth.customerKey,
+      validFrom: auth.validFrom,
+      validTo: auth.validTo,
+      status: auth.status,
+      meteringPointIds: auth.meteringPointIds || []
+    })) : []
     
     return res.status(200).json({
-      authorizations: authData.result || [],
+      authorizations,
       metadata: {
         fetchedAt: new Date().toISOString(),
-        count: authData.result?.length || 0
+        count: authorizations.length
       }
     })
   } catch (error) {

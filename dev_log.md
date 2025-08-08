@@ -1,6 +1,15 @@
 # Dev Log
 
 ## 2025-08-08 – Update
+Goal: ProviderList fails to render due to invalid Sanity references
+
+- Hardened `src/components/ProviderList.tsx` to sanitize `block.providers`:
+  - Filter out null/undefined providers and those with `isActive === false`.
+  - Ensure each provider has a stable `id` by falling back to `_id` or a derived key.
+- Impact: Prevents the component error boundary from tripping with “Dette indhold kunne ikke vises” when a page contains empty or inactive provider references. List now renders consistently if at least one valid provider is present.
+- TO VERIFY: Studio `providerList.providers[]` contains active references; run `node scripts/testPageQuery.js` to confirm provider fields present in GROQ response.
+
+## 2025-08-08 – Update
 Goal: Fix empty-looking select fields in desktop comparison table
 
 - Adjusted desktop select trigger styles in `src/components/RealPriceComparisonTable.tsx` to ensure placeholder and text are visible on light theme (`text-brand-dark` and `placeholder:text-gray-600`).

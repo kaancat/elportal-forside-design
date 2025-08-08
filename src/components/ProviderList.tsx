@@ -34,7 +34,18 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
   const { location, loading: locationLoading, updateLocation } = useLocation();
   
   // Use providers from block.providers (from Sanity page)
-  const providers = block.providers || [];
+  // Normalize and filter out invalid/inactive entries to avoid render crashes from bad references
+  const providers = (block.providers || [])
+    .filter(Boolean)
+    .filter((p: any) => p.isActive !== false) // only include active or undefined
+    .map((p: any) => ({
+      // ensure minimal shape for downstream usage
+      id: p.id || p._id || `${p.providerName || 'unknown'}-${p.productName || 'product'}`,
+      ...p,
+    }));
+  
+  console.log('ProviderList block:', block);
+  console.log('Providers from block (sanitized):', providers);
 
   // Fetch live spot price when component mounts or location changes
   useEffect(() => {

@@ -129,6 +129,9 @@ export const ContentErrorFallback: React.FC<{
           <AlertCircle className="w-5 h-5 text-gray-500" />
         </div>
         <p className="text-sm text-gray-600 mb-3">{message}</p>
+        {process.env.NODE_ENV === 'development' && (
+          <p className="text-xs text-gray-400 mb-3">Debug: See console/network for details</p>
+        )}
         {onRetry && (
           <Button 
             onClick={onRetry} 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -49,9 +49,12 @@ export function ForbrugTracker({
   const [consumptionData, setConsumptionData] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
   const [isRequestInFlight, setIsRequestInFlight] = useState(false)
+  const didInitRef = useRef(false)
 
   // Check if user has been authorized (returned from Eloverblik)
   useEffect(() => {
+    if (didInitRef.current) return
+    didInitRef.current = true
     // Only run on client
     if (typeof window === 'undefined') return
 

@@ -17,9 +17,13 @@ interface ProviderCardProps {
   annualConsumption: number;
   spotPrice: number | null;
   networkTariff?: number;
+  additionalFees?: {
+    greenCertificates?: number;
+    tradingCosts?: number;
+  };
 }
 
-const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption, spotPrice, networkTariff }) => {
+const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption, spotPrice, networkTariff, additionalFees }) => {
   // Add safety checks
   if (!product) {
     console.error('ProviderCard: product is undefined');
@@ -32,11 +36,16 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
     }
   };
 
-  // Use the shared calculation service with network tariff
+  // Use the shared calculation service with network tariff and additional fees
   const baseSpotPrice = spotPrice !== null ? spotPrice : PRICE_CONSTANTS.DEFAULT_SPOT_PRICE;
-  const pricePerKwh = calculatePricePerKwh(baseSpotPrice, product.displayPrice_kWh || 0, networkTariff);
+  const pricePerKwh = calculatePricePerKwh(
+    baseSpotPrice, 
+    product.displayPrice_kWh || 0, 
+    networkTariff,
+    additionalFees
+  );
   const estimatedMonthlyPrice = calculateMonthlyCost(annualConsumption, pricePerKwh, product.displayMonthlyFee || 0);
-  const breakdown = getPriceBreakdown(baseSpotPrice, product.displayPrice_kWh || 0, networkTariff);
+  const breakdown = getPriceBreakdown(baseSpotPrice, product.displayPrice_kWh || 0, networkTariff, additionalFees);
   
 
   return (
@@ -128,9 +137,17 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
                         <p className="text-sm text-muted-foreground">Estimat baseret på live spotpris.</p>
                         <div className="text-xs space-y-1 pt-2">
                           <div className="flex justify-between"><span>Spotpris:</span> <span>{breakdown.spotPrice.toFixed(2)} kr.</span></div>
-                          <div className="flex justify-between"><span>Dit elselskab (tillæg):</span> <span>{breakdown.providerMarkup.toFixed(2)} kr.</span></div>
+                          <div className="flex justify-between"><span>Leverandør tillæg:</span> <span>{breakdown.providerMarkup.toFixed(2)} kr.</span></div>
+                          {breakdown.greenCertificates > 0 && (
+                            <div className="flex justify-between"><span>Grønne certifikater:</span> <span>{breakdown.greenCertificates.toFixed(2)} kr.</span></div>
+                          )}
+                          {breakdown.tradingCosts > 0 && (
+                            <div className="flex justify-between"><span>Handelsomkostninger:</span> <span>{breakdown.tradingCosts.toFixed(2)} kr.</span></div>
+                          )}
                           <div className="border-t my-1"></div>
-                          <div className="flex justify-between"><span>Netafgifter (samlet):</span> <span>{breakdown.networkFees.toFixed(2)} kr.</span></div>
+                          <div className="flex justify-between text-gray-600"><span>Nettarif ({breakdown.networkTariff.toFixed(2)} kr):</span> <span className="text-gray-600">{breakdown.networkTariff.toFixed(2)} kr.</span></div>
+                          <div className="flex justify-between text-gray-600"><span>Systemtarif:</span> <span className="text-gray-600">{PRICE_CONSTANTS.SYSTEM_TARIFF.toFixed(2)} kr.</span></div>
+                          <div className="flex justify-between text-gray-600"><span>Transmissionstarif:</span> <span className="text-gray-600">{PRICE_CONSTANTS.TRANSMISSION_FEE.toFixed(2)} kr.</span></div>
                           <div className="flex justify-between"><span>Elafgift:</span> <span>{breakdown.electricityTax.toFixed(2)} kr.</span></div>
                           <div className="border-t my-1"></div>
                           <div className="flex justify-between font-semibold"><span>Pris u. moms:</span> <span>{breakdown.subtotal.toFixed(2)} kr.</span></div>

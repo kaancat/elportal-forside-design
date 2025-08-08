@@ -149,6 +149,13 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
     const bMonthly = b.monthlySubscription || b.displayMonthlyFee || 0;
     return aMonthly - bMonthly;
   });
+  
+  console.log('Sorted providers:', sortedProviders.map(p => ({
+    name: p.providerName,
+    product: p.productName,
+    isVindstoed: p.isVindstoedProduct,
+    monthly: p.monthlySubscription
+  })));
 
   // Convert Sanity provider to ElectricityProduct format for ProviderCard
   const convertToElectricityProduct = (provider: any): ElectricityProduct => ({
@@ -276,22 +283,32 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
           </div>
 
           {/* Provider Cards */}
-          {sortedProviders.map(provider => {
-            const product = convertToElectricityProduct(provider);
-            return (
-              <ProviderCard 
-                key={product.id} 
-                product={product}
-                annualConsumption={annualConsumption[0]}
-                spotPrice={spotPrice}
-                networkTariff={networkTariff}
-                additionalFees={{
-                  greenCertificates: provider.greenCertificateFee,
-                  tradingCosts: provider.tradingCosts
-                }}
-              />
-            );
-          })}
+          {providersLoading ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Henter leverandører...</p>
+            </div>
+          ) : sortedProviders.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Ingen leverandører tilgængelige</p>
+            </div>
+          ) : (
+            sortedProviders.map(provider => {
+              const product = convertToElectricityProduct(provider);
+              return (
+                <ProviderCard 
+                  key={product.id} 
+                  product={product}
+                  annualConsumption={annualConsumption[0]}
+                  spotPrice={spotPrice}
+                  networkTariff={networkTariff}
+                  additionalFees={{
+                    greenCertificates: provider.greenCertificateFee,
+                    tradingCosts: provider.tradingCosts
+                  }}
+                />
+              );
+            })
+          )}
         </motion.div>
       </div>
     </section>

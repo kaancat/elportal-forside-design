@@ -37,19 +37,36 @@ export const PRICE_CONSTANTS = {
 
 /**
  * Calculate the total price per kWh including all components and VAT
+ * Now supports detailed provider pricing components
  */
 export function calculatePricePerKwh(
   spotPrice: number,
   providerMarkup: number,
-  networkTariff?: number
+  networkTariff?: number,
+  additionalFees?: {
+    greenCertificates?: number;
+    tradingCosts?: number;
+  }
 ): number {
   // Use provided network tariff or fall back to average
   const actualNetworkTariff = networkTariff ?? PRICE_CONSTANTS.NETWORK_TARIFF_AVG;
   
+  // Convert øre to kr if needed (assuming inputs > 10 are in øre)
+  const spotPriceKr = spotPrice > 10 ? spotPrice / 100 : spotPrice;
+  const providerMarkupKr = providerMarkup > 10 ? providerMarkup / 100 : providerMarkup;
+  const greenCertsKr = (additionalFees?.greenCertificates ?? 0) > 10 
+    ? (additionalFees?.greenCertificates ?? 0) / 100 
+    : (additionalFees?.greenCertificates ?? 0);
+  const tradingCostsKr = (additionalFees?.tradingCosts ?? 0) > 10
+    ? (additionalFees?.tradingCosts ?? 0) / 100
+    : (additionalFees?.tradingCosts ?? 0);
+  
   // Sum all components before VAT
   const priceBeforeVat = 
-    spotPrice +
-    providerMarkup +
+    spotPriceKr +
+    providerMarkupKr +
+    greenCertsKr +
+    tradingCostsKr +
     actualNetworkTariff +
     PRICE_CONSTANTS.SYSTEM_TARIFF +
     PRICE_CONSTANTS.ELECTRICITY_TAX +
@@ -92,19 +109,36 @@ export function calculateAnnualCost(
 export function getPriceBreakdown(
   spotPrice: number,
   providerMarkup: number,
-  networkTariff?: number
+  networkTariff?: number,
+  additionalFees?: {
+    greenCertificates?: number;
+    tradingCosts?: number;
+  }
 ) {
   const actualNetworkTariff = networkTariff ?? PRICE_CONSTANTS.NETWORK_TARIFF_AVG;
+  
+  // Convert øre to kr if needed
+  const spotPriceKr = spotPrice > 10 ? spotPrice / 100 : spotPrice;
+  const providerMarkupKr = providerMarkup > 10 ? providerMarkup / 100 : providerMarkup;
+  const greenCertsKr = (additionalFees?.greenCertificates ?? 0) > 10 
+    ? (additionalFees?.greenCertificates ?? 0) / 100 
+    : (additionalFees?.greenCertificates ?? 0);
+  const tradingCostsKr = (additionalFees?.tradingCosts ?? 0) > 10
+    ? (additionalFees?.tradingCosts ?? 0) / 100
+    : (additionalFees?.tradingCosts ?? 0);
+  
   const networkFees = actualNetworkTariff + 
                      PRICE_CONSTANTS.SYSTEM_TARIFF + 
                      PRICE_CONSTANTS.TRANSMISSION_FEE;
   
-  const subtotal = spotPrice + providerMarkup + networkFees + PRICE_CONSTANTS.ELECTRICITY_TAX;
+  const subtotal = spotPriceKr + providerMarkupKr + greenCertsKr + tradingCostsKr + networkFees + PRICE_CONSTANTS.ELECTRICITY_TAX;
   const vatAmount = subtotal * PRICE_CONSTANTS.VAT_RATE;
   
   return {
-    spotPrice,
-    providerMarkup,
+    spotPrice: spotPriceKr,
+    providerMarkup: providerMarkupKr,
+    greenCertificates: greenCertsKr,
+    tradingCosts: tradingCostsKr,
     networkFees,
     networkTariff: actualNetworkTariff,
     electricityTax: PRICE_CONSTANTS.ELECTRICITY_TAX,

@@ -9,8 +9,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Info, MapPin } from 'lucide-react';
 import type { ProviderListBlock } from '../types/sanity';
 import { useScrollAnimation, staggerContainer, animationClasses } from '@/hooks/useScrollAnimation';
-import { hardcodedProviders, getSortedProviders } from '@/data/hardcodedProviders';
 import { ElectricityProduct } from '@/types/product';
+import { client } from '@/lib/sanity';
 
 interface ProviderListProps {
   block: ProviderListBlock;
@@ -30,6 +30,8 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
   const [spotPrice, setSpotPrice] = useState<number | null>(null);
   const [priceLoading, setPriceLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [providers, setProviders] = useState<any[]>([]);
+  const [providersLoading, setProvidersLoading] = useState(true);
   
   // Location hook for postal code based pricing
   const { location, loading: locationLoading, updateLocation } = useLocation();
@@ -65,6 +67,49 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
     fetchSpotPrice();
   }, [location?.region]); // Re-fetch when region changes
 
+  // Fetch providers from Sanity
+  useEffect(() => {
+    const fetchProviders = async () => {
+      setProvidersLoading(true);
+      try {
+        const query = `*[_type == "provider" && isActive == true] {
+          _id,
+          providerName,
+          productName,
+          "logoUrl": logo.asset->url,
+          spotPriceMarkup,
+          greenCertificateFee,
+          tradingCosts,
+          monthlySubscription,
+          signupFee,
+          yearlySubscription,
+          signupLink,
+          isVindstoedProduct,
+          isVariablePrice,
+          bindingPeriod,
+          isGreenEnergy,
+          benefits,
+          lastPriceUpdate,
+          priceUpdateFrequency,
+          notes,
+          // Legacy fields for compatibility
+          displayPrice_kWh,
+          displayMonthlyFee
+        }`;
+        
+        const sanityProviders = await client.fetch(query);
+        setProviders(sanityProviders);
+      } catch (error) {
+        console.error('Failed to fetch providers from Sanity:', error);
+        // Could fall back to hardcoded providers here if needed
+      } finally {
+        setProvidersLoading(false);
+      }
+    };
+
+    fetchProviders();
+  }, []); // Fetch once on mount
+
   const handleHouseholdTypeSelect = (type: HouseholdType | null) => {
     if (type) {
       setAnnualConsumption([type.kWh]);
@@ -91,26 +136,41 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
 
   // Get sorted providers based on current spot price and network tariff
   const networkTariff = location?.gridProvider?.networkTariff || 0.30;
-  const sortedProviders = getSortedProviders(spotPrice || 1.5, networkTariff);
+  
+  // Sort providers with Vindstød first, then by calculated price
+  const sortedProviders = [...providers].sort((a, b) => {
+    // Vindstød always first
+    if (a.isVindstoedProduct && !b.isVindstoedProduct) return -1;
+    if (!a.isVindstoedProduct && b.isVindstoedProduct) return 1;
+    
+    // Sort by total monthly cost (simplified for now)
+    const aMonthly = a.monthlySubscription || a.displayMonthlyFee || 0;
+    const bMonthly = b.monthlySubscription || b.displayMonthlyFee || 0;
+    return aMonthly - bMonthly;
+  });
 
-  // Convert hardcoded provider to ElectricityProduct format for ProviderCard
+  // Convert Sanity provider to ElectricityProduct format for ProviderCard
   const convertToElectricityProduct = (provider: any): ElectricityProduct => ({
-    id: provider.id,
+    id: provider._id,
     supplierName: provider.providerName,
     productName: provider.productName,
-    isVindstoedProduct: provider.isVindstoedProduct,
-    displayPrice_kWh: provider.displayPrice_kWh,
-    displayMonthlyFee: provider.displayMonthlyFee,
+    isVindstoedProduct: provider.isVindstoedProduct || false,
+    // Use new detailed pricing or fall back to legacy fields
+    displayPrice_kWh: provider.spotPriceMarkup ? provider.spotPriceMarkup / 100 : (provider.displayPrice_kWh || 0),
+    displayMonthlyFee: provider.monthlySubscription || provider.displayMonthlyFee || 0,
     signupLink: provider.signupLink,
     supplierLogoURL: provider.logoUrl,
-    isVariablePrice: provider.isVariablePrice,
-    hasNoBinding: provider.hasNoBinding,
-    hasFreeSignup: provider.hasFreeSignup,
-    internalNotes: '',
-    lastUpdated: new Date().toISOString(),
+    isVariablePrice: provider.isVariablePrice !== undefined ? provider.isVariablePrice : true,
+    hasNoBinding: provider.bindingPeriod === 0,
+    hasFreeSignup: provider.signupFee === 0,
+    internalNotes: provider.notes || '',
+    lastUpdated: provider.lastPriceUpdate || new Date().toISOString(),
     sortOrderVindstoed: provider.isVindstoedProduct ? 1 : undefined,
     sortOrderCompetitor: provider.isVindstoedProduct ? undefined : 1,
-  });
+    // Store additional fees for price calculation
+    greenCertificateFee: provider.greenCertificateFee,
+    tradingCosts: provider.tradingCosts,
+  } as ElectricityProduct & { greenCertificateFee?: number; tradingCosts?: number });
 
   const headerAlignmentClass = block.headerAlignment === 'left' ? 'text-left' : block.headerAlignment === 'right' ? 'text-right' : 'text-center';
 
@@ -179,7 +239,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
         >
           <h2 className="text-2xl font-display font-bold text-center text-brand-dark mb-4">
             Aktuelle tilbud
-            {(priceLoading || locationLoading) && (
+            {(priceLoading || locationLoading || providersLoading) && (
               <span className="text-sm text-gray-500 ml-2">(Henter priser...)</span>
             )}
           </h2>
@@ -216,13 +276,18 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
 
           {/* Provider Cards */}
           {sortedProviders.map(provider => {
+            const product = convertToElectricityProduct(provider);
             return (
               <ProviderCard 
-                key={provider.id} 
-                product={convertToElectricityProduct(provider)}
+                key={product.id} 
+                product={product}
                 annualConsumption={annualConsumption[0]}
                 spotPrice={spotPrice}
                 networkTariff={networkTariff}
+                additionalFees={{
+                  greenCertificates: provider.greenCertificateFee,
+                  tradingCosts: provider.tradingCosts
+                }}
               />
             );
           })}

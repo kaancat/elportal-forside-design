@@ -242,6 +242,10 @@ export function ForbrugTracker({
           </div>
         </div>
       }
+      onError={(error) => {
+        // Log details for diagnostics without crashing other content
+        console.error('ForbrugTracker error boundary caught:', error)
+      }}
     >
     <div className="w-full py-12">
       <div className="container mx-auto px-4 max-w-6xl">

@@ -7,7 +7,7 @@
  * Price Components:
  * 1. Spot Price - Market price from Nord Pool (variable)
  * 2. Provider Markup - Each provider's additional fee
- * 3. Network Tariff - Grid company fees (varies by region)
+ * 3. Network Tariff - Grid company fees (varies by region) - NOW FETCHED FROM API
  * 4. System Tariff - Energinet system operation
  * 5. Electricity Tax - Government tax (elafgift)
  * 6. Transmission Fee - Energinet transmission network
@@ -16,6 +16,8 @@
  */
 
 import { ProviderProductBlock } from '@/types/sanity';
+import { TariffData } from '@/types/datahub';
+import { datahubPricelistService } from './datahubPricelistService';
 
 // Price constants in kr/kWh (2024 values)
 export const PRICE_CONSTANTS = {
@@ -188,6 +190,75 @@ export function rankProviders(
   
   // Remove the temporary cost field
   return ranked.map(({ calculatedMonthlyCost, ...provider }) => provider);
+}
+
+/**
+ * Calculate price per kWh with dynamic network tariff from API
+ * This is the enhanced version that fetches real-time tariff data
+ * 
+ * @param spotPrice - Spot price in kr/kWh
+ * @param providerMarkup - Provider markup in øre/kWh
+ * @param tariffData - Optional tariff data from API
+ * @param useCurrentHour - Whether to use current hour rate or average
+ */
+export async function calculatePriceWithDynamicTariff(
+  spotPrice: number,
+  providerMarkup: number,
+  gln?: string,
+  tariffData?: TariffData | null,
+  useCurrentHour: boolean = false
+): Promise<number> {
+  let networkTariff = PRICE_CONSTANTS.NETWORK_TARIFF_AVG;
+  
+  // Try to use provided tariff data first
+  if (tariffData) {
+    networkTariff = useCurrentHour 
+      ? datahubPricelistService.getCurrentHourlyRate(tariffData)
+      : tariffData.averageRate;
+  } 
+  // Try to fetch if GLN is provided
+  else if (gln) {
+    const fetchedTariff = await datahubPricelistService.getCurrentTariff(gln);
+    if (fetchedTariff) {
+      networkTariff = useCurrentHour
+        ? datahubPricelistService.getCurrentHourlyRate(fetchedTariff)
+        : fetchedTariff.averageRate;
+    }
+  }
+  
+  // Use standard calculation with dynamic tariff
+  return calculatePricePerKwh(spotPrice, providerMarkup, networkTariff);
+}
+
+/**
+ * Get current tariff period information
+ */
+export function getCurrentTariffPeriod(): {
+  period: 'low' | 'high' | 'peak';
+  name: string;
+  description: string;
+} {
+  const hour = new Date().getHours();
+  
+  if (hour >= 0 && hour < 6) {
+    return {
+      period: 'low',
+      name: 'Lavlast',
+      description: 'Billigste periode (nat)'
+    };
+  } else if (hour >= 17 && hour < 21) {
+    return {
+      period: 'peak',
+      name: 'Spidslast',
+      description: 'Dyreste periode (aften)'
+    };
+  } else {
+    return {
+      period: 'high',
+      name: 'Højlast',
+      description: 'Normal periode (dag)'
+    };
+  }
 }
 
 /**

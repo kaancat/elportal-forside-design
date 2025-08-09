@@ -1,5 +1,6 @@
 // Grid providers (DSOs) operating in Denmark
 // Data from EnergiDataService ConnectionPointsInGrid and PowerSupplierChangePerGridarea APIs
+// Network tariffs are weighted averages from DatahubPricelist API (2025 data)
 
 export const gridProviders = {
   // Major DSOs
@@ -7,7 +8,8 @@ export const gridProviders = {
     code: "791",
     name: "Radius Elnet A/S",
     gln: "5790000705689",
-    networkTariff: 0.35, // kr/kWh (estimated average)
+    networkTariff: 0.217, // kr/kWh (2025 average from DatahubPricelist API)
+    chargeCode: "DT_C_01", // Charge code for residential customers
     region: "DK2" as const,
     municipalities: ["København", "Frederiksberg", "Gentofte", "Lyngby-Taarbæk", "Gladsaxe", 
       "Herlev", "Ballerup", "Furesø", "Allerød", "Fredensborg", "Helsingør", "Hørsholm",
@@ -18,7 +20,8 @@ export const gridProviders = {
     code: "740",
     name: "Cerius A/S",
     gln: "5790000610976",
-    networkTariff: 0.32,
+    networkTariff: 0.236, // kr/kWh (2025 average)
+    chargeCode: "DT_C_01",
     region: "DK2" as const,
     municipalities: ["Faxe", "Stevns", "Køge", "Solrød", "Greve", "Holbæk", "Kalundborg",
       "Odsherred", "Slagelse", "Ringsted", "Næstved", "Vordingborg", "Guldborgsund", "Lolland"]
@@ -27,7 +30,8 @@ export const gridProviders = {
     code: "853",
     name: "Cerius A/S",
     gln: "5790000610976",
-    networkTariff: 0.32,
+    networkTariff: 0.236, // kr/kWh (2025 average)
+    chargeCode: "DT_C_01",
     region: "DK2" as const,
     municipalities: []
   },
@@ -35,7 +39,8 @@ export const gridProviders = {
     code: "131",
     name: "N1 A/S",
     gln: "5790001089030",
-    networkTariff: 0.30,
+    networkTariff: 0.192, // kr/kWh (2025 average from DatahubPricelist API)
+    chargeCode: "CD", // N1 uses different charge code
     region: "DK1" as const,
     municipalities: ["Aabenraa", "Tønder", "Haderslev", "Sønderborg", "Esbjerg", "Fanø",
       "Varde", "Billund", "Vejen", "Kolding", "Vejle", "Hedensted", "Horsens", "Viborg",
@@ -47,7 +52,8 @@ export const gridProviders = {
     code: "344",
     name: "N1 A/S",
     gln: "5790001089030",
-    networkTariff: 0.30,
+    networkTariff: 0.192, // kr/kWh (2025 average)
+    chargeCode: "CD",
     region: "DK1" as const,
     municipalities: []
   },
@@ -55,7 +61,8 @@ export const gridProviders = {
     code: "398",
     name: "N1 A/S",
     gln: "5790001089030",
-    networkTariff: 0.30,
+    networkTariff: 0.192, // kr/kWh (2025 average)
+    chargeCode: "CD",
     region: "DK1" as const,
     municipalities: []
   },
@@ -63,7 +70,8 @@ export const gridProviders = {
     code: "543",
     name: "Vores Elnet A/S",
     gln: "5790000610853",
-    networkTariff: 0.28,
+    networkTariff: 0.220, // kr/kWh (2025 average)
+    chargeCode: "DT_C_01",
     region: "DK2" as const,
     municipalities: ["Odense", "Faaborg-Midtfyn", "Assens", "Middelfart", "Nordfyn",
       "Kerteminde", "Nyborg", "Svendborg", "Langeland", "Ærø"]
@@ -72,7 +80,8 @@ export const gridProviders = {
     code: "244",
     name: "TREFOR El-Net A/S",
     gln: "5790000392261",
-    networkTariff: 0.29,
+    networkTariff: 0.316, // kr/kWh (2025 average)
+    chargeCode: "DT_C_01",
     region: "DK1" as const,
     municipalities: ["Fredericia", "Kolding", "Vejen", "Haderslev", "Middelfart"]
   },
@@ -80,7 +89,8 @@ export const gridProviders = {
     code: "911",
     name: "TREFOR El-Net Øst A/S",
     gln: "5790000392551",
-    networkTariff: 0.29,
+    networkTariff: 0.641, // kr/kWh (2025 average - Bornholm has higher costs)
+    chargeCode: "DT_C_01",
     region: "DK2" as const,
     municipalities: ["Bornholm", "Egedal"]
   },
@@ -88,7 +98,8 @@ export const gridProviders = {
     code: "151",
     name: "Konstant Net A/S",
     gln: "5790000610280",
-    networkTariff: 0.31,
+    networkTariff: 0.310, // kr/kWh (2025 average)
+    chargeCode: "DT_C_01",
     region: "DK1" as const,
     municipalities: ["Aarhus", "Skanderborg", "Favrskov", "Norddjurs", "Syddjurs", "Samsø"]
   },

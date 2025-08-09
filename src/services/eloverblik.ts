@@ -24,7 +24,7 @@ export async function getAccessToken(refreshToken: string): Promise<string> {
   }
 
   try {
-    const response = await fetch('/api/eloverblik/get-token', {
+    const response = await fetch('/api/eloverblik?action=get-token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -58,7 +58,7 @@ export async function getMeteringPoints(refreshToken: string) {
   try {
     const accessToken = await getAccessToken(refreshToken)
     
-    const response = await fetch('/api/eloverblik/get-metering-points', {
+    const response = await fetch('/api/eloverblik?action=get-metering-points', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -111,7 +111,7 @@ export async function getConsumption(
       throw new Error('Maximum 10 metering points per request. Please batch your requests.')
     }
     
-    const response = await fetch('/api/eloverblik/get-consumption', {
+    const response = await fetch('/api/eloverblik?action=get-consumption', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

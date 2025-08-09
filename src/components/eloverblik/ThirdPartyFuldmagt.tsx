@@ -39,7 +39,7 @@ export function ThirdPartyFuldmagt() {
     setError(null)
     
     try {
-      const response = await fetch('/api/eloverblik/thirdparty/get-authorizations')
+      const response = await fetch('/api/eloverblik?action=thirdparty-authorizations')
       
       if (!response.ok) {
         const errorData = await response.json()

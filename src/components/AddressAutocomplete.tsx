@@ -155,13 +155,33 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 
   // Format suggestion for display
   const formatSuggestion = (suggestion: DawaAutocompleteResult) => {
-    const { data } = suggestion;
-    const street = data.vejnavn && data.husnr 
-      ? `${data.vejnavn} ${data.husnr}` 
-      : data.vejnavn;
-    const city = `${data.postnr} ${data.postnrnavn}`;
+    const { data, type } = suggestion;
     
-    return { street, city, supplement: data.supplerendebynavn };
+    // Handle street name suggestions (vejnavn type)
+    if (type === 'vejnavn') {
+      const vejnavnData = data as any; // Type assertion for vejnavn data
+      return {
+        street: vejnavnData.navn || suggestion.forslagstekst || '',
+        city: null,
+        supplement: null
+      };
+    }
+    
+    // Handle address suggestions (adgangsadresse/adresse type)
+    const addressData = data as any; // Type assertion for address data
+    const street = addressData.vejnavn && addressData.husnr 
+      ? `${addressData.vejnavn} ${addressData.husnr}` 
+      : addressData.vejnavn || suggestion.forslagstekst || '';
+    
+    const city = addressData.postnr && addressData.postnrnavn
+      ? `${addressData.postnr} ${addressData.postnrnavn}`
+      : null;
+    
+    return { 
+      street: street || suggestion.forslagstekst || '', 
+      city, 
+      supplement: addressData.supplerendebynavn 
+    };
   };
 
   return (
@@ -198,14 +218,16 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
           {suggestions.map((suggestion, index) => {
             const { street, city, supplement } = formatSuggestion(suggestion);
             const isSelected = index === selectedIndex;
+            const isStreetOnly = suggestion.type === 'vejnavn';
             
             return (
               <button
-                key={suggestion.data.id}
+                key={suggestion.data.id || `${suggestion.type}-${index}`}
                 type="button"
                 className={cn(
                   "w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0",
-                  isSelected && "bg-blue-50 hover:bg-blue-50"
+                  isSelected && "bg-blue-50 hover:bg-blue-50",
+                  isStreetOnly && "opacity-75"
                 )}
                 onClick={() => handleSelectSuggestion(suggestion)}
                 onMouseEnter={() => setSelectedIndex(index)}
@@ -214,12 +236,19 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
                   <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-gray-900 truncate">
-                      {street}
+                      {street || suggestion.forslagstekst}
+                      {isStreetOnly && (
+                        <span className="ml-2 text-xs font-normal text-gray-500">
+                          (Fortsæt med at skrive for at se adresser)
+                        </span>
+                      )}
                     </div>
-                    <div className="text-sm text-gray-500">
-                      {supplement && <span>{supplement}, </span>}
-                      {city}
-                    </div>
+                    {(city || supplement) && (
+                      <div className="text-sm text-gray-500">
+                        {supplement && <span>{supplement}, </span>}
+                        {city}
+                      </div>
+                    )}
                   </div>
                 </div>
               </button>

@@ -35,6 +35,12 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
 
   // Handle address selection from autocomplete
   const handleAddressSelect = async (addressResult: DawaAutocompleteResult) => {
+    // Don't process street name suggestions without addresses
+    if (addressResult.type === 'vejnavn') {
+      setError('Vælg venligst en specifik adresse med husnummer');
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     setMultipleProviders([]);
@@ -43,6 +49,13 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
       // Extract postal code and create full address
       const postalCode = DawaAutocompleteService.extractPostalCode(addressResult);
       const fullAddress = DawaAutocompleteService.extractFullAddress(addressResult);
+      
+      // Validate we have a postal code
+      if (!postalCode) {
+        setError('Kunne ikke finde postnummer for denne adresse');
+        setLoading(false);
+        return;
+      }
       
       // Get location data using the full address
       const locationData = await GridProviderService.getLocationByQuery(fullAddress);

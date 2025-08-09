@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { ConsumptionChart } from './ConsumptionChart'
 import { ConsumptionDashboard } from './ConsumptionDashboard'
+import { EnhancedConsumptionDashboard } from './EnhancedConsumptionDashboard'
 import { TrueCostCalculator } from './TrueCostCalculator'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import { ContentErrorFallback } from '@/components/ErrorFallbacks'
@@ -424,7 +425,7 @@ export function ForbrugTracker({
                   </TabsList>
 
                   <TabsContent value="consumption" className="mt-6">
-                    <ConsumptionDashboard 
+                    <EnhancedConsumptionDashboard 
                       customerData={customerData}
                       onRefresh={() => checkAuthorization(null)}
                     />

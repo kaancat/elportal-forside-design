@@ -11,6 +11,8 @@ export interface ElectricityProduct {
   isVariablePrice: boolean;
   hasNoBinding: boolean;
   hasFreeSignup: boolean;
+  isGreenEnergy?: boolean;
+  signupFee?: number;
   internalNotes: string;
   lastUpdated: string;
   sortOrderVindstoed?: number;

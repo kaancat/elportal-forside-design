@@ -201,6 +201,8 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
       isVariablePrice: provider.isVariablePrice !== undefined ? provider.isVariablePrice : true,
       hasNoBinding: provider.bindingPeriod === 0 || provider.bindingPeriod === undefined,
       hasFreeSignup: provider.signupFee === 0 || provider.signupFee === undefined,
+      isGreenEnergy: provider.isGreenEnergy || provider.isVindstoedProduct || false,
+      signupFee: provider.signupFee || 0,
       internalNotes: provider.notes || '',
       lastUpdated: provider.lastPriceUpdate || new Date().toISOString(),
       sortOrderVindstoed: provider.isVindstoedProduct ? 1 : undefined,
@@ -316,6 +318,33 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
                 </span>
               </div>
             ) : null}
+            
+            {/* Price Calculation Info */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer hover:text-gray-800 transition-colors">
+                    <Info className="h-4 w-4" />
+                    <span className="underline decoration-dotted">Sådan beregner vi priserne</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-sm">
+                  <div className="space-y-2">
+                    <p className="font-semibold">Vores prisberegning inkluderer:</p>
+                    <ul className="text-sm space-y-1">
+                      <li>• <strong>Live spotpriser</strong> opdateret hver time fra Nord Pool</li>
+                      <li>• <strong>Nettarif</strong> som gennemsnit over døgnet (faktiske timepriser varierer)</li>
+                      <li>• <strong>Leverandørens tillæg</strong> fra deres aktuelle prislister</li>
+                      <li>• <strong>Afgifter og moms</strong> (elafgift, systemtarif, transmission + 25% moms)</li>
+                    </ul>
+                    <p className="text-sm mt-2 text-gray-600">
+                      Vi stræber efter at vise de mest præcise og aktuelle priser, 
+                      så du kan træffe det bedste valg.
+                    </p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             
             {/* Last Updated Timestamp with Tooltip */}
             {lastUpdated && (

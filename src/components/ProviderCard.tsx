@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ArrowRight, Check, X, ExternalLink, Info } from 'lucide-react';
+import { ArrowRight, Check, X, ExternalLink, Info, Leaf, Wind } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -103,12 +103,31 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
               
               <div className="flex items-center text-sm">
                 {product.hasFreeSignup ? (
-                  <Check className="h-5 w-5 text-brand-green mr-3 flex-shrink-0" />
+                  <>
+                    <Check className="h-5 w-5 text-brand-green mr-3 flex-shrink-0" />
+                    <span className="text-brand-dark font-medium">Gratis oprettelse</span>
+                  </>
                 ) : (
-                  <X className="h-5 w-5 text-red-500 mr-3 flex-shrink-0" />
+                  <>
+                    <X className="h-5 w-5 text-red-500 mr-3 flex-shrink-0" />
+                    <span className="text-brand-dark font-medium">
+                      Oprettelse: {product.signupFee ? `${product.signupFee} kr` : 'Gebyr påkrævet'}
+                    </span>
+                  </>
                 )}
-                <span className="text-brand-dark font-medium">Gratis oprettelse</span>
               </div>
+              
+              {/* Green energy indicator */}
+              {product.isGreenEnergy && (
+                <div className="flex items-center text-sm">
+                  {product.isVindstoedProduct ? (
+                    <Wind className="h-5 w-5 text-brand-green mr-3 flex-shrink-0" />
+                  ) : (
+                    <Leaf className="h-5 w-5 text-brand-green mr-3 flex-shrink-0" />
+                  )}
+                  <span className="text-brand-dark font-medium">100% grøn strøm</span>
+                </div>
+              )}
             </div>
           </div>
           
@@ -159,7 +178,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
                     </PopoverContent>
                   </Popover>
                   
-                  <div>Månedligt gebyr: {product.displayMonthlyFee || 0} kr</div>
+                  <div>Månedligt abonnement: {product.displayMonthlyFee || 0} kr</div>
                 </div>
               </div>
             </div>

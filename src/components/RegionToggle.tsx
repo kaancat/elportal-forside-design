@@ -71,11 +71,6 @@ export const RegionToggle: React.FC<RegionToggleProps> = ({
             </ToggleGroupItem>
           </ToggleGroup>
 
-          {hasLocation && !isManualOverride && (
-            <span className="text-sm text-gray-500 italic">
-              (auto-valgt)
-            </span>
-          )}
         </div>
       </div>
 

@@ -7,25 +7,34 @@
  * Documentation: https://dawadocs.dataforsyningen.dk/dok/api/autocomplete
  */
 
+// Different data structures based on suggestion type
+interface VejnavnData {
+  navn: string;
+  href: string;
+}
+
+interface AdresseData {
+  id: string;
+  status?: number;
+  vejkode?: string;
+  vejnavn?: string;
+  husnr?: string;
+  supplerendebynavn?: string | null;
+  postnr?: string;
+  postnrnavn?: string;
+  kommunekode?: string;
+  x?: number;              // Longitude
+  y?: number;              // Latitude
+  href: string;           // API link for full details
+}
+
 export interface DawaAutocompleteResult {
   type: 'vejnavn' | 'adgangsadresse' | 'adresse';
   tekst: string;           // Text to fill in input field
   forslagstekst: string;   // Display text in dropdown
   caretpos: number;        // Cursor position after selection
-  data: {
-    id: string;
-    status: number;
-    vejkode: string;
-    vejnavn: string;
-    husnr: string;
-    supplerendebynavn?: string | null;
-    postnr: string;
-    postnrnavn: string;
-    kommunekode: string;
-    x: number;              // Longitude
-    y: number;              // Latitude
-    href: string;           // API link for full details
-  };
+  data: VejnavnData | AdresseData;
+  stormodtagerpostnr?: boolean;
 }
 
 export class DawaAutocompleteService {
@@ -118,27 +127,35 @@ export class DawaAutocompleteService {
    * @returns Formatted display string
    */
   static formatResult(result: DawaAutocompleteResult): string {
-    const { data } = result;
+    const { data, type } = result;
+    
+    // Handle street name suggestions
+    if (type === 'vejnavn') {
+      return (data as VejnavnData).navn || result.forslagstekst;
+    }
+    
+    // Handle address suggestions
+    const addressData = data as AdresseData;
     const parts = [];
 
     // Add street and number
-    if (data.vejnavn && data.husnr) {
-      parts.push(`${data.vejnavn} ${data.husnr}`);
-    } else if (data.vejnavn) {
-      parts.push(data.vejnavn);
+    if (addressData.vejnavn && addressData.husnr) {
+      parts.push(`${addressData.vejnavn} ${addressData.husnr}`);
+    } else if (addressData.vejnavn) {
+      parts.push(addressData.vejnavn);
     }
 
     // Add supplementary city name if exists
-    if (data.supplerendebynavn) {
-      parts.push(data.supplerendebynavn);
+    if (addressData.supplerendebynavn) {
+      parts.push(addressData.supplerendebynavn);
     }
 
     // Add postal code and city
-    if (data.postnr && data.postnrnavn) {
-      parts.push(`${data.postnr} ${data.postnrnavn}`);
+    if (addressData.postnr && addressData.postnrnavn) {
+      parts.push(`${addressData.postnr} ${addressData.postnrnavn}`);
     }
 
-    return parts.join(', ');
+    return parts.join(', ') || result.forslagstekst;
   }
 
   /**
@@ -147,7 +164,10 @@ export class DawaAutocompleteService {
    * @returns Postal code or null
    */
   static extractPostalCode(result: DawaAutocompleteResult): string | null {
-    return result.data.postnr || null;
+    if (result.type === 'vejnavn') {
+      return null;
+    }
+    return (result.data as AdresseData).postnr || null;
   }
 
   /**
@@ -166,10 +186,14 @@ export class DawaAutocompleteService {
    * @returns Coordinates object or null
    */
   static extractCoordinates(result: DawaAutocompleteResult): { lat: number; lng: number } | null {
-    if (result.data.x && result.data.y) {
+    if (result.type === 'vejnavn') {
+      return null;
+    }
+    const addressData = result.data as AdresseData;
+    if (addressData.x && addressData.y) {
       return {
-        lat: result.data.y,
-        lng: result.data.x,
+        lat: addressData.y,
+        lng: addressData.x,
       };
     }
     return null;

@@ -113,15 +113,28 @@ export function EnhancedConsumptionDashboard({ customerData, onRefresh }: Enhanc
 
   // Fetch data when view or range changes
   useEffect(() => {
-    fetchConsumptionData()
-  }, [timeView, dateRange, selectedDate])
+    if (customerData) {
+      fetchConsumptionData()
+    }
+  }, [timeView, dateRange, selectedDate, customerData])
 
   const fetchConsumptionData = async () => {
+    // Safety check for customerData
+    if (!customerData || (!customerData.authorizationId && !customerData.customerCVR)) {
+      console.log('No customer data available yet')
+      return
+    }
+    
     setConsumptionData(prev => ({ ...prev, isLoading: true, error: undefined }))
     
     try {
       // Calculate date range based on selection
       const { dateFrom, dateTo, aggregation } = calculateDateRange(dateRange, timeView, selectedDate)
+      
+      // Validate dates
+      if (!dateFrom || !dateTo || dateFrom > dateTo) {
+        throw new Error('Invalid date range calculated')
+      }
       
       console.log(`Fetching ${aggregation} data from ${dateFrom} to ${dateTo}`)
       
@@ -235,15 +248,23 @@ export function EnhancedConsumptionDashboard({ customerData, onRefresh }: Enhanc
     
     switch (range) {
       case 'today':
-        dateFrom = new Date(now.setHours(0, 0, 0, 0))
-        dateTo = new Date(now.setHours(23, 59, 59, 999))
+        const todayStart = new Date(now)
+        todayStart.setHours(0, 0, 0, 0)
+        dateFrom = todayStart
+        const todayEnd = new Date(now)
+        todayEnd.setHours(23, 59, 59, 999)
+        dateTo = todayEnd
         aggregation = 'Hour'
         break
       case 'yesterday':
         const yday = new Date(now)
-        yday.setDate(now.getDate() - 1)
-        dateFrom = new Date(yday.setHours(0, 0, 0, 0))
-        dateTo = new Date(yday.setHours(23, 59, 59, 999))
+        yday.setDate(yday.getDate() - 1)
+        const ydayStart = new Date(yday)
+        ydayStart.setHours(0, 0, 0, 0)
+        dateFrom = ydayStart
+        const ydayEnd = new Date(yday)
+        ydayEnd.setHours(23, 59, 59, 999)
+        dateTo = ydayEnd
         aggregation = 'Hour'
         break
       case '7d':
@@ -300,14 +321,20 @@ export function EnhancedConsumptionDashboard({ customerData, onRefresh }: Enhanc
     const dataMap = new Map()
     const priceMap = new Map()
     
-    // Process price data
-    priceData.forEach((price: any) => {
-      const date = new Date(price.HourDK || price.HourUTC)
-      const key = aggregation === 'Hour' 
-        ? date.toISOString()
-        : date.toISOString().split('T')[0]
-      priceMap.set(key, price.TotalPriceKWh || 0)
-    })
+    // Process price data safely
+    if (Array.isArray(priceData)) {
+      priceData.forEach((price: any) => {
+        try {
+          const date = new Date(price.HourDK || price.HourUTC)
+          const key = aggregation === 'Hour' 
+            ? date.toISOString()
+            : date.toISOString().split('T')[0]
+          priceMap.set(key, price.TotalPriceKWh || 0)
+        } catch (e) {
+          console.warn('Error processing price data point:', e)
+        }
+      })
+    }
     
     // Process consumption data
     const list = Array.isArray(result?.result) ? result.result : []
@@ -385,18 +412,19 @@ export function EnhancedConsumptionDashboard({ customerData, onRefresh }: Enhanc
     const averagePrice = processedData.length > 0 
       ? processedData.reduce((sum, d) => sum + d.price, 0) / processedData.length 
       : 0
-    const peakData = processedData.reduce((max, d) => d.consumption > max.consumption ? d : max, 
-      { consumption: 0, date: '', formattedDate: '' })
+    const peakData = processedData.length > 0 
+      ? processedData.reduce((max, d) => d.consumption > (max?.consumption || 0) ? d : max, processedData[0])
+      : { consumption: 0, date: '', formattedDate: 'N/A' }
     
     return {
       data: processedData,
       priceData: processedData,
-      totalConsumption,
-      totalCost,
-      averageConsumption,
-      averagePrice,
-      peak: peakData.consumption,
-      peakDate: peakData.formattedDate
+      totalConsumption: Number.isFinite(totalConsumption) ? totalConsumption : 0,
+      totalCost: Number.isFinite(totalCost) ? totalCost : 0,
+      averageConsumption: Number.isFinite(averageConsumption) ? averageConsumption : 0,
+      averagePrice: Number.isFinite(averagePrice) ? averagePrice : 0,
+      peakConsumption: Number.isFinite(peakData?.consumption) ? peakData.consumption : 0,
+      peakDate: peakData?.formattedDate || 'N/A'
     }
   }
 

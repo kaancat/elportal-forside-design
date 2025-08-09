@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/select';
 import { GridProviderService } from '@/services/gridProviderService';
 import { PostalCodeService } from '@/services/postalCodeService';
+import { DawaAutocompleteService, DawaAutocompleteResult } from '@/services/dawaAutocompleteService';
+import { AddressAutocomplete } from './AddressAutocomplete';
 import type { LocationData, GridProvider } from '@/types/location';
 
 interface LocationSelectorProps {
@@ -24,71 +26,35 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
   className = '' 
 }) => {
   const [inputValue, setInputValue] = useState<string>('');
-  const [inputMode, setInputMode] = useState<'postal' | 'address'>('postal');
   const [location, setLocation] = useState<LocationData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [multipleProviders, setMultipleProviders] = useState<GridProvider[]>([]);
   const [selectedProvider, setSelectedProvider] = useState<GridProvider | null>(null);
+  const [useAutocomplete, setUseAutocomplete] = useState(true);
 
-  // Detect input mode based on user input
-  useEffect(() => {
-    if (inputValue.length > 4 || inputValue.includes(',') || inputValue.includes(' ')) {
-      setInputMode('address');
-    } else if (/^\d{0,4}$/.test(inputValue)) {
-      setInputMode('postal');
-    }
-  }, [inputValue]);
-
-  // Debounced lookup
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (inputMode === 'postal' && inputValue.length === 4) {
-        handleLookup();
-      } else if (inputMode === 'address' && inputValue.length > 5) {
-        handleLookup();
-      } else if (inputValue.length > 0 && inputMode === 'postal' && inputValue.length !== 4) {
-        setError('Postnummer skal være 4 cifre');
-        setLocation(null);
-      } else {
-        setError(null);
-        setLocation(null);
-      }
-    }, 800); // Slightly longer delay for address mode
-
-    return () => clearTimeout(timer);
-  }, [inputValue, inputMode]);
-
-  const handleLookup = async () => {
+  // Handle address selection from autocomplete
+  const handleAddressSelect = async (addressResult: DawaAutocompleteResult) => {
     setLoading(true);
     setError(null);
     setMultipleProviders([]);
 
     try {
-      // For postal code mode, validate first
-      if (inputMode === 'postal' && !PostalCodeService.isValidPostalCode(inputValue)) {
-        setError('Ugyldigt postnummer');
-        setLoading(false);
-        return;
-      }
-
-      // Get location data using the new method that supports both postal codes and addresses
-      const locationData = await GridProviderService.getLocationByQuery(inputValue);
+      // Extract postal code and create full address
+      const postalCode = DawaAutocompleteService.extractPostalCode(addressResult);
+      const fullAddress = DawaAutocompleteService.extractFullAddress(addressResult);
+      
+      // Get location data using the full address
+      const locationData = await GridProviderService.getLocationByQuery(fullAddress);
       
       if (!locationData) {
-        setError(inputMode === 'address' 
-          ? 'Kunne ikke finde netselskab for denne adresse' 
-          : 'Kunne ikke finde område for dette postnummer');
+        setError('Kunne ikke finde netselskab for denne adresse');
         setLoading(false);
         return;
       }
 
-      // Extract postal code for municipality check
-      const postalCodeMatch = inputValue.match(/\b(\d{4})\b/);
-      const postalCode = postalCodeMatch ? postalCodeMatch[1] : inputValue;
-
-      // Check if municipality has multiple grid providers (only for postal code mode)
-      if (inputMode === 'postal') {
+      // Check if municipality has multiple grid providers
+      if (postalCode) {
         const municipality = PostalCodeService.getMunicipalityByPostalCode(postalCode);
         if (municipality) {
           const providers = await GridProviderService.getGridProvidersForMunicipality(municipality.name);
@@ -104,16 +70,79 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
       setLocation(locationData);
       onLocationChange(locationData);
     } catch (err) {
-      console.error('Error looking up location:', err);
+      console.error('Error processing address selection:', err);
       setError('Der opstod en fejl. Prøv igen senere.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+  // Manual lookup for postal codes (when not using autocomplete)
+  const handleManualLookup = async () => {
+    // Only process 4-digit postal codes
+    if (!/^\d{4}$/.test(inputValue)) {
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setMultipleProviders([]);
+
+    try {
+      // Validate postal code
+      if (!PostalCodeService.isValidPostalCode(inputValue)) {
+        setError('Ugyldigt postnummer');
+        setLoading(false);
+        return;
+      }
+
+      // Get location data using postal code
+      const locationData = await GridProviderService.getLocationByQuery(inputValue);
+      
+      if (!locationData) {
+        setError('Kunne ikke finde område for dette postnummer');
+        setLoading(false);
+        return;
+      }
+
+      // Check if municipality has multiple grid providers
+      const municipality = PostalCodeService.getMunicipalityByPostalCode(inputValue);
+      if (municipality) {
+        const providers = await GridProviderService.getGridProvidersForMunicipality(municipality.name);
+        
+        if (providers.length > 1) {
+          setMultipleProviders(providers);
+          setSelectedProvider(providers[0]);
+          locationData.gridProvider = providers[0];
+        }
+      }
+
+      setLocation(locationData);
+      onLocationChange(locationData);
+    } catch (err) {
+      console.error('Error looking up postal code:', err);
+      setError('Der opstod en fejl. Prøv igen senere.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Debounced manual lookup for postal codes
+  useEffect(() => {
+    if (!useAutocomplete && inputValue.length === 4 && /^\d{4}$/.test(inputValue)) {
+      const timer = setTimeout(() => {
+        handleManualLookup();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [inputValue, useAutocomplete]);
+
+  const handleInputChange = (value: string) => {
     setInputValue(value);
+    if (!value) {
+      setLocation(null);
+      setError(null);
+    }
   };
 
   const handleProviderChange = (providerCode: string) => {
@@ -159,26 +188,47 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
           <Label htmlFor="location-input" className="text-sm font-medium text-gray-700">
             Adresse eller postnummer
           </Label>
-          <div className="relative mt-1">
-            <Input
-              id="location-input"
-              type="text"
-              value={inputValue}
-              onChange={handleInputChange}
-              placeholder={inputMode === 'address' 
-                ? "F.eks. Nørrebrogade 1, 2200 København N" 
-                : "F.eks. 2100"}
-              className="pr-10"
-            />
-            {loading && (
-              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-gray-400" />
+          <div className="mt-1">
+            {useAutocomplete ? (
+              <AddressAutocomplete
+                value={inputValue}
+                onChange={handleInputChange}
+                onAddressSelect={handleAddressSelect}
+                placeholder="F.eks. Birkevej 7 eller 2200"
+                disabled={loading}
+              />
+            ) : (
+              <div className="relative">
+                <Input
+                  id="location-input"
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => handleInputChange(e.target.value)}
+                  placeholder="F.eks. 2100"
+                  className="pr-10"
+                  maxLength={4}
+                />
+                {loading && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-gray-400" />
+                )}
+              </div>
             )}
           </div>
-          {inputMode === 'address' && inputValue.length > 0 && inputValue.length < 6 && (
-            <p className="mt-1 text-xs text-gray-500">
-              Indtast fuld adresse for præcis netselskab
-            </p>
-          )}
+          
+          {/* Toggle between autocomplete and manual input */}
+          <button
+            type="button"
+            onClick={() => {
+              setUseAutocomplete(!useAutocomplete);
+              setInputValue('');
+              setLocation(null);
+              setError(null);
+            }}
+            className="mt-2 text-xs text-blue-600 hover:text-blue-700 underline"
+          >
+            {useAutocomplete ? 'Indtast kun postnummer' : 'Brug adressesøgning'}
+          </button>
+
           {error && (
             <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
               <AlertCircle className="h-3 w-3" />

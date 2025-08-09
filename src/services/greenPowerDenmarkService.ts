@@ -8,6 +8,7 @@
  */
 
 import type { GridProvider } from '@/types/location';
+import { gridProviders } from '@/data/gridProviders';
 
 interface GreenPowerAPIResponse {
   def: string;         // Grid provider code (e.g., "790" for Radius)
@@ -27,43 +28,6 @@ const DEF_CODE_MAPPING: Record<string, string> = {
 // Cache for API responses (24 hour TTL)
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 const apiCache = new Map<string, { data: GreenPowerAPIResponse; timestamp: number }>();
-
-// Network tariffs for grid providers (kr/kWh) - 2024 values
-// Source: Individual grid provider websites and regulatory filings
-const NETWORK_TARIFFS: Record<string, number> = {
-  '791': 0.35,  // Radius Elnet A/S (Copenhagen area)
-  '790': 0.35,  // Radius Elnet A/S (alternative code)
-  '740': 0.32,  // Cerius A/S
-  '853': 0.32,  // Cerius A/S (alternative code)
-  '131': 0.30,  // N1 A/S
-  '344': 0.30,  // N1 A/S (alternative code)
-  '398': 0.30,  // N1 A/S (alternative code)
-  '543': 0.28,  // Vores Elnet A/S
-  '553': 0.28,  // Vores Elnet A/S (alternative code)
-  '244': 0.29,  // TREFOR El-Net A/S
-  '911': 0.29,  // TREFOR El-Net Øst A/S
-  '151': 0.31,  // Konstant Net A/S
-  '245': 0.31,  // Konstant Net A/S (alternative code)
-  '031': 0.30,  // Nord Energi Net A/S
-  '233': 0.29,  // Dinel A/S
-  '533': 0.28,  // FLOW Elnet A/S
-  '531': 0.29,  // Ravdex A/S
-  '051': 0.30,  // Elinord A/S
-  '154': 0.30,  // Elnet Midt A/S
-  '381': 0.32,  // Hurup Elværk Net A/S
-  '347': 0.31,  // NOE Net A/S
-  '348': 0.31,  // RAH Net A/S
-  '385': 0.31,  // RAH Net A/S (alternative code)
-  '351': 0.32,  // L-Net A/S
-  '357': 0.31,  // Forsyning Elnet A/S
-  '342': 0.30,  // Ikast El Net A/S
-  '532': 0.32,  // Veksel A/S
-  '584': 0.33,  // Midtfyns Elforsyning A.m.b.A.
-  '085': 0.35,  // Læsø Elnet A/S
-};
-
-// Default network tariff if not found
-const DEFAULT_NETWORK_TARIFF = 0.30;
 
 export class GreenPowerDenmarkService {
   private static readonly API_BASE_URL = 'https://api.elnet.greenpowerdenmark.dk/api/supplierlookup';
@@ -127,6 +91,7 @@ export class GreenPowerDenmarkService {
 
   /**
    * Map API response to our GridProvider format
+   * Now uses gridProviders.ts as the single source of truth for tariffs and GLN
    */
   private static mapResponseToGridProvider(
     apiData: GreenPowerAPIResponse, 
@@ -135,23 +100,35 @@ export class GreenPowerDenmarkService {
     // Map DEF code to our internal code
     const internalCode = DEF_CODE_MAPPING[apiData.def] || apiData.def;
     
-    // Get network tariff for this provider
-    const networkTariff = NETWORK_TARIFFS[internalCode] || 
-                         NETWORK_TARIFFS[apiData.def] || 
-                         DEFAULT_NETWORK_TARIFF;
+    // Get data from gridProviders.ts (single source of truth)
+    const gridProviderData = gridProviders[internalCode];
     
-    // Determine region based on provider and query
+    // If we have data in gridProviders.ts, use it (includes GLN and tariff)
+    if (gridProviderData) {
+      return {
+        ...gridProviderData,
+        // Override name with API response (might be more current)
+        name: apiData.name,
+        // Add extra metadata from API
+        phone: apiData.phone,
+        website: apiData.website,
+        originalDef: apiData.def
+      } as GridProvider & { phone?: string; website?: string; originalDef?: string };
+    }
+    
+    // Fallback: create minimal provider without GLN (won't be able to fetch dynamic tariffs)
+    // This should rarely happen as gridProviders.ts is comprehensive
     const region = this.determineRegion(apiData.name, query);
-
+    
     return {
       code: internalCode,
       name: apiData.name,
-      networkTariff,
+      networkTariff: 0.30, // Regional average fallback
       region,
-      // Additional metadata from API
+      // No GLN available - dynamic tariff lookup won't work
       phone: apiData.phone,
       website: apiData.website,
-      originalDef: apiData.def // Keep original DEF code for reference
+      originalDef: apiData.def
     } as GridProvider & { phone?: string; website?: string; originalDef?: string };
   }
 

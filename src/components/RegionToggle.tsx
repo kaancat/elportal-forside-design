@@ -21,13 +21,13 @@ export const RegionToggle: React.FC<RegionToggleProps> = ({
 }) => {
   return (
     <div className={`bg-white rounded-xl shadow-sm border border-gray-100 p-6 ${className}`}>
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-2">
           <Map className="h-5 w-5 text-brand-green" />
           <h3 className="text-lg font-display font-semibold text-brand-dark">
             Vælg region
           </h3>
-          <TooltipProvider>
+          <TooltipProvider delayDuration={200}>
             <Tooltip>
               <TooltipTrigger>
                 <Info className="h-4 w-4 text-gray-400" />
@@ -42,7 +42,7 @@ export const RegionToggle: React.FC<RegionToggleProps> = ({
           </TooltipProvider>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 sm:justify-end w-full sm:w-auto">
           <ToggleGroup 
             type="single" 
             value={selectedRegion} 

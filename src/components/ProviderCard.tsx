@@ -57,12 +57,12 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
       {product.isVindstoedProduct && (
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand-green/60 via-brand-green to-brand-green/60"></div>
       )}
-      <div className="p-8">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-8">
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4 sm:gap-6 lg:gap-8">
           {/* Logo and company info */}
           <div className="flex flex-col space-y-4">
-            <div className="flex items-center space-x-6">
-              <div className="flex-shrink-0 w-28 h-28 flex items-center justify-center p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
+            <div className="flex items-center space-x-4 sm:space-x-6">
+              <div className="flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 flex items-center justify-center p-2 sm:p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
                 <img 
                   src={product.supplierLogoURL || '/placeholder.svg'} 
                   alt={`${product.supplierName || 'Ukendt'} logo`} 
@@ -87,7 +87,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
           </div>
           
           {/* Features Section */}
-          <div className="bg-gray-50 p-6 rounded-lg border-l-4 border-l-brand-green lg:flex-1">
+          <div className="bg-gray-50 p-4 sm:p-6 rounded-lg border-l-4 border-l-brand-green lg:flex-1">
             <h4 className="text-sm text-brand-dark uppercase font-bold mb-4 tracking-wide">Inkluderet</h4>
             <div className="space-y-3">
               <div className="flex items-center text-sm">
@@ -139,8 +139,8 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
           </div>
           
           {/* Price and action */}
-          <div className="flex flex-col items-end lg:min-w-[220px]">
-            <div className="bg-gradient-to-br from-brand-dark/5 to-gray-50 px-6 py-4 rounded-lg border border-gray-100 mb-6 w-full">
+          <div className="flex flex-col items-stretch sm:items-end w-full sm:w-auto lg:min-w-[220px]">
+            <div className="bg-gradient-to-br from-brand-dark/5 to-gray-50 px-4 sm:px-6 py-4 rounded-lg border border-gray-100 mb-4 sm:mb-6 w-full">
               <div className="text-right">
                 <div className="text-3xl font-bold text-brand-green mb-1">
                   {estimatedMonthlyPrice.toFixed(0)} kr

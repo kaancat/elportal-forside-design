@@ -289,7 +289,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
         >
-          <h2 className="text-2xl font-display font-bold text-center text-brand-dark mb-4">
+          <h2 className="text-2xl font-display font-bold text-center text-brand-dark mb-6">
             Aktuelle tilbud
             {(priceLoading || locationLoading) && (
               <span className="text-sm text-gray-500 ml-2">(Henter priser...)</span>
@@ -297,21 +297,25 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
           </h2>
 
           {/* Location and Price Info */}
-          <div className="flex flex-col items-center gap-2 mb-8">
+          <div className="flex flex-col items-center justify-center gap-3 mb-8 px-4">
             {(location && !isManualRegionOverride) ? (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <MapPin className="h-4 w-4" />
-                <span>
-                  Priser for {location.municipality.name} ({location.region}) 
-                  - Netselskab: {location.gridProvider.name}
-                </span>
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-sm text-gray-600 text-center sm:text-left">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 flex-shrink-0" />
+                  <span>Priser for {location.municipality.name} ({location.region})</span>
+                </div>
+                <span className="hidden sm:inline">-</span>
+                <span>Netselskab: {location.gridProvider.name}</span>
               </div>
             ) : isManualRegionOverride ? (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <MapPin className="h-4 w-4" />
-                <span>
-                  Priser for {selectedRegion === 'DK1' ? 'Vestdanmark' : 'Østdanmark'} ({selectedRegion})
-                  - Gennemsnitlig nettarif: {networkTariff.toFixed(2)} kr/kWh
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-sm text-gray-600 text-center sm:text-left">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 flex-shrink-0" />
+                  <span>Priser for {selectedRegion === 'DK1' ? 'Vestdanmark' : 'Østdanmark'} ({selectedRegion})</span>
+                </div>
+                <span className="hidden sm:inline">-</span>
+                <span className="flex items-center gap-1">
+                  Gennemsnitlig nettarif: {networkTariff.toFixed(2)} kr/kWh
                   {!isFallback && dynamicNetworkTariff && (
                     <span className="text-xs text-green-600 ml-1">✓ Live data</span>
                   )}
@@ -320,10 +324,10 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
             ) : null}
             
             {/* Price Calculation Info */}
-            <TooltipProvider>
+            <TooltipProvider delayDuration={200}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm font-medium cursor-pointer hover:bg-blue-100 transition-colors">
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-brand-green/10 text-brand-dark border border-brand-green/20 rounded-full text-sm font-medium cursor-pointer hover:bg-brand-green/20 transition-colors">
                     <Calculator className="h-4 w-4" />
                     <span>Sådan beregner vi priserne</span>
                   </div>
@@ -348,10 +352,10 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
             
             {/* Last Updated Timestamp with Tooltip */}
             {lastUpdated && (
-              <TooltipProvider>
+              <TooltipProvider delayDuration={200}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <p className="text-sm text-gray-500 cursor-pointer flex items-center gap-1">
+                    <p className="text-sm text-gray-500 cursor-pointer flex items-center justify-center gap-1">
                       Spotpris opdateret: {lastUpdated.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit', hour12: false })}
                       <Info size={14} />
                     </p>

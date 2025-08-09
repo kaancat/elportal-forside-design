@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import DatePicker, { registerLocale } from 'react-datepicker'
+import "react-datepicker/dist/react-datepicker.css"
+import "@/styles/datepicker-overrides.css"
 import { 
   BarChart, 
   Bar, 
@@ -33,10 +35,15 @@ import {
   Calendar,
   ToggleLeft,
   ToggleRight,
-  CalendarRange
+  CalendarRange,
+  Clock,
+  CalendarDays
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { da } from 'date-fns/locale'
+
+// Register Danish locale for react-datepicker
+registerLocale('da', da)
 
 interface ImprovedConsumptionDashboardProps {
   customerData: any
@@ -85,10 +92,7 @@ const CHART_COLORS = {
 
 export function ImprovedConsumptionDashboard({ customerData, onRefresh }: ImprovedConsumptionDashboardProps) {
   const [dateRange, setDateRange] = useState<DateRange>('30d')
-  const [customDateFrom, setCustomDateFrom] = useState<Date | undefined>(undefined)
-  const [customDateTo, setCustomDateTo] = useState<Date | undefined>(undefined)
-  const [tempDateFrom, setTempDateFrom] = useState<Date | undefined>(undefined)
-  const [tempDateTo, setTempDateTo] = useState<Date | undefined>(undefined)
+  const [customDateRange, setCustomDateRange] = useState<[Date | null, Date | null]>([null, null])
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false)
   const [consumptionData, setConsumptionData] = useState<ConsumptionData>({
     data: [],
@@ -112,17 +116,17 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
     }
   }, [customerData])
 
-  // Fetch consumption data when range changes (but not on individual date selections)
+  // Fetch consumption data when range changes
   useEffect(() => {
     if (customerData) {
       // Only fetch if we have a valid date range selection
-      if (dateRange === 'custom' && (!customDateFrom || !customDateTo)) {
+      if (dateRange === 'custom' && (!customDateRange[0] || !customDateRange[1])) {
         // Don't fetch if custom is selected but dates aren't confirmed yet
         return
       }
       fetchConsumptionData()
     }
-  }, [dateRange, customerData, showComparison]) // Removed customDateFrom/To to prevent live updates
+  }, [dateRange, customerData, showComparison]) // Don't include customDateRange to prevent live updates
 
   const fetchAddressData = async () => {
     if (!customerData?.meteringPointIds?.length) return
@@ -338,9 +342,9 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
         aggregation = 'Year'
         break
       case 'custom':
-        if (customDateFrom && customDateTo) {
-          dateFrom = new Date(customDateFrom)
-          dateTo = new Date(customDateTo)
+        if (customDateRange[0] && customDateRange[1]) {
+          dateFrom = new Date(customDateRange[0])
+          dateTo = new Date(customDateRange[1])
           // Determine aggregation based on date range
           const daysDiff = Math.ceil((dateTo.getTime() - dateFrom.getTime()) / (1000 * 60 * 60 * 24))
           if (daysDiff <= 2) {
@@ -632,14 +636,7 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
         {/* Custom Date Range Picker */}
         <Popover 
           open={isDatePickerOpen} 
-          onOpenChange={(open) => {
-            setIsDatePickerOpen(open)
-            if (open) {
-              // Initialize temp dates when opening
-              setTempDateFrom(customDateFrom)
-              setTempDateTo(customDateTo)
-            }
-          }}
+          onOpenChange={setIsDatePickerOpen}
         >
           <PopoverTrigger asChild>
             <Button
@@ -648,74 +645,154 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
               size="sm"
             >
               <CalendarRange className="h-4 w-4" />
-              {dateRange === 'custom' && customDateFrom && customDateTo
-                ? `${format(customDateFrom, 'd. MMM', { locale: da })} - ${format(customDateTo, 'd. MMM', { locale: da })}`
+              {dateRange === 'custom' && customDateRange[0] && customDateRange[1]
+                ? `${format(customDateRange[0], 'd. MMM', { locale: da })} - ${format(customDateRange[1], 'd. MMM', { locale: da })}`
                 : 'Vælg periode'}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-4" align="end">
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-medium text-sm mb-2">Vælg periode</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs text-gray-600 mb-1 block">Fra dato</label>
-                    <CalendarComponent
-                      mode="single"
-                      selected={tempDateFrom}
-                      onSelect={setTempDateFrom}
-                      disabled={(date) => {
-                        const yesterday = new Date()
-                        yesterday.setDate(yesterday.getDate() - 1)
-                        return date > yesterday || (tempDateTo ? date > tempDateTo : false)
-                      }}
-                      className="rounded-md border"
-                    />
+          <PopoverContent className="w-auto p-0" align="end">
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium text-sm">Vælg periode</h4>
+                {customDateRange[0] && !customDateRange[1] && (
+                  <span className="text-xs text-gray-500">Vælg slutdato</span>
+                )}
+                {!customDateRange[0] && (
+                  <span className="text-xs text-gray-500">Vælg startdato</span>
+                )}
+              </div>
+              
+              {/* Quick presets */}
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const end = new Date()
+                    end.setDate(end.getDate() - 1) // Yesterday
+                    const start = new Date(end)
+                    start.setDate(start.getDate() - 6) // 7 days ago
+                    setCustomDateRange([start, end])
+                  }}
+                  className="text-xs"
+                >
+                  <Clock className="h-3 w-3 mr-1" />
+                  7 dage
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const end = new Date()
+                    end.setDate(end.getDate() - 1) // Yesterday
+                    const start = new Date(end)
+                    start.setDate(start.getDate() - 29) // 30 days ago
+                    setCustomDateRange([start, end])
+                  }}
+                  className="text-xs"
+                >
+                  <CalendarDays className="h-3 w-3 mr-1" />
+                  30 dage
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const end = new Date()
+                    end.setDate(end.getDate() - 1) // Yesterday
+                    const start = new Date(end)
+                    start.setMonth(start.getMonth() - 3) // 3 months ago
+                    setCustomDateRange([start, end])
+                  }}
+                  className="text-xs"
+                >
+                  <Calendar className="h-3 w-3 mr-1" />
+                  3 mdr
+                </Button>
+              </div>
+              
+              {/* Date picker */}
+              <DatePicker
+                selectsRange={true}
+                startDate={customDateRange[0]}
+                endDate={customDateRange[1]}
+                onChange={(update: [Date | null, Date | null]) => {
+                  setCustomDateRange(update)
+                }}
+                inline
+                monthsShown={2}
+                maxDate={new Date(new Date().setDate(new Date().getDate() - 1))} // Yesterday
+                minDate={new Date(new Date().setFullYear(new Date().getFullYear() - 5))} // 5 years ago
+                locale="da"
+                dateFormat="d. MMMM yyyy"
+                calendarStartDay={1} // Monday
+                disabledKeyboardNavigation
+                renderCustomHeader={({
+                  monthDate,
+                  customHeaderCount,
+                  decreaseMonth,
+                  increaseMonth,
+                }) => (
+                  <div className="flex items-center justify-between px-2 py-2">
+                    <button
+                      onClick={decreaseMonth}
+                      disabled={customHeaderCount === 1}
+                      type="button"
+                      className={`
+                        ${customHeaderCount === 1 ? 'invisible' : ''}
+                        text-gray-600 hover:text-gray-900
+                      `}
+                    >
+                      <span className="text-lg">‹</span>
+                    </button>
+                    <span className="text-sm font-medium">
+                      {format(monthDate, 'MMMM yyyy', { locale: da })}
+                    </span>
+                    <button
+                      onClick={increaseMonth}
+                      disabled={customHeaderCount === 0}
+                      type="button"
+                      className={`
+                        ${customHeaderCount === 0 ? 'invisible' : ''}
+                        text-gray-600 hover:text-gray-900
+                      `}
+                    >
+                      <span className="text-lg">›</span>
+                    </button>
                   </div>
-                  <div>
-                    <label className="text-xs text-gray-600 mb-1 block">Til dato</label>
-                    <CalendarComponent
-                      mode="single"
-                      selected={tempDateTo}
-                      onSelect={setTempDateTo}
-                      disabled={(date) => {
-                        const yesterday = new Date()
-                        yesterday.setDate(yesterday.getDate() - 1)
-                        return date > yesterday || (tempDateFrom ? date < tempDateFrom : false)
-                      }}
-                      className="rounded-md border"
-                    />
-                  </div>
-                </div>
-                <div className="mt-3 pt-3 border-t flex gap-2">
-                  <Button
-                    onClick={() => setIsDatePickerOpen(false)}
-                    variant="outline"
-                    className="flex-1"
-                    size="sm"
-                  >
-                    Annuller
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      if (tempDateFrom && tempDateTo) {
-                        setCustomDateFrom(tempDateFrom)
-                        setCustomDateTo(tempDateTo)
-                        setDateRange('custom')
-                        setIsDatePickerOpen(false)
-                        // Trigger fetch after state updates
-                        setTimeout(() => {
-                          fetchConsumptionData()
-                        }, 0)
-                      }
-                    }}
-                    disabled={!tempDateFrom || !tempDateTo}
-                    className="flex-1"
-                    size="sm"
-                  >
-                    Anvend periode
-                  </Button>
-                </div>
+                )}
+              />
+              
+              {/* Actions */}
+              <div className="mt-3 pt-3 border-t flex gap-2">
+                <Button
+                  onClick={() => {
+                    setCustomDateRange([null, null])
+                    setIsDatePickerOpen(false)
+                  }}
+                  variant="outline"
+                  className="flex-1"
+                  size="sm"
+                >
+                  Annuller
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (customDateRange[0] && customDateRange[1]) {
+                      setDateRange('custom')
+                      setIsDatePickerOpen(false)
+                      // Trigger fetch after state updates
+                      setTimeout(() => {
+                        fetchConsumptionData()
+                      }, 0)
+                    }
+                  }}
+                  disabled={!customDateRange[0] || !customDateRange[1]}
+                  className="flex-1"
+                  size="sm"
+                >
+                  Anvend periode
+                </Button>
               </div>
             </div>
           </PopoverContent>

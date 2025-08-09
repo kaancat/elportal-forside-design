@@ -18,6 +18,7 @@ interface CalculatorResultsProps {
   providers: ProviderProductBlock[];
   annualConsumption: number;
   spotPrice: number;
+  networkTariff?: number;
   onBack: () => void;
   lastUpdated?: Date | null;
 }
@@ -26,15 +27,16 @@ const CalculatorResults: React.FC<CalculatorResultsProps> = ({
   providers,
   annualConsumption,
   spotPrice,
+  networkTariff,
   onBack,
   lastUpdated
 }) => {
   // Calculate costs for each provider
   const providersWithCosts = providers.slice(0, 5).map(provider => {
-    const pricePerKwh = calculatePricePerKwh(spotPrice, provider.displayPrice_kWh || 0);
+    const pricePerKwh = calculatePricePerKwh(spotPrice, provider.displayPrice_kWh || 0, networkTariff);
     const monthlyCost = calculateMonthlyCost(annualConsumption, pricePerKwh, provider.displayMonthlyFee || 0);
     const annualCost = calculateAnnualCost(annualConsumption, pricePerKwh, provider.displayMonthlyFee || 0);
-    const breakdown = getPriceBreakdown(spotPrice, provider.displayPrice_kWh || 0);
+    const breakdown = getPriceBreakdown(spotPrice, provider.displayPrice_kWh || 0, networkTariff);
     
     return {
       ...provider,

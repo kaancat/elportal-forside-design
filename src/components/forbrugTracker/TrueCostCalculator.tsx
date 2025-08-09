@@ -12,6 +12,12 @@ import {
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { SanityService } from '@/services/sanityService'
+import { 
+  calculatePricePerKwh, 
+  PRICE_CONSTANTS 
+} from '@/services/priceCalculationService'
+import { useNetworkTariff } from '@/hooks/useNetworkTariff'
+import { gridProviders } from '@/data/gridProviders'
 
 // Format currency helper
 const formatCurrency = (amount: number): string => {
@@ -31,6 +37,13 @@ export function TrueCostCalculator({ consumptionData }: TrueCostCalculatorProps)
     queryFn: () => SanityService.getAllProviders(),
     staleTime: 5 * 60 * 1000
   })
+  
+  // Get network tariff from Radius (Copenhagen) as default
+  const radiusProvider = gridProviders['791']; // Radius Elnet
+  const { averageRate: networkTariff } = useNetworkTariff(
+    radiusProvider,
+    { enabled: true }
+  )
 
   useEffect(() => {
     if (consumptionData && providers) {
@@ -59,27 +72,33 @@ export function TrueCostCalculator({ consumptionData }: TrueCostCalculatorProps)
       }
     })
 
-    // Calculate costs for each provider
+    // Use average spot price (this should ideally come from actual historical data)
+    const avgSpotPrice = PRICE_CONSTANTS.DEFAULT_SPOT_PRICE // Using default as placeholder
+    
+    // Use dynamic network tariff or fallback
+    const actualNetworkTariff = networkTariff || PRICE_CONSTANTS.NETWORK_TARIFF_AVG
+    
+    // Calculate costs for each provider using priceCalculationService
     const providerCosts = providers.map(provider => {
-      // Fixed fees per kWh
-      const systemFee = 0.19
-      const electricityTax = 0.90
-      const fixedFees = systemFee + electricityTax
+      // Convert provider markup from øre to actual value for calculation
+      const providerMarkup = provider.spotPriceMarkup || provider.displayPrice_kWh || 0
       
-      // Provider's spot price fee (using display price as approximation)
-      const spotPriceFee = parseFloat(provider.displayPrice_kWh || '0.05')
-      
-      // Average spot price (this should ideally come from actual historical data)
-      const avgSpotPrice = 0.50 // kr/kWh - placeholder
-      
-      // Calculate total price per kWh
-      const pricePerKwh = (avgSpotPrice + spotPriceFee + fixedFees) * 1.25 // 25% VAT
+      // Calculate price per kWh using centralized service
+      const pricePerKwh = calculatePricePerKwh(
+        avgSpotPrice, 
+        providerMarkup,
+        actualNetworkTariff,
+        {
+          greenCertificates: provider.greenCertificateFee,
+          tradingCosts: provider.tradingCosts
+        }
+      )
       
       // Calculate total cost
       const totalCost = totalConsumption * pricePerKwh
       
       // Monthly subscription
-      const monthlyFee = parseFloat(provider.displayMonthlyFee || '0')
+      const monthlyFee = provider.monthlySubscription || provider.displayMonthlyFee || 0
       const totalMonthlyFees = monthlyFee // For 30 days
       
       return {
@@ -88,7 +107,7 @@ export function TrueCostCalculator({ consumptionData }: TrueCostCalculatorProps)
         logo: provider.logoUrl,
         isGreen: provider.benefits?.includes('100% grøn strøm'),
         isVindstod: provider.isVindstoedProduct,
-        spotPriceFee: spotPriceFee,
+        spotPriceFee: providerMarkup / 100, // Convert øre to kr for display
         monthlyFee: monthlyFee,
         totalConsumption: totalConsumption,
         energyCost: totalCost,

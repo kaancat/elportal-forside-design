@@ -190,10 +190,12 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
           </h3>
           <TooltipProvider delayDuration={200}>
             <Tooltip>
-              <TooltipTrigger>
-                <Info className="h-4 w-4 text-gray-400" />
+              <TooltipTrigger asChild>
+                <button type="button" className="p-0.5 hover:bg-gray-100 rounded transition-colors">
+                  <Info className="h-4 w-4 text-gray-400" />
+                </button>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent sideOffset={5}>
                 <p className="max-w-xs">
                   Dit postnummer bestemmer dit netselskab og prisområde (DK1/DK2), 
                   hvilket påvirker din elpris.
@@ -306,10 +308,12 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
                 Nettarif:
                 <TooltipProvider delayDuration={200}>
                   <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="h-3 w-3 text-gray-400" />
+                    <TooltipTrigger asChild>
+                      <button type="button" className="p-0.5 hover:bg-gray-100 rounded transition-colors">
+                        <Info className="h-3 w-3 text-gray-400" />
+                      </button>
                     </TooltipTrigger>
-                    <TooltipContent>
+                    <TooltipContent sideOffset={5}>
                       <p className="max-w-xs">
                         Nettariffen er den afgift dit netselskab opkræver for at 
                         transportere strøm til din bolig. {!isFallback && 'Data fra officiel kilde.'}

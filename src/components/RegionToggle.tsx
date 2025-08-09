@@ -29,10 +29,12 @@ export const RegionToggle: React.FC<RegionToggleProps> = ({
           </h3>
           <TooltipProvider delayDuration={200}>
             <Tooltip>
-              <TooltipTrigger>
-                <Info className="h-4 w-4 text-gray-400" />
+              <TooltipTrigger asChild>
+                <button type="button" className="p-0.5 hover:bg-gray-100 rounded transition-colors">
+                  <Info className="h-4 w-4 text-gray-400" />
+                </button>
               </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
+              <TooltipContent className="max-w-xs" sideOffset={5}>
                 <p>
                   Skift mellem Vest- og Østdanmark for at se regionale prisforskelle. 
                   {hasLocation && !isManualOverride && ' Bruger automatisk din regions priser baseret på postnummer.'}

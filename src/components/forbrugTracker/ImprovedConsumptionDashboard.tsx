@@ -451,37 +451,59 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
     const price = payload.find((p: any) => p.dataKey === 'price')?.value || 0
     const comparisonConsumption = payload.find((p: any) => p.dataKey === 'comparisonConsumption')?.value
     const cost = consumption * price
+    const currentYear = new Date().getFullYear()
+    const lastYear = currentYear - 1
     
     return (
       <div className="bg-white/95 backdrop-blur p-3 rounded-lg shadow-lg border border-gray-200">
         <p className="font-medium text-sm mb-2 text-gray-700">{label}</p>
         <div className="space-y-1.5 text-xs">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-              <span className="text-gray-600">Forbrug:</span>
-            </div>
-            <span className="font-medium">{consumption.toFixed(2)} kWh</span>
-          </div>
-          {comparisonConsumption !== undefined && (
+          {/* Current year consumption */}
+          <div className="pb-1.5 border-b border-gray-100">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-blue-500/50"></div>
-                <span className="text-gray-600">Sidste år:</span>
+                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                <span className="text-gray-600 font-medium">{currentYear}:</span>
               </div>
-              <span className="font-medium">{comparisonConsumption.toFixed(2)} kWh</span>
+              <span className="font-semibold text-gray-900">{consumption.toFixed(2)} kWh</span>
+            </div>
+          </div>
+          
+          {/* Previous year comparison */}
+          {comparisonConsumption !== undefined && (
+            <div className="pb-1.5 border-b border-gray-100">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-blue-500/40"></div>
+                  <span className="text-gray-600 font-medium">{lastYear}:</span>
+                </div>
+                <span className="font-semibold text-gray-700">{comparisonConsumption.toFixed(2)} kWh</span>
+              </div>
+              {/* Show difference */}
+              <div className="flex items-center justify-between gap-4 mt-1 ml-3.5">
+                <span className="text-gray-500 text-[10px]">Forskel:</span>
+                <span className={`font-medium text-[10px] ${consumption > comparisonConsumption ? 'text-red-600' : 'text-green-600'}`}>
+                  {consumption > comparisonConsumption ? '+' : ''}{(consumption - comparisonConsumption).toFixed(2)} kWh
+                </span>
+              </div>
             </div>
           )}
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-orange-400"></div>
-              <span className="text-gray-600">Pris:</span>
+          
+          {/* Price information */}
+          <div className="pb-1.5">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-orange-400"></div>
+                <span className="text-gray-600">Pris:</span>
+              </div>
+              <span className="font-medium">{price.toFixed(2)} kr/kWh</span>
             </div>
-            <span className="font-medium">{price.toFixed(2)} kr/kWh</span>
           </div>
-          <div className="flex items-center justify-between gap-4 pt-1.5 border-t">
-            <span className="text-gray-600 font-medium">Omkostning:</span>
-            <span className="font-semibold text-green-600">{cost.toFixed(2)} kr</span>
+          
+          {/* Total cost */}
+          <div className="flex items-center justify-between gap-4 pt-1.5 border-t border-gray-200">
+            <span className="text-gray-700 font-semibold">Total omkostning:</span>
+            <span className="font-bold text-blue-600">{cost.toFixed(2)} kr</span>
           </div>
         </div>
       </div>
@@ -492,28 +514,28 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
     const ranges: { value: DateRange; label: string; group: string }[] = [
       { value: 'today', label: 'I dag', group: 'hours' },
       { value: 'yesterday', label: 'I går', group: 'hours' },
-      { value: '7d', label: '7d', group: 'days' },
-      { value: '30d', label: '30d', group: 'days' },
-      { value: '3m', label: '3m', group: 'months' },
-      { value: '12m', label: '12m', group: 'months' },
-      { value: '1y', label: '1å', group: 'years' },
-      { value: '5y', label: '5å', group: 'years' },
+      { value: '7d', label: '7 dage', group: 'days' },
+      { value: '30d', label: '30 dage', group: 'days' },
+      { value: '3m', label: '3 mdr', group: 'months' },
+      { value: '12m', label: '1 år', group: 'months' },
+      { value: '1y', label: 'År', group: 'years' },
+      { value: '5y', label: '5 år', group: 'years' },
     ]
     
     return (
-      <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
+      <div className="inline-flex items-center p-0.5 bg-gray-100 rounded-xl">
         {ranges.map(({ value, label }, index) => (
           <React.Fragment key={value}>
             {index > 0 && ranges[index - 1].group !== ranges[index].group && (
-              <div className="w-px h-6 bg-gray-300 mx-1" />
+              <div className="w-px h-5 bg-gray-300 mx-0.5" />
             )}
             <button
               onClick={() => setDateRange(value)}
               className={`
-                px-3 py-1.5 text-sm font-medium rounded-md transition-all
+                px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200
                 ${dateRange === value 
-                  ? 'bg-blue-600 text-white shadow-sm' 
-                  : 'text-gray-600 hover:bg-white hover:text-gray-900'
+                  ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' 
+                  : 'text-gray-600 hover:text-gray-900'
                 }
               `}
             >
@@ -582,9 +604,9 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
               </div>
             </div>
             <p className="text-xs text-gray-600 mb-1">Total forbrug</p>
-            <p className="text-xl font-bold text-gray-900">
+            <p className="text-2xl font-bold text-gray-900">
               {consumptionData.isLoading ? (
-                <Skeleton className="h-7 w-20" />
+                <Skeleton className="h-8 w-24" />
               ) : (
                 `${consumptionData.totalConsumption.toFixed(0)} kWh`
               )}
@@ -596,9 +618,9 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
           <CardContent className="p-4">
             <DollarSign className="h-4 w-4 text-green-600 mb-1" />
             <p className="text-xs text-gray-600 mb-1">Total omkostning</p>
-            <p className="text-xl font-bold text-gray-900">
+            <p className="text-2xl font-bold text-gray-900">
               {consumptionData.isLoading ? (
-                <Skeleton className="h-7 w-20" />
+                <Skeleton className="h-8 w-24" />
               ) : (
                 `${consumptionData.totalCost.toFixed(0)} kr`
               )}
@@ -610,9 +632,9 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
           <CardContent className="p-4">
             <Activity className="h-4 w-4 text-amber-600 mb-1" />
             <p className="text-xs text-gray-600 mb-1">Gennemsnit</p>
-            <p className="text-xl font-bold text-gray-900">
+            <p className="text-2xl font-bold text-gray-900">
               {consumptionData.isLoading ? (
-                <Skeleton className="h-7 w-20" />
+                <Skeleton className="h-8 w-24" />
               ) : (
                 `${consumptionData.averageConsumption.toFixed(1)} kWh`
               )}
@@ -624,13 +646,13 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
           <CardContent className="p-4">
             <TrendingUp className="h-4 w-4 text-orange-600 mb-1" />
             <p className="text-xs text-gray-600 mb-1">Højeste</p>
-            <p className="text-lg font-bold text-gray-900">
+            <p className="text-2xl font-bold text-gray-900">
               {consumptionData.isLoading ? (
-                <Skeleton className="h-7 w-20" />
+                <Skeleton className="h-8 w-24" />
               ) : (
                 <>
                   {consumptionData.peakConsumption.toFixed(1)} kWh
-                  <span className="text-xs block text-gray-600 font-normal mt-0.5">
+                  <span className="text-xs block text-gray-600 font-normal mt-1">
                     {consumptionData.peakDate}
                   </span>
                 </>

@@ -12,6 +12,7 @@ import { Info, MapPin, Calculator } from 'lucide-react';
 import type { ProviderListBlock } from '../types/sanity';
 import { useScrollAnimation, staggerContainer, animationClasses } from '@/hooks/useScrollAnimation';
 import { ElectricityProduct } from '@/types/product';
+import { calculatePricePerKwh, calculateMonthlyCost } from '@/services/priceCalculationService';
 
 interface ProviderListProps {
   block: ProviderListBlock;
@@ -146,16 +147,73 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
   };
   const networkTariff = getNetworkTariff();
   
-  // Sort providers with Vindstød first, then by calculated price
+  // Sort providers with Vindstød first, then by calculated total price
   const sortedProviders = [...providers].sort((a, b) => {
     // Vindstød always first
     if (a.isVindstoedProduct && !b.isVindstoedProduct) return -1;
     if (!a.isVindstoedProduct && b.isVindstoedProduct) return 1;
     
-    // Sort by total monthly cost (simplified for now)
-    const aMonthly = a.monthlySubscription || a.displayMonthlyFee || 0;
-    const bMonthly = b.monthlySubscription || b.displayMonthlyFee || 0;
-    return aMonthly - bMonthly;
+    // If both are Vindstød or both are not, sort by calculated total price
+    // Calculate the actual price per kWh for each provider
+    const baseSpotPrice = spotPrice !== null ? spotPrice : 1.5;
+    
+    // Get spot price markup for each provider (considering regional pricing)
+    let aSpotPriceMarkup = a.spotPriceMarkup;
+    let aMonthlySubscription = a.monthlySubscription;
+    let bSpotPriceMarkup = b.spotPriceMarkup;
+    let bMonthlySubscription = b.monthlySubscription;
+    
+    if (isManualRegionOverride) {
+      if (a.regionalPricing?.length > 0) {
+        const aRegional = a.regionalPricing.find((rp: any) => rp.region === selectedRegion);
+        if (aRegional) {
+          if (aRegional.spotPriceMarkup !== undefined) aSpotPriceMarkup = aRegional.spotPriceMarkup;
+          if (aRegional.monthlySubscription !== undefined) aMonthlySubscription = aRegional.monthlySubscription;
+        }
+      }
+      if (b.regionalPricing?.length > 0) {
+        const bRegional = b.regionalPricing.find((rp: any) => rp.region === selectedRegion);
+        if (bRegional) {
+          if (bRegional.spotPriceMarkup !== undefined) bSpotPriceMarkup = bRegional.spotPriceMarkup;
+          if (bRegional.monthlySubscription !== undefined) bMonthlySubscription = bRegional.monthlySubscription;
+        }
+      }
+    }
+    
+    // Calculate total monthly cost for each provider
+    // Using the priceCalculationService logic
+    const aPricePerKwh = calculatePricePerKwh(
+      baseSpotPrice,
+      aSpotPriceMarkup || 0,
+      networkTariff,
+      {
+        greenCertificates: a.greenCertificateFee,
+        tradingCosts: a.tradingCosts
+      }
+    );
+    const bPricePerKwh = calculatePricePerKwh(
+      baseSpotPrice,
+      bSpotPriceMarkup || 0,
+      networkTariff,
+      {
+        greenCertificates: b.greenCertificateFee,
+        tradingCosts: b.tradingCosts
+      }
+    );
+    
+    const aMonthlyTotal = calculateMonthlyCost(
+      annualConsumption[0],
+      aPricePerKwh,
+      aMonthlySubscription || 0
+    );
+    const bMonthlyTotal = calculateMonthlyCost(
+      annualConsumption[0],
+      bPricePerKwh,
+      bMonthlySubscription || 0
+    );
+    
+    // Sort by total monthly cost (lower first)
+    return aMonthlyTotal - bMonthlyTotal;
   });
   
   console.log('Sorted providers:', sortedProviders.map(p => ({
@@ -327,12 +385,15 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
             <TooltipProvider delayDuration={200}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-brand-green/10 text-brand-dark border border-brand-green/20 rounded-full text-sm font-medium cursor-pointer hover:bg-brand-green/20 transition-colors">
+                  <button 
+                    type="button"
+                    className="flex items-center gap-2 px-3 py-1.5 bg-brand-green/10 text-brand-dark border border-brand-green/20 rounded-full text-sm font-medium cursor-pointer hover:bg-brand-green/20 active:bg-brand-green/30 transition-colors"
+                  >
                     <Calculator className="h-4 w-4" />
                     <span>Sådan beregner vi priserne</span>
-                  </div>
+                  </button>
                 </TooltipTrigger>
-                <TooltipContent className="max-w-sm">
+                <TooltipContent className="max-w-sm" sideOffset={5}>
                   <div className="space-y-2">
                     <p className="font-semibold">Vores prisberegning inkluderer:</p>
                     <ul className="text-sm space-y-1">
@@ -355,12 +416,15 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
               <TooltipProvider delayDuration={200}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <p className="text-sm text-gray-500 cursor-pointer flex items-center justify-center gap-1">
+                    <button
+                      type="button"
+                      className="text-sm text-gray-500 cursor-pointer flex items-center justify-center gap-1 hover:text-gray-700 transition-colors"
+                    >
                       Spotpris opdateret: {lastUpdated.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit', hour12: false })}
                       <Info size={14} />
-                    </p>
+                    </button>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent sideOffset={5}>
                     <p>De viste priser er estimater baseret på live spotpriser, <br /> som opdateres hver time.</p>
                   </TooltipContent>
                 </Tooltip>

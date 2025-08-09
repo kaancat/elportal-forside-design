@@ -19,6 +19,8 @@ interface AdresseData {
   vejkode?: string;
   vejnavn?: string;
   husnr?: string;
+  etage?: string;          // Floor (e.g., "1", "st")
+  dør?: string;            // Door (e.g., "th", "tv", "mf")
   supplerendebynavn?: string | null;
   postnr?: string;
   postnrnavn?: string;
@@ -138,9 +140,17 @@ export class DawaAutocompleteService {
     const addressData = data as AdresseData;
     const parts = [];
 
-    // Add street and number
+    // Add street, number, and door information
     if (addressData.vejnavn && addressData.husnr) {
-      parts.push(`${addressData.vejnavn} ${addressData.husnr}`);
+      let addressPart = `${addressData.vejnavn} ${addressData.husnr}`;
+      
+      // Add floor and door if present (e.g., "1.th", "st.tv")
+      if (addressData.etage || addressData.dør) {
+        const doorPart = [addressData.etage, addressData.dør].filter(Boolean).join('.');
+        addressPart += `, ${doorPart}`;
+      }
+      
+      parts.push(addressPart);
     } else if (addressData.vejnavn) {
       parts.push(addressData.vejnavn);
     }

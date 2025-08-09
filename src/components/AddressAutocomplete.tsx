@@ -163,15 +163,24 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       return {
         street: vejnavnData.navn || suggestion.forslagstekst || '',
         city: null,
-        supplement: null
+        supplement: null,
+        door: null
       };
     }
     
     // Handle address suggestions (adgangsadresse/adresse type)
     const addressData = data as any; // Type assertion for address data
-    const street = addressData.vejnavn && addressData.husnr 
+    
+    // Build street address with house number
+    let street = addressData.vejnavn && addressData.husnr 
       ? `${addressData.vejnavn} ${addressData.husnr}` 
       : addressData.vejnavn || suggestion.forslagstekst || '';
+    
+    // Format door/apartment information (e.g., "1.th", "st.tv")
+    let door = null;
+    if (addressData.etage || addressData.dør) {
+      door = [addressData.etage, addressData.dør].filter(Boolean).join('.');
+    }
     
     const city = addressData.postnr && addressData.postnrnavn
       ? `${addressData.postnr} ${addressData.postnrnavn}`
@@ -180,7 +189,8 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     return { 
       street: street || suggestion.forslagstekst || '', 
       city, 
-      supplement: addressData.supplerendebynavn 
+      supplement: addressData.supplerendebynavn,
+      door
     };
   };
 
@@ -216,7 +226,7 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
           className="absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 max-h-80 overflow-auto"
         >
           {suggestions.map((suggestion, index) => {
-            const { street, city, supplement } = formatSuggestion(suggestion);
+            const { street, city, supplement, door } = formatSuggestion(suggestion);
             const isSelected = index === selectedIndex;
             const isStreetOnly = suggestion.type === 'vejnavn';
             
@@ -235,8 +245,11 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
                 <div className="flex items-start gap-3">
                   <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 truncate">
-                      {street || suggestion.forslagstekst}
+                    <div className="font-medium text-gray-900">
+                      <span className="truncate">{street || suggestion.forslagstekst}</span>
+                      {door && (
+                        <span className="ml-1 font-semibold text-brand-green">, {door}</span>
+                      )}
                       {isStreetOnly && (
                         <span className="ml-2 text-xs font-normal text-gray-500">
                           (Fortsæt med at skrive for at se adresser)

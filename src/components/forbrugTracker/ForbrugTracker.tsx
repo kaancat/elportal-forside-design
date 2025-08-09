@@ -22,6 +22,7 @@ import {
 import { ConsumptionChart } from './ConsumptionChart'
 import { ConsumptionDashboard } from './ConsumptionDashboard'
 import { EnhancedConsumptionDashboard } from './EnhancedConsumptionDashboard'
+import { ImprovedConsumptionDashboard } from './ImprovedConsumptionDashboard'
 import { TrueCostCalculator } from './TrueCostCalculator'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import { ContentErrorFallback } from '@/components/ErrorFallbacks'
@@ -425,7 +426,7 @@ export function ForbrugTracker({
                   </TabsList>
 
                   <TabsContent value="consumption" className="mt-6">
-                    <EnhancedConsumptionDashboard 
+                    <ImprovedConsumptionDashboard 
                       customerData={customerData}
                       onRefresh={() => checkAuthorization(null)}
                     />

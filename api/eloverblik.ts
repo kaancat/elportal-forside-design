@@ -617,6 +617,101 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
   }
 }
 
+// Handler for fetching metering point details including address
+async function handleThirdPartyMeteringPointDetails(req: VercelRequest, res: VercelResponse) {
+  const refreshToken = process.env.ELOVERBLIK_API_TOKEN || process.env.ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN
+  
+  if (!refreshToken) {
+    return res.status(500).json({ 
+      error: 'Third-party refresh token not configured'
+    })
+  }
+
+  const { meteringPointIds } = req.body
+  
+  if (!meteringPointIds || !Array.isArray(meteringPointIds) || meteringPointIds.length === 0) {
+    return res.status(400).json({ 
+      error: 'Missing or invalid meteringPointIds array'
+    })
+  }
+
+  try {
+    // Get access token
+    const accessToken = await getThirdPartyAccessToken(refreshToken)
+    
+    if (!accessToken) {
+      return res.status(500).json({ 
+        error: 'Invalid token response'
+      })
+    }
+
+    // Fetch details for first metering point (usually residential customers have just one)
+    const meteringPointId = meteringPointIds[0]
+    const detailsUrl = `${ELOVERBLIK_API_BASE}/thirdpartyapi/api/meteringpoint/getdetails`
+    
+    const detailsResponse = await fetch(detailsUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'api-version': '1.0',
+      },
+      body: JSON.stringify({
+        meteringPoints: {
+          meteringPoint: [meteringPointId]
+        }
+      })
+    })
+
+    if (!detailsResponse.ok) {
+      const errorText = await detailsResponse.text()
+      console.error('Failed to fetch metering point details:', errorText)
+      return res.status(detailsResponse.status).json({ 
+        error: 'Failed to fetch metering point details',
+        details: errorText
+      })
+    }
+
+    const detailsData = await detailsResponse.json()
+    
+    // Extract address information from the first result
+    if (detailsData.result && detailsData.result.length > 0) {
+      const details = detailsData.result[0]
+      const address = {
+        streetName: details.streetName || '',
+        buildingNumber: details.buildingNumber || '',
+        floorId: details.floorId || '',
+        roomId: details.roomId || '',
+        postcode: details.postcode || '',
+        cityName: details.cityName || '',
+        citySubDivisionName: details.citySubDivisionName || '',
+        municipalityCode: details.municipalityCode || '',
+        locationDescription: details.locationDescription || '',
+        fullAddress: `${details.streetName || ''} ${details.buildingNumber || ''}${details.floorId ? ', ' + details.floorId : ''}${details.roomId ? ' ' + details.roomId : ''}, ${details.postcode || ''} ${details.cityName || ''}`.trim()
+      }
+      
+      return res.status(200).json({
+        meteringPointId,
+        address,
+        metadata: {
+          fetchedAt: new Date().toISOString()
+        }
+      })
+    }
+    
+    return res.status(404).json({ 
+      error: 'No metering point details found'
+    })
+  } catch (error) {
+    console.error('Error fetching metering point details:', error)
+    return res.status(500).json({ 
+      error: 'Failed to fetch metering point details',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    })
+  }
+}
+
 // Main handler that routes to appropriate function
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enable CORS
@@ -668,6 +763,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return await handleThirdPartyAuthorizations(req, res)
       case 'thirdparty-consumption':
         return await handleThirdPartyConsumption(req, res)
+      case 'thirdparty-meteringpoint-details':
+        return await handleThirdPartyMeteringPointDetails(req, res)
       default:
         return res.status(400).json({ 
           error: 'Invalid action',
@@ -677,7 +774,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             'get-metering-points', 
             'get-consumption',
             'thirdparty-authorizations',
-            'thirdparty-consumption'
+            'thirdparty-consumption',
+            'thirdparty-meteringpoint-details'
           ]
         })
     }

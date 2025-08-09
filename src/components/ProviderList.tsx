@@ -8,7 +8,7 @@ import { useLocation } from '@/hooks/useLocation';
 import { useNetworkTariff } from '@/hooks/useNetworkTariff';
 import { Slider } from '@/components/ui/slider';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Info, MapPin } from 'lucide-react';
+import { Info, MapPin, Calculator } from 'lucide-react';
 import type { ProviderListBlock } from '../types/sanity';
 import { useScrollAnimation, staggerContainer, animationClasses } from '@/hooks/useScrollAnimation';
 import { ElectricityProduct } from '@/types/product';
@@ -323,9 +323,9 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer hover:text-gray-800 transition-colors">
-                    <Info className="h-4 w-4" />
-                    <span className="underline decoration-dotted">Sådan beregner vi priserne</span>
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm font-medium cursor-pointer hover:bg-blue-100 transition-colors">
+                    <Calculator className="h-4 w-4" />
+                    <span>Sådan beregner vi priserne</span>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-sm">

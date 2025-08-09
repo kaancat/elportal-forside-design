@@ -49,7 +49,14 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
   
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-200">
+    <div className={`rounded-xl overflow-hidden transition-all duration-200 ${
+      product.isVindstoedProduct 
+        ? 'bg-gradient-to-br from-white via-white to-brand-green/5 shadow-lg border-2 border-brand-green/20 ring-1 ring-brand-green/10 hover:shadow-xl relative' 
+        : 'bg-white shadow-sm border border-gray-100 hover:shadow-lg'
+    }`}>
+      {product.isVindstoedProduct && (
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand-green/60 via-brand-green to-brand-green/60"></div>
+      )}
       <div className="p-8">
         <div className="flex flex-col lg:flex-row lg:items-center gap-8">
           {/* Logo and company info */}

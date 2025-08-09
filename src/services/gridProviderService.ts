@@ -1,4 +1,5 @@
 import { PostalCodeService } from './postalCodeService';
+import { GreenPowerDenmarkService } from './greenPowerDenmarkService';
 import { gridProviders } from '@/data/gridProviders';
 import type { LocationData, GridProvider, ConnectionPoint } from '@/types/location';
 
@@ -10,12 +11,17 @@ export class GridProviderService {
   private static readonly API_BASE_URL = 'https://api.energidataservice.dk/dataset';
 
   /**
-   * Get complete location data by postal code
+   * Get complete location data by postal code or address
+   * @param query - Postal code (e.g., "2200") or full address (e.g., "Nørrebrogade 1, 2200 København N")
    */
-  static async getLocationByPostalCode(postalCode: string): Promise<LocationData | null> {
+  static async getLocationByQuery(query: string): Promise<LocationData | null> {
+    // Extract postal code from query if it's an address
+    const postalCodeMatch = query.match(/\b(\d{4})\b/);
+    const postalCode = postalCodeMatch ? postalCodeMatch[1] : query;
+
     // Validate postal code
     if (!PostalCodeService.isValidPostalCode(postalCode)) {
-      console.warn(`Invalid postal code: ${postalCode}`);
+      console.warn(`Invalid postal code in query: ${query}`);
       return PostalCodeService.getDefaultLocation();
     }
 
@@ -26,16 +32,17 @@ export class GridProviderService {
       return PostalCodeService.getDefaultLocation();
     }
 
-    // Try to get grid provider from API first
-    let gridProvider = await this.getGridProviderFromAPI(municipality.name);
+    // Try Green Power Denmark API first (most accurate)
+    let gridProvider = await GreenPowerDenmarkService.lookupGridProvider(query);
     
     // Fallback to static data if API fails
     if (!gridProvider) {
+      console.warn(`Green Power Denmark API failed for: ${query}, falling back to static data`);
       gridProvider = PostalCodeService.getGridProviderByPostalCode(postalCode);
     }
 
     if (!gridProvider) {
-      console.warn(`Grid provider not found for municipality: ${municipality.name}`);
+      console.warn(`Grid provider not found for query: ${query}`);
       return PostalCodeService.getDefaultLocation();
     }
 
@@ -43,71 +50,28 @@ export class GridProviderService {
       postalCode,
       municipality,
       gridProvider,
-      region: municipality.region
+      region: gridProvider.region || municipality.region
     };
   }
 
   /**
-   * Fetch grid provider from EnergiDataService API
+   * Get complete location data by postal code (legacy method for backwards compatibility)
    */
-  static async getGridProviderFromAPI(municipality: string): Promise<GridProvider | null> {
-    const cacheKey = `grid-provider-${municipality}`;
-    
-    // Check cache first
-    const cached = this.getFromCache(cacheKey);
-    if (cached) {
-      return cached;
-    }
+  static async getLocationByPostalCode(postalCode: string): Promise<LocationData | null> {
+    return this.getLocationByQuery(postalCode);
+  }
 
-    try {
-      // Query ConnectionPointsInGrid API
-      const response = await fetch(
-        `${this.API_BASE_URL}/ConnectionPointsInGrid?` +
-        `filter={"Municipality":"${encodeURIComponent(municipality)}"}&limit=10`
-      );
-
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const records = data.records || [];
-
-      if (records.length === 0) {
-        console.warn(`No connection points found for municipality: ${municipality}`);
-        return null;
-      }
-
-      // Get the most common NetCompany for this municipality
-      const netCompanies = records.reduce((acc: Record<string, number>, record: ConnectionPoint) => {
-        const company = record.NetCompanyName;
-        if (company) {
-          acc[company] = (acc[company] || 0) + 1;
-        }
-        return acc;
-      }, {});
-
-      // Find the most common company
-      const mostCommonCompany = Object.entries(netCompanies)
-        .sort(([, a], [, b]) => b - a)[0]?.[0];
-
-      if (!mostCommonCompany) {
-        return null;
-      }
-
-      // Map to our grid provider data
-      const provider = this.mapNetCompanyToProvider(mostCommonCompany, municipality);
-      
-      // Cache the result
-      if (provider) {
-        this.setCache(cacheKey, provider);
-      }
-
-      return provider;
-    } catch (error) {
-      console.error('Error fetching grid provider from API:', error);
-      return null;
-    }
+  /**
+   * DEPRECATED: This method used EnergiDataService API which returns incorrect data
+   * Use GreenPowerDenmarkService instead
+   * @deprecated
+   */
+  private static async getGridProviderFromAPI_DEPRECATED(municipality: string): Promise<GridProvider | null> {
+    // This method is kept for reference but should not be used
+    // The EnergiDataService ConnectionPointsInGrid API returns incorrect grid providers
+    // For example, it returns "Elnet Midt" for Copenhagen postal codes
+    console.warn('DEPRECATED: EnergiDataService API returns incorrect data. Use GreenPowerDenmarkService instead.');
+    return null;
   }
 
   /**

@@ -23,77 +23,97 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
   onLocationChange, 
   className = '' 
 }) => {
-  const [postalCode, setPostalCode] = useState<string>('');
+  const [inputValue, setInputValue] = useState<string>('');
+  const [inputMode, setInputMode] = useState<'postal' | 'address'>('postal');
   const [location, setLocation] = useState<LocationData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [multipleProviders, setMultipleProviders] = useState<GridProvider[]>([]);
   const [selectedProvider, setSelectedProvider] = useState<GridProvider | null>(null);
 
-  // Debounced postal code lookup
+  // Detect input mode based on user input
+  useEffect(() => {
+    if (inputValue.length > 4 || inputValue.includes(',') || inputValue.includes(' ')) {
+      setInputMode('address');
+    } else if (/^\d{0,4}$/.test(inputValue)) {
+      setInputMode('postal');
+    }
+  }, [inputValue]);
+
+  // Debounced lookup
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (postalCode.length === 4) {
-        handlePostalCodeLookup();
-      } else if (postalCode.length > 0) {
+      if (inputMode === 'postal' && inputValue.length === 4) {
+        handleLookup();
+      } else if (inputMode === 'address' && inputValue.length > 5) {
+        handleLookup();
+      } else if (inputValue.length > 0 && inputMode === 'postal' && inputValue.length !== 4) {
         setError('Postnummer skal være 4 cifre');
         setLocation(null);
       } else {
         setError(null);
         setLocation(null);
       }
-    }, 500);
+    }, 800); // Slightly longer delay for address mode
 
     return () => clearTimeout(timer);
-  }, [postalCode]);
+  }, [inputValue, inputMode]);
 
-  const handlePostalCodeLookup = async () => {
+  const handleLookup = async () => {
     setLoading(true);
     setError(null);
     setMultipleProviders([]);
 
     try {
-      // Validate postal code
-      if (!PostalCodeService.isValidPostalCode(postalCode)) {
+      // For postal code mode, validate first
+      if (inputMode === 'postal' && !PostalCodeService.isValidPostalCode(inputValue)) {
         setError('Ugyldigt postnummer');
         setLoading(false);
         return;
       }
 
-      // Get location data
-      const locationData = await GridProviderService.getLocationByPostalCode(postalCode);
+      // Get location data using the new method that supports both postal codes and addresses
+      const locationData = await GridProviderService.getLocationByQuery(inputValue);
       
       if (!locationData) {
-        setError('Kunne ikke finde område for dette postnummer');
+        setError(inputMode === 'address' 
+          ? 'Kunne ikke finde netselskab for denne adresse' 
+          : 'Kunne ikke finde område for dette postnummer');
         setLoading(false);
         return;
       }
 
-      // Check if municipality has multiple grid providers
-      const municipality = PostalCodeService.getMunicipalityByPostalCode(postalCode);
-      if (municipality) {
-        const providers = await GridProviderService.getGridProvidersForMunicipality(municipality.name);
-        
-        if (providers.length > 1) {
-          setMultipleProviders(providers);
-          setSelectedProvider(providers[0]);
-          locationData.gridProvider = providers[0];
+      // Extract postal code for municipality check
+      const postalCodeMatch = inputValue.match(/\b(\d{4})\b/);
+      const postalCode = postalCodeMatch ? postalCodeMatch[1] : inputValue;
+
+      // Check if municipality has multiple grid providers (only for postal code mode)
+      if (inputMode === 'postal') {
+        const municipality = PostalCodeService.getMunicipalityByPostalCode(postalCode);
+        if (municipality) {
+          const providers = await GridProviderService.getGridProvidersForMunicipality(municipality.name);
+          
+          if (providers.length > 1) {
+            setMultipleProviders(providers);
+            setSelectedProvider(providers[0]);
+            locationData.gridProvider = providers[0];
+          }
         }
       }
 
       setLocation(locationData);
       onLocationChange(locationData);
     } catch (err) {
-      console.error('Error looking up postal code:', err);
+      console.error('Error looking up location:', err);
       setError('Der opstod en fejl. Prøv igen senere.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePostalCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 4);
-    setPostalCode(value);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setInputValue(value);
   };
 
   const handleProviderChange = (providerCode: string) => {
@@ -134,25 +154,31 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
           </TooltipProvider>
         </div>
 
-        {/* Postal Code Input */}
+        {/* Location Input */}
         <div>
-          <Label htmlFor="postal-code" className="text-sm font-medium text-gray-700">
-            Postnummer
+          <Label htmlFor="location-input" className="text-sm font-medium text-gray-700">
+            Adresse eller postnummer
           </Label>
           <div className="relative mt-1">
             <Input
-              id="postal-code"
+              id="location-input"
               type="text"
-              value={postalCode}
-              onChange={handlePostalCodeChange}
-              placeholder="F.eks. 2100"
+              value={inputValue}
+              onChange={handleInputChange}
+              placeholder={inputMode === 'address' 
+                ? "F.eks. Nørrebrogade 1, 2200 København N" 
+                : "F.eks. 2100"}
               className="pr-10"
-              maxLength={4}
             />
             {loading && (
               <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-gray-400" />
             )}
           </div>
+          {inputMode === 'address' && inputValue.length > 0 && inputValue.length < 6 && (
+            <p className="mt-1 text-xs text-gray-500">
+              Indtast fuld adresse for præcis netselskab
+            </p>
+          )}
           {error && (
             <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
               <AlertCircle className="h-3 w-3" />
@@ -230,9 +256,9 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
         )}
 
         {/* Default location hint */}
-        {!location && !loading && !error && postalCode.length === 0 && (
+        {!location && !loading && !error && inputValue.length === 0 && (
           <p className="text-xs text-gray-500 italic">
-            Indtast dit postnummer for at se priser for dit område
+            Indtast din adresse eller postnummer for at se priser for dit område
           </p>
         )}
       </div>

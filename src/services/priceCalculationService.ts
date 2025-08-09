@@ -37,7 +37,11 @@ export const PRICE_CONSTANTS = {
 
 /**
  * Calculate the total price per kWh including all components and VAT
- * Now supports detailed provider pricing components
+ * 
+ * @param spotPrice - Spot price in kr/kWh (from API)
+ * @param providerMarkup - Provider markup in øre/kWh (from Sanity)
+ * @param networkTariff - Network tariff in kr/kWh (optional)
+ * @param additionalFees - Additional fees in øre/kWh (from Sanity)
  */
 export function calculatePricePerKwh(
   spotPrice: number,
@@ -51,15 +55,13 @@ export function calculatePricePerKwh(
   // Use provided network tariff or fall back to average
   const actualNetworkTariff = networkTariff ?? PRICE_CONSTANTS.NETWORK_TARIFF_AVG;
   
-  // Convert øre to kr if needed (assuming inputs > 10 are in øre)
-  const spotPriceKr = spotPrice > 10 ? spotPrice / 100 : spotPrice;
-  const providerMarkupKr = providerMarkup > 10 ? providerMarkup / 100 : providerMarkup;
-  const greenCertsKr = (additionalFees?.greenCertificates ?? 0) > 10 
-    ? (additionalFees?.greenCertificates ?? 0) / 100 
-    : (additionalFees?.greenCertificates ?? 0);
-  const tradingCostsKr = (additionalFees?.tradingCosts ?? 0) > 10
-    ? (additionalFees?.tradingCosts ?? 0) / 100
-    : (additionalFees?.tradingCosts ?? 0);
+  // Spot price from API is already in kr/kWh
+  const spotPriceKr = spotPrice;
+  
+  // All provider fees from Sanity are in øre/kWh - convert to kr/kWh
+  const providerMarkupKr = providerMarkup / 100;
+  const greenCertsKr = (additionalFees?.greenCertificates ?? 0) / 100;
+  const tradingCostsKr = (additionalFees?.tradingCosts ?? 0) / 100;
   
   // Sum all components before VAT
   const priceBeforeVat = 
@@ -105,6 +107,11 @@ export function calculateAnnualCost(
 
 /**
  * Get price breakdown for transparency
+ * 
+ * @param spotPrice - Spot price in kr/kWh (from API)
+ * @param providerMarkup - Provider markup in øre/kWh (from Sanity)
+ * @param networkTariff - Network tariff in kr/kWh (optional)
+ * @param additionalFees - Additional fees in øre/kWh (from Sanity)
  */
 export function getPriceBreakdown(
   spotPrice: number,
@@ -117,15 +124,13 @@ export function getPriceBreakdown(
 ) {
   const actualNetworkTariff = networkTariff ?? PRICE_CONSTANTS.NETWORK_TARIFF_AVG;
   
-  // Convert øre to kr if needed
-  const spotPriceKr = spotPrice > 10 ? spotPrice / 100 : spotPrice;
-  const providerMarkupKr = providerMarkup > 10 ? providerMarkup / 100 : providerMarkup;
-  const greenCertsKr = (additionalFees?.greenCertificates ?? 0) > 10 
-    ? (additionalFees?.greenCertificates ?? 0) / 100 
-    : (additionalFees?.greenCertificates ?? 0);
-  const tradingCostsKr = (additionalFees?.tradingCosts ?? 0) > 10
-    ? (additionalFees?.tradingCosts ?? 0) / 100
-    : (additionalFees?.tradingCosts ?? 0);
+  // Spot price from API is already in kr/kWh
+  const spotPriceKr = spotPrice;
+  
+  // All provider fees from Sanity are in øre/kWh - convert to kr/kWh
+  const providerMarkupKr = providerMarkup / 100;
+  const greenCertsKr = (additionalFees?.greenCertificates ?? 0) / 100;
+  const tradingCostsKr = (additionalFees?.tradingCosts ?? 0) / 100;
   
   const networkFees = actualNetworkTariff + 
                      PRICE_CONSTANTS.SYSTEM_TARIFF + 

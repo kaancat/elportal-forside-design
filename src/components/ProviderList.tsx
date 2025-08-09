@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import ProviderCard from './ProviderCard';
 import HouseholdTypeSelector, { HouseholdType } from './HouseholdTypeSelector';
 import { LocationSelector } from './LocationSelector';
+import { RegionToggle } from './RegionToggle';
 import { useLocation } from '@/hooks/useLocation';
 import { Slider } from '@/components/ui/slider';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -30,6 +31,10 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
   const [priceLoading, setPriceLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   
+  // Region toggle state
+  const [selectedRegion, setSelectedRegion] = useState<'DK1' | 'DK2'>('DK2');
+  const [isManualRegionOverride, setIsManualRegionOverride] = useState(false);
+  
   // Location hook for postal code based pricing
   const { location, loading: locationLoading, updateLocation } = useLocation();
   
@@ -47,12 +52,19 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
   console.log('ProviderList block:', block);
   console.log('Providers from block (sanitized):', providers);
 
-  // Fetch live spot price when component mounts or location changes
+  // Update selectedRegion when location changes (if not manually overridden)
+  useEffect(() => {
+    if (location?.region && !isManualRegionOverride) {
+      setSelectedRegion(location.region);
+    }
+  }, [location?.region, isManualRegionOverride]);
+
+  // Fetch live spot price when component mounts or region changes
   useEffect(() => {
     const fetchSpotPrice = async () => {
       try {
-        // Use region from location if available
-        const region = location?.region || 'DK2';
+        // Use manual region if overridden, otherwise use location region
+        const region = isManualRegionOverride ? selectedRegion : (location?.region || selectedRegion);
         const response = await fetch(`/api/electricity-prices?region=${region}`);
         
         if (!response.ok) throw new Error('Could not fetch spot price');
@@ -76,7 +88,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
     };
 
     fetchSpotPrice();
-  }, [location?.region]); // Re-fetch when region changes
+  }, [selectedRegion, location?.region, isManualRegionOverride]); // Re-fetch when region changes
 
   const handleHouseholdTypeSelect = (type: HouseholdType | null) => {
     if (type) {
@@ -100,10 +112,26 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
 
   const handleLocationChange = (newLocation: any) => {
     updateLocation(newLocation);
+    // When user enters postal code, turn off manual override
+    if (newLocation) {
+      setIsManualRegionOverride(false);
+    }
   };
 
-  // Get sorted providers based on current spot price and network tariff
-  const networkTariff = location?.gridProvider?.networkTariff || 0.30;
+  const handleRegionChange = (region: 'DK1' | 'DK2') => {
+    setSelectedRegion(region);
+    setIsManualRegionOverride(true);
+  };
+
+  // Get network tariff - use location-based if available, otherwise regional average
+  const getNetworkTariff = () => {
+    if (location?.gridProvider?.networkTariff && !isManualRegionOverride) {
+      return location.gridProvider.networkTariff;
+    }
+    // Use regional averages when manually selected or no location
+    return selectedRegion === 'DK1' ? 0.30 : 0.32; // DK1 avg: 0.30, DK2 avg: 0.32
+  };
+  const networkTariff = getNetworkTariff();
   
   // Sort providers with Vindstød first, then by calculated price
   const sortedProviders = [...providers].sort((a, b) => {
@@ -125,31 +153,50 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
   })));
 
   // Convert Sanity provider to ElectricityProduct format for ProviderCard
-  const convertToElectricityProduct = (provider: any): ElectricityProduct => ({
-    id: provider.id || provider._id,
-    supplierName: provider.providerName,
-    productName: provider.productName,
-    isVindstoedProduct: provider.isVindstoedProduct || false,
-    // Use new detailed pricing or fall back to legacy fields
-    displayPrice_kWh: provider.spotPriceMarkup !== undefined 
-      ? provider.spotPriceMarkup / 100  // Convert øre to kr
-      : (provider.displayPrice_kWh || 0),
-    displayMonthlyFee: provider.monthlySubscription !== undefined 
-      ? provider.monthlySubscription 
-      : (provider.displayMonthlyFee || 0),
-    signupLink: provider.signupLink,
-    supplierLogoURL: provider.logoUrl,
-    isVariablePrice: provider.isVariablePrice !== undefined ? provider.isVariablePrice : true,
-    hasNoBinding: provider.bindingPeriod === 0 || provider.bindingPeriod === undefined,
-    hasFreeSignup: provider.signupFee === 0 || provider.signupFee === undefined,
-    internalNotes: provider.notes || '',
-    lastUpdated: provider.lastPriceUpdate || new Date().toISOString(),
-    sortOrderVindstoed: provider.isVindstoedProduct ? 1 : undefined,
-    sortOrderCompetitor: provider.isVindstoedProduct ? undefined : 1,
-    // Store additional fees for price calculation
-    greenCertificateFee: provider.greenCertificateFee,
-    tradingCosts: provider.tradingCosts,
-  } as ElectricityProduct & { greenCertificateFee?: number; tradingCosts?: number });
+  const convertToElectricityProduct = (provider: any): ElectricityProduct => {
+    // Check for regional pricing if manual override is active
+    let spotPriceMarkup = provider.spotPriceMarkup;
+    let monthlySubscription = provider.monthlySubscription;
+    
+    if (isManualRegionOverride && provider.regionalPricing?.length > 0) {
+      const regionalPrice = provider.regionalPricing.find((rp: any) => rp.region === selectedRegion);
+      if (regionalPrice) {
+        // Use regional specific pricing if available
+        if (regionalPrice.spotPriceMarkup !== undefined) {
+          spotPriceMarkup = regionalPrice.spotPriceMarkup;
+        }
+        if (regionalPrice.monthlySubscription !== undefined) {
+          monthlySubscription = regionalPrice.monthlySubscription;
+        }
+      }
+    }
+    
+    return {
+      id: provider.id || provider._id,
+      supplierName: provider.providerName,
+      productName: provider.productName,
+      isVindstoedProduct: provider.isVindstoedProduct || false,
+      // Keep spotPriceMarkup in øre for consistent handling in priceCalculationService
+      displayPrice_kWh: spotPriceMarkup !== undefined 
+        ? spotPriceMarkup  // Keep in øre/kWh - will be converted in priceCalculationService
+        : (provider.displayPrice_kWh || 0),
+      displayMonthlyFee: monthlySubscription !== undefined 
+        ? monthlySubscription 
+        : (provider.displayMonthlyFee || 0),
+      signupLink: provider.signupLink,
+      supplierLogoURL: provider.logoUrl,
+      isVariablePrice: provider.isVariablePrice !== undefined ? provider.isVariablePrice : true,
+      hasNoBinding: provider.bindingPeriod === 0 || provider.bindingPeriod === undefined,
+      hasFreeSignup: provider.signupFee === 0 || provider.signupFee === undefined,
+      internalNotes: provider.notes || '',
+      lastUpdated: provider.lastPriceUpdate || new Date().toISOString(),
+      sortOrderVindstoed: provider.isVindstoedProduct ? 1 : undefined,
+      sortOrderCompetitor: provider.isVindstoedProduct ? undefined : 1,
+      // Store additional fees for price calculation
+      greenCertificateFee: provider.greenCertificateFee,
+      tradingCosts: provider.tradingCosts,
+    } as ElectricityProduct & { greenCertificateFee?: number; tradingCosts?: number };
+  };
 
   const headerAlignmentClass = block.headerAlignment === 'left' ? 'text-left' : block.headerAlignment === 'right' ? 'text-right' : 'text-center';
 
@@ -171,6 +218,17 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
         <div className="mb-8">
           <LocationSelector 
             onLocationChange={handleLocationChange}
+            className=""
+          />
+        </div>
+        
+        {/* Region Toggle - NEW */}
+        <div className="mb-8">
+          <RegionToggle
+            selectedRegion={selectedRegion}
+            onRegionChange={handleRegionChange}
+            isManualOverride={isManualRegionOverride}
+            hasLocation={!!location}
             className=""
           />
         </div>
@@ -225,7 +283,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
 
           {/* Location and Price Info */}
           <div className="flex flex-col items-center gap-2 mb-8">
-            {location && (
+            {(location && !isManualRegionOverride) ? (
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <MapPin className="h-4 w-4" />
                 <span>
@@ -233,7 +291,15 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
                   - Netselskab: {location.gridProvider.name}
                 </span>
               </div>
-            )}
+            ) : isManualRegionOverride ? (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <MapPin className="h-4 w-4" />
+                <span>
+                  Priser for {selectedRegion === 'DK1' ? 'Vestdanmark' : 'Østdanmark'} ({selectedRegion})
+                  - Gennemsnitlig nettarif: {networkTariff.toFixed(2)} kr/kWh
+                </span>
+              </div>
+            ) : null}
             
             {/* Last Updated Timestamp with Tooltip */}
             {lastUpdated && (

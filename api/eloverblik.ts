@@ -678,6 +678,27 @@ async function handleThirdPartyMeteringPointDetails(req: VercelRequest, res: Ver
     // Extract address information from the first result
     if (detailsData.result && detailsData.result.length > 0) {
       const details = detailsData.result[0]
+      // Build address parts array to avoid empty commas
+      const addressParts = []
+      
+      // Street and building
+      const streetPart = [details.streetName, details.buildingNumber]
+        .filter(Boolean)
+        .join(' ')
+      if (streetPart) addressParts.push(streetPart)
+      
+      // Floor and room
+      const floorRoom = [details.floorId, details.roomId]
+        .filter(Boolean)
+        .join(' ')
+      if (floorRoom) addressParts.push(floorRoom)
+      
+      // Postcode and city
+      const cityPart = [details.postcode, details.cityName]
+        .filter(Boolean)
+        .join(' ')
+      if (cityPart) addressParts.push(cityPart)
+      
       const address = {
         streetName: details.streetName || '',
         buildingNumber: details.buildingNumber || '',
@@ -688,7 +709,7 @@ async function handleThirdPartyMeteringPointDetails(req: VercelRequest, res: Ver
         citySubDivisionName: details.citySubDivisionName || '',
         municipalityCode: details.municipalityCode || '',
         locationDescription: details.locationDescription || '',
-        fullAddress: `${details.streetName || ''} ${details.buildingNumber || ''}${details.floorId ? ', ' + details.floorId : ''}${details.roomId ? ' ' + details.roomId : ''}, ${details.postcode || ''} ${details.cityName || ''}`.trim()
+        fullAddress: addressParts.join(', ') || 'Adresse ikke tilgængelig'
       }
       
       return res.status(200).json({

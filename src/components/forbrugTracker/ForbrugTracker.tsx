@@ -457,63 +457,6 @@ export function ForbrugTracker({
                     </Card>
                   </TabsContent>
                 </Tabs>
-
-                {/* Quick Stats */}
-                {customerData && (
-                  <div className="grid md:grid-cols-4 gap-4 mt-6">
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-2 text-gray-600 mb-1">
-                          <Calendar className="h-4 w-4" />
-                          <span className="text-sm">Total forbrug</span>
-                        </div>
-                        <p className="text-2xl font-bold">
-                          {consumptionData?.totalConsumption 
-                            ? `${consumptionData.totalConsumption.toFixed(0)} kWh`
-                            : '0 kWh'}
-                        </p>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-2 text-gray-600 mb-1">
-                          <Clock className="h-4 w-4" />
-                          <span className="text-sm">Gennemsnit/dag</span>
-                        </div>
-                        <p className="text-2xl font-bold">
-                          {consumptionData?.totalConsumption 
-                            ? `${(consumptionData.totalConsumption / 30).toFixed(1)} kWh`
-                            : 'N/A'}
-                        </p>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-2 text-gray-600 mb-1">
-                          <Home className="h-4 w-4" />
-                          <span className="text-sm">Målerpunkter</span>
-                        </div>
-                        <p className="text-2xl font-bold">
-                          {customerData?.meteringPointIds?.length || 1}
-                        </p>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-2 text-gray-600 mb-1">
-                          <User className="h-4 w-4" />
-                          <span className="text-sm">Kundenummer</span>
-                        </div>
-                        <p className="text-lg font-bold truncate" title={customerData?.customerCVR || customerData?.customerId}>
-                          {customerData?.customerCVR || customerData?.customerId || 'N/A'}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
               </div>
             )}
           </>

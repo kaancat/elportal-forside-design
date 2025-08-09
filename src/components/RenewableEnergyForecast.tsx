@@ -56,7 +56,7 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
     const fetchData = async () => {
       setLoading(true); setError(null);
       try {
-        const response = await fetch(`/api/energy-data?endpoint=energy-forecast&region=${selectedRegion}&date=${formatDateForApi(selectedDate)}`);
+        const response = await fetch(`/api/energy-forecast?region=${selectedRegion}&date=${formatDateForApi(selectedDate)}`);
         if (!response.ok) throw new Error('Kunne ikke hente prognosedata.');
         const result = await response.json();
         setAllData(result.records || []);

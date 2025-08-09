@@ -7,6 +7,8 @@ import { SanityService } from '@/services/sanityService';
 import { ProviderProductBlock } from '@/types/sanity';
 import CalculatorResults from './CalculatorResults';
 import { rankProviders, PRICE_CONSTANTS } from '@/services/priceCalculationService';
+import { useNetworkTariff } from '@/hooks/useNetworkTariff';
+import { gridProviders } from '@/data/gridProviders';
 
 // --- PROPS INTERFACE ---
 interface PriceCalculatorWidgetProps {
@@ -49,6 +51,14 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+    
+    // Get network tariff from Radius (Copenhagen) as default for calculator
+    // This covers a large population and provides accurate pricing
+    const radiusProvider = gridProviders['791']; // Radius Elnet
+    const { averageRate: networkTariff } = useNetworkTariff(
+        radiusProvider,
+        { enabled: true }
+    );
 
     const handlePresetClick = (preset: Exclude<HousingType, 'custom'>) => {
         setActivePreset(preset);
@@ -194,6 +204,7 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
                             providers={providers}
                             annualConsumption={annualConsumption}
                             spotPrice={spotPrice}
+                            networkTariff={networkTariff}
                             onBack={() => setCurrentStep(2)}
                             lastUpdated={lastUpdated}
                         />

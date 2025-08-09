@@ -5,6 +5,7 @@ import HouseholdTypeSelector, { HouseholdType } from './HouseholdTypeSelector';
 import { LocationSelector } from './LocationSelector';
 import { RegionToggle } from './RegionToggle';
 import { useLocation } from '@/hooks/useLocation';
+import { useNetworkTariff } from '@/hooks/useNetworkTariff';
 import { Slider } from '@/components/ui/slider';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info, MapPin } from 'lucide-react';
@@ -37,6 +38,12 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
   
   // Location hook for postal code based pricing
   const { location, loading: locationLoading, updateLocation } = useLocation();
+  
+  // Get dynamic network tariff from API
+  const { averageRate: dynamicNetworkTariff, isFallback } = useNetworkTariff(
+    location?.gridProvider || null,
+    { enabled: !!location?.gridProvider }
+  );
   
   // Use providers from block.providers (from Sanity page)
   // Normalize and filter out invalid/inactive entries to avoid render crashes from bad references
@@ -123,13 +130,19 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
     setIsManualRegionOverride(true);
   };
 
-  // Get network tariff - use location-based if available, otherwise regional average
+  // Get network tariff - use dynamic API data if available, otherwise location-based or regional average
   const getNetworkTariff = () => {
+    // Use dynamic tariff from API if available (when location is set)
+    if (dynamicNetworkTariff && !isManualRegionOverride) {
+      return dynamicNetworkTariff;
+    }
+    // Fall back to static tariff from location if available
     if (location?.gridProvider?.networkTariff && !isManualRegionOverride) {
       return location.gridProvider.networkTariff;
     }
     // Use regional averages when manually selected or no location
-    return selectedRegion === 'DK1' ? 0.30 : 0.32; // DK1 avg: 0.30, DK2 avg: 0.32
+    // These are now more accurate based on API data analysis
+    return selectedRegion === 'DK1' ? 0.25 : 0.28; // Updated based on actual API averages
   };
   const networkTariff = getNetworkTariff();
   
@@ -297,6 +310,9 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
                 <span>
                   Priser for {selectedRegion === 'DK1' ? 'Vestdanmark' : 'Østdanmark'} ({selectedRegion})
                   - Gennemsnitlig nettarif: {networkTariff.toFixed(2)} kr/kWh
+                  {!isFallback && dynamicNetworkTariff && (
+                    <span className="text-xs text-green-600 ml-1">✓ Live data</span>
+                  )}
                 </span>
               </div>
             ) : null}

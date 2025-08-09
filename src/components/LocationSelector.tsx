@@ -14,6 +14,7 @@ import { GridProviderService } from '@/services/gridProviderService';
 import { PostalCodeService } from '@/services/postalCodeService';
 import { DawaAutocompleteService, DawaAutocompleteResult } from '@/services/dawaAutocompleteService';
 import { AddressAutocomplete } from './AddressAutocomplete';
+import { useNetworkTariff } from '@/hooks/useNetworkTariff';
 import type { LocationData, GridProvider } from '@/types/location';
 
 interface LocationSelectorProps {
@@ -32,6 +33,12 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
   const [multipleProviders, setMultipleProviders] = useState<GridProvider[]>([]);
   const [selectedProvider, setSelectedProvider] = useState<GridProvider | null>(null);
   const [useAutocomplete, setUseAutocomplete] = useState(true);
+  
+  // Fetch dynamic network tariff from API
+  const { averageRate, isFallback } = useNetworkTariff(
+    location?.gridProvider || null,
+    { enabled: !!location?.gridProvider }
+  );
 
   // Handle address selection from autocomplete
   const handleAddressSelect = async (addressResult: DawaAutocompleteResult) => {
@@ -305,14 +312,17 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
                     <TooltipContent>
                       <p className="max-w-xs">
                         Nettariffen er den afgift dit netselskab opkræver for at 
-                        transportere strøm til din bolig.
+                        transportere strøm til din bolig. {!isFallback && 'Data fra officiel kilde.'}
                       </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </span>
               <span className="font-medium text-brand-dark">
-                {location.gridProvider.networkTariff.toFixed(2)} kr/kWh
+                {(averageRate || location.gridProvider.networkTariff).toFixed(2)} kr/kWh
+                {!isFallback && averageRate && (
+                  <span className="text-xs text-green-600 ml-1">✓</span>
+                )}
               </span>
             </div>
           </div>

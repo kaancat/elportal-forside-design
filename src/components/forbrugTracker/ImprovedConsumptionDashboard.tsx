@@ -87,6 +87,8 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
   const [dateRange, setDateRange] = useState<DateRange>('30d')
   const [customDateFrom, setCustomDateFrom] = useState<Date | undefined>(undefined)
   const [customDateTo, setCustomDateTo] = useState<Date | undefined>(undefined)
+  const [tempDateFrom, setTempDateFrom] = useState<Date | undefined>(undefined)
+  const [tempDateTo, setTempDateTo] = useState<Date | undefined>(undefined)
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false)
   const [consumptionData, setConsumptionData] = useState<ConsumptionData>({
     data: [],
@@ -110,12 +112,17 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
     }
   }, [customerData])
 
-  // Fetch consumption data when range changes
+  // Fetch consumption data when range changes (but not on individual date selections)
   useEffect(() => {
     if (customerData) {
+      // Only fetch if we have a valid date range selection
+      if (dateRange === 'custom' && (!customDateFrom || !customDateTo)) {
+        // Don't fetch if custom is selected but dates aren't confirmed yet
+        return
+      }
       fetchConsumptionData()
     }
-  }, [dateRange, customerData, showComparison, customDateFrom, customDateTo])
+  }, [dateRange, customerData, showComparison]) // Removed customDateFrom/To to prevent live updates
 
   const fetchAddressData = async () => {
     if (!customerData?.meteringPointIds?.length) return
@@ -132,15 +139,18 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
       
       if (response.ok) {
         const data = await response.json()
-        // Only set address if we have valid data
-        if (data?.address?.fullAddress && data.address.fullAddress !== 'Adresse ikke tilgængelig') {
+        console.log('Address data received:', data) // Debug logging
+        // Set address if we have any meaningful content
+        if (data?.address?.fullAddress && data.address.fullAddress.trim().length > 0) {
           setAddressData(data.address)
         } else {
-          // Don't set invalid address data
+          // Don't set empty address data
+          console.log('Address data empty or invalid:', data?.address)
           setAddressData(null)
         }
       } else {
         // If the request fails, don't show address card
+        console.log('Address fetch failed with status:', response.status)
         setAddressData(null)
       }
     } catch (error) {
@@ -209,7 +219,33 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
         }
       }
       
-      const processedData = processConsumptionData(consumptionResult, priceResult.records || [], aggregation)
+      let processedData = processConsumptionData(consumptionResult, priceResult.records || [], aggregation)
+      
+      // Filter data for "yesterday" view to only show yesterday's hours
+      if (dateRange === 'yesterday' && processedData.data.length > 0) {
+        const yesterday = new Date()
+        yesterday.setDate(yesterday.getDate() - 1)
+        const yesterdayDateStr = yesterday.toISOString().split('T')[0]
+        
+        processedData.data = processedData.data.filter(item => {
+          const itemDate = new Date(item.date).toISOString().split('T')[0]
+          return itemDate === yesterdayDateStr
+        })
+        
+        // Recalculate totals after filtering
+        const filteredData = processedData.data
+        processedData.totalConsumption = filteredData.reduce((sum, d) => sum + d.consumption, 0)
+        processedData.totalCost = filteredData.reduce((sum, d) => sum + d.cost, 0)
+        processedData.averageConsumption = filteredData.length > 0 ? processedData.totalConsumption / filteredData.length : 0
+        processedData.averagePrice = filteredData.length > 0 
+          ? filteredData.reduce((sum, d) => sum + d.price, 0) / filteredData.length 
+          : 0
+        const peakData = filteredData.length > 0 
+          ? filteredData.reduce((max, d) => d.consumption > (max?.consumption || 0) ? d : max, filteredData[0])
+          : { consumption: 0, formattedDate: 'N/A' }
+        processedData.peakConsumption = peakData?.consumption || 0
+        processedData.peakDate = peakData?.formattedDate || 'N/A'
+      }
       
       // Merge comparison data if available
       if (comparisonData) {
@@ -260,13 +296,17 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
         aggregation = 'Hour'
         break
       case 'yesterday':
-        // Yesterday's data should be complete
-        const ydayStart = new Date(yesterday)
-        ydayStart.setHours(0, 0, 0, 0)
-        dateFrom = ydayStart
-        const ydayEnd = new Date(yesterday)
-        ydayEnd.setHours(23, 59, 59, 0)
-        dateTo = ydayEnd
+        // For yesterday: Request from 2 days ago to yesterday to avoid dateFrom == dateTo issue
+        // API requires: "To date cannot be equal to from date"
+        const twoDaysAgo = new Date(now)
+        twoDaysAgo.setDate(now.getDate() - 2)
+        twoDaysAgo.setHours(0, 0, 0, 0)
+        dateFrom = twoDaysAgo
+        
+        const yday = new Date(now)
+        yday.setDate(now.getDate() - 1)
+        yday.setHours(23, 59, 59, 0)
+        dateTo = yday
         aggregation = 'Hour'
         break
       case '7d':
@@ -590,7 +630,17 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
         </div>
         
         {/* Custom Date Range Picker */}
-        <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+        <Popover 
+          open={isDatePickerOpen} 
+          onOpenChange={(open) => {
+            setIsDatePickerOpen(open)
+            if (open) {
+              // Initialize temp dates when opening
+              setTempDateFrom(customDateFrom)
+              setTempDateTo(customDateTo)
+            }
+          }}
+        >
           <PopoverTrigger asChild>
             <Button
               variant={dateRange === 'custom' ? 'default' : 'outline'}
@@ -612,17 +662,12 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
                     <label className="text-xs text-gray-600 mb-1 block">Fra dato</label>
                     <CalendarComponent
                       mode="single"
-                      selected={customDateFrom}
-                      onSelect={(date) => {
-                        setCustomDateFrom(date)
-                        if (date && customDateTo && date <= customDateTo) {
-                          setDateRange('custom')
-                        }
-                      }}
+                      selected={tempDateFrom}
+                      onSelect={setTempDateFrom}
                       disabled={(date) => {
                         const yesterday = new Date()
                         yesterday.setDate(yesterday.getDate() - 1)
-                        return date > yesterday || (customDateTo ? date > customDateTo : false)
+                        return date > yesterday || (tempDateTo ? date > tempDateTo : false)
                       }}
                       className="rounded-md border"
                     />
@@ -631,36 +676,46 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
                     <label className="text-xs text-gray-600 mb-1 block">Til dato</label>
                     <CalendarComponent
                       mode="single"
-                      selected={customDateTo}
-                      onSelect={(date) => {
-                        setCustomDateTo(date)
-                        if (date && customDateFrom && date >= customDateFrom) {
-                          setDateRange('custom')
-                        }
-                      }}
+                      selected={tempDateTo}
+                      onSelect={setTempDateTo}
                       disabled={(date) => {
                         const yesterday = new Date()
                         yesterday.setDate(yesterday.getDate() - 1)
-                        return date > yesterday || (customDateFrom ? date < customDateFrom : false)
+                        return date > yesterday || (tempDateFrom ? date < tempDateFrom : false)
                       }}
                       className="rounded-md border"
                     />
                   </div>
                 </div>
-                {customDateFrom && customDateTo && (
-                  <div className="mt-3 pt-3 border-t">
-                    <Button
-                      onClick={() => {
+                <div className="mt-3 pt-3 border-t flex gap-2">
+                  <Button
+                    onClick={() => setIsDatePickerOpen(false)}
+                    variant="outline"
+                    className="flex-1"
+                    size="sm"
+                  >
+                    Annuller
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      if (tempDateFrom && tempDateTo) {
+                        setCustomDateFrom(tempDateFrom)
+                        setCustomDateTo(tempDateTo)
                         setDateRange('custom')
                         setIsDatePickerOpen(false)
-                      }}
-                      className="w-full"
-                      size="sm"
-                    >
-                      Anvend periode
-                    </Button>
-                  </div>
-                )}
+                        // Trigger fetch after state updates
+                        setTimeout(() => {
+                          fetchConsumptionData()
+                        }, 0)
+                      }
+                    }}
+                    disabled={!tempDateFrom || !tempDateTo}
+                    className="flex-1"
+                    size="sm"
+                  >
+                    Anvend periode
+                  </Button>
+                </div>
               </div>
             </div>
           </PopoverContent>
@@ -784,8 +839,8 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
         </Card>
       </div>
 
-      {/* Address Card - Only show if we have valid address data */}
-      {(addressData?.fullAddress && addressData.fullAddress !== 'Adresse ikke tilgængelig') && (
+      {/* Address Card - Show if we have address data with content */}
+      {addressData?.fullAddress && addressData.fullAddress.trim() && (
         <Card className="border-0 bg-gradient-to-br from-purple-50 to-purple-100/50">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">

@@ -188,7 +188,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
           <h3 className="text-lg font-display font-semibold text-brand-dark">
             Din placering
           </h3>
-          <TooltipProvider>
+          <TooltipProvider delayDuration={200}>
             <Tooltip>
               <TooltipTrigger>
                 <Info className="h-4 w-4 text-gray-400" />
@@ -304,7 +304,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
             <div className="flex justify-between items-center text-sm">
               <span className="text-gray-600 flex items-center gap-1">
                 Nettarif:
-                <TooltipProvider>
+                <TooltipProvider delayDuration={200}>
                   <Tooltip>
                     <TooltipTrigger>
                       <Info className="h-3 w-3 text-gray-400" />

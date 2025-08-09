@@ -20,6 +20,7 @@ import {
   RefreshCw
 } from 'lucide-react'
 import { ConsumptionChart } from './ConsumptionChart'
+import { ConsumptionDashboard } from './ConsumptionDashboard'
 import { TrueCostCalculator } from './TrueCostCalculator'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import { ContentErrorFallback } from '@/components/ErrorFallbacks'
@@ -423,7 +424,10 @@ export function ForbrugTracker({
                   </TabsList>
 
                   <TabsContent value="consumption" className="mt-6">
-                    <ConsumptionChart data={consumptionData} />
+                    <ConsumptionDashboard 
+                      customerData={customerData}
+                      onRefresh={() => checkAuthorization(null)}
+                    />
                   </TabsContent>
 
                   <TabsContent value="costs" className="mt-6">
@@ -453,16 +457,18 @@ export function ForbrugTracker({
                 </Tabs>
 
                 {/* Quick Stats */}
-                {consumptionData && (
+                {customerData && (
                   <div className="grid md:grid-cols-4 gap-4 mt-6">
                     <Card>
                       <CardContent className="p-4">
                         <div className="flex items-center gap-2 text-gray-600 mb-1">
                           <Calendar className="h-4 w-4" />
-                          <span className="text-sm">Sidste 30 dage</span>
+                          <span className="text-sm">Total forbrug</span>
                         </div>
                         <p className="text-2xl font-bold">
-                          {consumptionData.totalConsumption?.toFixed(0) || '0'} kWh
+                          {consumptionData?.totalConsumption 
+                            ? `${consumptionData.totalConsumption.toFixed(0)} kWh`
+                            : '0 kWh'}
                         </p>
                       </CardContent>
                     </Card>
@@ -474,7 +480,9 @@ export function ForbrugTracker({
                           <span className="text-sm">Gennemsnit/dag</span>
                         </div>
                         <p className="text-2xl font-bold">
-                          {((consumptionData.totalConsumption || 0) / 30).toFixed(1)} kWh
+                          {consumptionData?.totalConsumption 
+                            ? `${(consumptionData.totalConsumption / 30).toFixed(1)} kWh`
+                            : 'N/A'}
                         </p>
                       </CardContent>
                     </Card>
@@ -486,7 +494,7 @@ export function ForbrugTracker({
                           <span className="text-sm">Målerpunkter</span>
                         </div>
                         <p className="text-2xl font-bold">
-                          {consumptionData.meteringPoints?.length || 0}
+                          {customerData?.meteringPointIds?.length || 1}
                         </p>
                       </CardContent>
                     </Card>
@@ -497,8 +505,8 @@ export function ForbrugTracker({
                           <User className="h-4 w-4" />
                           <span className="text-sm">Kundenummer</span>
                         </div>
-                        <p className="text-lg font-bold truncate">
-                          {(customerData?.customerCVR || customerData?.customerKey || customerData?.customerId)?.slice(0, 8) || 'N/A'}...
+                        <p className="text-lg font-bold truncate" title={customerData?.customerCVR || customerData?.customerId}>
+                          {customerData?.customerCVR || customerData?.customerId || 'N/A'}
                         </p>
                       </CardContent>
                     </Card>

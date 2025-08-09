@@ -89,19 +89,25 @@ export function ConsumptionChart({ data }: ConsumptionChartProps) {
           <div>
             <p className="text-sm text-gray-600">Total forbrug</p>
             <p className="text-xl font-semibold">
-              {processedData.reduce((sum, d) => sum + d.consumption, 0).toFixed(1)} kWh
+              {processedData.length > 0 
+                ? processedData.reduce((sum, d) => sum + d.consumption, 0).toFixed(1)
+                : '0.0'} kWh
             </p>
           </div>
           <div>
             <p className="text-sm text-gray-600">Gennemsnit per dag</p>
             <p className="text-xl font-semibold">
-              {(processedData.reduce((sum, d) => sum + d.consumption, 0) / processedData.length).toFixed(1)} kWh
+              {processedData.length > 0 
+                ? (processedData.reduce((sum, d) => sum + d.consumption, 0) / processedData.length).toFixed(1)
+                : '0.0'} kWh
             </p>
           </div>
           <div>
             <p className="text-sm text-gray-600">Højeste dag</p>
             <p className="text-xl font-semibold">
-              {Math.max(...processedData.map(d => d.consumption)).toFixed(1)} kWh
+              {processedData.length > 0 
+                ? Math.max(...processedData.map(d => d.consumption)).toFixed(1)
+                : '0.0'} kWh
             </p>
           </div>
         </div>
@@ -123,14 +129,40 @@ function processConsumptionData(result: any): any[] {
           const periods = ts?.Period
           if (Array.isArray(periods)) {
             periods.forEach((period: any) => {
-              const start = period?.['timeInterval.start']
-              if (!start) return
+              // Fix: Access nested timeInterval object correctly
+              const start = period?.timeInterval?.start || period?.['timeInterval.start']
+              if (!start) {
+                console.warn('No start time found in period:', period)
+                return
+              }
+              
               if (Array.isArray(period?.Point)) {
+                // Get resolution to determine time increment
+                const resolution = period?.resolution || 'P1D' // Default to daily
+                const isHourly = resolution === 'PT1H'
+                const isMonthly = resolution === 'P1M'
+                const isYearly = resolution === 'P1Y'
+                
                 period.Point.forEach((point: any) => {
                   const quantity = parseFloat(point?.['out_Quantity.quantity'] || 0)
                   const position = parseInt(point?.position || 1)
                   const startDate = new Date(start)
-                  const date = new Date(startDate.getTime() + (position - 1) * 24 * 60 * 60 * 1000)
+                  
+                  // Calculate the actual date based on resolution and position
+                  let date: Date
+                  if (isHourly) {
+                    date = new Date(startDate.getTime() + (position - 1) * 60 * 60 * 1000)
+                  } else if (isMonthly) {
+                    date = new Date(startDate)
+                    date.setMonth(startDate.getMonth() + (position - 1))
+                  } else if (isYearly) {
+                    date = new Date(startDate)
+                    date.setFullYear(startDate.getFullYear() + (position - 1))
+                  } else {
+                    // Default to daily
+                    date = new Date(startDate.getTime() + (position - 1) * 24 * 60 * 60 * 1000)
+                  }
+                  
                   const dateKey = date.toISOString().split('T')[0]
                   dataMap.set(dateKey, (dataMap.get(dateKey) || 0) + (Number.isNaN(quantity) ? 0 : quantity))
                 })
@@ -142,14 +174,17 @@ function processConsumptionData(result: any): any[] {
     })
 
     // Convert to array and sort by date
-    return Array.from(dataMap.entries())
+    const processedData = Array.from(dataMap.entries())
       .map(([date, consumption]) => ({
         date,
         consumption
       }))
       .sort((a, b) => a.date.localeCompare(b.date))
+    
+    console.log(`Processed ${processedData.length} data points`)
+    return processedData
   } catch (e) {
-    console.warn('Failed to process consumption data:', e)
+    console.error('Failed to process consumption data:', e)
     return []
   }
 }

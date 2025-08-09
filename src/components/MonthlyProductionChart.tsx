@@ -58,7 +58,7 @@ const MonthlyProductionChart: React.FC<MonthlyProductionChartProps> = ({ block }
     const fetchData = async () => {
       setLoading(true); setError(null);
       try {
-        const response = await fetch('/api/monthly-production');
+        const response = await fetch('/api/energy-data?endpoint=monthly-production');
         if (!response.ok) throw new Error('Kunne ikke hente månedsdata.');
         const result = await response.json();
         setData(result.records || []);

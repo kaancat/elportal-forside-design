@@ -11,7 +11,7 @@
  */
 export async function searchMCPServers(query: string, limit = 10) {
   try {
-    const response = await fetch('/api/smithery?action=search', {
+    const response = await fetch('/api/smithery/search', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -41,7 +41,7 @@ export async function useMCPTool(
   options: { profile?: string } = {}
 ) {
   try {
-    const response = await fetch('/api/smithery?action=use-tool', {
+    const response = await fetch('/api/smithery/use-tool', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

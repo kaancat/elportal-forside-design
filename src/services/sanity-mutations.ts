@@ -11,7 +11,7 @@
  */
 export async function createPage(pageData: any) {
   try {
-    const response = await fetch('/api/sanity?action=create-page', {
+    const response = await fetch('/api/sanity/create-page', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -49,7 +49,7 @@ export async function updateContent(
   }
 ) {
   try {
-    const response = await fetch('/api/sanity?action=update-content', {
+    const response = await fetch('/api/sanity/update-content', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',

@@ -88,7 +88,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
       setLoading(true);
       setError(null);
       try {
-        const apiUrl = `/api/energy-data?endpoint=consumption-map&consumerType=${selectedConsumerType}&aggregation=${dataSource}&view=${selectedView}`;
+        const apiUrl = `/api/consumption-map?consumerType=${selectedConsumerType}&aggregation=${dataSource}&view=${selectedView}`;
         debug.log('Fetching consumption data from:', apiUrl);
         
         const response = await fetch(apiUrl);

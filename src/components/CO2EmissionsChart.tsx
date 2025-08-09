@@ -119,7 +119,7 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
       setLoading(true);
       setError(null);
       try {
-        const apiUrl = `/api/energy-data?endpoint=co2-emissions&region=${selectedRegion}&date=${formatDateForApi(selectedDate)}&aggregation=hourly`;
+        const apiUrl = `/api/co2-emissions?region=${selectedRegion}&date=${formatDateForApi(selectedDate)}&aggregation=hourly`;
         console.log('Fetching CO2 data from:', apiUrl);
         
         const response = await fetch(apiUrl);

@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Calendar as CalendarComponent } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { 
   BarChart, 
   Bar, 
@@ -30,15 +32,18 @@ import {
   DollarSign,
   Calendar,
   ToggleLeft,
-  ToggleRight
+  ToggleRight,
+  CalendarRange
 } from 'lucide-react'
+import { format } from 'date-fns'
+import { da } from 'date-fns/locale'
 
 interface ImprovedConsumptionDashboardProps {
   customerData: any
   onRefresh: () => void
 }
 
-type DateRange = 'today' | 'yesterday' | '7d' | '30d' | '3m' | '12m' | '1y' | '5y'
+type DateRange = 'today' | 'yesterday' | '7d' | '30d' | '3m' | '12m' | '1y' | '5y' | 'custom'
 
 interface ConsumptionData {
   data: any[]
@@ -80,6 +85,9 @@ const CHART_COLORS = {
 
 export function ImprovedConsumptionDashboard({ customerData, onRefresh }: ImprovedConsumptionDashboardProps) {
   const [dateRange, setDateRange] = useState<DateRange>('30d')
+  const [customDateFrom, setCustomDateFrom] = useState<Date | undefined>(undefined)
+  const [customDateTo, setCustomDateTo] = useState<Date | undefined>(undefined)
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false)
   const [consumptionData, setConsumptionData] = useState<ConsumptionData>({
     data: [],
     totalConsumption: 0,
@@ -107,7 +115,7 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
     if (customerData) {
       fetchConsumptionData()
     }
-  }, [dateRange, customerData, showComparison])
+  }, [dateRange, customerData, showComparison, customDateFrom, customDateTo])
 
   const fetchAddressData = async () => {
     if (!customerData?.meteringPointIds?.length) return
@@ -124,10 +132,20 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
       
       if (response.ok) {
         const data = await response.json()
-        setAddressData(data.address)
+        // Only set address if we have valid data
+        if (data?.address?.fullAddress && data.address.fullAddress !== 'Adresse ikke tilgængelig') {
+          setAddressData(data.address)
+        } else {
+          // Don't set invalid address data
+          setAddressData(null)
+        }
+      } else {
+        // If the request fails, don't show address card
+        setAddressData(null)
       }
     } catch (error) {
       console.error('Error fetching address:', error)
+      setAddressData(null)
     } finally {
       setLoadingAddress(false)
     }
@@ -228,22 +246,26 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
     
     switch (range) {
       case 'today':
+        // Today's data might not be available yet, request up to current hour
         const todayStart = new Date(now)
         todayStart.setHours(0, 0, 0, 0)
         dateFrom = todayStart
+        // Clamp to current time or yesterday if today's data isn't available
         const todayEnd = new Date(now)
-        todayEnd.setHours(23, 59, 59, 999)
-        dateTo = todayEnd
+        if (todayEnd > yesterday) {
+          dateTo = yesterday // Use yesterday as max since API doesn't accept future dates
+        } else {
+          dateTo = todayEnd
+        }
         aggregation = 'Hour'
         break
       case 'yesterday':
-        const yday = new Date(now)
-        yday.setDate(yday.getDate() - 1)
-        const ydayStart = new Date(yday)
+        // Yesterday's data should be complete
+        const ydayStart = new Date(yesterday)
         ydayStart.setHours(0, 0, 0, 0)
         dateFrom = ydayStart
-        const ydayEnd = new Date(yday)
-        ydayEnd.setHours(23, 59, 59, 999)
+        const ydayEnd = new Date(yesterday)
+        ydayEnd.setHours(23, 59, 59, 0)
         dateTo = ydayEnd
         aggregation = 'Hour'
         break
@@ -274,6 +296,27 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
         dateFrom = new Date(now)
         dateFrom.setFullYear(now.getFullYear() - 5)
         aggregation = 'Year'
+        break
+      case 'custom':
+        if (customDateFrom && customDateTo) {
+          dateFrom = new Date(customDateFrom)
+          dateTo = new Date(customDateTo)
+          // Determine aggregation based on date range
+          const daysDiff = Math.ceil((dateTo.getTime() - dateFrom.getTime()) / (1000 * 60 * 60 * 24))
+          if (daysDiff <= 2) {
+            aggregation = 'Hour'
+          } else if (daysDiff <= 90) {
+            aggregation = 'Day'
+          } else if (daysDiff <= 365) {
+            aggregation = 'Month'
+          } else {
+            aggregation = 'Year'
+          }
+        } else {
+          // Fallback if custom dates not set
+          dateFrom = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+          aggregation = 'Day'
+        }
         break
       default:
         dateFrom = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
@@ -523,26 +566,105 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
     ]
     
     return (
-      <div className="inline-flex items-center p-0.5 bg-gray-100 rounded-xl">
-        {ranges.map(({ value, label }, index) => (
-          <React.Fragment key={value}>
-            {index > 0 && ranges[index - 1].group !== ranges[index].group && (
-              <div className="w-px h-5 bg-gray-300 mx-0.5" />
-            )}
-            <button
-              onClick={() => setDateRange(value)}
-              className={`
-                px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200
-                ${dateRange === value 
-                  ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' 
-                  : 'text-gray-600 hover:text-gray-900'
-                }
-              `}
+      <div className="flex items-center gap-2">
+        <div className="inline-flex items-center p-0.5 bg-gray-100 rounded-xl">
+          {ranges.map(({ value, label }, index) => (
+            <React.Fragment key={value}>
+              {index > 0 && ranges[index - 1].group !== ranges[index].group && (
+                <div className="w-px h-5 bg-gray-300 mx-0.5" />
+              )}
+              <button
+                onClick={() => setDateRange(value)}
+                className={`
+                  px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200
+                  ${dateRange === value 
+                    ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' 
+                    : 'text-gray-600 hover:text-gray-900'
+                  }
+                `}
+              >
+                {label}
+              </button>
+            </React.Fragment>
+          ))}
+        </div>
+        
+        {/* Custom Date Range Picker */}
+        <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant={dateRange === 'custom' ? 'default' : 'outline'}
+              className="flex items-center gap-2"
+              size="sm"
             >
-              {label}
-            </button>
-          </React.Fragment>
-        ))}
+              <CalendarRange className="h-4 w-4" />
+              {dateRange === 'custom' && customDateFrom && customDateTo
+                ? `${format(customDateFrom, 'd. MMM', { locale: da })} - ${format(customDateTo, 'd. MMM', { locale: da })}`
+                : 'Vælg periode'}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-4" align="end">
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium text-sm mb-2">Vælg periode</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-gray-600 mb-1 block">Fra dato</label>
+                    <CalendarComponent
+                      mode="single"
+                      selected={customDateFrom}
+                      onSelect={(date) => {
+                        setCustomDateFrom(date)
+                        if (date && customDateTo && date <= customDateTo) {
+                          setDateRange('custom')
+                        }
+                      }}
+                      disabled={(date) => {
+                        const yesterday = new Date()
+                        yesterday.setDate(yesterday.getDate() - 1)
+                        return date > yesterday || (customDateTo ? date > customDateTo : false)
+                      }}
+                      className="rounded-md border"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600 mb-1 block">Til dato</label>
+                    <CalendarComponent
+                      mode="single"
+                      selected={customDateTo}
+                      onSelect={(date) => {
+                        setCustomDateTo(date)
+                        if (date && customDateFrom && date >= customDateFrom) {
+                          setDateRange('custom')
+                        }
+                      }}
+                      disabled={(date) => {
+                        const yesterday = new Date()
+                        yesterday.setDate(yesterday.getDate() - 1)
+                        return date > yesterday || (customDateFrom ? date < customDateFrom : false)
+                      }}
+                      className="rounded-md border"
+                    />
+                  </div>
+                </div>
+                {customDateFrom && customDateTo && (
+                  <div className="mt-3 pt-3 border-t">
+                    <Button
+                      onClick={() => {
+                        setDateRange('custom')
+                        setIsDatePickerOpen(false)
+                      }}
+                      className="w-full"
+                      size="sm"
+                    >
+                      Anvend periode
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
     )
   }
@@ -662,8 +784,8 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
         </Card>
       </div>
 
-      {/* Address Card */}
-      {addressData && (
+      {/* Address Card - Only show if we have valid address data */}
+      {(addressData?.fullAddress && addressData.fullAddress !== 'Adresse ikke tilgængelig') && (
         <Card className="border-0 bg-gradient-to-br from-purple-50 to-purple-100/50">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -674,7 +796,7 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
                   {loadingAddress ? (
                     <Skeleton className="h-5 w-48" />
                   ) : (
-                    addressData?.fullAddress || 'Adresse ikke tilgængelig'
+                    addressData.fullAddress
                   )}
                 </p>
               </div>

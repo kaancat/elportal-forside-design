@@ -402,6 +402,13 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
                       <li>• <strong>Leverandørens tillæg</strong> fra deres aktuelle prislister</li>
                       <li>• <strong>Afgifter og moms</strong> (elafgift, systemtarif, transmission + 25% moms)</li>
                     </ul>
+                    <p className="text-sm mt-3 font-semibold text-brand-green">
+                      OBS: Priserne vises uden midlertidige rabatter
+                    </p>
+                    <p className="text-sm mt-1 text-gray-600">
+                      Introrabatter, "første 12 måneder gratis" og lignende kampagnetilbud 
+                      er ikke inkluderet, da disse ikke afspejler den reelle langsigtede pris.
+                    </p>
                     <p className="text-sm mt-2 text-gray-600">
                       Vi stræber efter at vise de mest præcise og aktuelle priser, 
                       så du kan træffe det bedste valg.

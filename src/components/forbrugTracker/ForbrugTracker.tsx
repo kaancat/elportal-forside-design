@@ -40,6 +40,41 @@ interface ForbrugTrackerProps {
 // Must match the redirect configured in WordPress on mondaybrew.dk
 const AUTHORIZATION_URL = 'https://eloverblik.dk/power-of-attorney?thirdPartyId=945ac027-559a-4923-a670-66bfda8d27c6&fromDate=2021-08-08&toDate=2028-08-08&returnUrl=https%3A%2F%2Fmondaybrew.dk%2Fdinelportal-callback%2F'
 
+// Client-side cache helpers
+const STORAGE_KEY = 'elportal_consumption_cache'
+const STORAGE_TTL = 5 * 60 * 1000 // 5 minutes
+
+const getCachedData = (key: string): any => {
+  try {
+    const cached = sessionStorage.getItem(`${STORAGE_KEY}_${key}`)
+    if (!cached) return null
+    
+    const { data, timestamp } = JSON.parse(cached)
+    if (Date.now() - timestamp > STORAGE_TTL) {
+      sessionStorage.removeItem(`${STORAGE_KEY}_${key}`)
+      return null
+    }
+    
+    return data
+  } catch {
+    return null
+  }
+}
+
+const setCachedData = (key: string, data: any): void => {
+  try {
+    sessionStorage.setItem(
+      `${STORAGE_KEY}_${key}`,
+      JSON.stringify({ data, timestamp: Date.now() })
+    )
+  } catch (e) {
+    // Storage full, clear old entries
+    Object.keys(sessionStorage)
+      .filter(k => k.startsWith(STORAGE_KEY))
+      .forEach(k => sessionStorage.removeItem(k))
+  }
+}
+
 export function ForbrugTracker({
   title = 'Start Din Forbrug Tracker',
   description = 'Forbind med Eloverblik for at se dine personlige forbrugsdata',
@@ -55,6 +90,7 @@ export function ForbrugTracker({
   const [error, setError] = useState<string | null>(null)
   const [isRequestInFlight, setIsRequestInFlight] = useState(false)
   const didInitRef = useRef(false)
+  const fetchStateRef = useRef<'idle' | 'fetching' | 'complete'>('idle')
 
   // Check if user has been authorized (returned from Eloverblik)
   useEffect(() => {
@@ -131,7 +167,15 @@ export function ForbrugTracker({
 
   const fetchConsumptionData = async (params: { authorizationId?: string; customerCVR?: string; meteringPointIds?: string[] }) => {
     try {
+      // Prevent double-fetching with proper state tracking
+      if (fetchStateRef.current === 'fetching') {
+        console.log('Already fetching consumption data, skipping...')
+        return
+      }
+      
       if (isRequestInFlight) return
+      
+      fetchStateRef.current = 'fetching'
       setIsRequestInFlight(true)
       console.log('Fetching consumption with params:', params) // Debug log
       
@@ -149,6 +193,17 @@ export function ForbrugTracker({
       // Format dates in Danish timezone
       const dateFrom = thirtyDaysAgo.toISOString().split('T')[0]
       const dateTo = yesterday.toISOString().split('T')[0]
+      
+      // Check cache first
+      const cacheKey = `${params.authorizationId || params.customerCVR}_${dateFrom}_${dateTo}`
+      const cached = getCachedData(cacheKey)
+      if (cached) {
+        console.log('Using cached consumption data')
+        setConsumptionData(cached)
+        fetchStateRef.current = 'complete'
+        setIsRequestInFlight(false)
+        return
+      }
       
       console.log(`Requesting consumption data from ${dateFrom} to ${dateTo}`)
       
@@ -172,6 +227,9 @@ export function ForbrugTracker({
         const data = await response.json()
         console.log('Consumption data received:', data) // Debug log
         setConsumptionData(data)
+        
+        // Cache the successful response
+        setCachedData(cacheKey, data)
         
         // Calculate total consumption for display
         if (data.result && Array.isArray(data.result)) {
@@ -199,7 +257,19 @@ export function ForbrugTracker({
           const errorData = await response.json()
           console.error('Error details:', errorData)
           if (response.status === 429 || response.status === 503) {
-            setError('Tjenesten er midlertidigt overbelastet (429/503). Vent 1 minut og prøv igen.')
+            const errorMsg = response.status === 429 
+              ? 'For mange forespørgsler - systemet er midlertidigt overbelastet. Vent venligst 60 sekunder før du prøver igen.'
+              : 'Eloverblik er midlertidigt utilgængelig. Vi viser gemte data hvor muligt. Prøv igen om 2 minutter.'
+            
+            // Try to show cached data if available during 429/503 errors
+            const cached = getCachedData(cacheKey)
+            if (cached) {
+              console.log('Showing cached data due to API error')
+              setConsumptionData(cached)
+              setError(errorMsg + ' (Viser gemte data)')
+            } else {
+              setError(errorMsg)
+            }
           } else if (errorData.details) {
             setError(`Kunne ikke hente forbrugsdata: ${errorData.details}`)
           } else {
@@ -215,6 +285,7 @@ export function ForbrugTracker({
       console.error('Error fetching consumption:', err)
       setError('Kunne ikke hente forbrugsdata')
     } finally {
+      fetchStateRef.current = 'complete'
       setIsRequestInFlight(false)
     }
   }

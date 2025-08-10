@@ -38,6 +38,28 @@ function clampDateRange(dateFrom: string, dateTo: string): { from: string; to: s
 // WHY: Reduce token refresh calls and chance of 429s
 const tokenCache: { token: string; expiresAt: number } = { token: '', expiresAt: 0 }
 
+// Global request deduplication queue
+// WHAT: Prevents duplicate in-flight requests for the same resource
+// WHY: Multiple browser tabs or rapid refreshes can trigger duplicate API calls causing 429s
+const requestQueue = new Map<string, Promise<any>>()
+
+async function queuedFetch(key: string, fetcher: () => Promise<any>): Promise<any> {
+  // If request already in flight, return the same promise
+  if (requestQueue.has(key)) {
+    console.log(`Request already in flight for ${key}, waiting...`)
+    return requestQueue.get(key)
+  }
+  
+  // Create new request
+  const promise = fetcher().finally(() => {
+    // Clean up after 100ms to handle rapid retries
+    setTimeout(() => requestQueue.delete(key), 100)
+  })
+  
+  requestQueue.set(key, promise)
+  return promise
+}
+
 // WHAT: Retrieve third-party access token using refresh token with lightweight caching
 // WHY: Every third-party call requires an access token; caching reduces rate-limit risk
 async function getThirdPartyAccessToken(refreshToken: string): Promise<string> {
@@ -190,7 +212,7 @@ async function handleGetConsumption(req: VercelRequest, res: VercelResponse) {
 
 // Simple in-memory cache to prevent rate limiting
 const authCache = new Map<string, { data: any; timestamp: number }>()
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+const CACHE_TTL = 15 * 60 * 1000 // 15 minutes - increased from 5 to reduce API calls
 
 // Third-party API handlers
 async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelResponse) {
@@ -353,13 +375,13 @@ async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelRes
 // WHAT: Avoid redundant metering point lookups per authorization
 // WHY: Reduce Eloverblik calls and 429s
 const meteringPointCache = new Map<string, { ids: string[]; timestamp: number }>()
-const METERING_POINT_TTL = 15 * 60 * 1000 // 15 minutes
+const METERING_POINT_TTL = 30 * 60 * 1000 // 30 minutes - increased from 15 to reduce API calls
 
 // In-memory cache for consumption responses keyed by identifier/date/aggregation
 // WHAT: Avoid repeated identical timeseries calls that can trigger 429s
 // WHY: Users may reload quickly; cache for a short period
 const consumptionCache = new Map<string, { payload: any; timestamp: number }>()
-const CONSUMPTION_TTL = 2 * 60 * 1000 // 2 minutes
+const CONSUMPTION_TTL = 10 * 60 * 1000 // 10 minutes - increased from 2 to significantly reduce API calls
 
 async function handleThirdPartyConsumption(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -407,8 +429,11 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
   console.log(`Fetching consumption for identifier: ${identifier} (scope: ${scope}), dates: ${safeFrom} to ${safeTo}`)
 
   try {
-    // Get access token
-    const accessToken = await getThirdPartyAccessToken(refreshToken)
+    // Get access token with deduplication to prevent multiple simultaneous token refreshes
+    const accessToken = await queuedFetch(
+      'token_refresh',
+      () => getThirdPartyAccessToken(refreshToken)
+    )
     
     if (!accessToken) {
       console.error('No access token in response:', tokenData)
@@ -516,37 +541,48 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
     let lastStatus = 0
     let lastBody = ''
     let consumptionData: any = null
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      const response = await fetch(consumptionUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'api-version': '1.0',
-          // Optionally pass a correlation id; useful for support
-          // 'X-User-Correlation-ID': crypto.randomUUID(),
-        },
-        body: JSON.stringify(requestBody),
-      })
+    
+    // Use queued fetch to prevent duplicate consumption requests
+    const consumptionResult = await queuedFetch(
+      `consumption_${identifier}_${safeFrom}_${safeTo}`,
+      async () => {
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          const response = await fetch(consumptionUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'api-version': '1.0',
+              // Optionally pass a correlation id; useful for support
+              // 'X-User-Correlation-ID': crypto.randomUUID(),
+            },
+            body: JSON.stringify(requestBody),
+          })
 
-      if (response.ok) {
-        consumptionData = await response.json()
-        lastStatus = 200
-        break
-      }
+          if (response.ok) {
+            const data = await response.json()
+            return { data, status: 200, body: '' }
+          }
 
-      lastStatus = response.status
-      lastBody = await response.text()
-      console.warn(`Consumption request failed (status ${lastStatus}) attempt ${attempt}/${maxAttempts}`)
-      if ((lastStatus === 429 || lastStatus === 503) && attempt < maxAttempts) {
-        const delay = baseDelayMs * Math.pow(2, attempt - 1) // 1s, 2s
-        await new Promise(r => setTimeout(r, delay))
-        continue
-      } else {
-        break
+          lastStatus = response.status
+          lastBody = await response.text()
+          console.warn(`Consumption request failed (status ${lastStatus}) attempt ${attempt}/${maxAttempts}`)
+          if ((lastStatus === 429 || lastStatus === 503) && attempt < maxAttempts) {
+            const delay = baseDelayMs * Math.pow(2, attempt - 1) // 1s, 2s
+            await new Promise(r => setTimeout(r, delay))
+            continue
+          } else {
+            break
+          }
+        }
+        return { data: null, status: lastStatus, body: lastBody }
       }
-    }
+    )
+    
+    consumptionData = consumptionResult.data
+    lastStatus = consumptionResult.status
+    lastBody = consumptionResult.body
 
     if (lastStatus !== 200 || !consumptionData) {
       console.error('Failed to fetch consumption data:', { status: lastStatus, body: lastBody })

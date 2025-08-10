@@ -1,5 +1,7 @@
 // File: /api/electricity-prices.ts
-// Optimized version with caching and request deduplication to reduce EnergiDataService API calls
+// Optimized version with KV caching and request deduplication to reduce EnergiDataService API calls
+
+import { kv } from '@vercel/kv'
 
 export const dynamic = 'force-dynamic'; // Ensures the function runs dynamically for every request
 
@@ -59,16 +61,35 @@ export async function GET(request: Request) {
     const region = searchParams.get('region') || searchParams.get('area') || 'DK2';
     const area = region === 'DK1' ? 'DK1' : 'DK2';
     
-    // Check cache first
-    const cacheKey = `${area}_${startDate}_${endDate}`
-    const cached = priceCache.get(cacheKey)
+    // Check KV cache first (distributed across instances)
+    const cacheKey = `prices:${area}:${startDate}:${endDate}`
+    
+    try {
+      const kvCached = await kv.get(cacheKey)
+      if (kvCached) {
+        console.log(`Returning KV cached electricity prices for ${cacheKey}`)
+        return Response.json(kvCached, { 
+          status: 200, 
+          headers: { 
+            'Cache-Control': 's-maxage=300', // 5 min edge cache
+            'X-Cache': 'HIT-KV'
+          } 
+        })
+      }
+    } catch (e) {
+      console.log('KV cache read failed:', e)
+    }
+    
+    // Check in-memory cache as fallback
+    const memCacheKey = `${area}_${startDate}_${endDate}`
+    const cached = priceCache.get(memCacheKey)
     if (cached && Date.now() - cached.timestamp < PRICE_CACHE_TTL) {
-      console.log(`Returning cached electricity prices for ${cacheKey}`)
+      console.log(`Returning in-memory cached electricity prices for ${memCacheKey}`)
       return Response.json(cached.data, { 
         status: 200, 
         headers: { 
           'Cache-Control': 's-maxage=300', // 5 min edge cache
-          'X-Cache': 'HIT'
+          'X-Cache': 'HIT-MEMORY'
         } 
       })
     }
@@ -76,7 +97,7 @@ export async function GET(request: Request) {
     const apiUrl = `https://api.energidataservice.dk/dataset/Elspotprices?start=${startDate}&end=${endDate}&filter={"PriceArea":["${area}"]}&sort=HourUTC ASC`;
 
     // Use queued fetch to prevent duplicate requests
-    const result = await queuedFetch(cacheKey, async () => {
+    const result = await queuedFetch(memCacheKey, async () => {
       console.log(`Fetching electricity prices from EnergiDataService for ${cacheKey}`)
       
       // Retry logic for rate limiting (40 req/10s limit)
@@ -124,8 +145,16 @@ export async function GET(request: Request) {
       throw lastError || new Error('Failed to fetch electricity prices')
     });
     
-    // Cache the successful response
-    priceCache.set(cacheKey, { data: result, timestamp: Date.now() })
+    // Cache the successful response in both memory and KV
+    priceCache.set(memCacheKey, { data: result, timestamp: Date.now() })
+    
+    try {
+      // Store in KV with 5 minute expiry for price data
+      await kv.set(cacheKey, result, { ex: 300 })
+      console.log('Price data cached in KV')
+    } catch (e) {
+      console.log('Failed to cache prices in KV:', e)
+    }
     
     return Response.json(result, { 
       status: 200, 

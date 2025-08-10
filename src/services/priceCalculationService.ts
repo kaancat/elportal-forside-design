@@ -148,6 +148,8 @@ export function getPriceBreakdown(
     tradingCosts: tradingCostsKr,
     networkFees,
     networkTariff: actualNetworkTariff,
+    systemTariff: PRICE_CONSTANTS.SYSTEM_TARIFF,
+    transmissionFee: PRICE_CONSTANTS.TRANSMISSION_FEE,
     electricityTax: PRICE_CONSTANTS.ELECTRICITY_TAX,
     subtotal,
     vatAmount,

@@ -107,14 +107,36 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
   const [showComparison, setShowComparison] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [addressData, setAddressData] = useState<AddressData | null>(null)
+  
+  // TEMPORARY: Mock data for testing address display
+  // TODO: Remove this after testing
+  const MOCK_TEST = false // Set to true to test with mock data
+  useEffect(() => {
+    if (MOCK_TEST) {
+      console.log('[MOCK] Setting mock address data for testing')
+      setTimeout(() => {
+        setAddressData({
+          streetName: 'Testvej',
+          buildingNumber: '123',
+          postcode: '2100',
+          cityName: 'København Ø',
+          fullAddress: 'Testvej 123, 2100 København Ø'
+        })
+      }, 1000)
+    }
+  }, [])
   const [loadingAddress, setLoadingAddress] = useState(false)
 
   // Fetch address data when customer data is available
   useEffect(() => {
+    console.log('[Address Effect] customerData changed:', customerData)
     if (customerData?.meteringPointIds?.length > 0) {
+      console.log('[Address Effect] Triggering fetchAddressData')
       fetchAddressData()
+    } else {
+      console.log('[Address Effect] No meteringPointIds, skipping fetch')
     }
-  }, [customerData])
+  }, [customerData, fetchAddressData])
 
   // Fetch consumption data when range changes
   useEffect(() => {
@@ -145,14 +167,15 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
     }
   }, [consumptionData, dateRange, onConsumptionDataChange, customerData])
 
-  const fetchAddressData = async () => {
+  const fetchAddressData = useCallback(async () => {
     if (!customerData?.meteringPointIds?.length) {
-      console.log('No metering point IDs available, skipping address fetch')
+      console.log('[Address] No metering point IDs available, skipping address fetch')
       return
     }
     
-    console.log('Fetching address for metering points:', customerData.meteringPointIds)
+    console.log('[Address] Starting fetch for metering points:', customerData.meteringPointIds)
     setLoadingAddress(true)
+    
     try {
       const response = await fetch('/api/eloverblik?action=thirdparty-meteringpoint-details', {
         method: 'POST',
@@ -162,54 +185,81 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
         })
       })
       
+      console.log('[Address] API Response status:', response.status)
+      
       if (response.ok) {
         const data = await response.json()
-        console.log('Address data received:', data) // Debug logging
+        console.log('[Address] Full API response:', JSON.stringify(data, null, 2))
         
-        // Set address if we have any meaningful content
+        // Always set address data structure, even if empty
         if (data?.address) {
-          // Check if we have at least some address information
-          const hasContent = data.address.fullAddress && 
-                           data.address.fullAddress !== 'Adresse ikke tilgængelig'
+          const { streetName, buildingNumber, postcode, cityName, fullAddress } = data.address
           
-          if (hasContent) {
+          // Check if we have a valid fullAddress
+          if (fullAddress && fullAddress !== 'Adresse ikke tilgængelig') {
             setAddressData(data.address)
-            console.log('Address set successfully:', data.address.fullAddress)
+            console.log('[Address] ✅ Set address from API:', fullAddress)
+          } else if (streetName || cityName || postcode) {
+            // Build address from parts
+            const fallbackAddress = [
+              streetName && buildingNumber ? `${streetName} ${buildingNumber}` : streetName,
+              postcode && cityName ? `${postcode} ${cityName}` : cityName || postcode
+            ].filter(Boolean).join(', ')
+            
+            setAddressData({
+              ...data.address,
+              fullAddress: fallbackAddress || 'Adresse ikke tilgængelig'
+            })
+            console.log('[Address] ✅ Built fallback address:', fallbackAddress)
           } else {
-            // Try to build address from parts if fullAddress is empty
-            const { streetName, buildingNumber, postcode, cityName } = data.address
-            if (streetName || cityName || postcode) {
-              const fallbackAddress = [
-                streetName && buildingNumber ? `${streetName} ${buildingNumber}` : streetName,
-                postcode && cityName ? `${postcode} ${cityName}` : cityName || postcode
-              ].filter(Boolean).join(', ')
-              
-              setAddressData({
-                ...data.address,
-                fullAddress: fallbackAddress || 'Adresse ikke tilgængelig'
-              })
-              console.log('Using fallback address:', fallbackAddress)
-            } else {
-              console.log('No usable address data found')
-              setAddressData(null)
-            }
+            // Set default structure even when no data
+            setAddressData({
+              streetName: '',
+              buildingNumber: '',
+              postcode: '',
+              cityName: '',
+              fullAddress: 'Adresse ikke tilgængelig'
+            })
+            console.log('[Address] ⚠️ No address data available, using default')
           }
         } else {
-          console.log('No address data in response')
-          setAddressData(null)
+          // No address in response, set default
+          console.log('[Address] ⚠️ No address field in response')
+          setAddressData({
+            streetName: '',
+            buildingNumber: '',
+            postcode: '',
+            cityName: '',
+            fullAddress: 'Adresse ikke tilgængelig'
+          })
         }
       } else {
         const errorText = await response.text()
-        console.error('Address fetch failed:', response.status, errorText)
-        setAddressData(null)
+        console.error('[Address] ❌ API request failed:', response.status, errorText)
+        // Set error state but maintain structure
+        setAddressData({
+          streetName: '',
+          buildingNumber: '',
+          postcode: '',
+          cityName: '',
+          fullAddress: 'Fejl ved hentning af adresse'
+        })
       }
     } catch (error) {
-      console.error('Error fetching address:', error)
-      setAddressData(null)
+      console.error('[Address] ❌ Exception during fetch:', error)
+      // Set error state but maintain structure
+      setAddressData({
+        streetName: '',
+        buildingNumber: '',
+        postcode: '',
+        cityName: '',
+        fullAddress: 'Netværksfejl ved hentning af adresse'
+      })
     } finally {
       setLoadingAddress(false)
+      console.log('[Address] Fetch complete, loading state cleared')
     }
-  }
+  }, [customerData?.meteringPointIds])
 
   const fetchConsumptionData = async () => {
     if (!customerData || (!customerData.authorizationId && !customerData.customerCVR)) {
@@ -818,21 +868,25 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
         </Card>
       </div>
 
-      {/* Address Card - Show if we have address data with content */}
-      {addressData?.fullAddress && addressData.fullAddress !== 'Adresse ikke tilgængelig' && (
+      {/* Address Card - Show loading or data */}
+      {(loadingAddress || addressData) && (
         <Card className="border-0 bg-gradient-to-br from-purple-50 to-purple-100/50">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <MapPin className="h-4 w-4 text-purple-600 flex-shrink-0" />
               <div className="flex-1">
                 <p className="text-xs text-gray-600 mb-1">Måleradresse</p>
-                <p className="text-sm font-medium text-gray-900">
-                  {loadingAddress ? (
-                    <Skeleton className="h-5 w-48" />
-                  ) : (
-                    addressData.fullAddress
-                  )}
-                </p>
+                {loadingAddress ? (
+                  <Skeleton className="h-5 w-48" />
+                ) : addressData?.fullAddress ? (
+                  <p className="text-sm font-medium text-gray-900">
+                    {addressData.fullAddress}
+                  </p>
+                ) : (
+                  <p className="text-sm text-gray-500 italic">
+                    Adresse ikke tilgængelig
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>

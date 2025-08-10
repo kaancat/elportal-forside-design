@@ -132,7 +132,7 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
     console.log('[Address Effect] customerData changed:', customerData)
     if (customerData?.meteringPointIds?.length > 0) {
       console.log('[Address Effect] Triggering fetchAddressData')
-      fetchAddressData()
+      fetchAddressData(customerData.meteringPointIds)
     } else {
       console.log('[Address Effect] No meteringPointIds, skipping fetch')
     }
@@ -167,13 +167,13 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
     }
   }, [consumptionData, dateRange, onConsumptionDataChange, customerData])
 
-  const fetchAddressData = useCallback(async () => {
-    if (!customerData?.meteringPointIds?.length) {
+  const fetchAddressData = useCallback(async (meteringPointIds: string[]) => {
+    if (!meteringPointIds?.length) {
       console.log('[Address] No metering point IDs available, skipping address fetch')
       return
     }
     
-    console.log('[Address] Starting fetch for metering points:', customerData.meteringPointIds)
+    console.log('[Address] Starting fetch for metering points:', meteringPointIds)
     setLoadingAddress(true)
     
     try {
@@ -181,7 +181,7 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          meteringPointIds: customerData.meteringPointIds
+          meteringPointIds: meteringPointIds
         })
       })
       
@@ -259,7 +259,7 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
       setLoadingAddress(false)
       console.log('[Address] Fetch complete, loading state cleared')
     }
-  }, [customerData?.meteringPointIds])
+  }, [])
 
   const fetchConsumptionData = async () => {
     if (!customerData || (!customerData.authorizationId && !customerData.customerCVR)) {

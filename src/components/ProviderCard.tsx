@@ -191,10 +191,10 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
             
             <Button 
               onClick={handleSignupClick}
-              className="bg-brand-green hover:bg-brand-green/90 text-white rounded-lg w-full font-semibold py-3 px-6"
+              className="bg-brand-dark hover:bg-brand-dark/90 text-white rounded-lg w-full font-semibold py-3 px-6"
               disabled={!product.signupLink}
             >
-              Se nærmere <ExternalLink className="ml-2 h-4 w-4" />
+              Skift til {product.supplierName || 'denne leverandør'} <ExternalLink className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </div>

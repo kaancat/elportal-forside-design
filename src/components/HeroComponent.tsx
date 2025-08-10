@@ -1,8 +1,7 @@
-﻿import React from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { urlFor } from "@/lib/sanity";
 import OptimizedImage from "@/components/OptimizedImage";
-// Note: We don't need the carousel for this simpler, more robust design.
 
 interface HeroProps {
   block: any;
@@ -18,97 +17,195 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
     images, 
     backgroundImageUrl,
     imageAlt,
-    imageCredit 
+    imageCredit,
+    // New style fields
+    backgroundStyle = 'default',
+    textColor = 'auto',
+    overlayOpacity = 40,
+    padding = 'large',
+    alignment = 'center'
   } = block;
   
   // Handle multiple image sources: direct URL, single image (schema), or images array (legacy)
   const heroImage = image || (images && images.length > 0 ? images[0] : null);
   const hasBackgroundUrl = backgroundImageUrl && backgroundImageUrl.length > 0;
   
-  
+  // Define gradient styles
+  const getBackgroundClass = () => {
+    switch (backgroundStyle) {
+      case 'gradientGreenMist':
+        // The nice gradient from forbrug-tracker page
+        return 'bg-gradient-to-br from-white via-white to-brand-green/5';
+      case 'gradientOceanBreeze':
+        return 'bg-gradient-to-br from-blue-50 via-white to-brand-green/10';
+      case 'gradientSunriseGlow':
+        return 'bg-gradient-to-br from-orange-50/30 via-white to-yellow-50/40';
+      case 'gradientNordicSky':
+        return 'bg-gradient-to-br from-slate-100 via-blue-50/30 to-white';
+      case 'lightGray':
+        return 'bg-gray-50';
+      case 'solidGreen':
+        return 'bg-brand-green';
+      case 'solidDark':
+        return 'bg-brand-dark';
+      default:
+        // Default gradient (for backward compatibility)
+        return hasBackgroundUrl || heroImage 
+          ? 'bg-gradient-to-br from-brand-dark to-brand-green/80'
+          : 'bg-white';
+    }
+  };
+
+  // Determine text color based on background
+  const getTextColorClass = () => {
+    if (textColor === 'light') return 'text-white';
+    if (textColor === 'dark') return 'text-brand-dark';
+    
+    // Auto mode - determine based on background style
+    if (backgroundStyle === 'solidGreen' || backgroundStyle === 'solidDark') {
+      return 'text-white';
+    }
+    
+    // For gradients and light backgrounds, use dark text
+    return 'text-brand-dark';
+  };
+
+  // Get padding classes
+  const getPaddingClass = () => {
+    switch (padding) {
+      case 'small':
+        return 'py-12 md:py-16';
+      case 'medium':
+        return 'py-16 md:py-20';
+      case 'xlarge':
+        return 'py-24 md:py-32';
+      default: // large
+        return 'py-20 md:py-24';
+    }
+  };
+
+  // Get alignment classes
+  const getAlignmentClass = () => {
+    switch (alignment) {
+      case 'left':
+        return 'text-left items-start';
+      case 'right':
+        return 'text-right items-end';
+      default: // center
+        return 'text-center items-center';
+    }
+  };
 
   // Full viewport height minus header space
   const minHeightStyle = { minHeight: 'calc(100vh - 8rem)' };
 
+  const isLightText = getTextColorClass().includes('white');
+
   return (
     // The outer wrapper provides padding on desktop screens only
     <div className="md:p-4">
-      {/* Main container with full background on all screen sizes */}
-      <div className="relative md:rounded-2xl overflow-hidden bg-gradient-to-br from-brand-dark to-brand-green/80">
+      {/* Main container with background style */}
+      <div className={`relative md:rounded-2xl overflow-hidden ${getBackgroundClass()}`}>
         
-        {/* Layer 1: Background Image or Fallback (All screen sizes) */}
-        <div className="absolute inset-0">
-          {(heroImage || hasBackgroundUrl) ? (
-            <>
-              {hasBackgroundUrl ? (
-                // Direct URL image (e.g., from Unsplash)
-                <OptimizedImage
-                  src={backgroundImageUrl}
-                  alt={imageAlt || "Hero background showing Danish offshore wind turbines"}
-                  className="w-full h-full object-cover"
-                  priority={true} // Hero images should load immediately
-                  width={1920}
-                  height={1080}
-                  sizes="100vw"
-                />
-              ) : heroImage ? (
-                // Sanity asset image - pass the asset reference or the entire image object
-                <OptimizedImage
-                  src={heroImage.asset || heroImage}
-                  alt={heroImage.alt || image?.alt || "Hero background"}
-                  className="w-full h-full object-cover"
-                  priority={true} // Hero images should load immediately
-                  width={1920}
-                  height={1080}
-                  sizes="100vw"
-                />
-              ) : null}
-            </>
-          ) : (
-            // Fallback pattern when no image is provided
-            <div className="w-full h-full bg-gradient-to-br from-brand-dark via-brand-dark/95 to-brand-green/20">
-              {/* Optional: Add a subtle pattern or texture */}
-              <div className="absolute inset-0 opacity-10" style={{
-                backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" xmlns="http://www.w3.org/2000/svg"%3E%3Cdefs%3E%3Cpattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse"%3E%3Cpath d="M 60 0 L 0 0 0 60" fill="none" stroke="%23ffffff" stroke-width="1" opacity="0.2"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width="100%25" height="100%25" fill="url(%23grid)"/%3E%3C/svg%3E")'
-              }}></div>
-            </div>
-          )}
-        </div>
-
-        {/* Layer 2: Dark Overlay (All screen sizes) */}
-        <div className="absolute inset-0 bg-black/40"></div>
-
-        {/* Layer 3: Text Content */}
+        {/* Layer 1: Background Image (if provided) */}
+        {(heroImage || hasBackgroundUrl) && (
+          <div className="absolute inset-0">
+            {hasBackgroundUrl ? (
+              // Direct URL image (e.g., from Unsplash)
+              <OptimizedImage
+                src={backgroundImageUrl}
+                alt={imageAlt || "Hero background"}
+                className="w-full h-full object-cover"
+                priority={true}
+                width={1920}
+                height={1080}
+              />
+            ) : heroImage ? (
+              // Sanity image
+              <OptimizedImage
+                src={urlFor(heroImage).width(1920).height(1080).quality(85).url()}
+                alt={heroImage.alt || imageAlt || "Hero background"}
+                className="w-full h-full object-cover"
+                priority={true}
+                width={1920}
+                height={1080}
+              />
+            ) : null}
+            
+            {/* Dark overlay for text readability - only if there's an image */}
+            <div 
+              className="absolute inset-0 bg-black"
+              style={{ opacity: overlayOpacity / 100 }}
+            />
+          </div>
+        )}
+        
+        {/* Layer 2: Content */}
         <div 
-          className="relative z-10 flex flex-col items-center justify-center text-center py-16 px-4 md:py-16 md:px-8"
+          className={`relative z-10 flex flex-col justify-center ${getPaddingClass()} px-4 sm:px-6 lg:px-8 ${getTextColorClass()}`}
           style={minHeightStyle}
         >
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-white mb-6">
-            {headline}
-          </h1>
-          {subheadline && (
-            <p className="max-w-2xl mx-auto text-lg md:text-xl text-neutral-200 mb-8">
-              {subheadline}
-            </p>
-          )}
-          {description && description.length > 0 && (
-            <div className="max-w-3xl mx-auto text-base md:text-lg text-neutral-300 mb-8">
-              {/* Basic description rendering - could be enhanced with PortableText if needed */}
-              <p>{description[0]?.children?.[0]?.text}</p>
+          <div className="container mx-auto max-w-6xl">
+            <div className={`flex flex-col ${getAlignmentClass()} space-y-6`}>
+              
+              {/* Main headline */}
+              {headline && (
+                <h1 className={`text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-tight ${
+                  isLightText ? 'drop-shadow-lg' : ''
+                }`}>
+                  {headline}
+                </h1>
+              )}
+              
+              {/* Subheadline */}
+              {subheadline && (
+                <p className={`text-xl sm:text-2xl max-w-3xl ${
+                  alignment === 'center' ? 'mx-auto' : ''
+                } ${isLightText ? 'opacity-95 drop-shadow' : 'opacity-80'}`}>
+                  {subheadline}
+                </p>
+              )}
+              
+              {/* Description (if provided) */}
+              {description && (
+                <p className={`text-base sm:text-lg max-w-2xl ${
+                  alignment === 'center' ? 'mx-auto' : ''
+                } ${isLightText ? 'opacity-90' : 'opacity-70'}`}>
+                  {description}
+                </p>
+              )}
+              
+              {/* CTA Button */}
+              {cta && (
+                <div className={`mt-8 ${alignment === 'center' ? 'mx-auto' : ''}`}>
+                  <Button 
+                    size="lg"
+                    className={`${
+                      isLightText 
+                        ? 'bg-white text-brand-dark hover:bg-gray-100' 
+                        : 'bg-brand-green text-white hover:bg-brand-green/90'
+                    } font-semibold px-8 py-3 text-lg rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl`}
+                    onClick={() => {
+                      if (cta.url) {
+                        window.location.href = cta.url;
+                      }
+                    }}
+                  >
+                    {cta.text || 'Get Started'}
+                  </Button>
+                </div>
+              )}
+              
+              {/* Image credit (if provided) */}
+              {imageCredit && (heroImage || hasBackgroundUrl) && (
+                <p className={`absolute bottom-2 right-2 text-xs ${
+                  isLightText ? 'text-white/60' : 'text-gray-500'
+                }`}>
+                  {imageCredit}
+                </p>
+              )}
             </div>
-          )}
-          {cta?.text && cta?.link && (
-            <Button asChild size="lg" className="bg-brand-green hover:bg-brand-green/90 text-brand-dark font-semibold rounded-full px-8 py-6 text-lg">
-              <a href={cta.link}>{cta.text}</a>
-            </Button>
-          )}
-          
-          {/* Image Credit (if using external image) */}
-          {imageCredit && hasBackgroundUrl && (
-            <div className="absolute bottom-4 right-4 text-xs text-white/70 bg-black/30 px-2 py-1 rounded">
-              {imageCredit}
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

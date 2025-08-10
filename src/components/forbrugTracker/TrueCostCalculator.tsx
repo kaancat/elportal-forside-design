@@ -26,6 +26,15 @@ const formatCurrency = (amount: number): string => {
   return `${amount.toFixed(0)} kr`
 }
 
+// Format date to Danish DD/MM/YYYY
+const formatDateDanish = (dateStr: string): string => {
+  const date = new Date(dateStr)
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  return `${day}/${month}/${year}`
+}
+
 // Get period label in Danish
 const getPeriodLabel = (dateRange: string, dateFrom: string, dateTo: string): string => {
   switch(dateRange) {
@@ -116,9 +125,13 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
     
     // Calculate costs for each provider
     const providerCosts = providers.map(provider => {
-      // Check for regional pricing
-      let spotPriceMarkup = provider.spotPriceMarkup || provider.displayPrice_kWh || 0
-      let monthlySubscription = provider.monthlySubscription || provider.displayMonthlyFee || 0
+      // Use the actual spot price markup - prioritize spotPriceMarkup over displayPrice_kWh
+      let spotPriceMarkup = provider.spotPriceMarkup !== undefined 
+        ? provider.spotPriceMarkup 
+        : (provider.displayPrice_kWh || 0)
+      let monthlySubscription = provider.monthlySubscription !== undefined 
+        ? provider.monthlySubscription 
+        : (provider.displayMonthlyFee || 0)
       
       // Apply regional pricing if available
       if (provider.regionalPricing?.length > 0) {
@@ -133,14 +146,22 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
         }
       }
       
+      // Log provider pricing for debugging
+      console.log(`Provider ${provider.providerName}:`, {
+        spotPriceMarkup,
+        monthlySubscription,
+        greenCertificates: provider.greenCertificateFee || 0,
+        tradingCosts: provider.tradingCosts || 0
+      })
+      
       // Calculate price per kWh using centralized service
       const pricePerKwh = calculatePricePerKwh(
         avgSpotPrice, 
         spotPriceMarkup,
         actualNetworkTariff,
         {
-          greenCertificates: provider.greenCertificateFee,
-          tradingCosts: provider.tradingCosts
+          greenCertificates: provider.greenCertificateFee || 0,
+          tradingCosts: provider.tradingCosts || 0
         }
       )
       
@@ -248,7 +269,7 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
                 {processedData.totalConsumption.toFixed(0)} kWh
               </p>
               <p className="text-sm text-blue-700 mt-1">
-                i perioden {processedData.dateFrom} til {processedData.dateTo}
+                i perioden {formatDateDanish(processedData.dateFrom)} til {formatDateDanish(processedData.dateTo)}
               </p>
             </div>
             <Calculator className="h-8 w-8 text-blue-600" />

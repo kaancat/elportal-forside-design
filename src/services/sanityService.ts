@@ -495,9 +495,19 @@ export class SanityService {
       "logoUrl": logo.asset->url,
       displayPrice_kWh,
       displayMonthlyFee,
+      spotPriceMarkup,
+      monthlySubscription,
+      greenCertificateFee,
+      tradingCosts,
       signupLink,
       isVindstoedProduct,
-      benefits
+      benefits,
+      greenEnergy,
+      regionalPricing[] {
+        region,
+        spotPriceMarkup,
+        monthlySubscription
+      }
     }`
     
     try {

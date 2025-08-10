@@ -34,39 +34,49 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
     // The outer wrapper provides padding on desktop screens only
     <div className="md:p-4">
       {/* Main container with full background on all screen sizes */}
-      <div className="relative md:rounded-2xl overflow-hidden">
+      <div className="relative md:rounded-2xl overflow-hidden bg-gradient-to-br from-brand-dark to-brand-green/80">
         
-        {/* Layer 1: Background Image (All screen sizes) */}
-        {(heroImage || hasBackgroundUrl) && (
-          <div className="absolute inset-0">
-            {hasBackgroundUrl ? (
-              // Direct URL image (e.g., from Unsplash)
-              <OptimizedImage
-                src={backgroundImageUrl}
-                alt={imageAlt || "Hero background showing Danish offshore wind turbines"}
-                className="w-full h-full object-cover"
-                priority={true} // Hero images should load immediately
-                width={1920}
-                height={1080}
-                sizes="100vw"
-              />
-            ) : heroImage ? (
-              // Sanity asset image - pass the asset reference or the entire image object
-              <OptimizedImage
-                src={heroImage.asset || heroImage}
-                alt={heroImage.alt || image?.alt || "Hero background"}
-                className="w-full h-full object-cover"
-                priority={true} // Hero images should load immediately
-                width={1920}
-                height={1080}
-                sizes="100vw"
-              />
-            ) : null}
-          </div>
-        )}
+        {/* Layer 1: Background Image or Fallback (All screen sizes) */}
+        <div className="absolute inset-0">
+          {(heroImage || hasBackgroundUrl) ? (
+            <>
+              {hasBackgroundUrl ? (
+                // Direct URL image (e.g., from Unsplash)
+                <OptimizedImage
+                  src={backgroundImageUrl}
+                  alt={imageAlt || "Hero background showing Danish offshore wind turbines"}
+                  className="w-full h-full object-cover"
+                  priority={true} // Hero images should load immediately
+                  width={1920}
+                  height={1080}
+                  sizes="100vw"
+                />
+              ) : heroImage ? (
+                // Sanity asset image - pass the asset reference or the entire image object
+                <OptimizedImage
+                  src={heroImage.asset || heroImage}
+                  alt={heroImage.alt || image?.alt || "Hero background"}
+                  className="w-full h-full object-cover"
+                  priority={true} // Hero images should load immediately
+                  width={1920}
+                  height={1080}
+                  sizes="100vw"
+                />
+              ) : null}
+            </>
+          ) : (
+            // Fallback pattern when no image is provided
+            <div className="w-full h-full bg-gradient-to-br from-brand-dark via-brand-dark/95 to-brand-green/20">
+              {/* Optional: Add a subtle pattern or texture */}
+              <div className="absolute inset-0 opacity-10" style={{
+                backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" xmlns="http://www.w3.org/2000/svg"%3E%3Cdefs%3E%3Cpattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse"%3E%3Cpath d="M 60 0 L 0 0 0 60" fill="none" stroke="%23ffffff" stroke-width="1" opacity="0.2"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width="100%25" height="100%25" fill="url(%23grid)"/%3E%3C/svg%3E")'
+              }}></div>
+            </div>
+          )}
+        </div>
 
         {/* Layer 2: Dark Overlay (All screen sizes) */}
-        <div className="absolute inset-0 bg-black/50"></div>
+        <div className="absolute inset-0 bg-black/40"></div>
 
         {/* Layer 3: Text Content */}
         <div 

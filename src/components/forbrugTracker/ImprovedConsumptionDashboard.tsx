@@ -793,56 +793,68 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
               </div>
             </div>
           ) : isMobile ? (
-            // Mobile vertical bar layout
+            // Mobile horizontal bar layout (like LivePriceGraph)
             <div className="w-full">
-              <div className="overflow-x-auto -mx-4 px-4">
-                <div className="flex gap-2" style={{ minWidth: `${Math.max(consumptionData.data.length * 28, 320)}px` }}>
+              <div className="max-h-[400px] overflow-y-auto">
+                <div className="space-y-1">
                   {consumptionData.data.map((item, index) => {
                     const maxConsumption = Math.max(...consumptionData.data.map(d => d.consumption))
-                    const consumptionHeight = (item.consumption / maxConsumption) * 200
+                    const consumptionWidth = Math.max((item.consumption / maxConsumption) * 100, 5)
+                    const comparisonWidth = item.comparisonConsumption 
+                      ? Math.max((item.comparisonConsumption / maxConsumption) * 100, 5)
+                      : 0
                     const priceLevel = item.price < 1.5 ? 'low' : item.price < 2.5 ? 'medium' : 'high'
                     
+                    const getPriceColor = (level: string) => {
+                      switch (level) {
+                        case 'low': return 'bg-green-500'
+                        case 'medium': return 'bg-yellow-400'
+                        case 'high': return 'bg-red-500'
+                        default: return 'bg-gray-400'
+                      }
+                    }
+                    
                     return (
-                      <div key={index} className="flex flex-col items-center flex-1 min-w-[24px]">
-                        {/* Value label */}
-                        <div className="text-[10px] font-semibold text-gray-700 mb-1">
-                          {item.consumption.toFixed(1)}
+                      <div key={index} className="flex items-center gap-2">
+                        {/* Date label */}
+                        <div className="w-12 text-[10px] text-gray-600 font-medium text-right">
+                          {item.formattedDate.split(' ')[0]}
                         </div>
                         
                         {/* Bar container */}
-                        <div className="relative h-[200px] w-full flex items-end">
-                          {/* Consumption bar */}
-                          <div 
-                            className="w-full bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-sm transition-all duration-300"
-                            style={{ height: `${consumptionHeight}px` }}
-                          />
-                          
-                          {/* Comparison bar if enabled */}
-                          {showComparison && item.comparisonConsumption && (
+                        <div className="flex-1">
+                          <div className="relative h-5 bg-gray-100 rounded-sm overflow-hidden">
+                            {/* Consumption bar */}
                             <div 
-                              className="absolute bottom-0 w-full bg-blue-300/50 rounded-t-sm"
-                              style={{ 
-                                height: `${(item.comparisonConsumption / maxConsumption) * 200}px`,
-                                left: 0
-                              }}
+                              className="absolute left-0 top-0 h-full bg-blue-500 transition-all duration-300"
+                              style={{ width: `${consumptionWidth}%` }}
                             />
-                          )}
+                            
+                            {/* Comparison bar overlay */}
+                            {showComparison && item.comparisonConsumption && (
+                              <div 
+                                className="absolute left-0 top-0 h-full bg-blue-300/40 border-t-2 border-b-2 border-blue-300"
+                                style={{ width: `${comparisonWidth}%` }}
+                              />
+                            )}
+                            
+                            {/* Price color indicator strip at bottom */}
+                            <div 
+                              className={`absolute left-0 bottom-0 h-1 ${getPriceColor(priceLevel)}`}
+                              style={{ width: `${consumptionWidth}%` }}
+                            />
+                          </div>
                         </div>
                         
-                        {/* Date label */}
-                        <div className="text-[9px] text-gray-500 mt-1 transform -rotate-45 origin-top-left whitespace-nowrap">
-                          {item.formattedDate}
+                        {/* Value labels */}
+                        <div className="w-20 text-right">
+                          <div className="text-xs font-semibold text-gray-800">
+                            {item.consumption.toFixed(1)} kWh
+                          </div>
+                          <div className="text-[10px] text-gray-500">
+                            {item.price.toFixed(2)} kr/kWh
+                          </div>
                         </div>
-                        
-                        {/* Price indicator dot */}
-                        <div 
-                          className={`w-2 h-2 rounded-full mt-2 ${
-                            priceLevel === 'low' ? 'bg-green-500' : 
-                            priceLevel === 'medium' ? 'bg-yellow-400' : 
-                            'bg-red-500'
-                          }`}
-                          title={`Pris: ${item.price.toFixed(2)} kr/kWh`}
-                        />
                       </div>
                     )
                   })}
@@ -850,32 +862,34 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
               </div>
               
               {/* Mobile legend */}
-              <div className="flex items-center justify-center gap-4 mt-4 text-xs">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded bg-blue-500"></div>
-                  <span className="text-gray-600">Forbrug (kWh)</span>
-                </div>
-                {showComparison && (
+              <div className="mt-4 space-y-2">
+                <div className="flex items-center justify-center gap-4 text-xs">
                   <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded bg-blue-300/50"></div>
-                    <span className="text-gray-600">Sidste år</span>
+                    <div className="w-4 h-3 rounded-sm bg-blue-500"></div>
+                    <span className="text-gray-600">Forbrug</span>
                   </div>
-                )}
-              </div>
-              
-              {/* Price level legend */}
-              <div className="flex items-center justify-center gap-3 mt-2 text-xs">
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                  <span className="text-gray-500">Lav pris</span>
+                  {showComparison && (
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-4 h-3 rounded-sm bg-blue-300/40 border border-blue-300"></div>
+                      <span className="text-gray-600">Sidste år</span>
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
-                  <span className="text-gray-500">Mellem</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                  <span className="text-gray-500">Høj pris</span>
+                
+                {/* Price level legend */}
+                <div className="flex items-center justify-center gap-3 text-[10px]">
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-1 bg-green-500"></div>
+                    <span className="text-gray-500">Lav pris</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-1 bg-yellow-400"></div>
+                    <span className="text-gray-500">Mellem</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-1 bg-red-500"></div>
+                    <span className="text-gray-500">Høj pris</span>
+                  </div>
                 </div>
               </div>
             </div>

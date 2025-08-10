@@ -80,7 +80,9 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
                   </Badge>
                 )}
                 
+                {/* Product name as primary bold header */}
                 <h3 className="font-bold text-base sm:text-lg md:text-xl text-brand-dark mb-0.5 sm:mb-1">{product.productName || 'Ukendt produkt'}</h3>
+                {/* Supplier name as secondary text */}
                 <p className="text-sm sm:text-base text-gray-600 font-medium">{product.supplierName || 'Ukendt leverandør'}</p>
               </div>
             </div>
@@ -165,7 +167,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
               className="bg-brand-dark hover:bg-brand-dark/90 text-white rounded-lg w-full font-semibold py-2.5 sm:py-3 px-4 sm:px-6 text-sm sm:text-base"
               disabled={!product.signupLink}
             >
-              Skift til {product.supplierName} <ArrowRight className="ml-2 h-4 w-4" />
+              Skift til {product.productName} <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </div>

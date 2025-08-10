@@ -926,55 +926,81 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
                     return (
                       <div key={index} className="flex items-center gap-2">
                         {/* Date label */}
-                        <div className="w-12 text-[10px] text-gray-600 font-medium text-right">
+                        <div className="w-16 text-[10px] text-gray-600 font-medium text-right">
                           {(() => {
-                            // For hourly data, show just the time
-                            if (dateRange === 'yesterday' || dateRange === 'today') {
-                              const hour = item.date.split('T')[1]?.substring(0, 5) || item.formattedDate.split('kl. ')[1] || item.formattedDate
-                              return hour
-                            }
-                            // For other ranges, show day and month
-                            const parts = item.formattedDate.split(' ')
-                            if (parts.length >= 2) {
-                              return `${parts[0]} ${parts[1].substring(0, 3)}`
-                            }
-                            return item.formattedDate.split(' ')[0]
+                            const { aggregation } = calculateDateRange(dateRange)
+                            // Use mobile-specific formatting for all ranges
+                            return formatDateForDisplay(item.date, aggregation, true)
                           })()}
                         </div>
                         
                         {/* Bar container */}
                         <div className="flex-1">
-                          <div className="relative h-5 bg-gray-100 rounded-sm overflow-hidden">
-                            {/* Consumption bar */}
-                            <div 
-                              className="absolute left-0 top-0 h-full bg-blue-500 transition-all duration-300"
-                              style={{ width: `${consumptionWidth}%` }}
-                            />
-                            
-                            {/* Comparison bar overlay */}
-                            {showComparison && item.comparisonConsumption && (
+                          {showComparison && item.comparisonConsumption ? (
+                            /* Comparison mode: Side-by-side bars */
+                            <div className="space-y-0.5">
+                              {/* Current year bar */}
+                              <div className="relative h-2 bg-gray-100 rounded-sm overflow-hidden">
+                                <div 
+                                  className="absolute left-0 top-0 h-full bg-blue-500 transition-all duration-300"
+                                  style={{ width: `${consumptionWidth}%` }}
+                                />
+                                {/* Price color indicator strip at bottom */}
+                                <div 
+                                  className={`absolute left-0 bottom-0 h-0.5 ${getPriceColor(priceLevel)}`}
+                                  style={{ width: `${consumptionWidth}%` }}
+                                />
+                              </div>
+                              
+                              {/* Previous year bar */}
+                              <div className="relative h-2 bg-gray-100 rounded-sm overflow-hidden">
+                                <div 
+                                  className="absolute left-0 top-0 h-full bg-blue-300 transition-all duration-300"
+                                  style={{ width: `${comparisonWidth}%` }}
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            /* Single year mode: Full height bar */
+                            <div className="relative h-5 bg-gray-100 rounded-sm overflow-hidden">
+                              {/* Consumption bar */}
                               <div 
-                                className="absolute left-0 top-0 h-full bg-blue-300/40 border-t-2 border-b-2 border-blue-300"
-                                style={{ width: `${comparisonWidth}%` }}
+                                className="absolute left-0 top-0 h-full bg-blue-500 transition-all duration-300"
+                                style={{ width: `${consumptionWidth}%` }}
                               />
-                            )}
-                            
-                            {/* Price color indicator strip at bottom */}
-                            <div 
-                              className={`absolute left-0 bottom-0 h-1 ${getPriceColor(priceLevel)}`}
-                              style={{ width: `${consumptionWidth}%` }}
-                            />
-                          </div>
+                              
+                              {/* Price color indicator strip at bottom */}
+                              <div 
+                                className={`absolute left-0 bottom-0 h-1 ${getPriceColor(priceLevel)}`}
+                                style={{ width: `${consumptionWidth}%` }}
+                              />
+                            </div>
+                          )}
                         </div>
                         
                         {/* Value labels */}
                         <div className="w-20 text-right">
-                          <div className="text-xs font-semibold text-gray-800">
-                            {item.consumption.toFixed(1)} kWh
-                          </div>
-                          <div className="text-[10px] text-gray-500">
-                            {item.price.toFixed(2)} kr/kWh
-                          </div>
+                          {showComparison && item.comparisonConsumption ? (
+                            /* Comparison mode: Show both years */
+                            <div className="space-y-0.5">
+                              <div className="text-[10px] font-semibold text-gray-800">
+                                {item.consumption.toFixed(1)} kWh
+                              </div>
+                              <div className="text-[10px] font-medium text-gray-600">
+                                {item.comparisonConsumption.toFixed(1)} kWh
+                              </div>
+                            </div>
+                          ) : (
+                            /* Single year mode: Show current year and price */
+                            <div>
+                              <div className="text-xs font-semibold text-gray-800">
+                                {item.consumption.toFixed(1)} kWh
+                              </div>
+                              <div className="text-[10px] text-gray-500">
+                                {item.price.toFixed(2)} kr/kWh
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )
@@ -986,13 +1012,13 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
               <div className="mt-3 space-y-1.5">
                 <div className="flex items-center justify-center gap-4 text-xs">
                   <div className="flex items-center gap-1.5">
-                    <div className="w-4 h-3 rounded-sm bg-blue-500"></div>
-                    <span className="text-gray-600">Forbrug</span>
+                    <div className="w-4 h-2 rounded-sm bg-blue-500"></div>
+                    <span className="text-gray-600">{new Date().getFullYear()}</span>
                   </div>
                   {showComparison && (
                     <div className="flex items-center gap-1.5">
-                      <div className="w-4 h-3 rounded-sm bg-blue-300/40 border border-blue-300"></div>
-                      <span className="text-gray-600">Sidste år</span>
+                      <div className="w-4 h-2 rounded-sm bg-blue-300"></div>
+                      <span className="text-gray-600">{new Date().getFullYear() - 1}</span>
                     </div>
                   )}
                 </div>

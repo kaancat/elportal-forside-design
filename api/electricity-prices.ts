@@ -48,11 +48,21 @@ export async function GET(request: Request) {
 
     // --- Date Logic ---
     const dateParam = searchParams.get('date'); // Expects YYYY-MM-DD
+    const endDateParam = searchParams.get('endDate'); // Optional end date for ranges
     const baseDate = dateParam ? new Date(dateParam + 'T00:00:00Z') : new Date();
     const startDate = baseDate.toISOString().split('T')[0];
-    const tomorrow = new Date(baseDate);
-    tomorrow.setUTCDate(baseDate.getUTCDate() + 1);
-    const endDate = tomorrow.toISOString().split('T')[0];
+    
+    // If endDate is provided, use it; otherwise default to tomorrow for backward compatibility
+    let endDate: string;
+    if (endDateParam) {
+      const endBaseDate = new Date(endDateParam + 'T00:00:00Z');
+      endBaseDate.setUTCDate(endBaseDate.getUTCDate() + 1); // Add one day to include the end date
+      endDate = endBaseDate.toISOString().split('T')[0];
+    } else {
+      const tomorrow = new Date(baseDate);
+      tomorrow.setUTCDate(baseDate.getUTCDate() + 1);
+      endDate = tomorrow.toISOString().split('T')[0];
+    }
 
     // --- Fee & Region Logic ---
     const systemFeeKWh = 0.19;

@@ -488,21 +488,34 @@ export class SanityService {
 
   // Fetch all providers - single query to avoid N+1 problem
   static async getAllProviders(): Promise<ProviderProductBlock[]> {
-    const query = `*[_type == "provider"]{
+    const query = `*[_type == "provider" && isActive != false]{
       "id": _id,
       providerName,
       productName,
       "logoUrl": logo.asset->url,
-      displayPrice_kWh,
-      displayMonthlyFee,
+      // Detailed pricing fields
       spotPriceMarkup,
-      monthlySubscription,
       greenCertificateFee,
       tradingCosts,
-      signupLink,
+      monthlySubscription,
+      signupFee,
+      yearlySubscription,
+      // Product features
       isVindstoedProduct,
+      isVariablePrice,
+      bindingPeriod,
+      isGreenEnergy,
       benefits,
-      greenEnergy,
+      signupLink,
+      // Metadata
+      lastPriceUpdate,
+      priceUpdateFrequency,
+      notes,
+      isActive,
+      // Legacy fields for backward compatibility
+      displayPrice_kWh,
+      displayMonthlyFee,
+      // Regional pricing
       regionalPricing[] {
         region,
         spotPriceMarkup,

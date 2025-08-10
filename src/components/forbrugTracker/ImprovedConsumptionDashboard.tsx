@@ -213,54 +213,53 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
       
       let processedData = processConsumptionData(consumptionResult, priceResult.records || [], aggregation)
       
-      // Filter data for "yesterday" view to only show data from 2 days ago
-      // This matches what we're fetching (2 days ago due to Eloverblik processing delay)
+      // Filter data for "yesterday" view to show the most recent complete day with data
       if (dateRange === 'yesterday' && processedData.data.length > 0) {
-        const targetDay = new Date()
-        targetDay.setDate(targetDay.getDate() - 2) // Match the fetch logic - 2 days ago
-        const targetDayStr = targetDay.toISOString().split('T')[0]
+        // Group data by date to find complete days
+        const dataByDate = new Map<string, any[]>()
         
-        console.log('Filtering data for 2 days ago:', targetDayStr)
-        console.log('Raw data before filtering:', processedData.data.length, 'items')
-        console.log('Sample data dates:', processedData.data.slice(0, 5).map(d => d.date))
-        
-        // Filter to only include data from 2 days ago
-        processedData.data = processedData.data.filter(item => {
-          // Handle both ISO string dates and date-only strings
-          const itemDateStr = item.date.includes('T') ? item.date.split('T')[0] : item.date
-          
-          // Check if the date matches our target day (2 days ago)
-          if (itemDateStr === targetDayStr) {
-            return true
+        processedData.data.forEach(item => {
+          const dateStr = item.date.includes('T') ? item.date.split('T')[0] : item.date
+          if (!dataByDate.has(dateStr)) {
+            dataByDate.set(dateStr, [])
           }
-          
-          // Also check if it's within the target day's 24 hour period (handling timezone issues)
-          try {
-            const itemDate = new Date(item.date)
-            const targetDayStart = new Date(targetDay)
-            targetDayStart.setHours(0, 0, 0, 0)
-            const targetDayEnd = new Date(targetDay)
-            targetDayEnd.setHours(23, 59, 59, 999)
-            
-            // Check if the item falls within the target day's range
-            const isInRange = itemDate >= targetDayStart && itemDate <= targetDayEnd
-            if (isInRange) {
-              console.log('Including item from target day range:', item.date)
-            }
-            return isInRange
-          } catch (e) {
-            console.warn('Error parsing date:', item.date, e)
-            return false
-          }
+          dataByDate.get(dateStr)!.push(item)
         })
         
-        console.log('Data after filtering:', processedData.data.length, 'items')
+        console.log('Available dates with data:', Array.from(dataByDate.keys()).sort())
         
-        // Log if no data matches the filter
+        // Find the most recent date that has at least 20 hours of data (allowing for some gaps)
+        const sortedDates = Array.from(dataByDate.keys()).sort().reverse()
+        let selectedDate = ''
+        let selectedData: any[] = []
+        
+        for (const dateStr of sortedDates) {
+          const dayData = dataByDate.get(dateStr) || []
+          console.log(`Date ${dateStr} has ${dayData.length} hours of data`)
+          
+          // Use the most recent day that has at least 20 hours of data
+          if (dayData.length >= 20) {
+            selectedDate = dateStr
+            selectedData = dayData
+            break
+          }
+        }
+        
+        // If no day has 20+ hours, just use the most recent day with any data
+        if (!selectedDate && sortedDates.length > 0) {
+          selectedDate = sortedDates[0]
+          selectedData = dataByDate.get(selectedDate) || []
+          console.log(`No complete days found, using most recent: ${selectedDate} with ${selectedData.length} hours`)
+        }
+        
+        console.log(`Selected date for display: ${selectedDate}`)
+        processedData.data = selectedData
+        
+        // Log if no data was selected
         if (processedData.data.length === 0) {
-          console.error('No data matched target day filter (2 days ago)!', {
-            targetDayStr,
-            sampleDates: consumptionResult?.result?.[0]?.MyEnergyData_MarketDocument?.TimeSeries?.[0]?.Period?.[0]?.timeInterval
+          console.error('No suitable data found for daily view!', {
+            availableDates: sortedDates,
+            sampleData: consumptionResult?.result?.[0]
           })
         }
         
@@ -314,25 +313,26 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
     
     switch (range) {
       case 'yesterday':
-        // Fetch from 2 days ago (like the app does) to account for Eloverblik processing delays
-        // This ensures we actually get yesterday's data which may not be immediately available
-        const twoDaysAgo = new Date(now)
-        twoDaysAgo.setDate(now.getDate() - 2)
-        twoDaysAgo.setHours(0, 0, 0, 0)
-        dateFrom = twoDaysAgo
+        // Fetch last 3 days to ensure we get the most recent complete day of data
+        // Different meters have different update delays (1-3 days typically)
+        const threeDaysAgo = new Date(now)
+        threeDaysAgo.setDate(now.getDate() - 3)
+        threeDaysAgo.setHours(0, 0, 0, 0)
+        dateFrom = threeDaysAgo
         
-        const twoDaysAgoEnd = new Date(now)
-        twoDaysAgoEnd.setDate(now.getDate() - 2)
-        twoDaysAgoEnd.setHours(23, 59, 59, 999)
-        dateTo = twoDaysAgoEnd
+        // Fetch up to yesterday to get the most recent data available
+        const yesterdayEnd = new Date(now)
+        yesterdayEnd.setDate(now.getDate() - 1)
+        yesterdayEnd.setHours(23, 59, 59, 999)
+        dateTo = yesterdayEnd
         aggregation = 'Hour'
         
-        console.log('Yesterday (2 days ago) date range:', {
+        console.log('Fetching recent days to find latest available data:', {
           from: dateFrom.toISOString(),
           to: dateTo.toISOString(),
           localFrom: dateFrom.toLocaleString('da-DK'),
           localTo: dateTo.toLocaleString('da-DK'),
-          note: 'Fetching 2 days ago data due to Eloverblik processing delay'
+          note: 'Will display the most recent complete day with data'
         })
         break
       case '7d':

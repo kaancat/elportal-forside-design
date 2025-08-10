@@ -82,7 +82,25 @@ const CHART_COLORS = {
   high: '#ef4444', // red-500
 }
 
+// Custom hook to detect mobile screen
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false)
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+  
+  return isMobile
+}
+
 export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsumptionDataChange }: ImprovedConsumptionDashboardProps) {
+  const isMobile = useIsMobile()
   const [dateRange, setDateRange] = useState<DateRange>('30d')
   const [customDateRange, setCustomDateRange] = useState<[Date | undefined, Date | undefined]>([undefined, undefined])
   const [consumptionData, setConsumptionData] = useState<ConsumptionData>({
@@ -774,12 +792,101 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
                 <p className="text-sm text-gray-600">Ingen data tilgængelig for denne periode</p>
               </div>
             </div>
+          ) : isMobile ? (
+            // Mobile vertical bar layout
+            <div className="w-full">
+              <div className="overflow-x-auto -mx-4 px-4">
+                <div className="flex gap-2" style={{ minWidth: `${Math.max(consumptionData.data.length * 28, 320)}px` }}>
+                  {consumptionData.data.map((item, index) => {
+                    const maxConsumption = Math.max(...consumptionData.data.map(d => d.consumption))
+                    const consumptionHeight = (item.consumption / maxConsumption) * 200
+                    const priceLevel = item.price < 1.5 ? 'low' : item.price < 2.5 ? 'medium' : 'high'
+                    
+                    return (
+                      <div key={index} className="flex flex-col items-center flex-1 min-w-[24px]">
+                        {/* Value label */}
+                        <div className="text-[10px] font-semibold text-gray-700 mb-1">
+                          {item.consumption.toFixed(1)}
+                        </div>
+                        
+                        {/* Bar container */}
+                        <div className="relative h-[200px] w-full flex items-end">
+                          {/* Consumption bar */}
+                          <div 
+                            className="w-full bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-sm transition-all duration-300"
+                            style={{ height: `${consumptionHeight}px` }}
+                          />
+                          
+                          {/* Comparison bar if enabled */}
+                          {showComparison && item.comparisonConsumption && (
+                            <div 
+                              className="absolute bottom-0 w-full bg-blue-300/50 rounded-t-sm"
+                              style={{ 
+                                height: `${(item.comparisonConsumption / maxConsumption) * 200}px`,
+                                left: 0
+                              }}
+                            />
+                          )}
+                        </div>
+                        
+                        {/* Date label */}
+                        <div className="text-[9px] text-gray-500 mt-1 transform -rotate-45 origin-top-left whitespace-nowrap">
+                          {item.formattedDate}
+                        </div>
+                        
+                        {/* Price indicator dot */}
+                        <div 
+                          className={`w-2 h-2 rounded-full mt-2 ${
+                            priceLevel === 'low' ? 'bg-green-500' : 
+                            priceLevel === 'medium' ? 'bg-yellow-400' : 
+                            'bg-red-500'
+                          }`}
+                          title={`Pris: ${item.price.toFixed(2)} kr/kWh`}
+                        />
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+              
+              {/* Mobile legend */}
+              <div className="flex items-center justify-center gap-4 mt-4 text-xs">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded bg-blue-500"></div>
+                  <span className="text-gray-600">Forbrug (kWh)</span>
+                </div>
+                {showComparison && (
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded bg-blue-300/50"></div>
+                    <span className="text-gray-600">Sidste år</span>
+                  </div>
+                )}
+              </div>
+              
+              {/* Price level legend */}
+              <div className="flex items-center justify-center gap-3 mt-2 text-xs">
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  <span className="text-gray-500">Lav pris</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+                  <span className="text-gray-500">Mellem</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                  <span className="text-gray-500">Høj pris</span>
+                </div>
+              </div>
+            </div>
           ) : (
-            <ResponsiveContainer width="100%" height={320}>
-              <ComposedChart 
-                data={consumptionData.data} 
-                margin={{ top: 10, right: 10, left: 10, bottom: showComparison ? 80 : 60 }}
-              >
+            // Desktop horizontal chart
+            <div className="h-[320px] md:h-[400px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart 
+                  data={consumptionData.data} 
+                  margin={{ top: 10, right: 10, left: 10, bottom: showComparison ? 80 : 60 }}
+                >
                 <defs>
                   <linearGradient id="consumptionGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor={CHART_COLORS.consumptionGradient[0]} stopOpacity={0.8}/>
@@ -845,12 +952,13 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
                   strokeWidth={2}
                   dot={false}
                 />
-              </ComposedChart>
-            </ResponsiveContainer>
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
           )}
           
-          {/* Legend */}
-          {!consumptionData.isLoading && consumptionData.data.length > 0 && (
+          {/* Desktop Legend (only show on desktop) */}
+          {!isMobile && !consumptionData.isLoading && consumptionData.data.length > 0 && (
             <div className="flex items-center justify-center gap-6 mt-4 text-xs">
               <div className="flex items-center gap-1.5">
                 <div className="w-3 h-3 rounded bg-blue-500"></div>

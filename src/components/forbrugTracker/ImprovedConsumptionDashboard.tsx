@@ -170,8 +170,8 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
             aggregation
           })
         }),
-        // Fetch real prices from EnergiDataService
-        fetch(`/api/electricity-prices?date=${dateFrom}&region=${customerData?.region || 'DK2'}`)
+        // Fetch real prices from EnergiDataService for the entire date range
+        fetch(`/api/electricity-prices?date=${dateFrom.toISOString().split('T')[0]}&endDate=${dateTo.toISOString().split('T')[0]}&region=${customerData?.region || 'DK2'}`)
       ])
       
       if (!consumptionResponse.ok) {
@@ -180,6 +180,13 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
       
       const consumptionResult = await consumptionResponse.json()
       const priceResult = priceResponse.ok ? await priceResponse.json() : { records: [] }
+      
+      console.log('Price API response:', {
+        ok: priceResponse.ok,
+        status: priceResponse.status,
+        recordCount: priceResult?.records?.length || 0,
+        samplePrices: priceResult?.records?.slice(0, 3)
+      })
       
       // Fetch comparison data if enabled
       let comparisonData = null
@@ -307,23 +314,25 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
     
     switch (range) {
       case 'yesterday':
-        // For yesterday: Get full 24 hours of yesterday's data
-        const yesterdayStart = new Date(now)
-        yesterdayStart.setDate(now.getDate() - 1)
-        yesterdayStart.setHours(0, 0, 0, 0)
-        dateFrom = yesterdayStart
+        // Fetch from 2 days ago (like the app does) to account for Eloverblik processing delays
+        // This ensures we actually get yesterday's data which may not be immediately available
+        const twoDaysAgo = new Date(now)
+        twoDaysAgo.setDate(now.getDate() - 2)
+        twoDaysAgo.setHours(0, 0, 0, 0)
+        dateFrom = twoDaysAgo
         
-        const yesterdayEnd = new Date(now)
-        yesterdayEnd.setDate(now.getDate() - 1)
-        yesterdayEnd.setHours(23, 59, 59, 999)
-        dateTo = yesterdayEnd
+        const twoDaysAgoEnd = new Date(now)
+        twoDaysAgoEnd.setDate(now.getDate() - 2)
+        twoDaysAgoEnd.setHours(23, 59, 59, 999)
+        dateTo = twoDaysAgoEnd
         aggregation = 'Hour'
         
-        console.log('Yesterday date range:', {
+        console.log('Yesterday (2 days ago) date range:', {
           from: dateFrom.toISOString(),
           to: dateTo.toISOString(),
           localFrom: dateFrom.toLocaleString('da-DK'),
-          localTo: dateTo.toLocaleString('da-DK')
+          localTo: dateTo.toLocaleString('da-DK'),
+          note: 'Fetching 2 days ago data due to Eloverblik processing delay'
         })
         break
       case '7d':
@@ -372,18 +381,38 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
     
     // Process real price data from EnergiDataService
     if (Array.isArray(priceData)) {
+      console.log(`Processing ${priceData.length} price records for aggregation: ${aggregation}`)
       priceData.forEach((price: any) => {
         try {
           const date = new Date(price.HourDK || price.HourUTC)
-          const key = aggregation === 'Hour' 
-            ? date.toISOString()
-            : date.toISOString().split('T')[0]
-          // Use total price including all fees and VAT
-          priceMap.set(key, price.TotalPriceKWh || price.SpotPriceKWh || 2.5)
+          // For hourly data, create multiple keys to handle timezone differences
+          if (aggregation === 'Hour') {
+            // Store with multiple possible keys to handle timezone mismatches
+            const isoKey = date.toISOString()
+            const hourKey = `${date.toISOString().split('T')[0]}T${String(date.getHours()).padStart(2, '0')}`
+            const utcKey = new Date(price.HourUTC).toISOString()
+            
+            const priceValue = price.TotalPriceKWh || price.SpotPriceKWh || 2.5
+            priceMap.set(isoKey, priceValue)
+            priceMap.set(hourKey, priceValue)
+            priceMap.set(utcKey, priceValue)
+            
+            // Also set for the date only (for fallback)
+            const dateOnlyKey = date.toISOString().split('T')[0]
+            if (!priceMap.has(dateOnlyKey)) {
+              priceMap.set(dateOnlyKey, priceValue)
+            }
+          } else {
+            // For daily/monthly/yearly aggregation, use date only
+            const key = date.toISOString().split('T')[0]
+            const priceValue = price.TotalPriceKWh || price.SpotPriceKWh || 2.5
+            priceMap.set(key, priceValue)
+          }
         } catch (e) {
           console.warn('Error processing price:', e)
         }
       })
+      console.log(`Price map has ${priceMap.size} entries`)
     }
     
     // Process consumption data
@@ -426,7 +455,16 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
                   
                   const existingData = dataMap.get(dateKey) || { consumption: 0, price: 0, cost: 0 }
                   const consumption = existingData.consumption + (Number.isNaN(quantity) ? 0 : quantity)
-                  const price = priceMap.get(dateKey) || existingData.price || 2.5
+                  
+                  // Try multiple keys to find the price
+                  let price = priceMap.get(dateKey)
+                  if (!price && aggregation === 'Hour') {
+                    // Try alternative formats for hourly data
+                    const hourOnly = `${dateKey.split('T')[0]}T${String(date.getHours()).padStart(2, '0')}`
+                    price = priceMap.get(hourOnly) || priceMap.get(dateKey.split('T')[0])
+                  }
+                  price = price || existingData.price || 2.5
+                  
                   const cost = consumption * price
                   
                   dataMap.set(dateKey, { 
@@ -591,7 +629,7 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
 
   const DateRangeSelector = () => {
     const ranges: { value: DateRange; label: string; group: string }[] = [
-      { value: 'yesterday', label: 'I går', group: 'hours' },
+      { value: 'yesterday', label: 'Dag', group: 'hours' },
       { value: '7d', label: '7 dage', group: 'days' },
       { value: '30d', label: '30 dage', group: 'days' },
       { value: '3m', label: '3 mdr', group: 'months' },
@@ -924,7 +962,9 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
                 <YAxis 
                   yAxisId="price"
                   orientation="right"
+                  domain={['dataMin - 0.5', 'dataMax + 0.5']}
                   tick={{ fontSize: 11, fill: '#6b7280' }}
+                  tickFormatter={(value) => value.toFixed(2)}
                   label={{ value: 'Pris (kr/kWh)', angle: 90, position: 'insideRight', style: { fontSize: 11, fill: '#6b7280' } }}
                 />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(59, 130, 246, 0.05)' }} />

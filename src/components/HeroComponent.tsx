@@ -34,7 +34,7 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
     // The outer wrapper provides padding on desktop screens only
     <div className="md:p-4">
       {/* Main container with full background on all screen sizes */}
-      <div className="relative md:rounded-2xl md:overflow-hidden overflow-hidden">
+      <div className="relative md:rounded-2xl overflow-hidden">
         
         {/* Layer 1: Background Image (All screen sizes) */}
         {(heroImage || hasBackgroundUrl) && (

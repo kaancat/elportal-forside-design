@@ -146,8 +146,12 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
   }, [consumptionData, dateRange, onConsumptionDataChange, customerData])
 
   const fetchAddressData = async () => {
-    if (!customerData?.meteringPointIds?.length) return
+    if (!customerData?.meteringPointIds?.length) {
+      console.log('No metering point IDs available, skipping address fetch')
+      return
+    }
     
+    console.log('Fetching address for metering points:', customerData.meteringPointIds)
     setLoadingAddress(true)
     try {
       const response = await fetch('/api/eloverblik?action=thirdparty-meteringpoint-details', {
@@ -815,7 +819,7 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
       </div>
 
       {/* Address Card - Show if we have address data with content */}
-      {addressData?.fullAddress && addressData.fullAddress.trim() && (
+      {addressData?.fullAddress && addressData.fullAddress !== 'Adresse ikke tilgængelig' && (
         <Card className="border-0 bg-gradient-to-br from-purple-50 to-purple-100/50">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">

@@ -30,7 +30,8 @@ import {
   DollarSign,
   Calendar,
   ToggleLeft,
-  ToggleRight
+  ToggleRight,
+  Info
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { da } from 'date-fns/locale'
@@ -38,9 +39,19 @@ import { da } from 'date-fns/locale'
 interface ImprovedConsumptionDashboardProps {
   customerData: any
   onRefresh: () => void
+  onConsumptionDataChange?: (data: {
+    dateRange: DateRange
+    dateFrom: string
+    dateTo: string
+    totalConsumption: number
+    totalCost: number
+    averagePrice: number
+    data: any[]
+    region?: string
+  }) => void
 }
 
-type DateRange = 'today' | 'yesterday' | '7d' | '30d' | '3m' | '12m' | '1y' | '5y'
+type DateRange = 'yesterday' | '7d' | '30d' | '3m' | '12m' | '1y' | '5y'
 
 interface ConsumptionData {
   data: any[]
@@ -80,8 +91,9 @@ const CHART_COLORS = {
   high: '#ef4444', // red-500
 }
 
-export function ImprovedConsumptionDashboard({ customerData, onRefresh }: ImprovedConsumptionDashboardProps) {
+export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsumptionDataChange }: ImprovedConsumptionDashboardProps) {
   const [dateRange, setDateRange] = useState<DateRange>('30d')
+  const [customDateRange, setCustomDateRange] = useState<[Date | undefined, Date | undefined]>([undefined, undefined])
   const [consumptionData, setConsumptionData] = useState<ConsumptionData>({
     data: [],
     totalConsumption: 0,
@@ -115,6 +127,23 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
       fetchConsumptionData()
     }
   }, [dateRange, customerData, showComparison]) // Don't include customDateRange to prevent live updates
+
+  // Notify parent when consumption data changes
+  useEffect(() => {
+    if (onConsumptionDataChange && consumptionData.data.length > 0 && !consumptionData.isLoading) {
+      const { dateFrom, dateTo } = calculateDateRange(dateRange)
+      onConsumptionDataChange({
+        dateRange,
+        dateFrom,
+        dateTo,
+        totalConsumption: consumptionData.totalConsumption,
+        totalCost: consumptionData.totalCost,
+        averagePrice: consumptionData.averagePrice,
+        data: consumptionData.data,
+        region: customerData?.region || 'DK2'
+      })
+    }
+  }, [consumptionData, dateRange, onConsumptionDataChange, customerData])
 
   const fetchAddressData = async () => {
     if (!customerData?.meteringPointIds?.length) return
@@ -219,10 +248,27 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
         yesterday.setDate(yesterday.getDate() - 1)
         const yesterdayDateStr = yesterday.toISOString().split('T')[0]
         
+        // More flexible filtering - check if the date part matches yesterday
         processedData.data = processedData.data.filter(item => {
-          const itemDate = new Date(item.date).toISOString().split('T')[0]
-          return itemDate === yesterdayDateStr
+          // Handle both ISO string dates and date-only strings
+          const itemDateStr = item.date.includes('T') ? item.date.split('T')[0] : item.date
+          // Parse the date and compare date parts only
+          if (itemDateStr === yesterdayDateStr) {
+            return true
+          }
+          // Also check if it's within yesterday's 24 hour period (handling timezone issues)
+          const itemDate = new Date(item.date)
+          const yesterdayStart = new Date(yesterday)
+          yesterdayStart.setHours(0, 0, 0, 0)
+          const yesterdayEnd = new Date(yesterday)
+          yesterdayEnd.setHours(23, 59, 59, 999)
+          return itemDate >= yesterdayStart && itemDate <= yesterdayEnd
         })
+        
+        // Log if no data matches the filter
+        if (processedData.data.length === 0) {
+          console.log('Warning: No data matched yesterday filter. This might indicate a timezone or data availability issue.')
+        }
         
         // Recalculate totals after filtering
         const filteredData = processedData.data
@@ -273,20 +319,6 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
     let aggregation: string
     
     switch (range) {
-      case 'today':
-        // Today's data might not be available yet, request up to current hour
-        const todayStart = new Date(now)
-        todayStart.setHours(0, 0, 0, 0)
-        dateFrom = todayStart
-        // Clamp to current time or yesterday if today's data isn't available
-        const todayEnd = new Date(now)
-        if (todayEnd > yesterday) {
-          dateTo = yesterday // Use yesterday as max since API doesn't accept future dates
-        } else {
-          dateTo = todayEnd
-        }
-        aggregation = 'Hour'
-        break
       case 'yesterday':
         // For yesterday: Request from 2 days ago to yesterday to avoid dateFrom == dateTo issue
         // API requires: "To date cannot be equal to from date"
@@ -566,7 +598,6 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
 
   const DateRangeSelector = () => {
     const ranges: { value: DateRange; label: string; group: string }[] = [
-      { value: 'today', label: 'I dag', group: 'hours' },
       { value: 'yesterday', label: 'I går', group: 'hours' },
       { value: '7d', label: '7 dage', group: 'days' },
       { value: '30d', label: '30 dage', group: 'days' },
@@ -607,6 +638,15 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh }: Improv
 
   return (
     <div className="space-y-4">
+      {/* Data Delay Information */}
+      <Alert className="border-blue-200 bg-blue-50">
+        <Info className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-sm text-blue-900">
+          <strong>Bemærk:</strong> Forbrugsdata fra din elmåler er forsinket med 1-2 dage. 
+          De nyeste tilgængelige data er typisk fra i går eller forgårs.
+        </AlertDescription>
+      </Alert>
+
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>

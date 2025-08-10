@@ -87,6 +87,7 @@ export function ForbrugTracker({
   const [isLoading, setIsLoading] = useState(false)
   const [customerData, setCustomerData] = useState<any>(null)
   const [consumptionData, setConsumptionData] = useState<any>(null)
+  const [processedConsumptionData, setProcessedConsumptionData] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
   const [isRequestInFlight, setIsRequestInFlight] = useState(false)
   const didInitRef = useRef(false)
@@ -500,11 +501,16 @@ export function ForbrugTracker({
                     <ImprovedConsumptionDashboard 
                       customerData={customerData}
                       onRefresh={() => checkAuthorization(null)}
+                      onConsumptionDataChange={setProcessedConsumptionData}
                     />
                   </TabsContent>
 
                   <TabsContent value="costs" className="mt-6">
-                    <TrueCostCalculator consumptionData={consumptionData} />
+                    <TrueCostCalculator 
+                      consumptionData={consumptionData}
+                      processedData={processedConsumptionData}
+                      customerData={customerData}
+                    />
                   </TabsContent>
 
                   <TabsContent value="savings" className="mt-6">

@@ -487,7 +487,7 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
         consumption: data.consumption,
         price: data.price,
         cost: data.cost,
-        formattedDate: formatDateForDisplay(date, aggregation)
+        formattedDate: formatDateForDisplay(date, aggregation, false)
       }))
       .sort((a, b) => a.date.localeCompare(b.date))
     
@@ -512,22 +512,40 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
     }
   }
 
-  const formatDateForDisplay = (date: string, aggregation: string): string => {
+  const formatDateForDisplay = (date: string, aggregation: string, isMobileView: boolean = false): string => {
     if (aggregation === 'Hour') {
       const d = new Date(date)
+      const hour = String(d.getHours()).padStart(2, '0')
+      const minutes = String(d.getMinutes()).padStart(2, '0')
+      
+      // For mobile, just show time
+      if (isMobileView) {
+        return `${hour}:${minutes}`
+      }
+      
+      // For desktop, show full date and time
       const day = d.getDate()
       const month = DANISH_MONTHS[d.getMonth()]
-      const hour = String(d.getHours()).padStart(2, '0')
       return `${day}. ${month} kl. ${hour}`
     } else if (aggregation === 'Month') {
       const [year, month] = date.split('-')
-      return `${DANISH_MONTHS[parseInt(month) - 1]} ${year}`
+      const monthName = DANISH_MONTHS[parseInt(month) - 1]
+      // For mobile, show abbreviated format
+      if (isMobileView) {
+        return `${monthName.substring(0, 3)} ${year.substring(2)}`
+      }
+      return `${monthName} ${year}`
     } else if (aggregation === 'Year') {
       return date
     } else {
       const d = new Date(date + 'T12:00:00')
       const day = d.getDate()
       const month = DANISH_MONTHS[d.getMonth()]
+      
+      // For mobile, show short format
+      if (isMobileView) {
+        return `${day}. ${month.substring(0, 3)}`
+      }
       return `${day}. ${month}`
     }
   }
@@ -640,16 +658,16 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
     
     return (
       <div className="flex items-center gap-2">
-        <div className="inline-flex items-center p-0.5 bg-gray-100 rounded-xl">
+        <div className="inline-flex items-center p-0.5 bg-gray-100 rounded-lg md:rounded-xl w-full md:w-auto overflow-x-auto">
           {ranges.map(({ value, label }, index) => (
             <React.Fragment key={value}>
               {index > 0 && ranges[index - 1].group !== ranges[index].group && (
-                <div className="w-px h-5 bg-gray-300 mx-0.5" />
+                <div className="w-px h-4 md:h-5 bg-gray-300 mx-0.5" />
               )}
               <button
                 onClick={() => setDateRange(value)}
                 className={`
-                  px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200
+                  px-2 md:px-4 py-1 md:py-2 text-xs md:text-sm font-medium rounded-md md:rounded-lg transition-all duration-200 whitespace-nowrap
                   ${dateRange === value 
                     ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' 
                     : 'text-gray-600 hover:text-gray-900'
@@ -680,8 +698,8 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
         </Alert>
       )}
 
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+      {/* Header - Desktop Layout */}
+      <div className="hidden md:flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
           <h3 className="text-2xl font-bold text-gray-900">Forbrugsanalyse</h3>
           {customerData?.meteringPointIds && (
@@ -718,8 +736,36 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
         </div>
       </div>
 
-      {/* Date Range Selector */}
-      <DateRangeSelector />
+      {/* Header - Mobile Layout */}
+      <div className="md:hidden">
+        <div className="flex justify-between items-start">
+          <div>
+            <h3 className="text-2xl font-bold text-gray-900">Forbrugsanalyse</h3>
+            {customerData?.meteringPointIds && (
+              <p className="text-sm text-gray-600 mt-1">
+                {customerData.meteringPointIds.length} målerpunkt{customerData.meteringPointIds.length !== 1 ? 'er' : ''} aktiv
+              </p>
+            )}
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={isRefreshing || consumptionData.isLoading}
+          >
+            {isRefreshing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {/* Date Range Selector - Desktop Only */}
+      <div className="hidden md:block">
+        <DateRangeSelector />
+      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -805,9 +851,32 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
               </CardDescription>
             </div>
             {consumptionData.data.length > 0 && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-xs hidden md:inline-flex">
                 {consumptionData.data.length} datapunkter
               </Badge>
+            )}
+          </div>
+          
+          {/* Mobile Controls - Below headline */}
+          <div className="md:hidden space-y-1.5 mt-2">
+            <button
+              onClick={() => setShowComparison(!showComparison)}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors w-full justify-center"
+            >
+              {showComparison ? (
+                <ToggleRight className="h-4 w-4 text-blue-600" />
+              ) : (
+                <ToggleLeft className="h-4 w-4 text-gray-400" />
+              )}
+              Sammenlign år
+            </button>
+            <DateRangeSelector />
+            {consumptionData.data.length > 0 && (
+              <div className="flex justify-end">
+                <Badge variant="outline" className="text-xs">
+                  {consumptionData.data.length} datapunkter
+                </Badge>
+              </div>
             )}
           </div>
         </CardHeader>
@@ -833,7 +902,7 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
           ) : isMobile ? (
             // Mobile horizontal bar layout (like LivePriceGraph)
             <div className="w-full">
-              <div className="max-h-[400px] overflow-y-auto">
+              <div className="max-h-[480px] overflow-y-auto">
                 <div className="space-y-1">
                   {consumptionData.data.map((item, index) => {
                     const maxConsumption = Math.max(...consumptionData.data.map(d => d.consumption))
@@ -856,7 +925,19 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
                       <div key={index} className="flex items-center gap-2">
                         {/* Date label */}
                         <div className="w-12 text-[10px] text-gray-600 font-medium text-right">
-                          {item.formattedDate.split(' ')[0]}
+                          {(() => {
+                            // For hourly data, show just the time
+                            if (dateRange === 'yesterday' || dateRange === 'today') {
+                              const hour = item.date.split('T')[1]?.substring(0, 5) || item.formattedDate.split('kl. ')[1] || item.formattedDate
+                              return hour
+                            }
+                            // For other ranges, show day and month
+                            const parts = item.formattedDate.split(' ')
+                            if (parts.length >= 2) {
+                              return `${parts[0]} ${parts[1].substring(0, 3)}`
+                            }
+                            return item.formattedDate.split(' ')[0]
+                          })()}
                         </div>
                         
                         {/* Bar container */}
@@ -900,7 +981,7 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
               </div>
               
               {/* Mobile legend */}
-              <div className="mt-4 space-y-2">
+              <div className="mt-3 space-y-1.5">
                 <div className="flex items-center justify-center gap-4 text-xs">
                   <div className="flex items-center gap-1.5">
                     <div className="w-4 h-3 rounded-sm bg-blue-500"></div>
@@ -937,7 +1018,7 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart 
                   data={consumptionData.data} 
-                  margin={{ top: 10, right: 10, left: 10, bottom: showComparison ? 80 : 60 }}
+                  margin={{ top: 10, right: 10, left: 10, bottom: showComparison ? 70 : 50 }}
                 >
                 <defs>
                   <linearGradient id="consumptionGradient" x1="0" y1="0" x2="0" y2="1">
@@ -1013,7 +1094,7 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
           
           {/* Desktop Legend (only show on desktop) */}
           {!isMobile && !consumptionData.isLoading && consumptionData.data.length > 0 && (
-            <div className="flex items-center justify-center gap-6 mt-4 text-xs">
+            <div className="flex items-center justify-center gap-6 mt-1 text-xs">
               <div className="flex items-center gap-1.5">
                 <div className="w-3 h-3 rounded bg-blue-500"></div>
                 <span className="text-gray-600">Forbrug {new Date().getFullYear()}</span>

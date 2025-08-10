@@ -161,17 +161,42 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
       if (response.ok) {
         const data = await response.json()
         console.log('Address data received:', data) // Debug logging
+        
         // Set address if we have any meaningful content
-        if (data?.address?.fullAddress && data.address.fullAddress.trim().length > 0) {
-          setAddressData(data.address)
+        if (data?.address) {
+          // Check if we have at least some address information
+          const hasContent = data.address.fullAddress && 
+                           data.address.fullAddress !== 'Adresse ikke tilgængelig'
+          
+          if (hasContent) {
+            setAddressData(data.address)
+            console.log('Address set successfully:', data.address.fullAddress)
+          } else {
+            // Try to build address from parts if fullAddress is empty
+            const { streetName, buildingNumber, postcode, cityName } = data.address
+            if (streetName || cityName || postcode) {
+              const fallbackAddress = [
+                streetName && buildingNumber ? `${streetName} ${buildingNumber}` : streetName,
+                postcode && cityName ? `${postcode} ${cityName}` : cityName || postcode
+              ].filter(Boolean).join(', ')
+              
+              setAddressData({
+                ...data.address,
+                fullAddress: fallbackAddress || 'Adresse ikke tilgængelig'
+              })
+              console.log('Using fallback address:', fallbackAddress)
+            } else {
+              console.log('No usable address data found')
+              setAddressData(null)
+            }
+          }
         } else {
-          // Don't set empty address data
-          console.log('Address data empty or invalid:', data?.address)
+          console.log('No address data in response')
           setAddressData(null)
         }
       } else {
-        // If the request fails, don't show address card
-        console.log('Address fetch failed with status:', response.status)
+        const errorText = await response.text()
+        console.error('Address fetch failed:', response.status, errorText)
         setAddressData(null)
       }
     } catch (error) {
@@ -248,26 +273,49 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
         yesterday.setDate(yesterday.getDate() - 1)
         const yesterdayDateStr = yesterday.toISOString().split('T')[0]
         
+        console.log('Filtering data for yesterday:', yesterdayDateStr)
+        console.log('Raw data before filtering:', processedData.data.length, 'items')
+        console.log('Sample data dates:', processedData.data.slice(0, 5).map(d => d.date))
+        
         // More flexible filtering - check if the date part matches yesterday
         processedData.data = processedData.data.filter(item => {
           // Handle both ISO string dates and date-only strings
           const itemDateStr = item.date.includes('T') ? item.date.split('T')[0] : item.date
-          // Parse the date and compare date parts only
+          
+          // For yesterday data, we want to include all hours from yesterday
+          // regardless of whether they came from a 2-day fetch or single day fetch
           if (itemDateStr === yesterdayDateStr) {
             return true
           }
+          
           // Also check if it's within yesterday's 24 hour period (handling timezone issues)
-          const itemDate = new Date(item.date)
-          const yesterdayStart = new Date(yesterday)
-          yesterdayStart.setHours(0, 0, 0, 0)
-          const yesterdayEnd = new Date(yesterday)
-          yesterdayEnd.setHours(23, 59, 59, 999)
-          return itemDate >= yesterdayStart && itemDate <= yesterdayEnd
+          try {
+            const itemDate = new Date(item.date)
+            const yesterdayStart = new Date(yesterday)
+            yesterdayStart.setHours(0, 0, 0, 0)
+            const yesterdayEnd = new Date(yesterday)
+            yesterdayEnd.setHours(23, 59, 59, 999)
+            
+            // Check if the item falls within yesterday's range
+            const isInRange = itemDate >= yesterdayStart && itemDate <= yesterdayEnd
+            if (isInRange) {
+              console.log('Including item from yesterday range:', item.date)
+            }
+            return isInRange
+          } catch (e) {
+            console.warn('Error parsing date:', item.date, e)
+            return false
+          }
         })
+        
+        console.log('Data after filtering:', processedData.data.length, 'items')
         
         // Log if no data matches the filter
         if (processedData.data.length === 0) {
-          console.log('Warning: No data matched yesterday filter. This might indicate a timezone or data availability issue.')
+          console.error('No data matched yesterday filter!', {
+            yesterdayDateStr,
+            sampleDates: consumptionResult?.result?.[0]?.MyEnergyData_MarketDocument?.TimeSeries?.[0]?.Period?.[0]?.timeInterval
+          })
         }
         
         // Recalculate totals after filtering
@@ -320,18 +368,24 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
     
     switch (range) {
       case 'yesterday':
-        // For yesterday: Request from 2 days ago to yesterday to avoid dateFrom == dateTo issue
-        // API requires: "To date cannot be equal to from date"
-        const twoDaysAgo = new Date(now)
-        twoDaysAgo.setDate(now.getDate() - 2)
-        twoDaysAgo.setHours(0, 0, 0, 0)
-        dateFrom = twoDaysAgo
+        // For yesterday: Get full 24 hours of yesterday's data
+        const yesterdayStart = new Date(now)
+        yesterdayStart.setDate(now.getDate() - 1)
+        yesterdayStart.setHours(0, 0, 0, 0)
+        dateFrom = yesterdayStart
         
-        const yday = new Date(now)
-        yday.setDate(now.getDate() - 1)
-        yday.setHours(23, 59, 59, 0)
-        dateTo = yday
+        const yesterdayEnd = new Date(now)
+        yesterdayEnd.setDate(now.getDate() - 1)
+        yesterdayEnd.setHours(23, 59, 59, 999)
+        dateTo = yesterdayEnd
         aggregation = 'Hour'
+        
+        console.log('Yesterday date range:', {
+          from: dateFrom.toISOString(),
+          to: dateTo.toISOString(),
+          localFrom: dateFrom.toLocaleString('da-DK'),
+          localTo: dateTo.toLocaleString('da-DK')
+        })
         break
       case '7d':
         dateFrom = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)

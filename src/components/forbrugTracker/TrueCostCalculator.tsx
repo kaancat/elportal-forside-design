@@ -511,8 +511,7 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
             <Alert className="mt-6">
               <TrendingDown className="h-4 w-4" />
               <AlertDescription>
-                <strong>Potentiel besparelse:</strong> Op til {formatCurrency(potentialSavings)} 
-                på {periodLabel} ved at vælge den billigste leverandør
+                <strong>Potentiel besparelse:</strong> Op til {formatCurrency(potentialSavings)} på {periodLabel} ved at vælge den billigste leverandør
               </AlertDescription>
             </Alert>
           )}

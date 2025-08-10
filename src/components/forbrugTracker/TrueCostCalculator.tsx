@@ -128,12 +128,14 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
     // Log providers data for debugging
     console.log('Providers data from Sanity:', providers.map(p => ({
       name: p.providerName,
+      productName: p.productName,
       spotPriceMarkup: p.spotPriceMarkup,
       monthlySubscription: p.monthlySubscription,
       displayPrice_kWh: p.displayPrice_kWh,
       displayMonthlyFee: p.displayMonthlyFee,
       greenCertificateFee: p.greenCertificateFee,
-      tradingCosts: p.tradingCosts
+      tradingCosts: p.tradingCosts,
+      yearlySubscription: p.yearlySubscription
     })))
 
     // Calculate costs for each provider
@@ -387,7 +389,7 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
                         </div>
                         <div>
                           <p className="text-gray-600">Abonnement</p>
-                          <p className="font-medium">{calc.monthlyFee} kr/md</p>
+                          <p className="font-medium">{calc.monthlyFee || 0} kr/md</p>
                         </div>
                         <div>
                           <p className="text-gray-600">Pris per kWh</p>
@@ -424,11 +426,12 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
                               Se prisdetaljer <Info size={12} />
                             </button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-64" side="left">
+                          <PopoverContent className="w-72" side="left">
                             <div className="space-y-2">
                               <h4 className="font-medium leading-none">Prisudregning</h4>
-                              <p className="text-sm text-muted-foreground">Estimat baseret på faktisk forbrug</p>
+                              <p className="text-sm text-muted-foreground">Baseret på {calc.totalConsumption.toFixed(0)} kWh forbrug</p>
                               <div className="text-xs space-y-1 pt-2">
+                                <div className="font-semibold mb-1">Pris per kWh:</div>
                                 <div className="flex justify-between">
                                   <span>Spotpris:</span> 
                                   <span>{calc.breakdown.spotPrice.toFixed(2)} kr.</span>
@@ -467,6 +470,21 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
                                 <div className="flex justify-between font-bold">
                                   <span>Total pr. kWh:</span> 
                                   <span>{calc.pricePerKwh.toFixed(2)} kr.</span>
+                                </div>
+                                <div className="border-t border-double my-2"></div>
+                                <div className="font-semibold mb-1">Total for periode ({periodLabel}):</div>
+                                <div className="flex justify-between">
+                                  <span>Energi ({calc.totalConsumption.toFixed(0)} kWh):</span> 
+                                  <span>{formatCurrency(calc.energyCost)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Abonnement ({calc.periodDays} dage):</span> 
+                                  <span>{formatCurrency(calc.subscriptionCost)}</span>
+                                </div>
+                                <div className="border-t my-1"></div>
+                                <div className="flex justify-between font-bold text-blue-600">
+                                  <span>Total:</span> 
+                                  <span>{formatCurrency(calc.totalCost)}</span>
                                 </div>
                               </div>
                             </div>

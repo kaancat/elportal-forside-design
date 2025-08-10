@@ -782,41 +782,61 @@ async function handleThirdPartyMeteringPointDetails(req: VercelRequest, res: Ver
     }
 
     const detailsData = await detailsResponse.json()
+    console.log('Full metering point details response:', JSON.stringify(detailsData, null, 2))
     
     // Extract address information from the first result
     if (detailsData.result && detailsData.result.length > 0) {
       const details = detailsData.result[0]
-      console.log('Raw address details from API:', {
-        streetName: details.streetName,
-        buildingNumber: details.buildingNumber,
-        postcode: details.postcode,
-        cityName: details.cityName,
-        floorId: details.floorId,
-        roomId: details.roomId
+      
+      // First try the direct address fields
+      let streetName = details.streetName
+      let buildingNumber = details.buildingNumber
+      let postcode = details.postcode
+      let cityName = details.cityName
+      let floorId = details.floorId
+      let roomId = details.roomId
+      
+      // If direct fields are empty, try contactAddresses
+      if ((!streetName || !cityName) && details.contactAddresses && details.contactAddresses.length > 0) {
+        const contactAddr = details.contactAddresses[0]
+        console.log('Using contact address instead:', contactAddr)
+        streetName = streetName || contactAddr.streetName
+        buildingNumber = buildingNumber || contactAddr.buildingNumber
+        postcode = postcode || contactAddr.postcode
+        cityName = cityName || contactAddr.cityName
+      }
+      
+      console.log('Final address details:', {
+        streetName,
+        buildingNumber,
+        postcode,
+        cityName,
+        floorId,
+        roomId
       })
       
       // Build address parts array to avoid empty commas
       const addressParts = []
       
       // Street and building
-      const streetPart = [details.streetName, details.buildingNumber]
+      const streetPart = [streetName, buildingNumber]
         .filter(part => part && part.trim())
         .join(' ')
       if (streetPart) addressParts.push(streetPart)
       
       // Floor and room (format as "2. sal" or "st. tv" etc.)
       const floorRoom = []
-      if (details.floorId && details.floorId.trim()) {
-        floorRoom.push(details.floorId.trim())
+      if (floorId && floorId.trim()) {
+        floorRoom.push(floorId.trim())
       }
-      if (details.roomId && details.roomId.trim()) {
-        floorRoom.push(details.roomId.trim())
+      if (roomId && roomId.trim()) {
+        floorRoom.push(roomId.trim())
       }
       const floorRoomStr = floorRoom.join(' ')
       if (floorRoomStr) addressParts.push(floorRoomStr)
       
       // Postcode and city
-      const cityPart = [details.postcode, details.cityName]
+      const cityPart = [postcode, cityName]
         .filter(part => part && part.trim())
         .join(' ')
       if (cityPart) addressParts.push(cityPart)
@@ -826,20 +846,20 @@ async function handleThirdPartyMeteringPointDetails(req: VercelRequest, res: Ver
       if (!fullAddress && details.locationDescription) {
         fullAddress = details.locationDescription
       }
-      if (!fullAddress && details.cityName) {
-        fullAddress = details.cityName // At least show the city
+      if (!fullAddress && cityName) {
+        fullAddress = cityName // At least show the city
       }
       if (!fullAddress) {
         fullAddress = 'Adresse ikke tilgængelig'
       }
       
       const address = {
-        streetName: details.streetName || '',
-        buildingNumber: details.buildingNumber || '',
-        floorId: details.floorId || '',
-        roomId: details.roomId || '',
-        postcode: details.postcode || '',
-        cityName: details.cityName || '',
+        streetName: streetName || '',
+        buildingNumber: buildingNumber || '',
+        floorId: floorId || '',
+        roomId: roomId || '',
+        postcode: postcode || '',
+        cityName: cityName || '',
         citySubDivisionName: details.citySubDivisionName || '',
         municipalityCode: details.municipalityCode || '',
         locationDescription: details.locationDescription || '',
@@ -853,11 +873,29 @@ async function handleThirdPartyMeteringPointDetails(req: VercelRequest, res: Ver
           fetchedAt: new Date().toISOString()
         }
       })
+    } else {
+      // No result found, but still return something
+      console.log('No metering point details found in response')
+      return res.status(200).json({
+        meteringPointId: meteringPointIds[0],
+        address: {
+          streetName: '',
+          buildingNumber: '',
+          floorId: '',
+          roomId: '',
+          postcode: '',
+          cityName: '',
+          citySubDivisionName: '',
+          municipalityCode: '',
+          locationDescription: '',
+          fullAddress: 'Adresse ikke tilgængelig'
+        },
+        metadata: {
+          fetchedAt: new Date().toISOString(),
+          note: 'No details found from API'
+        }
+      })
     }
-    
-    return res.status(404).json({ 
-      error: 'No metering point details found'
-    })
   } catch (error) {
     console.error('Error fetching metering point details:', error)
     return res.status(500).json({ 

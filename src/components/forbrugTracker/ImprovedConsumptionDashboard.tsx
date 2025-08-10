@@ -25,7 +25,6 @@ import {
   Loader2,
   Download,
   RefreshCw,
-  MapPin,
   Zap,
   DollarSign,
   Calendar,
@@ -66,14 +65,6 @@ interface ConsumptionData {
   error?: string
 }
 
-interface AddressData {
-  fullAddress: string
-  streetName: string
-  buildingNumber: string
-  postcode: string
-  cityName: string
-}
-
 // Danish month names
 const DANISH_MONTHS = [
   'januar', 'februar', 'marts', 'april', 'maj', 'juni',
@@ -106,26 +97,6 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
   })
   const [showComparison, setShowComparison] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [addressData, setAddressData] = useState<AddressData | null>(null)
-  
-  // TEMPORARY: Mock data for testing address display
-  // TODO: Remove this after testing
-  const MOCK_TEST = false // Set to true to test with mock data
-  useEffect(() => {
-    if (MOCK_TEST) {
-      console.log('[MOCK] Setting mock address data for testing')
-      setTimeout(() => {
-        setAddressData({
-          streetName: 'Testvej',
-          buildingNumber: '123',
-          postcode: '2100',
-          cityName: 'København Ø',
-          fullAddress: 'Testvej 123, 2100 København Ø'
-        })
-      }, 1000)
-    }
-  }, [])
-  const [loadingAddress, setLoadingAddress] = useState(false)
 
   // Fetch consumption data when range changes
   useEffect(() => {
@@ -156,111 +127,6 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
     }
   }, [consumptionData, dateRange, onConsumptionDataChange, customerData])
 
-  // Define fetchAddressData function before using it in useEffect
-  const fetchAddressData = useCallback(async (meteringPointIds: string[]) => {
-    if (!meteringPointIds?.length) {
-      console.log('[Address] No metering point IDs available, skipping address fetch')
-      return
-    }
-    
-    console.log('[Address] Starting fetch for metering points:', meteringPointIds)
-    setLoadingAddress(true)
-    
-    try {
-      const response = await fetch('/api/eloverblik?action=thirdparty-meteringpoint-details', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          meteringPointIds: meteringPointIds
-        })
-      })
-      
-      console.log('[Address] API Response status:', response.status)
-      
-      if (response.ok) {
-        const data = await response.json()
-        console.log('[Address] Full API response:', JSON.stringify(data, null, 2))
-        
-        // Always set address data structure, even if empty
-        if (data?.address) {
-          const { streetName, buildingNumber, postcode, cityName, fullAddress } = data.address
-          
-          // Check if we have a valid fullAddress
-          if (fullAddress && fullAddress !== 'Adresse ikke tilgængelig') {
-            setAddressData(data.address)
-            console.log('[Address] ✅ Set address from API:', fullAddress)
-          } else if (streetName || cityName || postcode) {
-            // Build address from parts
-            const fallbackAddress = [
-              streetName && buildingNumber ? `${streetName} ${buildingNumber}` : streetName,
-              postcode && cityName ? `${postcode} ${cityName}` : cityName || postcode
-            ].filter(Boolean).join(', ')
-            
-            setAddressData({
-              ...data.address,
-              fullAddress: fallbackAddress || 'Adresse ikke tilgængelig'
-            })
-            console.log('[Address] ✅ Built fallback address:', fallbackAddress)
-          } else {
-            // Set default structure even when no data
-            setAddressData({
-              streetName: '',
-              buildingNumber: '',
-              postcode: '',
-              cityName: '',
-              fullAddress: 'Adresse ikke tilgængelig'
-            })
-            console.log('[Address] ⚠️ No address data available, using default')
-          }
-        } else {
-          // No address in response, set default
-          console.log('[Address] ⚠️ No address field in response')
-          setAddressData({
-            streetName: '',
-            buildingNumber: '',
-            postcode: '',
-            cityName: '',
-            fullAddress: 'Adresse ikke tilgængelig'
-          })
-        }
-      } else {
-        const errorText = await response.text()
-        console.error('[Address] ❌ API request failed:', response.status, errorText)
-        // Set error state but maintain structure
-        setAddressData({
-          streetName: '',
-          buildingNumber: '',
-          postcode: '',
-          cityName: '',
-          fullAddress: 'Fejl ved hentning af adresse'
-        })
-      }
-    } catch (error) {
-      console.error('[Address] ❌ Exception during fetch:', error)
-      // Set error state but maintain structure
-      setAddressData({
-        streetName: '',
-        buildingNumber: '',
-        postcode: '',
-        cityName: '',
-        fullAddress: 'Netværksfejl ved hentning af adresse'
-      })
-    } finally {
-      setLoadingAddress(false)
-      console.log('[Address] Fetch complete, loading state cleared')
-    }
-  }, [])
-
-  // Fetch address data when customer data is available
-  useEffect(() => {
-    console.log('[Address Effect] customerData changed:', customerData)
-    if (customerData?.meteringPointIds?.length > 0) {
-      console.log('[Address Effect] Triggering fetchAddressData')
-      fetchAddressData(customerData.meteringPointIds)
-    } else {
-      console.log('[Address Effect] No meteringPointIds, skipping fetch')
-    }
-  }, [customerData, fetchAddressData])
 
   const fetchConsumptionData = async () => {
     if (!customerData || (!customerData.authorizationId && !customerData.customerCVR)) {
@@ -868,31 +734,6 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
           </CardContent>
         </Card>
       </div>
-
-      {/* Address Card - Show loading or data */}
-      {(loadingAddress || addressData) && (
-        <Card className="border-0 bg-gradient-to-br from-purple-50 to-purple-100/50">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <MapPin className="h-4 w-4 text-purple-600 flex-shrink-0" />
-              <div className="flex-1">
-                <p className="text-xs text-gray-600 mb-1">Måleradresse</p>
-                {loadingAddress ? (
-                  <Skeleton className="h-5 w-48" />
-                ) : addressData?.fullAddress ? (
-                  <p className="text-sm font-medium text-gray-900">
-                    {addressData.fullAddress}
-                  </p>
-                ) : (
-                  <p className="text-sm text-gray-500 italic">
-                    Adresse ikke tilgængelig
-                  </p>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Main Chart */}
       <Card className="border-0 shadow-sm">

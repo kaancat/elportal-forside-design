@@ -347,7 +347,7 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
               {calculations.map((calc, index) => (
                 <div
                   key={calc.slug}
-                  className={`border rounded-lg p-4 ${
+                  className={`border rounded-lg p-3 sm:p-4 ${
                     calc.isVindstod 
                       ? 'border-brand-green bg-brand-green/5' 
                       : index === 0 && !calc.isVindstod
@@ -355,34 +355,28 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
                       : 'border-gray-200'
                   }`}
                 >
-                  <div className="flex items-start justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
+                      <div className="flex items-center gap-2 sm:gap-3 mb-3">
                         {calc.logo && (
                           <img 
                             src={calc.logo} 
                             alt={calc.provider}
-                            className="h-8 w-auto"
+                            className="h-6 sm:h-8 w-auto"
                           />
                         )}
-                        <h4 className="font-semibold">{calc.provider}</h4>
+                        <h4 className="font-semibold text-sm sm:text-base">{calc.provider}</h4>
                         {calc.isVindstod && (
-                          <Badge className="bg-brand-green">
-                            <Award className="h-3 w-3 mr-1" />
-                            Anbefalet
+                          <Badge className="bg-brand-green text-xs px-2 py-0.5">
+                            ⭐ Anbefalet
                           </Badge>
                         )}
                         {index === 0 && !calc.isVindstod && (
-                          <Badge className="bg-green-600">Billigst</Badge>
-                        )}
-                        {calc.isGreen && (
-                          <Badge variant="outline" className="border-green-600 text-green-700">
-                            100% Grøn
-                          </Badge>
+                          <Badge className="bg-green-600 text-xs px-2 py-0.5">Billigst</Badge>
                         )}
                       </div>
                       
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div className="grid grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
                         <div>
                           <p className="text-gray-600">Spotpristillæg</p>
                           <p className="font-medium">{calc.spotPriceFee.toFixed(2)} kr/kWh</p>
@@ -402,27 +396,24 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
                       </div>
                     </div>
                     
-                    <div className="text-right ml-4">
-                      <p className="text-2xl font-bold">
-                        {formatCurrency(calc.totalCost)}
-                      </p>
-                      <p className="text-sm text-gray-600">for {periodLabel}</p>
-                      {index > 0 && (
-                        <p className="text-sm text-red-600 mt-1">
-                          +{formatCurrency(calc.totalCost - cheapest.totalCost)}
+                    <div className="flex flex-row justify-between sm:flex-col sm:text-right items-end sm:items-stretch mt-2 sm:mt-0 sm:ml-4">
+                      <div>
+                        <p className="text-xl sm:text-2xl font-bold">
+                          {formatCurrency(calc.totalCost)}
                         </p>
-                      )}
-                      {calc.isVindstod && vindstodSavings > 0 && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          Kun {formatCurrency(vindstodSavings)} mere
-                        </p>
-                      )}
+                        <p className="text-xs sm:text-sm text-gray-600">for {periodLabel}</p>
+                        {index > 0 && (
+                          <p className="text-xs sm:text-sm text-red-600 mt-1">
+                            +{formatCurrency(calc.totalCost - cheapest.totalCost)}
+                          </p>
+                        )}
+                      </div>
                       
-                      {/* Price breakdown popover */}
+                      {/* Price breakdown popover - mobile optimized */}
                       {calc.breakdown && (
                         <Popover>
                           <PopoverTrigger asChild>
-                            <button className="text-xs text-brand-green hover:underline mt-2 inline-flex items-center gap-1">
+                            <button className="text-xs text-brand-green hover:underline inline-flex items-center gap-1 sm:mt-2">
                               Se prisdetaljer <Info size={12} />
                             </button>
                           </PopoverTrigger>
@@ -496,7 +487,7 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
                   
                   {calc.isVindstod && (
                     <div className="mt-3 pt-3 border-t">
-                      <Button className="w-full" variant="default">
+                      <Button className="w-full py-2 sm:py-2.5 text-sm sm:text-base" variant="default">
                         Skift til {calc.provider}
                         <ChevronRight className="ml-2 h-4 w-4" />
                       </Button>

@@ -646,35 +646,37 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
   }
 
   const DateRangeSelector = () => {
-    const ranges: { value: DateRange; label: string; group: string }[] = [
+    const ranges: { value: DateRange; label: string; shortLabel?: string; group: string }[] = [
       { value: 'yesterday', label: 'Dag', group: 'hours' },
-      { value: '7d', label: '7 dage', group: 'days' },
-      { value: '30d', label: '30 dage', group: 'days' },
-      { value: '3m', label: '3 mdr', group: 'months' },
-      { value: '12m', label: '1 år', group: 'months' },
+      { value: '7d', label: '7 dage', shortLabel: '7d', group: 'days' },
+      { value: '30d', label: '30 dage', shortLabel: '30d', group: 'days' },
+      { value: '3m', label: '3 mdr', shortLabel: '3m', group: 'months' },
+      { value: '12m', label: '1 år', shortLabel: '1år', group: 'months' },
       { value: '1y', label: 'År', group: 'years' },
-      { value: '5y', label: '5 år', group: 'years' },
+      { value: '5y', label: '5 år', shortLabel: '5år', group: 'years' },
     ]
+    
+    const isMobileView = useIsMobile()
     
     return (
       <div className="flex items-center gap-2">
-        <div className="inline-flex items-center p-0.5 bg-gray-100 rounded-lg md:rounded-xl w-full md:w-auto overflow-x-auto">
-          {ranges.map(({ value, label }, index) => (
+        <div className="inline-flex items-center p-0.5 bg-gray-100 rounded-lg md:rounded-xl w-full md:w-auto">
+          {ranges.map(({ value, label, shortLabel }, index) => (
             <React.Fragment key={value}>
               {index > 0 && ranges[index - 1].group !== ranges[index].group && (
-                <div className="w-px h-4 md:h-5 bg-gray-300 mx-0.5" />
+                <div className="w-px h-4 md:h-5 bg-gray-300 mx-0.5 hidden md:block" />
               )}
               <button
                 onClick={() => setDateRange(value)}
                 className={`
-                  px-2 md:px-4 py-1 md:py-2 text-xs md:text-sm font-medium rounded-md md:rounded-lg transition-all duration-200 whitespace-nowrap
+                  px-1.5 sm:px-2 md:px-4 py-1 md:py-2 text-[10px] sm:text-xs md:text-sm font-medium rounded-md md:rounded-lg transition-all duration-200 whitespace-nowrap flex-1 md:flex-initial
                   ${dateRange === value 
                     ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' 
                     : 'text-gray-600 hover:text-gray-900'
                   }
                 `}
               >
-                {label}
+                {isMobileView && shortLabel ? shortLabel : label}
               </button>
             </React.Fragment>
           ))}

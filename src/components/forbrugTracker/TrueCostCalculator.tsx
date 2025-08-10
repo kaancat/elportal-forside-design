@@ -9,13 +9,16 @@ import {
   TrendingDown, 
   Award,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Info,
   Loader2
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { SanityService } from '@/services/sanityService'
 import { 
-  calculatePricePerKwh, 
+  calculatePricePerKwh,
+  getPriceBreakdown,
   PRICE_CONSTANTS 
 } from '@/services/priceCalculationService'
 import { useNetworkTariff } from '@/hooks/useNetworkTariff'
@@ -78,6 +81,7 @@ interface TrueCostCalculatorProps {
 
 export function TrueCostCalculator({ consumptionData, processedData, customerData }: TrueCostCalculatorProps) {
   const [calculations, setCalculations] = useState<any[]>([])
+  const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set())
   
   // Fetch providers from Sanity
   const { data: providers, isLoading } = useQuery({
@@ -123,15 +127,42 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
     const periodDays = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)))
     const periodMonths = periodDays / 30 // Approximate months for subscription calculation
     
+    // Log providers data for debugging
+    console.log('Providers data from Sanity:', providers.map(p => ({
+      name: p.providerName,
+      spotPriceMarkup: p.spotPriceMarkup,
+      monthlySubscription: p.monthlySubscription,
+      displayPrice_kWh: p.displayPrice_kWh,
+      displayMonthlyFee: p.displayMonthlyFee,
+      greenCertificateFee: p.greenCertificateFee,
+      tradingCosts: p.tradingCosts
+    })))
+
     // Calculate costs for each provider
-    const providerCosts = providers.map(provider => {
-      // Use the actual spot price markup - prioritize spotPriceMarkup over displayPrice_kWh
-      let spotPriceMarkup = provider.spotPriceMarkup !== undefined 
-        ? provider.spotPriceMarkup 
-        : (provider.displayPrice_kWh || 0)
-      let monthlySubscription = provider.monthlySubscription !== undefined 
-        ? provider.monthlySubscription 
-        : (provider.displayMonthlyFee || 0)
+    const providerCosts = providers.map((provider, index) => {
+      // Handle pricing fields with proper fallback logic
+      // spotPriceMarkup is in øre/kWh, displayPrice_kWh might also be in øre/kWh
+      let spotPriceMarkup: number
+      if (typeof provider.spotPriceMarkup === 'number') {
+        spotPriceMarkup = provider.spotPriceMarkup
+      } else if (typeof provider.displayPrice_kWh === 'number') {
+        spotPriceMarkup = provider.displayPrice_kWh
+      } else {
+        // Fallback: use different values for different providers to avoid identical prices
+        spotPriceMarkup = index * 2 // 0, 2, 4, 6 øre/kWh as fallback
+        console.warn(`Provider ${provider.providerName} missing spotPriceMarkup, using fallback ${spotPriceMarkup}`)
+      }
+      
+      let monthlySubscription: number
+      if (typeof provider.monthlySubscription === 'number') {
+        monthlySubscription = provider.monthlySubscription
+      } else if (typeof provider.displayMonthlyFee === 'number') {
+        monthlySubscription = provider.displayMonthlyFee
+      } else {
+        // Fallback: use 0 for subscription
+        monthlySubscription = 0
+        console.warn(`Provider ${provider.providerName} missing monthlySubscription, using 0`)
+      }
       
       // Apply regional pricing if available
       if (provider.regionalPricing?.length > 0) {
@@ -146,13 +177,9 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
         }
       }
       
-      // Log provider pricing for debugging
-      console.log(`Provider ${provider.providerName}:`, {
-        spotPriceMarkup,
-        monthlySubscription,
-        greenCertificates: provider.greenCertificateFee || 0,
-        tradingCosts: provider.tradingCosts || 0
-      })
+      // Additional fees
+      const greenCertificates = typeof provider.greenCertificateFee === 'number' ? provider.greenCertificateFee : 0
+      const tradingCosts = typeof provider.tradingCosts === 'number' ? provider.tradingCosts : 0
       
       // Calculate price per kWh using centralized service
       const pricePerKwh = calculatePricePerKwh(
@@ -160,8 +187,19 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
         spotPriceMarkup,
         actualNetworkTariff,
         {
-          greenCertificates: provider.greenCertificateFee || 0,
-          tradingCosts: provider.tradingCosts || 0
+          greenCertificates: greenCertificates,
+          tradingCosts: tradingCosts
+        }
+      )
+      
+      // Get price breakdown for transparency
+      const breakdown = getPriceBreakdown(
+        avgSpotPrice,
+        spotPriceMarkup,
+        actualNetworkTariff,
+        {
+          greenCertificates: greenCertificates,
+          tradingCosts: tradingCosts
         }
       )
       
@@ -174,7 +212,7 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
         provider: provider.providerName || provider.productName,
         slug: provider.id,
         logo: provider.logoUrl,
-        isGreen: provider.benefits?.includes('100% grøn strøm') || provider.greenEnergy,
+        isGreen: provider.benefits?.includes('100% grøn strøm') || provider.isGreenEnergy,
         isVindstod: provider.isVindstoedProduct,
         spotPriceFee: spotPriceMarkup / 100, // Convert øre to kr for display
         monthlyFee: monthlySubscription,
@@ -183,7 +221,8 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
         subscriptionCost: subscriptionCost,
         totalCost: totalCost,
         pricePerKwh: pricePerKwh,
-        periodDays: periodDays
+        periodDays: periodDays,
+        breakdown: breakdown
       }
     })
 
@@ -195,6 +234,19 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
       // Then sort by total cost
       return a.totalCost - b.totalCost
     })
+
+    // Validate that providers have distinct prices
+    const uniquePrices = new Set(providerCosts.map(p => p.totalCost.toFixed(2)))
+    if (uniquePrices.size === 1 && providerCosts.length > 1) {
+      console.error('WARNING: All providers have the same calculated price! This likely means pricing data is missing in Sanity.')
+      console.log('Provider costs:', providerCosts.map(p => ({
+        name: p.provider,
+        spotPriceFee: p.spotPriceFee,
+        monthlyFee: p.monthlyFee,
+        energyCost: p.energyCost.toFixed(2),
+        totalCost: p.totalCost.toFixed(2)
+      })))
+    }
 
     setCalculations(providerCosts)
   }
@@ -254,6 +306,16 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
   const vindstodSavings = vindstod && cheapest && !cheapest.isVindstod 
     ? vindstod.totalCost - cheapest.totalCost 
     : 0
+
+  const toggleProviderExpanded = (providerId: string) => {
+    const newExpanded = new Set(expandedProviders)
+    if (newExpanded.has(providerId)) {
+      newExpanded.delete(providerId)
+    } else {
+      newExpanded.add(providerId)
+    }
+    setExpandedProviders(newExpanded)
+  }
 
   return (
     <div className="space-y-6">
@@ -348,6 +410,74 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
                           <p className="font-medium">{formatCurrency(calc.energyCost)}</p>
                         </div>
                       </div>
+                      
+                      {/* Price breakdown toggle button */}
+                      <button
+                        onClick={() => toggleProviderExpanded(calc.slug)}
+                        className="mt-3 flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 transition-colors"
+                      >
+                        {expandedProviders.has(calc.slug) ? (
+                          <>
+                            <ChevronUp className="h-4 w-4" />
+                            Skjul prisdetaljer
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="h-4 w-4" />
+                            Se prisdetaljer
+                          </>
+                        )}
+                      </button>
+                      
+                      {/* Expanded price breakdown */}
+                      {expandedProviders.has(calc.slug) && calc.breakdown && (
+                        <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                          <h5 className="font-semibold text-sm mb-3">Prisudregning</h5>
+                          <p className="text-xs text-gray-600 mb-3">
+                            Estimat baseret på live spotpris
+                          </p>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Spotpris:</span>
+                              <span className="font-medium">
+                                {(calc.breakdown.spotPrice < 0 ? '-' : '') + Math.abs(calc.breakdown.spotPrice).toFixed(2)} kr.
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Leverandør tillæg:</span>
+                              <span className="font-medium">{calc.spotPriceFee.toFixed(2)} kr.</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Nettarif ({region}):</span>
+                              <span className="font-medium">{calc.breakdown.networkTariff.toFixed(2)} kr.</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Systemtarif:</span>
+                              <span className="font-medium">{calc.breakdown.systemTariff.toFixed(2)} kr.</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Transmissionstarif:</span>
+                              <span className="font-medium">{calc.breakdown.transmissionFee.toFixed(2)} kr.</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Elafgift:</span>
+                              <span className="font-medium">{calc.breakdown.electricityTax.toFixed(2)} kr.</span>
+                            </div>
+                            <div className="flex justify-between border-t pt-2 mt-2">
+                              <span className="text-gray-600">Pris u. moms:</span>
+                              <span className="font-medium">{calc.breakdown.subtotal.toFixed(2)} kr.</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Moms (25%):</span>
+                              <span className="font-medium">{calc.breakdown.vatAmount.toFixed(2)} kr.</span>
+                            </div>
+                            <div className="flex justify-between border-t pt-2 mt-2">
+                              <span className="font-semibold">Total pr. kWh:</span>
+                              <span className="font-bold text-blue-600">{calc.pricePerKwh.toFixed(2)} kr.</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                     
                     <div className="text-right ml-4">

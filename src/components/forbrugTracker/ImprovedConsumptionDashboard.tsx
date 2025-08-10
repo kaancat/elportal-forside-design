@@ -171,7 +171,7 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
           })
         }),
         // Fetch real prices from EnergiDataService for the entire date range
-        fetch(`/api/electricity-prices?date=${dateFrom.toISOString().split('T')[0]}&endDate=${dateTo.toISOString().split('T')[0]}&region=${customerData?.region || 'DK2'}`)
+        fetch(`/api/electricity-prices?date=${dateFrom}&endDate=${dateTo}&region=${customerData?.region || 'DK2'}`)
       ])
       
       if (!consumptionResponse.ok) {

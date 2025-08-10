@@ -1,4 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node'
+import { kv } from '@vercel/kv'
 
 // Consolidated Eloverblik API handler to reduce serverless function count
 // Combines all Eloverblik endpoints into a single function
@@ -60,13 +61,51 @@ async function queuedFetch(key: string, fetcher: () => Promise<any>): Promise<an
   return promise
 }
 
-// WHAT: Retrieve third-party access token using refresh token with lightweight caching
+// Distributed lock for preventing duplicate requests across instances
+async function acquireLock(key: string, ttl: number = 30): Promise<boolean> {
+  try {
+    // NX flag ensures "set if not exists" - returns null if key already exists
+    const result = await kv.set(`lock:${key}`, Date.now(), { nx: true, ex: ttl })
+    return result !== null
+  } catch (e) {
+    console.log('Failed to acquire lock via KV:', e)
+    return true // If KV fails, proceed anyway to maintain availability
+  }
+}
+
+async function releaseLock(key: string): Promise<void> {
+  try {
+    await kv.del(`lock:${key}`)
+  } catch (e) {
+    // Ignore errors when releasing lock
+    console.log('Failed to release lock:', e)
+  }
+}
+
+// WHAT: Retrieve third-party access token using refresh token with KV + in-memory caching
 // WHY: Every third-party call requires an access token; caching reduces rate-limit risk
 async function getThirdPartyAccessToken(refreshToken: string): Promise<string> {
   const now = Date.now()
+  
+  // Try KV cache first (distributed across all instances)
+  try {
+    const cached = await kv.get<string>('eloverblik_token')
+    if (cached) {
+      console.log('Using KV cached token')
+      // Also update in-memory cache for faster subsequent calls
+      tokenCache.token = cached
+      tokenCache.expiresAt = now + 15 * 60 * 1000 // Assume 15 min validity
+      return cached
+    }
+  } catch (e) {
+    console.log('KV not available, falling back to in-memory cache:', e)
+  }
+  
+  // Check in-memory cache (per-instance fallback)
   if (tokenCache.token && tokenCache.expiresAt > now + 15_000) {
     return tokenCache.token
   }
+  
   const tokenUrl = `${ELOVERBLIK_API_BASE}/thirdpartyapi/api/token`
   const tokenResponse = await fetch(tokenUrl, {
     method: 'GET',
@@ -84,9 +123,19 @@ async function getThirdPartyAccessToken(refreshToken: string): Promise<string> {
   const tokenData = await tokenResponse.json()
   const accessToken = tokenData.result || tokenData.access_token || tokenData.token
   if (!accessToken) throw new Error('Invalid token response: missing access token')
-  // Access tokens are short lived; default to 20 minutes TTL if no explicit expiry
+  
+  // Store in both caches
   tokenCache.token = accessToken
   tokenCache.expiresAt = now + 20 * 60 * 1000
+  
+  try {
+    // Store in KV with 20 minute expiry (Eloverblik tokens are short-lived)
+    await kv.set('eloverblik_token', accessToken, { ex: 20 * 60 })
+    console.log('Token cached in KV')
+  } catch (e) {
+    console.log('Failed to cache token in KV:', e)
+  }
+  
   return accessToken
 }
 
@@ -245,7 +294,7 @@ async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelRes
     console.log('Access token received successfully')
 
     if (!accessToken) {
-      console.error('No access token in response:', tokenData)
+      console.error('No access token in response')
       return res.status(500).json({ 
         error: 'Invalid token response',
         details: 'No access token found in response'
@@ -436,7 +485,7 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
     )
     
     if (!accessToken) {
-      console.error('No access token in response:', tokenData)
+      console.error('No access token in response')
       return res.status(500).json({ 
         error: 'Invalid token response',
         details: 'No access token found in response'
@@ -527,11 +576,25 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
       }
     }
 
-    // Check short-term cache first
-    const cacheKey = JSON.stringify({ identifier, safeFrom, safeTo, aggregation, mp: finalMeteringPointIds.slice(0, 10) })
-    const cachedConsumption = consumptionCache.get(cacheKey)
+    // Generate cache key for consumption data
+    const cacheKey = `consumption:${identifier}:${safeFrom}:${safeTo}:${aggregation}`
+    
+    // Try KV cache first (distributed across instances)
+    try {
+      const kvCached = await kv.get(cacheKey)
+      if (kvCached) {
+        console.log('Returning KV cached consumption data')
+        return res.status(200).json(kvCached)
+      }
+    } catch (e) {
+      console.log('KV cache read failed:', e)
+    }
+    
+    // Check in-memory cache as fallback
+    const memCacheKey = JSON.stringify({ identifier, safeFrom, safeTo, aggregation, mp: finalMeteringPointIds.slice(0, 10) })
+    const cachedConsumption = consumptionCache.get(memCacheKey)
     if (cachedConsumption && Date.now() - cachedConsumption.timestamp < CONSUMPTION_TTL) {
-      console.log('Returning cached consumption response')
+      console.log('Returning in-memory cached consumption response')
       return res.status(200).json(cachedConsumption.payload)
     }
 
@@ -641,8 +704,17 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
       }
     }
 
-    // Store in cache
-    consumptionCache.set(cacheKey, { payload, timestamp: Date.now() })
+    // Store in both caches
+    consumptionCache.set(memCacheKey, { payload, timestamp: Date.now() })
+    
+    try {
+      // Store in KV with 10 minute expiry for consumption data
+      await kv.set(cacheKey, payload, { ex: 600 })
+      console.log('Consumption data cached in KV')
+    } catch (e) {
+      console.log('Failed to cache consumption in KV:', e)
+    }
+    
     return res.status(200).json(payload)
   } catch (error) {
     console.error('Error fetching third-party consumption:', error)

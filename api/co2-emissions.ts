@@ -1,8 +1,32 @@
+import { kv } from '@vercel/kv'
+
 export const dynamic = 'force-dynamic';
+
+// In-memory cache for CO2 emissions data
+const emissionsCache = new Map<string, { data: any; timestamp: number }>()
+const EMISSIONS_CACHE_TTL = 5 * 60 * 1000 // 5 minutes - CO2 data updates every 5 minutes
+
+// Request deduplication queue
+const requestQueue = new Map<string, Promise<any>>()
+
+async function queuedFetch(key: string, fetcher: () => Promise<any>): Promise<any> {
+  if (requestQueue.has(key)) {
+    console.log(`Request already in flight for ${key}, waiting...`)
+    return requestQueue.get(key)
+  }
+  
+  const promise = fetcher().finally(() => {
+    setTimeout(() => requestQueue.delete(key), 100)
+  })
+  
+  requestQueue.set(key, promise)
+  return promise
+}
 
 /**
  * Vercel Serverless Function to fetch CO2 emissions data from EnergiDataService.
  * Returns CO2 intensity of electricity consumption in g/kWh.
+ * Now with KV caching and request deduplication for improved performance.
  *
  * Query Parameters:
  * @param {string} [region] - The price area ('DK1', 'DK2', or 'Danmark' for both). Defaults to 'Danmark'.
@@ -25,6 +49,39 @@ export async function GET(request: Request) {
     const region = searchParams.get('region') || 'Danmark';
     const aggregation = searchParams.get('aggregation') || 'hourly';
 
+    // Check KV cache first (distributed across instances)
+    const cacheKey = `co2:${region}:${startDate}:${endDate}:${aggregation}`
+    
+    try {
+      const kvCached = await kv.get(cacheKey)
+      if (kvCached) {
+        console.log(`Returning KV cached CO2 emissions for ${cacheKey}`)
+        return Response.json(kvCached, { 
+          status: 200, 
+          headers: { 
+            'Cache-Control': 's-maxage=300',
+            'X-Cache': 'HIT-KV'
+          } 
+        })
+      }
+    } catch (e) {
+      console.log('KV cache read failed:', e)
+    }
+    
+    // Check in-memory cache as fallback
+    const memCacheKey = `${region}_${startDate}_${endDate}_${aggregation}`
+    const cached = emissionsCache.get(memCacheKey)
+    if (cached && Date.now() - cached.timestamp < EMISSIONS_CACHE_TTL) {
+      console.log(`Returning in-memory cached CO2 emissions for ${memCacheKey}`)
+      return Response.json(cached.data, { 
+        status: 200, 
+        headers: { 
+          'Cache-Control': 's-maxage=300',
+          'X-Cache': 'HIT-MEMORY'
+        } 
+      })
+    }
+
     // Build filter based on region
     let filter = '';
     if (region === 'DK1') {
@@ -36,22 +93,48 @@ export async function GET(request: Request) {
 
     const apiUrl = `https://api.energidataservice.dk/dataset/CO2Emis?start=${startDate}&end=${endDate}${filter}&sort=Minutes5UTC ASC`;
 
-    const externalResponse = await fetch(apiUrl);
+    // Use queued fetch to prevent duplicate requests
+    const fetchResult = await queuedFetch(memCacheKey, async () => {
+      console.log(`Fetching CO2 emissions from EnergiDataService for ${cacheKey}`)
+      
+      // Retry logic for rate limiting (40 req/10s limit)
+      const maxAttempts = 3
+      const baseDelayMs = 1000
+      let lastError: any = null
+      
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          const externalResponse = await fetch(apiUrl);
 
-    if (!externalResponse.ok) {
-      if (externalResponse.status === 404 || externalResponse.status === 400) {
-        return Response.json({ records: [] }, { status: 200 });
+          if (!externalResponse.ok) {
+            if (externalResponse.status === 404 || externalResponse.status === 400) {
+              return { records: [] };
+            }
+            
+            // Retry on rate limit or server errors
+            if ((externalResponse.status === 429 || externalResponse.status === 503) && attempt < maxAttempts) {
+              const delay = baseDelayMs * Math.pow(2, attempt - 1) // 1s, 2s
+              console.warn(`EnergiDataService CO2 returned ${externalResponse.status}, retrying in ${delay}ms (attempt ${attempt}/${maxAttempts})`)
+              await new Promise(r => setTimeout(r, delay))
+              continue
+            }
+            
+            throw new Error(`Failed to fetch CO2 data: ${externalResponse.status}`);
+          }
+
+          const result = await externalResponse.json();
+          return result;
+        } catch (error) {
+          lastError = error
+          if (attempt === maxAttempts) throw error
+        }
       }
-      return Response.json(
-        { error: 'Failed to fetch CO2 emissions data from EnergiDataService.' },
-        { status: externalResponse.status }
-      );
-    }
-
-    const result = await externalResponse.json();
+      
+      throw lastError || new Error('Failed to fetch CO2 emissions')
+    });
 
     // Process the data
-    let processedRecords = result.records || [];
+    let processedRecords = fetchResult.records || [];
 
     // If hourly aggregation is requested, aggregate 5-minute data to hourly
     if (aggregation === 'hourly' && processedRecords.length > 0) {
@@ -140,7 +223,7 @@ export async function GET(request: Request) {
     );
 
     const finalData = { 
-      ...result, 
+      ...fetchResult, 
       records: processedRecords,
       metadata: {
         region,
@@ -149,9 +232,23 @@ export async function GET(request: Request) {
       }
     };
 
+    // Cache the successful response in both memory and KV
+    emissionsCache.set(memCacheKey, { data: finalData, timestamp: Date.now() })
+    
+    try {
+      // Store in KV with 5 minute expiry for CO2 data
+      await kv.set(cacheKey, finalData, { ex: 300 })
+      console.log('CO2 emissions data cached in KV')
+    } catch (e) {
+      console.log('Failed to cache CO2 emissions in KV:', e)
+    }
+
     return Response.json(finalData, {
       status: 200,
-      headers: { 'Cache-Control': 's-maxage=300' } // Cache for 5 minutes
+      headers: { 
+        'Cache-Control': 's-maxage=300',
+        'X-Cache': 'MISS'
+      }
     });
 
   } catch (error: any) {

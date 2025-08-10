@@ -55,6 +55,7 @@
     "@sanity/webhook": "^4.0.4",
     "@smithery/registry": "^0.4.0",
     "@tanstack/react-query": "^5.56.2",
+    "@vercel/kv": "^3.0.0",
     "axios": "^1.11.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

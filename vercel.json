@@ -7,5 +7,25 @@
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/eloverblik.ts": {
+      "maxDuration": 30
+    },
+    "api/electricity-prices.ts": {
+      "maxDuration": 10
+    },
+    "api/co2-emissions.ts": {
+      "maxDuration": 10
+    },
+    "api/energy-forecast.ts": {
+      "maxDuration": 10
+    },
+    "api/monthly-production.ts": {
+      "maxDuration": 10
+    },
+    "api/consumption-map.ts": {
+      "maxDuration": 10
+    }
+  }
 }

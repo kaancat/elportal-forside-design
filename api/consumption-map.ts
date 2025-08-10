@@ -1,8 +1,32 @@
+import { kv } from '@vercel/kv'
+
 export const dynamic = 'force-dynamic';
+
+// In-memory cache for consumption map data
+const consumptionMapCache = new Map<string, { data: any; timestamp: number }>()
+const CONSUMPTION_MAP_CACHE_TTL = 60 * 60 * 1000 // 1 hour - municipality data updates daily
+
+// Request deduplication queue
+const requestQueue = new Map<string, Promise<any>>()
+
+async function queuedFetch(key: string, fetcher: () => Promise<any>): Promise<any> {
+  if (requestQueue.has(key)) {
+    console.log(`Request already in flight for ${key}, waiting...`)
+    return requestQueue.get(key)
+  }
+  
+  const promise = fetcher().finally(() => {
+    setTimeout(() => requestQueue.delete(key), 100)
+  })
+  
+  requestQueue.set(key, promise)
+  return promise
+}
 
 /**
  * Vercel Serverless Function to fetch consumption data from EnergiDataService.
  * Returns consumption data aggregated by municipality for map visualization.
+ * Now with KV caching and request deduplication for improved performance.
  *
  * Query Parameters:
  * @param {string} [consumerType] - Consumer type ('private', 'industry', 'all'). Defaults to 'all'.
@@ -54,6 +78,39 @@ export async function GET(request: Request) {
     const apiStart = startDate.toISOString().substring(0, 16); // YYYY-MM-DDTHH:mm
     const apiEnd = endDate.toISOString().substring(0, 16);
 
+    // Check KV cache first (distributed across instances)
+    const cacheKey = `consumption-map:${consumerType}:${aggregation}:${view}:${municipality || 'all'}:${apiStart}:${apiEnd}`
+    
+    try {
+      const kvCached = await kv.get(cacheKey)
+      if (kvCached) {
+        console.log(`Returning KV cached consumption map data for ${cacheKey}`)
+        return Response.json(kvCached, { 
+          status: 200,
+          headers: {
+            'Cache-Control': 's-maxage=3600',
+            'X-Cache': 'HIT-KV'
+          }
+        })
+      }
+    } catch (e) {
+      console.log('KV cache read failed:', e)
+    }
+    
+    // Check in-memory cache as fallback
+    const memCacheKey = `${consumerType}_${aggregation}_${view}_${municipality || 'all'}_${apiStart}_${apiEnd}`
+    const cached = consumptionMapCache.get(memCacheKey)
+    if (cached && Date.now() - cached.timestamp < CONSUMPTION_MAP_CACHE_TTL) {
+      console.log(`Returning in-memory cached consumption map data for ${memCacheKey}`)
+      return Response.json(cached.data, { 
+        status: 200,
+        headers: {
+          'Cache-Control': 's-maxage=3600',
+          'X-Cache': 'HIT-MEMORY'
+        }
+      })
+    }
+
     // Build filter for specific municipality if provided
     let filter = '';
     if (municipality) {
@@ -63,47 +120,54 @@ export async function GET(request: Request) {
     // Include limit to ensure we get data and specify columns
     const apiUrl = `https://api.energidataservice.dk/dataset/PrivIndustryConsumptionHour?start=${apiStart}&end=${apiEnd}${filter}&sort=HourUTC ASC&limit=10000`;
 
-    console.log('Fetching consumption data:', {
-      url: apiUrl,
-      startDate: apiStart,
-      endDate: apiEnd,
-      view,
-      consumerType,
-      aggregation,
-      dataDelayDays: DATA_DELAY_DAYS
+    // Use queued fetch to prevent duplicate requests
+    const fetchResult = await queuedFetch(memCacheKey, async () => {
+      console.log(`Fetching consumption map data from EnergiDataService for ${cacheKey}`)
+      
+      // Retry logic for rate limiting (40 req/10s limit)
+      const maxAttempts = 3
+      const baseDelayMs = 1000
+      let lastError: any = null
+      
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          const externalResponse = await fetch(apiUrl);
+
+          if (!externalResponse.ok) {
+            if (externalResponse.status === 404 || externalResponse.status === 400) {
+              return { records: [] };
+            }
+            
+            // Retry on rate limit or server errors
+            if ((externalResponse.status === 429 || externalResponse.status === 503) && attempt < maxAttempts) {
+              const delay = baseDelayMs * Math.pow(2, attempt - 1) // 1s, 2s
+              console.warn(`EnergiDataService consumption map returned ${externalResponse.status}, retrying in ${delay}ms (attempt ${attempt}/${maxAttempts})`)
+              await new Promise(r => setTimeout(r, delay))
+              continue
+            }
+            
+            throw new Error(`Failed to fetch consumption data: ${externalResponse.status}`);
+          }
+
+          const result = await externalResponse.json();
+          return result;
+        } catch (error) {
+          lastError = error
+          if (attempt === maxAttempts) throw error
+        }
+      }
+      
+      throw lastError || new Error('Failed to fetch consumption map data')
     });
 
-    const externalResponse = await fetch(apiUrl);
-
-    if (!externalResponse.ok) {
-      if (externalResponse.status === 404 || externalResponse.status === 400) {
-        return Response.json({ 
-          data: [],
-          metadata: { 
-            consumerType, 
-            aggregation, 
-            view, 
-            startDate: apiStart, 
-            endDate: apiEnd,
-            municipality 
-          }
-        }, { status: 200 });
-      }
-      return Response.json(
-        { error: 'Failed to fetch consumption data from EnergiDataService.' },
-        { status: externalResponse.status }
-      );
-    }
-
-    const result = await externalResponse.json();
-    let records = result.records || [];
+    let records = fetchResult.records || [];
 
     console.log(`Raw records: ${records.length}`);
     
-    // If no records, return empty data with proper structure
+    // If no records, return empty data with proper structure (but still cache it)
     if (records.length === 0) {
       console.log('No records found for date range:', { start: apiStart, end: apiEnd });
-      return Response.json({
+      const emptyResponse = {
         data: [],
         statistics: {
           totalMunicipalities: 0,
@@ -126,7 +190,26 @@ export async function GET(request: Request) {
           lastUpdated: new Date().toISOString(),
           message: 'No data available for the selected date range'
         }
-      }, { status: 200 });
+      };
+      
+      // Cache empty response too (with shorter TTL)
+      consumptionMapCache.set(memCacheKey, { data: emptyResponse, timestamp: Date.now() })
+      
+      try {
+        // Store in KV with 15 minute expiry for empty responses
+        await kv.set(cacheKey, emptyResponse, { ex: 900 })
+        console.log('Empty consumption map response cached in KV')
+      } catch (e) {
+        console.log('Failed to cache empty response in KV:', e)
+      }
+      
+      return Response.json(emptyResponse, { 
+        status: 200,
+        headers: {
+          'Cache-Control': 's-maxage=900',
+          'X-Cache': 'MISS'
+        }
+      });
     }
 
     // Group by municipality and aggregate consumption
@@ -241,10 +324,22 @@ export async function GET(request: Request) {
       }
     };
 
+    // Cache the successful response in both memory and KV
+    consumptionMapCache.set(memCacheKey, { data: responseData, timestamp: Date.now() })
+    
+    try {
+      // Store in KV with 1 hour expiry for consumption map data
+      await kv.set(cacheKey, responseData, { ex: 3600 })
+      console.log('Consumption map data cached in KV')
+    } catch (e) {
+      console.log('Failed to cache consumption map data in KV:', e)
+    }
+
     return Response.json(responseData, {
       status: 200,
       headers: { 
-        'Cache-Control': 's-maxage=1800' // Cache for 30 minutes
+        'Cache-Control': 's-maxage=3600', // Cache for 1 hour
+        'X-Cache': 'MISS'
       }
     });
 

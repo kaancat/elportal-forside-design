@@ -956,8 +956,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return await handleThirdPartyAuthorizations(req, res)
       case 'thirdparty-consumption':
         return await handleThirdPartyConsumption(req, res)
-      case 'thirdparty-meteringpoint-details':
-        return await handleThirdPartyMeteringPointDetails(req, res)
+      // Address endpoint removed - not needed
+      // case 'thirdparty-meteringpoint-details':
+      //   return await handleThirdPartyMeteringPointDetails(req, res)
       default:
         return res.status(400).json({ 
           error: 'Invalid action',
@@ -967,8 +968,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             'get-metering-points', 
             'get-consumption',
             'thirdparty-authorizations',
-            'thirdparty-consumption',
-            'thirdparty-meteringpoint-details'
+            'thirdparty-consumption'
+            // 'thirdparty-meteringpoint-details' - removed, not needed
           ]
         })
     }

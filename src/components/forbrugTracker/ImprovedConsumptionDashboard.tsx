@@ -213,39 +213,39 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
       
       let processedData = processConsumptionData(consumptionResult, priceResult.records || [], aggregation)
       
-      // Filter data for "yesterday" view to only show yesterday's hours
+      // Filter data for "yesterday" view to only show data from 2 days ago
+      // This matches what we're fetching (2 days ago due to Eloverblik processing delay)
       if (dateRange === 'yesterday' && processedData.data.length > 0) {
-        const yesterday = new Date()
-        yesterday.setDate(yesterday.getDate() - 1)
-        const yesterdayDateStr = yesterday.toISOString().split('T')[0]
+        const targetDay = new Date()
+        targetDay.setDate(targetDay.getDate() - 2) // Match the fetch logic - 2 days ago
+        const targetDayStr = targetDay.toISOString().split('T')[0]
         
-        console.log('Filtering data for yesterday:', yesterdayDateStr)
+        console.log('Filtering data for 2 days ago:', targetDayStr)
         console.log('Raw data before filtering:', processedData.data.length, 'items')
         console.log('Sample data dates:', processedData.data.slice(0, 5).map(d => d.date))
         
-        // More flexible filtering - check if the date part matches yesterday
+        // Filter to only include data from 2 days ago
         processedData.data = processedData.data.filter(item => {
           // Handle both ISO string dates and date-only strings
           const itemDateStr = item.date.includes('T') ? item.date.split('T')[0] : item.date
           
-          // For yesterday data, we want to include all hours from yesterday
-          // regardless of whether they came from a 2-day fetch or single day fetch
-          if (itemDateStr === yesterdayDateStr) {
+          // Check if the date matches our target day (2 days ago)
+          if (itemDateStr === targetDayStr) {
             return true
           }
           
-          // Also check if it's within yesterday's 24 hour period (handling timezone issues)
+          // Also check if it's within the target day's 24 hour period (handling timezone issues)
           try {
             const itemDate = new Date(item.date)
-            const yesterdayStart = new Date(yesterday)
-            yesterdayStart.setHours(0, 0, 0, 0)
-            const yesterdayEnd = new Date(yesterday)
-            yesterdayEnd.setHours(23, 59, 59, 999)
+            const targetDayStart = new Date(targetDay)
+            targetDayStart.setHours(0, 0, 0, 0)
+            const targetDayEnd = new Date(targetDay)
+            targetDayEnd.setHours(23, 59, 59, 999)
             
-            // Check if the item falls within yesterday's range
-            const isInRange = itemDate >= yesterdayStart && itemDate <= yesterdayEnd
+            // Check if the item falls within the target day's range
+            const isInRange = itemDate >= targetDayStart && itemDate <= targetDayEnd
             if (isInRange) {
-              console.log('Including item from yesterday range:', item.date)
+              console.log('Including item from target day range:', item.date)
             }
             return isInRange
           } catch (e) {
@@ -258,8 +258,8 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
         
         // Log if no data matches the filter
         if (processedData.data.length === 0) {
-          console.error('No data matched yesterday filter!', {
-            yesterdayDateStr,
+          console.error('No data matched target day filter (2 days ago)!', {
+            targetDayStr,
             sampleDates: consumptionResult?.result?.[0]?.MyEnergyData_MarketDocument?.TimeSeries?.[0]?.Period?.[0]?.timeInterval
           })
         }

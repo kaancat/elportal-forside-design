@@ -638,14 +638,16 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
 
   return (
     <div className="space-y-4">
-      {/* Data Delay Information */}
-      <Alert className="border-blue-200 bg-blue-50">
-        <Info className="h-4 w-4 text-blue-600" />
-        <AlertDescription className="text-sm text-blue-900">
-          <strong>Bemærk:</strong> Forbrugsdata fra din elmåler er forsinket med 1-2 dage. 
-          De nyeste tilgængelige data er typisk fra i går eller forgårs.
-        </AlertDescription>
-      </Alert>
+      {/* Data Delay Information - Only show for yesterday */}
+      {dateRange === 'yesterday' && (
+        <Alert className="border-blue-200 bg-blue-50">
+          <Info className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-sm text-blue-900">
+            <strong>Bemærk:</strong> Forbrugsdata fra din elmåler er forsinket med 1-2 dage. 
+            De nyeste tilgængelige data er typisk fra i går eller forgårs.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">

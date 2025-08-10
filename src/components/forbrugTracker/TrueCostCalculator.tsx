@@ -310,21 +310,21 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
   return (
     <div className="space-y-6">
       {/* Summary Card */}
-      <Card className="border-blue-200 bg-blue-50">
+      <Card className="border-brand-green/20 bg-brand-green/5">
         <CardContent className="p-6">
           <div className="flex items-start justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-blue-900">
+              <h3 className="text-lg font-semibold text-brand-dark">
                 Baseret på dit faktiske forbrug
               </h3>
-              <p className="text-3xl font-bold text-blue-900 mt-2">
+              <p className="text-3xl font-bold text-brand-green mt-2">
                 {processedData.totalConsumption.toFixed(0)} kWh
               </p>
-              <p className="text-sm text-blue-700 mt-1">
+              <p className="text-sm text-gray-700 mt-1">
                 i perioden {formatDateDanish(processedData.dateFrom)} til {formatDateDanish(processedData.dateTo)}
               </p>
             </div>
-            <Calculator className="h-8 w-8 text-blue-600" />
+            <Calculator className="h-8 w-8 text-brand-green" />
           </div>
         </CardContent>
       </Card>
@@ -349,7 +349,7 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
                   key={calc.slug}
                   className={`border rounded-lg p-4 ${
                     calc.isVindstod 
-                      ? 'border-blue-500 bg-blue-50' 
+                      ? 'border-brand-green bg-brand-green/5' 
                       : index === 0 && !calc.isVindstod
                       ? 'border-green-500 bg-green-50' 
                       : 'border-gray-200'
@@ -367,7 +367,7 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
                         )}
                         <h4 className="font-semibold">{calc.provider}</h4>
                         {calc.isVindstod && (
-                          <Badge className="bg-blue-600">
+                          <Badge className="bg-brand-green">
                             <Award className="h-3 w-3 mr-1" />
                             Anbefalet
                           </Badge>
@@ -422,7 +422,7 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
                       {calc.breakdown && (
                         <Popover>
                           <PopoverTrigger asChild>
-                            <button className="text-xs text-blue-600 hover:underline mt-2 inline-flex items-center gap-1">
+                            <button className="text-xs text-brand-green hover:underline mt-2 inline-flex items-center gap-1">
                               Se prisdetaljer <Info size={12} />
                             </button>
                           </PopoverTrigger>
@@ -482,7 +482,7 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
                                   <span>{formatCurrency(calc.subscriptionCost)}</span>
                                 </div>
                                 <div className="border-t my-1"></div>
-                                <div className="flex justify-between font-bold text-blue-600">
+                                <div className="flex justify-between font-bold text-brand-green">
                                   <span>Total:</span> 
                                   <span>{formatCurrency(calc.totalCost)}</span>
                                 </div>

@@ -4,13 +4,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { 
   Calculator, 
   TrendingDown, 
   Award,
   ChevronRight,
-  ChevronDown,
-  ChevronUp,
   Info,
   Loader2
 } from 'lucide-react'
@@ -81,7 +80,6 @@ interface TrueCostCalculatorProps {
 
 export function TrueCostCalculator({ consumptionData, processedData, customerData }: TrueCostCalculatorProps) {
   const [calculations, setCalculations] = useState<any[]>([])
-  const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set())
   
   // Fetch providers from Sanity
   const { data: providers, isLoading } = useQuery({
@@ -307,16 +305,6 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
     ? vindstod.totalCost - cheapest.totalCost 
     : 0
 
-  const toggleProviderExpanded = (providerId: string) => {
-    const newExpanded = new Set(expandedProviders)
-    if (newExpanded.has(providerId)) {
-      newExpanded.delete(providerId)
-    } else {
-      newExpanded.add(providerId)
-    }
-    setExpandedProviders(newExpanded)
-  }
-
   return (
     <div className="space-y-6">
       {/* Summary Card */}
@@ -410,74 +398,6 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
                           <p className="font-medium">{formatCurrency(calc.energyCost)}</p>
                         </div>
                       </div>
-                      
-                      {/* Price breakdown toggle button */}
-                      <button
-                        onClick={() => toggleProviderExpanded(calc.slug)}
-                        className="mt-3 flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 transition-colors"
-                      >
-                        {expandedProviders.has(calc.slug) ? (
-                          <>
-                            <ChevronUp className="h-4 w-4" />
-                            Skjul prisdetaljer
-                          </>
-                        ) : (
-                          <>
-                            <ChevronDown className="h-4 w-4" />
-                            Se prisdetaljer
-                          </>
-                        )}
-                      </button>
-                      
-                      {/* Expanded price breakdown */}
-                      {expandedProviders.has(calc.slug) && calc.breakdown && (
-                        <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                          <h5 className="font-semibold text-sm mb-3">Prisudregning</h5>
-                          <p className="text-xs text-gray-600 mb-3">
-                            Estimat baseret på live spotpris
-                          </p>
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Spotpris:</span>
-                              <span className="font-medium">
-                                {(calc.breakdown.spotPrice < 0 ? '-' : '') + Math.abs(calc.breakdown.spotPrice).toFixed(2)} kr.
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Leverandør tillæg:</span>
-                              <span className="font-medium">{calc.spotPriceFee.toFixed(2)} kr.</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Nettarif ({region}):</span>
-                              <span className="font-medium">{calc.breakdown.networkTariff.toFixed(2)} kr.</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Systemtarif:</span>
-                              <span className="font-medium">{calc.breakdown.systemTariff.toFixed(2)} kr.</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Transmissionstarif:</span>
-                              <span className="font-medium">{calc.breakdown.transmissionFee.toFixed(2)} kr.</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Elafgift:</span>
-                              <span className="font-medium">{calc.breakdown.electricityTax.toFixed(2)} kr.</span>
-                            </div>
-                            <div className="flex justify-between border-t pt-2 mt-2">
-                              <span className="text-gray-600">Pris u. moms:</span>
-                              <span className="font-medium">{calc.breakdown.subtotal.toFixed(2)} kr.</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Moms (25%):</span>
-                              <span className="font-medium">{calc.breakdown.vatAmount.toFixed(2)} kr.</span>
-                            </div>
-                            <div className="flex justify-between border-t pt-2 mt-2">
-                              <span className="font-semibold">Total pr. kWh:</span>
-                              <span className="font-bold text-blue-600">{calc.pricePerKwh.toFixed(2)} kr.</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </div>
                     
                     <div className="text-right ml-4">
@@ -494,6 +414,64 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
                         <p className="text-xs text-gray-500 mt-1">
                           Kun {formatCurrency(vindstodSavings)} mere
                         </p>
+                      )}
+                      
+                      {/* Price breakdown popover */}
+                      {calc.breakdown && (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button className="text-xs text-blue-600 hover:underline mt-2 inline-flex items-center gap-1">
+                              Se prisdetaljer <Info size={12} />
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-64" side="left">
+                            <div className="space-y-2">
+                              <h4 className="font-medium leading-none">Prisudregning</h4>
+                              <p className="text-sm text-muted-foreground">Estimat baseret på faktisk forbrug</p>
+                              <div className="text-xs space-y-1 pt-2">
+                                <div className="flex justify-between">
+                                  <span>Spotpris:</span> 
+                                  <span>{calc.breakdown.spotPrice.toFixed(2)} kr.</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Leverandør tillæg:</span> 
+                                  <span>{calc.spotPriceFee.toFixed(2)} kr.</span>
+                                </div>
+                                <div className="border-t my-1"></div>
+                                <div className="flex justify-between text-gray-600">
+                                  <span>Nettarif ({region}):</span> 
+                                  <span>{calc.breakdown.networkTariff.toFixed(2)} kr.</span>
+                                </div>
+                                <div className="flex justify-between text-gray-600">
+                                  <span>Systemtarif:</span> 
+                                  <span>{calc.breakdown.systemTariff.toFixed(2)} kr.</span>
+                                </div>
+                                <div className="flex justify-between text-gray-600">
+                                  <span>Transmissionstarif:</span> 
+                                  <span>{calc.breakdown.transmissionFee.toFixed(2)} kr.</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Elafgift:</span> 
+                                  <span>{calc.breakdown.electricityTax.toFixed(2)} kr.</span>
+                                </div>
+                                <div className="border-t my-1"></div>
+                                <div className="flex justify-between font-semibold">
+                                  <span>Pris u. moms:</span> 
+                                  <span>{calc.breakdown.subtotal.toFixed(2)} kr.</span>
+                                </div>
+                                <div className="flex justify-between font-semibold">
+                                  <span>Moms (25%):</span> 
+                                  <span>{calc.breakdown.vatAmount.toFixed(2)} kr.</span>
+                                </div>
+                                <div className="border-t border-dashed my-1"></div>
+                                <div className="flex justify-between font-bold">
+                                  <span>Total pr. kWh:</span> 
+                                  <span>{calc.pricePerKwh.toFixed(2)} kr.</span>
+                                </div>
+                              </div>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                       )}
                     </div>
                   </div>

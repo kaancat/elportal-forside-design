@@ -786,26 +786,52 @@ async function handleThirdPartyMeteringPointDetails(req: VercelRequest, res: Ver
     // Extract address information from the first result
     if (detailsData.result && detailsData.result.length > 0) {
       const details = detailsData.result[0]
+      console.log('Raw address details from API:', {
+        streetName: details.streetName,
+        buildingNumber: details.buildingNumber,
+        postcode: details.postcode,
+        cityName: details.cityName,
+        floorId: details.floorId,
+        roomId: details.roomId
+      })
+      
       // Build address parts array to avoid empty commas
       const addressParts = []
       
       // Street and building
       const streetPart = [details.streetName, details.buildingNumber]
-        .filter(Boolean)
+        .filter(part => part && part.trim())
         .join(' ')
       if (streetPart) addressParts.push(streetPart)
       
-      // Floor and room
-      const floorRoom = [details.floorId, details.roomId]
-        .filter(Boolean)
-        .join(' ')
-      if (floorRoom) addressParts.push(floorRoom)
+      // Floor and room (format as "2. sal" or "st. tv" etc.)
+      const floorRoom = []
+      if (details.floorId && details.floorId.trim()) {
+        floorRoom.push(details.floorId.trim())
+      }
+      if (details.roomId && details.roomId.trim()) {
+        floorRoom.push(details.roomId.trim())
+      }
+      const floorRoomStr = floorRoom.join(' ')
+      if (floorRoomStr) addressParts.push(floorRoomStr)
       
       // Postcode and city
       const cityPart = [details.postcode, details.cityName]
-        .filter(Boolean)
+        .filter(part => part && part.trim())
         .join(' ')
       if (cityPart) addressParts.push(cityPart)
+      
+      // If we have no address parts at all, try to use any available info
+      let fullAddress = addressParts.join(', ')
+      if (!fullAddress && details.locationDescription) {
+        fullAddress = details.locationDescription
+      }
+      if (!fullAddress && details.cityName) {
+        fullAddress = details.cityName // At least show the city
+      }
+      if (!fullAddress) {
+        fullAddress = 'Adresse ikke tilgængelig'
+      }
       
       const address = {
         streetName: details.streetName || '',
@@ -817,7 +843,7 @@ async function handleThirdPartyMeteringPointDetails(req: VercelRequest, res: Ver
         citySubDivisionName: details.citySubDivisionName || '',
         municipalityCode: details.municipalityCode || '',
         locationDescription: details.locationDescription || '',
-        fullAddress: addressParts.join(', ') || 'Adresse ikke tilgængelig'
+        fullAddress: fullAddress
       }
       
       return res.status(200).json({

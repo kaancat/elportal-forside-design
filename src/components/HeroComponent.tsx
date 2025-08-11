@@ -83,34 +83,43 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
 
   // Determine text color based on background with proper contrast
   const getTextColorClass = () => {
-    // Only use manual override if explicitly set (not 'auto')
+    // Manual overrides from Sanity
     if (textColor === 'light') return 'text-white';
     if (textColor === 'dark') return 'text-gray-900';
     
-    // Auto mode - determine based on background style
-    // Force white text for dark backgrounds
+    // CRITICAL: If there's an image with any meaningful overlay (30%+), use white text
+    // This handles pages like /elselskaber where images have overlays
+    if ((hasBackgroundUrl || heroImage) && overlayOpacity >= 30) {
+      return 'text-white';
+    }
+    
+    // Check if we're using the fallback dark gradient 
+    // (when backgroundStyle is missing/unknown but there's an image)
+    if (!backgroundStyle && (hasBackgroundUrl || heroImage)) {
+      return 'text-white';
+    }
+    
+    // Explicit dark backgrounds that ALWAYS need white text
     if (backgroundStyle === 'solidDark' || backgroundStyle === 'gradientClassic') {
       return 'text-white';
     }
     
-    // Force dark text for light/bright backgrounds
-    if (backgroundStyle === 'default' || 
-        backgroundStyle === 'lightGray' || 
-        backgroundStyle === 'gradientGreenMist' ||
-        backgroundStyle === 'gradientOceanBreeze' ||
-        backgroundStyle === 'gradientSunriseGlow' ||
-        backgroundStyle === 'gradientNordicSky' ||
-        backgroundStyle === 'solidGreen') {
+    // Explicit light backgrounds that ALWAYS need dark text
+    const lightBackgrounds = [
+      'default',           // White
+      'lightGray',         // Light gray
+      'gradientGreenMist', // White to 5% green
+      'gradientOceanBreeze', // Light blue to white
+      'gradientSunriseGlow', // Light orange/yellow
+      'gradientNordicSky',   // Light gray/blue
+      'solidGreen'           // Bright green needs dark text
+    ];
+    
+    if (lightBackgrounds.includes(backgroundStyle)) {
       return 'text-gray-900';
     }
     
-    // If there's a background image with dark overlay
-    const hasImageWithDarkOverlay = (hasBackgroundUrl || heroImage) && overlayOpacity > 50;
-    if (hasImageWithDarkOverlay) {
-      return 'text-white';
-    }
-    
-    // Default to dark text for unknown/light backgrounds
+    // Default: if no background style and no image, assume white background
     return 'text-gray-900';
   };
 

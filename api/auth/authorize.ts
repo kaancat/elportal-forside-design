@@ -30,7 +30,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   
   try {
     // Get current session
-    const session = await getSessionFromRequest(req)
+    let session
+    try {
+      session = await getSessionFromRequest(req)
+    } catch (sessionError) {
+      console.error('Session retrieval error in authorize:', sessionError)
+      return res.status(500).json({ 
+        error: 'Session verification failed',
+        message: 'Could not verify session. Please try again.',
+        details: sessionError instanceof Error ? sessionError.message : 'Unknown error'
+      })
+    }
     
     if (!session) {
       return res.status(401).json({ 

@@ -21,18 +21,22 @@ const getSigningKey = () => {
     })
     throw new Error('Signing key not configured')
   }
-  // Handle base64 encoded keys - decode if it looks like base64
-  // Base64 keys will be longer (44+ chars) and contain +/= chars
-  if (key.length >= 44 && /^[A-Za-z0-9+/]+=*$/.test(key)) {
-    try {
-      // Decode base64 to get raw bytes
-      const decoded = Buffer.from(key, 'base64')
+  
+  // The key was generated with openssl rand -base64 32, which creates a base64 string
+  // We need to decode it to get the raw bytes for JWT signing
+  try {
+    // Try to decode as base64 first
+    const decoded = Buffer.from(key, 'base64')
+    // If successful and we get at least 32 bytes, use it
+    if (decoded.length >= 32) {
       return new Uint8Array(decoded)
-    } catch (e) {
-      // If decode fails, use as-is
-      console.log('Base64 decode failed, using key as-is')
     }
+  } catch (e) {
+    // Not valid base64, use as-is
+    console.log('Not base64, using key as UTF-8 string')
   }
+  
+  // Fallback: use the key as a UTF-8 string
   return new TextEncoder().encode(key)
 }
 

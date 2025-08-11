@@ -213,6 +213,22 @@ export interface ProviderProductBlock {
   signupLink: string
   isVindstoedProduct: boolean
   benefits: { text: string; included: boolean }[]
+  // Additional pricing fields
+  spotPriceMarkup?: number  // In øre/kWh
+  greenCertificateFee?: number  // In øre/kWh
+  tradingCosts?: number  // In øre/kWh
+  signupFee?: number
+  yearlySubscription?: number
+  // Product features
+  isVariablePrice?: boolean
+  bindingPeriod?: number
+  isGreenEnergy?: boolean
+  // Regional pricing
+  regionalPricing?: {
+    region: string
+    spotPriceMarkup?: number
+    monthlySubscription?: number
+  }[]
 }
 
 export interface ProviderListBlock {

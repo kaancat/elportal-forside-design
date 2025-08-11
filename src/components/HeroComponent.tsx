@@ -54,9 +54,9 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
           background: 'linear-gradient(to bottom right, #f1f5f9 0%, rgba(219, 234, 254, 0.3) 50%, #ffffff 100%)'
         };
       case 'gradientClassic':
-        // The original dark to green gradient from the initial design
+        // The original dark gradient from the initial design - very dark with subtle green
         return {
-          background: 'linear-gradient(to bottom right, #001a12 0%, rgba(132, 219, 65, 0.8) 100%)'
+          background: 'linear-gradient(to bottom right, #001a12 0%, rgba(0, 26, 18, 0.95) 50%, rgba(132, 219, 65, 0.2) 100%)'
         };
       case 'lightGray':
         // Light gray background

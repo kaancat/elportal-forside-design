@@ -1,13 +1,13 @@
 import { VercelRequest, VercelResponse } from '@vercel/node'
 import { kv } from '@vercel/kv'
+import { getSessionFromRequest } from './auth/session'
 
-// 🚨 SECURITY WARNING: This is a third-party API integration where ALL users
-// share the same refresh token. NEVER cache user-specific data in KV or any
-// distributed cache! This would leak personal data across different users.
-// Only use instance-specific in-memory caching for rate limiting protection.
+// 🔐 SECURITY: This integration now uses session-based authentication
+// to ensure complete user data isolation. Each user must have a valid
+// session and can only access their own data.
 //
-// Consolidated Eloverblik API handler to reduce serverless function count
-// Combines all Eloverblik endpoints into a single function
+// Consolidated Eloverblik API handler with secure session management
+// All endpoints require authenticated sessions to prevent data leakage
 
 const ELOVERBLIK_API_BASE = 'https://api.eloverblik.dk'
 
@@ -253,23 +253,30 @@ const CACHE_TTL = 15 * 60 * 1000 // 15 minutes - increased from 5 to reduce API 
 
 // Third-party API handlers
 async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelResponse) {
-  // SECURITY: This endpoint must NEVER return data without proper authentication
-  // The third-party API returns ALL authorized users, which is a severe privacy violation
+  // SECURITY: Validate session before returning any data
+  const session = await getSessionFromRequest(req)
   
-  // EMERGENCY FIX: Block all public access to prevent data leakage
-  return res.status(403).json({
-    error: 'Access denied',
-    message: 'This endpoint is temporarily disabled for security reasons. Please check back later.'
-  })
+  if (!session) {
+    return res.status(401).json({
+      error: 'Unauthorized',
+      message: 'Valid session required to access this endpoint'
+    })
+  }
   
-  // TODO: Implement proper session-based authentication before re-enabling
-  // The code below is kept for reference but must not be executed until secured
+  // Get customer ID linked to this session
+  const customerId = await kv.get(`session:${session.sessionId}:customer`)
   
-  /* DISABLED FOR SECURITY
+  if (!customerId) {
+    return res.status(403).json({
+      error: 'No authorization',
+      message: 'No customer authorization linked to this session'
+    })
+  }
+  
   // Try both possible environment variable names
   const refreshToken = process.env.ELOVERBLIK_API_TOKEN || process.env.ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN
 
-  console.log('Checking for refresh token...')
+  console.log('Fetching authorizations for session:', session.sessionId)
   
   if (!refreshToken) {
     console.error('Neither ELOVERBLIK_API_TOKEN nor ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN found in environment variables')
@@ -392,18 +399,31 @@ async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelRes
       }
     }
     
+    // SECURITY: Filter to only return data for the authenticated customer
+    const userAuthorization = authorizationsWithMeteringPoints.find((auth: any) => 
+      auth.customerCVR === customerId || 
+      auth.customerId === customerId ||
+      auth.authorizationId === customerId
+    )
+    
+    if (!userAuthorization) {
+      return res.status(404).json({
+        error: 'Authorization not found',
+        message: 'No authorization found for your account'
+      })
+    }
+    
     const responseData = {
-      authorizations: authorizationsWithMeteringPoints,
+      authorizations: [userAuthorization], // Only return this user's data
       metadata: {
         fetchedAt: new Date().toISOString(),
-        count: authorizationsWithMeteringPoints.length
+        count: 1,
+        sessionId: session.sessionId
       }
     }
     
-    // SECURITY: Never cache authorization data - it contains personal information
-    
-    // Add security header to indicate no caching
-    res.setHeader('X-Cache', 'MISS-SECURITY')
+    // Add security headers
+    res.setHeader('X-Session-Protected', 'true')
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private')
     return res.status(200).json(responseData)
   } catch (error) {
@@ -413,7 +433,6 @@ async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelRes
       message: error instanceof Error ? error.message : 'Unknown error'
     })
   }
-  */
 }
 
 // In-memory cache for metering points keyed by authorizationId
@@ -432,26 +451,46 @@ const consumptionCache = new Map<string, { payload: any; timestamp: number }>()
 const CONSUMPTION_TTL = 10 * 60 * 1000 // 10 minutes - increased from 2 to significantly reduce API calls
 
 async function handleThirdPartyConsumption(req: VercelRequest, res: VercelResponse) {
-  // SECURITY: This endpoint must not be publicly accessible without authentication
-  // It can expose personal electricity consumption data
-  
-  // EMERGENCY FIX: Block all public access to prevent data leakage
-  return res.status(403).json({
-    error: 'Access denied',
-    message: 'This endpoint is temporarily disabled for security reasons. Please check back later.'
-  })
-  
-  /* DISABLED FOR SECURITY
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
+  }
+  
+  // SECURITY: Validate session before returning any data
+  const session = await getSessionFromRequest(req)
+  
+  if (!session) {
+    return res.status(401).json({
+      error: 'Unauthorized',
+      message: 'Valid session required to access this endpoint'
+    })
+  }
+  
+  // Get customer ID linked to this session
+  const sessionCustomerId = await kv.get(`session:${session.sessionId}:customer`)
+  
+  if (!sessionCustomerId) {
+    return res.status(403).json({
+      error: 'No authorization',
+      message: 'No customer authorization linked to this session'
+    })
   }
 
   // Accept multiple identifiers for flexibility
   const { authorizationId, customerCVR, customerId, customerKey, meteringPointIds, dateFrom, dateTo, aggregation = 'Day' } = req.body
-  // Priority: authorizationId > customerCVR > customerKey > customerId
-  const identifier = authorizationId || customerCVR || customerKey || customerId
+  
+  // SECURITY: Verify the requested customer matches the session
+  const requestedCustomer = authorizationId || customerCVR || customerKey || customerId
+  if (requestedCustomer && requestedCustomer !== sessionCustomerId) {
+    return res.status(403).json({
+      error: 'Forbidden',
+      message: 'You can only access your own consumption data'
+    })
+  }
+  
+  // Use session customer ID for the request
+  const identifier = sessionCustomerId as string
   // Decide scope smartly: GUID => authorizationId, 8 digits => customerCVR
-  const scope = authorizationId || isGuidLike(identifier) ? 'authorizationId' : 'customerCVR'
+  const scope = isGuidLike(identifier) ? 'authorizationId' : 'customerCVR'
   
   console.log('Consumption request received:', {
     authorizationId,
@@ -718,7 +757,6 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
       message: error instanceof Error ? error.message : 'Unknown error'
     })
   }
-  */
 }
 
 // Handler for fetching metering point details including address

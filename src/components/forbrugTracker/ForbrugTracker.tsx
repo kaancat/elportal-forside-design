@@ -36,9 +36,8 @@ interface ForbrugTrackerProps {
   headerAlignment?: 'left' | 'center' | 'right'
 }
 
-// The authorization URL with your third-party ID
-// Must match the redirect configured in WordPress on mondaybrew.dk
-const AUTHORIZATION_URL = 'https://eloverblik.dk/power-of-attorney?thirdPartyId=945ac027-559a-4923-a670-66bfda8d27c6&fromDate=2021-08-08&toDate=2028-08-08&returnUrl=https%3A%2F%2Fmondaybrew.dk%2Fdinelportal-callback%2F'
+// Session configuration
+// The authorization flow now uses secure session-based authentication
 
 // Client-side cache helpers
 const STORAGE_KEY = 'elportal_consumption_cache'
@@ -93,49 +92,64 @@ export function ForbrugTracker({
   const didInitRef = useRef(false)
   const fetchStateRef = useRef<'idle' | 'fetching' | 'complete'>('idle')
 
-  // Check if user has been authorized (returned from Eloverblik)
+  // Check session and authorization status on mount
   useEffect(() => {
     if (didInitRef.current) return
     didInitRef.current = true
     // Only run on client
     if (typeof window === 'undefined') return
 
-    // Check URL parameters for callback from Eloverblik
-    const params = new URLSearchParams(window.location.search)
-    const authorized = params.get('authorized')
-    const customerId = params.get('customer')
-
-    // If we see authorized=true in URL, the user just came back from Eloverblik
-    if (authorized === 'true' && customerId) {
-      console.log('User returned from Eloverblik authorization with customer:', customerId)
-      setIsAuthorized(true)
-      // Small delay to ensure Eloverblik has processed the authorization
-      setTimeout(() => {
-        checkAuthorization(customerId)
-      }, 1000)
-    }
-    // SECURITY FIX: Removed automatic authorization check to prevent data leakage
-    // Only check authorizations when user explicitly returns from Eloverblik with customer ID
+    // Check if we have a valid session
+    checkSession()
   }, [])
+  
+  const checkSession = async () => {
+    try {
+      const response = await fetch('/api/auth/session?action=verify', {
+        credentials: 'include'
+      })
+      
+      if (response.ok) {
+        const { authenticated, hasAuthorization, customerId } = await response.json()
+        
+        if (authenticated && hasAuthorization && customerId) {
+          console.log('Session has authorization for customer:', customerId)
+          setIsAuthorized(true)
+          // Fetch user data with session
+          await checkAuthorization(customerId)
+        } else if (authenticated && !hasAuthorization) {
+          // Session exists but no authorization yet
+          console.log('Session exists but no authorization')
+          setIsAuthorized(false)
+        }
+      } else {
+        // No session - user needs to start authorization
+        console.log('No session found')
+        setIsAuthorized(false)
+      }
+    } catch (error) {
+      console.error('Session check failed:', error)
+      setError('Kunne ikke kontrollere session')
+    }
+  }
 
   const checkAuthorization = async (customerId?: string | null) => {
     setIsLoading(true)
     setError(null)
     
-    // SECURITY: Require customer ID to prevent data leakage
-    if (!customerId) {
-      setError('Sikkerhedsfejl: Kunde-ID er påkrævet for at hente data')
-      setIsLoading(false)
-      return
-    }
-    
     try {
-      // Fetch list of authorized customers
-      const response = await fetch('/api/eloverblik?action=thirdparty-authorizations')
+      // Fetch authorized customer data with session
+      const response = await fetch('/api/eloverblik?action=thirdparty-authorizations', {
+        credentials: 'include'
+      })
       
-      if (response.status === 403) {
-        // API is blocked for security - show appropriate message
-        setError('Forbrug tracker er midlertidigt utilgængelig på grund af sikkerhedsopdateringer. Prøv igen senere.')
+      if (response.status === 401) {
+        // No valid session
+        setError('Din session er udløbet. Log venligst ind igen.')
+        setIsAuthorized(false)
+      } else if (response.status === 403) {
+        // Session exists but no authorization
+        setError('Du har ikke givet tilladelse til at hente dine data.')
         setIsAuthorized(false)
       } else if (response.ok) {
         const data = await response.json()
@@ -144,10 +158,8 @@ export function ForbrugTracker({
         if (data.authorizations && data.authorizations.length > 0) {
           setIsAuthorized(true) // We have authorizations
           
-          // SECURITY: Only use the specific customer ID provided
-          const auth = data.authorizations.find((a: any) => 
-            a.customerId === customerId || a.customerCVR === customerId
-          )
+          // Session-based auth returns only the user's data
+          const auth = data.authorizations[0]
           
           if (auth) {
             console.log('Using authorization:', auth) // Debug log
@@ -178,6 +190,46 @@ export function ForbrugTracker({
     }
   }
 
+  const startAuthorization = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+      
+      // Initialize session
+      const sessionResponse = await fetch('/api/auth/session', {
+        method: 'POST',
+        credentials: 'include'
+      })
+      
+      if (!sessionResponse.ok) {
+        throw new Error('Kunne ikke starte session')
+      }
+      
+      const { sessionId } = await sessionResponse.json()
+      console.log('Session created:', sessionId)
+      
+      // Get authorization URL
+      const authResponse = await fetch('/api/auth/authorize', {
+        method: 'POST',
+        credentials: 'include'
+      })
+      
+      if (!authResponse.ok) {
+        throw new Error('Kunne ikke starte autorisation')
+      }
+      
+      const { authorizationUrl } = await authResponse.json()
+      console.log('Redirecting to Eloverblik:', authorizationUrl)
+      
+      // Redirect to Eloverblik
+      window.location.href = authorizationUrl
+    } catch (error) {
+      console.error('Authorization start failed:', error)
+      setError('Kunne ikke starte autorisation. Prøv igen senere.')
+      setIsLoading(false)
+    }
+  }
+  
   const fetchConsumptionData = async (params: { authorizationId?: string; customerCVR?: string; meteringPointIds?: string[] }) => {
     try {
       // Prevent double-fetching with proper state tracking
@@ -225,6 +277,7 @@ export function ForbrugTracker({
         headers: {
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({
           // Prefer explicit identifiers and cached metering point ids
           authorizationId: params.authorizationId,
@@ -236,9 +289,9 @@ export function ForbrugTracker({
         })
       })
       
-      if (response.status === 403) {
-        // API is blocked for security
-        setError('Forbrug data er midlertidigt utilgængelig på grund af sikkerhedsopdateringer.')
+      if (response.status === 401) {
+        // Session expired
+        setError('Din session er udløbet. Log venligst ind igen.')
         fetchStateRef.current = 'complete'
         setIsRequestInFlight(false)
         return
@@ -310,8 +363,8 @@ export function ForbrugTracker({
   }
 
   const handleConnect = () => {
-    // Redirect to Eloverblik authorization page
-    window.location.href = AUTHORIZATION_URL
+    // Start secure session-based authorization
+    startAuthorization()
   }
 
   const getAlignmentClass = () => {

@@ -253,9 +253,19 @@ const CACHE_TTL = 15 * 60 * 1000 // 15 minutes - increased from 5 to reduce API 
 
 // Third-party API handlers
 async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelResponse) {
-  // SECURITY: NEVER cache authorizations! This would leak user lists across different users
-  // Each request must fetch fresh data to ensure proper user isolation
-
+  // SECURITY: This endpoint must NEVER return data without proper authentication
+  // The third-party API returns ALL authorized users, which is a severe privacy violation
+  
+  // EMERGENCY FIX: Block all public access to prevent data leakage
+  return res.status(403).json({
+    error: 'Access denied',
+    message: 'This endpoint is temporarily disabled for security reasons. Please check back later.'
+  })
+  
+  // TODO: Implement proper session-based authentication before re-enabling
+  // The code below is kept for reference but must not be executed until secured
+  
+  /* DISABLED FOR SECURITY
   // Try both possible environment variable names
   const refreshToken = process.env.ELOVERBLIK_API_TOKEN || process.env.ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN
 
@@ -403,6 +413,7 @@ async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelRes
       message: error instanceof Error ? error.message : 'Unknown error'
     })
   }
+  */
 }
 
 // In-memory cache for metering points keyed by authorizationId
@@ -421,6 +432,16 @@ const consumptionCache = new Map<string, { payload: any; timestamp: number }>()
 const CONSUMPTION_TTL = 10 * 60 * 1000 // 10 minutes - increased from 2 to significantly reduce API calls
 
 async function handleThirdPartyConsumption(req: VercelRequest, res: VercelResponse) {
+  // SECURITY: This endpoint must not be publicly accessible without authentication
+  // It can expose personal electricity consumption data
+  
+  // EMERGENCY FIX: Block all public access to prevent data leakage
+  return res.status(403).json({
+    error: 'Access denied',
+    message: 'This endpoint is temporarily disabled for security reasons. Please check back later.'
+  })
+  
+  /* DISABLED FOR SECURITY
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
@@ -697,6 +718,7 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
       message: error instanceof Error ? error.message : 'Unknown error'
     })
   }
+  */
 }
 
 // Handler for fetching metering point details including address

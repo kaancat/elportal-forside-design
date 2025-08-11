@@ -106,39 +106,48 @@ export function ForbrugTracker({
     const customerId = params.get('customer')
 
     // If we see authorized=true in URL, the user just came back from Eloverblik
-    if (authorized === 'true') {
-      console.log('User returned from Eloverblik authorization')
+    if (authorized === 'true' && customerId) {
+      console.log('User returned from Eloverblik authorization with customer:', customerId)
       setIsAuthorized(true)
       // Small delay to ensure Eloverblik has processed the authorization
       setTimeout(() => {
         checkAuthorization(customerId)
       }, 1000)
-    } else if (window.location.pathname.includes('forbrug-tracker')) {
-      // Always check for authorizations when on the forbrug-tracker page
-      console.log('Checking for existing authorizations...')
-      checkAuthorization(null)
     }
+    // SECURITY FIX: Removed automatic authorization check to prevent data leakage
+    // Only check authorizations when user explicitly returns from Eloverblik with customer ID
   }, [])
 
   const checkAuthorization = async (customerId?: string | null) => {
     setIsLoading(true)
     setError(null)
     
+    // SECURITY: Require customer ID to prevent data leakage
+    if (!customerId) {
+      setError('Sikkerhedsfejl: Kunde-ID er påkrævet for at hente data')
+      setIsLoading(false)
+      return
+    }
+    
     try {
       // Fetch list of authorized customers
       const response = await fetch('/api/eloverblik?action=thirdparty-authorizations')
       
-      if (response.ok) {
+      if (response.status === 403) {
+        // API is blocked for security - show appropriate message
+        setError('Forbrug tracker er midlertidigt utilgængelig på grund af sikkerhedsopdateringer. Prøv igen senere.')
+        setIsAuthorized(false)
+      } else if (response.ok) {
         const data = await response.json()
         console.log('Authorization data:', data) // Debug log
         
         if (data.authorizations && data.authorizations.length > 0) {
           setIsAuthorized(true) // We have authorizations
           
-          // For simplicity, use the first authorization or match by customerId
-          const auth = customerId 
-            ? data.authorizations.find((a: any) => a.customerId === customerId)
-            : data.authorizations[0]
+          // SECURITY: Only use the specific customer ID provided
+          const auth = data.authorizations.find((a: any) => 
+            a.customerId === customerId || a.customerCVR === customerId
+          )
           
           if (auth) {
             console.log('Using authorization:', auth) // Debug log
@@ -149,6 +158,9 @@ export function ForbrugTracker({
               customerCVR: auth.customerCVR,
               meteringPointIds: auth.meteringPointIds,
             })
+          } else {
+            setError('Din autorisation kunne ikke findes. Prøv at forbinde igen.')
+            setIsAuthorized(false)
           }
         } else {
           console.log('No authorizations found')
@@ -224,7 +236,13 @@ export function ForbrugTracker({
         })
       })
       
-      if (response.ok) {
+      if (response.status === 403) {
+        // API is blocked for security
+        setError('Forbrug data er midlertidigt utilgængelig på grund af sikkerhedsopdateringer.')
+        fetchStateRef.current = 'complete'
+        setIsRequestInFlight(false)
+        return
+      } else if (response.ok) {
         const data = await response.json()
         console.log('Consumption data received:', data) // Debug log
         setConsumptionData(data)

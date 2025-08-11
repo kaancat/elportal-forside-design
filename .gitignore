@@ -30,3 +30,4 @@ scripts/.env
 docs/specs/example-feature-specification.md
 
 .vercel
+.env*.local

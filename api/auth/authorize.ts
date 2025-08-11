@@ -8,9 +8,11 @@ import { parse } from 'cookie'
 const SESSION_COOKIE_NAME = 'elportal_session'
 
 // Eloverblik configuration
-// The correct URL for third-party authorization flow
-const ELOVERBLIK_AUTH_URL = 'https://eloverblik.dk/welcome/thirdparty'
+// Use the power-of-attorney URL that Eloverblik recognizes
+const ELOVERBLIK_AUTH_URL = 'https://eloverblik.dk/power-of-attorney'
 const THIRD_PARTY_ID = '945ac027-559a-4923-a670-66bfda8d27c6'
+// The callback must go through WordPress first (Eloverblik requirement)
+const WORDPRESS_CALLBACK_URL = 'https://mondaybrew.dk/dinelportal-callback/'
 const CALLBACK_BASE_URL = process.env.NODE_ENV === 'production' 
   ? 'https://www.dinelportal.dk'
   : 'http://localhost:3000'
@@ -145,10 +147,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       { ex: 24 * 60 * 60 }
     )
     
-    // Build callback URL with state token
-    const callbackUrl = `${CALLBACK_BASE_URL}/api/auth/callback?state=${stateToken}`
+    // Build callback URL with state token - must go through WordPress first
+    // WordPress will redirect to our actual callback handler preserving the state
+    const callbackUrl = `${WORDPRESS_CALLBACK_URL}?state=${stateToken}`
     
     // Build Eloverblik authorization URL
+    // Eloverblik will redirect to the WordPress URL after authorization
     const authParams = new URLSearchParams({
       thirdPartyId: THIRD_PARTY_ID,
       fromDate: '2021-08-08',

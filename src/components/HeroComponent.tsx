@@ -81,27 +81,42 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
     }
   };
 
-  // Determine text color based on background with better contrast logic
+  // Determine text color based on background with proper contrast
   const getTextColorClass = () => {
-    // Manual override
+    // Manual override from Sanity
     if (textColor === 'light') return 'text-white';
     if (textColor === 'dark') return 'text-gray-900';
     
     // Auto mode - determine based on background style
-    const needsLightText = [
-      'solidGreen',
-      'solidDark',
-      'gradientClassic'  // Classic gradient also needs light text
+    // Dark backgrounds that need white text
+    const needsWhiteText = [
+      'solidDark',       // Very dark background
+      'gradientClassic'  // Dark to green gradient
     ].includes(backgroundStyle);
     
-    // If there's a background image with overlay, check opacity
+    // Light/bright backgrounds that need dark text
+    const needsDarkText = [
+      'default',           // White background
+      'lightGray',         // Light gray
+      'gradientGreenMist', // White to very light green
+      'gradientOceanBreeze', // Light blue to white
+      'gradientSunriseGlow', // Light orange/yellow
+      'gradientNordicSky',   // Light gray/blue
+      'solidGreen'           // Bright green (#84db41) - needs dark text for contrast
+    ].includes(backgroundStyle);
+    
+    // If there's a background image with dark overlay
     const hasImageWithDarkOverlay = (hasBackgroundUrl || heroImage) && overlayOpacity > 50;
     
-    if (needsLightText || hasImageWithDarkOverlay) {
+    if (needsWhiteText || hasImageWithDarkOverlay) {
       return 'text-white';
     }
     
-    // For light backgrounds and gradients, use dark text
+    if (needsDarkText) {
+      return 'text-gray-900';
+    }
+    
+    // Default to dark text for unknown/light backgrounds
     return 'text-gray-900';
   };
 

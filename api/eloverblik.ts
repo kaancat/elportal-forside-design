@@ -1,6 +1,11 @@
 import { VercelRequest, VercelResponse } from '@vercel/node'
 import { kv } from '@vercel/kv'
 
+// 🚨 SECURITY WARNING: This is a third-party API integration where ALL users
+// share the same refresh token. NEVER cache user-specific data in KV or any
+// distributed cache! This would leak personal data across different users.
+// Only use instance-specific in-memory caching for rate limiting protection.
+//
 // Consolidated Eloverblik API handler to reduce serverless function count
 // Combines all Eloverblik endpoints into a single function
 
@@ -87,19 +92,9 @@ async function releaseLock(key: string): Promise<void> {
 async function getThirdPartyAccessToken(refreshToken: string): Promise<string> {
   const now = Date.now()
   
-  // Try KV cache first (distributed across all instances)
-  try {
-    const cached = await kv.get<string>('eloverblik_token')
-    if (cached) {
-      console.log('Using KV cached token')
-      // Also update in-memory cache for faster subsequent calls
-      tokenCache.token = cached
-      tokenCache.expiresAt = now + 15 * 60 * 1000 // Assume 15 min validity
-      return cached
-    }
-  } catch (e) {
-    console.log('KV not available, falling back to in-memory cache:', e)
-  }
+  // SECURITY: Token is shared across all users (third-party API)
+  // Only use in-memory cache to reduce API calls, not KV
+  // This is acceptable since the token is not user-specific
   
   // Check in-memory cache (per-instance fallback)
   if (tokenCache.token && tokenCache.expiresAt > now + 15_000) {
@@ -124,17 +119,10 @@ async function getThirdPartyAccessToken(refreshToken: string): Promise<string> {
   const accessToken = tokenData.result || tokenData.access_token || tokenData.token
   if (!accessToken) throw new Error('Invalid token response: missing access token')
   
-  // Store in both caches
+  // Store ONLY in in-memory cache
   tokenCache.token = accessToken
   tokenCache.expiresAt = now + 20 * 60 * 1000
-  
-  try {
-    // Store in KV with 20 minute expiry (Eloverblik tokens are short-lived)
-    await kv.set('eloverblik_token', accessToken, { ex: 20 * 60 })
-    console.log('Token cached in KV')
-  } catch (e) {
-    console.log('Failed to cache token in KV:', e)
-  }
+  // SECURITY: Token caching in memory only - it's shared but not user-specific
   
   return accessToken
 }
@@ -265,13 +253,8 @@ const CACHE_TTL = 15 * 60 * 1000 // 15 minutes - increased from 5 to reduce API 
 
 // Third-party API handlers
 async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelResponse) {
-  // Check cache first
-  const cacheKey = 'authorizations'
-  const cached = authCache.get(cacheKey)
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    console.log('Returning cached authorizations')
-    return res.status(200).json(cached.data)
-  }
+  // SECURITY: NEVER cache authorizations! This would leak user lists across different users
+  // Each request must fetch fresh data to ensure proper user isolation
 
   // Try both possible environment variable names
   const refreshToken = process.env.ELOVERBLIK_API_TOKEN || process.env.ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN
@@ -407,9 +390,11 @@ async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelRes
       }
     }
     
-    // Cache the response
-    authCache.set(cacheKey, { data: responseData, timestamp: Date.now() })
+    // SECURITY: Never cache authorization data - it contains personal information
     
+    // Add security header to indicate no caching
+    res.setHeader('X-Cache', 'MISS-SECURITY')
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private')
     return res.status(200).json(responseData)
   } catch (error) {
     console.error('Error in third-party authorization:', error)
@@ -429,6 +414,9 @@ const METERING_POINT_TTL = 30 * 60 * 1000 // 30 minutes - increased from 15 to r
 // In-memory cache for consumption responses keyed by identifier/date/aggregation
 // WHAT: Avoid repeated identical timeseries calls that can trigger 429s
 // WHY: Users may reload quickly; cache for a short period
+// SECURITY: This is instance-specific (not distributed), so data won't leak across instances
+// However, within the same instance, users with the same authorizationId could see cached data
+// This is acceptable since authorizationId represents permission to see that customer's data
 const consumptionCache = new Map<string, { payload: any; timestamp: number }>()
 const CONSUMPTION_TTL = 10 * 60 * 1000 // 10 minutes - increased from 2 to significantly reduce API calls
 
@@ -576,19 +564,9 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
       }
     }
 
-    // Generate cache key for consumption data
-    const cacheKey = `consumption:${identifier}:${safeFrom}:${safeTo}:${aggregation}`
-    
-    // Try KV cache first (distributed across instances)
-    try {
-      const kvCached = await kv.get(cacheKey)
-      if (kvCached) {
-        console.log('Returning KV cached consumption data')
-        return res.status(200).json(kvCached)
-      }
-    } catch (e) {
-      console.log('KV cache read failed:', e)
-    }
+    // SECURITY: NEVER cache user-specific consumption data in KV!
+    // This would leak personal data across different users
+    // Only use in-memory cache which is instance-specific
     
     // Check in-memory cache as fallback
     const memCacheKey = JSON.stringify({ identifier, safeFrom, safeTo, aggregation, mp: finalMeteringPointIds.slice(0, 10) })
@@ -704,17 +682,13 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
       }
     }
 
-    // Store in both caches
+    // Store ONLY in in-memory cache (instance-specific, no cross-user leakage)
     consumptionCache.set(memCacheKey, { payload, timestamp: Date.now() })
+    // SECURITY: Never cache personal consumption data in KV!
     
-    try {
-      // Store in KV with 10 minute expiry for consumption data
-      await kv.set(cacheKey, payload, { ex: 600 })
-      console.log('Consumption data cached in KV')
-    } catch (e) {
-      console.log('Failed to cache consumption in KV:', e)
-    }
-    
+    // Add security headers
+    res.setHeader('X-Cache', 'MISS-SECURITY')
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private')
     return res.status(200).json(payload)
   } catch (error) {
     console.error('Error fetching third-party consumption:', error)

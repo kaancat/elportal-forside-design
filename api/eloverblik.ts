@@ -488,32 +488,38 @@ async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelRes
     }
     
     // SECURITY: Filter to only return data for the authenticated customer
+    // CRITICAL: Convert customerId to string for comparison since auth IDs are strings
+    const customerIdStr = String(customerId)
+    
     console.log('🔐 Matching authorization for customer:', {
       lookingFor: customerId,
+      lookingForAsString: customerIdStr,
       customerIdType: typeof customerId,
       availableAuths: authorizationsWithMeteringPoints.map(auth => ({
         authorizationId: auth.authorizationId,
         customerCVR: auth.customerCVR,
         customerId: auth.customerId,
         wouldMatch: {
-          byCVR: auth.customerCVR === customerId,
-          byCustomerId: auth.customerId === customerId,
-          byAuthId: auth.authorizationId === customerId
+          byCVR: auth.customerCVR === customerIdStr,
+          byCustomerId: auth.customerId === customerIdStr,
+          byAuthId: auth.authorizationId === customerIdStr
         }
       }))
     })
     
     const userAuthorization = authorizationsWithMeteringPoints.find((auth: any) => 
-      auth.customerCVR === customerId || 
-      auth.customerId === customerId ||
-      auth.authorizationId === customerId
+      auth.customerCVR === customerIdStr || 
+      auth.customerId === customerIdStr ||
+      auth.authorizationId === customerIdStr
     )
     
     if (!userAuthorization) {
       console.error('❌ No matching authorization found:', {
         searchedFor: customerId,
+        searchedForAsString: customerIdStr,
         availableIds: authorizationsWithMeteringPoints.map(a => ({
           authId: a.authorizationId,
+          authIdType: typeof a.authorizationId,
           cvr: a.customerCVR,
           custId: a.customerId
         }))
@@ -522,7 +528,7 @@ async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelRes
         error: 'Authorization not found',
         message: 'No authorization found for your account',
         debug: process.env.NODE_ENV === 'development' ? {
-          lookingFor: customerId,
+          lookingFor: customerIdStr,
           available: authorizationsWithMeteringPoints.map(a => a.authorizationId)
         } : undefined
       })

@@ -5,10 +5,13 @@ import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Zap, TrendingDown, Check } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Zap, TrendingDown, Check, X, Star, ExternalLink, Info, Leaf, Wind, Shield, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { RealPriceComparisonTable, ProviderProductBlock } from '../types/sanity';
 import { SanityService } from '../services/sanityService';
+import { PRICE_CONSTANTS } from '@/services/priceCalculationService';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const formatCurrency = (amount: number) => `${amount.toFixed(2)} kr.`;
 
@@ -120,15 +123,37 @@ const getPaddingClasses = (padding?: string) => {
 const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ block }) => {
   const [selectedProvider1, setSelectedProvider1] = useState<ProviderProductBlock | null>(null);
   const [selectedProvider2, setSelectedProvider2] = useState<ProviderProductBlock | null>(null);
-  const [monthlyConsumption, setMonthlyConsumption] = useState(150);
+  const [monthlyConsumption, setMonthlyConsumption] = useState(333); // Default ~4000 kWh/year
   const [allProviders, setAllProviders] = useState<ProviderProductBlock[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentSpotPrice, setCurrentSpotPrice] = useState<number>(1.5); // Default spot price
 
   const { title, leadingText, settings } = block;
   
   // Get theme colors based on settings
   const themeColors = getThemeTextColors(settings?.theme);
   const theme = settings?.theme || 'default';
+
+  // Fetch current spot price
+  useEffect(() => {
+    const fetchSpotPrice = async () => {
+      try {
+        const response = await fetch('/api/electricity-prices?region=DK2');
+        if (response.ok) {
+          const data = await response.json();
+          const currentHour = new Date().getHours();
+          const currentPriceData = data.records.find((r: any) => new Date(r.HourDK).getHours() === currentHour);
+          if (currentPriceData) {
+            setCurrentSpotPrice(currentPriceData.SpotPriceKWh);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching spot price:', error);
+      }
+    };
+    
+    fetchSpotPrice();
+  }, []);
 
   useEffect(() => {
     const fetchProviders = async () => {
@@ -138,8 +163,17 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
         
         // Auto-select first two providers if available
         if (providers.length > 0) {
-          setSelectedProvider1(providers[0]);
-          if (providers.length > 1) {
+          // Try to find Vindstød first
+          const vindstod = providers.find(p => p.isVindstoedProduct);
+          const others = providers.filter(p => !p.isVindstoedProduct);
+          
+          if (vindstod) {
+            setSelectedProvider1(vindstod);
+            if (others.length > 0) {
+              setSelectedProvider2(others[0]);
+            }
+          } else if (providers.length > 1) {
+            setSelectedProvider1(providers[0]);
             setSelectedProvider2(providers[1]);
           }
         }
@@ -165,32 +199,72 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
 
   const getPriceDetails = (provider: ProviderProductBlock | null) => {
     if (!provider) {
-      return { tillæg: 0, subscription: 0, total: 0 };
+      return { 
+        spotPrice: 0,
+        tillæg: 0, 
+        greenCerts: 0,
+        tradingCosts: 0,
+        networkTariff: 0,
+        systemTariff: 0,
+        transmissionFee: 0,
+        electricityTax: 0,
+        subtotal: 0,
+        vat: 0,
+        totalPerKwh: 0,
+        subscription: 0, 
+        total: 0 
+      };
     }
     
-    // Debug logging
-    console.log('Provider data:', provider);
-    
     // Use the correct field names from the provider data
-    // spotPriceMarkup is in øre/kWh, so convert to kr/kWh
+    const spotPrice = currentSpotPrice;
     const tillæg = provider.spotPriceMarkup !== undefined 
       ? provider.spotPriceMarkup / 100  // Convert from øre to kr
-      : (provider.displayPrice_kWh || 0);  // Fallback to legacy field
-      
+      : (provider.displayPrice_kWh || 0);
+    const greenCerts = (provider.greenCertificateFee || 0) / 100;
+    const tradingCosts = (provider.tradingCosts || 0) / 100;
+    
+    // Fixed fees
+    const networkTariff = 0.30; // Average network tariff
+    const systemTariff = PRICE_CONSTANTS.SYSTEM_TARIFF;
+    const transmissionFee = PRICE_CONSTANTS.TRANSMISSION_FEE;
+    const electricityTax = PRICE_CONSTANTS.ELECTRICITY_TAX;
+    
+    // Calculate subtotal and VAT
+    const subtotal = spotPrice + tillæg + greenCerts + tradingCosts + 
+                    networkTariff + systemTariff + transmissionFee + electricityTax;
+    const vat = subtotal * 0.25;
+    const totalPerKwh = subtotal + vat;
+    
     const subscription = provider.monthlySubscription !== undefined
       ? provider.monthlySubscription
-      : (provider.displayMonthlyFee || 0);  // Fallback to legacy field
+      : (provider.displayMonthlyFee || 0);
       
-    const total = (tillæg * monthlyConsumption) + subscription;
+    const total = (totalPerKwh * monthlyConsumption) + subscription;
     
-    console.log(`Price details for ${provider.providerName}:`, { tillæg, subscription, total });
-    
-    return { tillæg, subscription, total };
+    return { 
+      spotPrice,
+      tillæg, 
+      greenCerts,
+      tradingCosts,
+      networkTariff,
+      systemTariff,
+      transmissionFee,
+      electricityTax,
+      subtotal,
+      vat,
+      totalPerKwh,
+      subscription, 
+      total 
+    };
   };
 
-  const details1 = useMemo(() => getPriceDetails(selectedProvider1), [selectedProvider1, monthlyConsumption]);
-  const details2 = useMemo(() => getPriceDetails(selectedProvider2), [selectedProvider2, monthlyConsumption]);
+  const details1 = useMemo(() => getPriceDetails(selectedProvider1), [selectedProvider1, monthlyConsumption, currentSpotPrice]);
+  const details2 = useMemo(() => getPriceDetails(selectedProvider2), [selectedProvider2, monthlyConsumption, currentSpotPrice]);
   
+  const isCheaper1 = details1.total < details2.total && selectedProvider1 && selectedProvider2;
+  const isCheaper2 = details2.total < details1.total && selectedProvider1 && selectedProvider2;
+
   if (isLoading) {
     return (
       <section className={cn(
@@ -213,8 +287,23 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
     );
   }
 
-  // Component for comparison cards (mobile and desktop)
-  const ComparisonCard = ({ 
+  // Custom dropdown item with logo
+  const ProviderSelectItem = ({ provider }: { provider: ProviderProductBlock }) => (
+    <div className="flex items-center gap-2 py-1">
+      {provider.logoUrl && (
+        <img 
+          src={provider.logoUrl} 
+          alt={provider.providerName}
+          className="w-6 h-6 object-contain"
+        />
+      )}
+      <span>{provider.providerName}</span>
+      <span className="font-bold">- {provider.productName}</span>
+    </div>
+  );
+
+  // Enhanced comparison card for SaaS-style pricing
+  const EnhancedComparisonCard = ({ 
     provider, 
     details, 
     isFirst, 
@@ -223,7 +312,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
     providers
   }: {
     provider: ProviderProductBlock | null;
-    details: { tillæg: number; subscription: number; total: number };
+    details: any;
     isFirst: boolean;
     isCheaper: boolean;
     onSelectProvider: (providerId: string) => void;
@@ -233,81 +322,163 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
       "relative overflow-hidden transition-all duration-300",
       themeColors.cardBg,
       themeColors.cardBorder,
-      isCheaper && "ring-2 ring-brand-green shadow-lg"
+      isCheaper && "ring-2 ring-brand-green shadow-2xl scale-105 z-10"
     )}>
+      {/* Popular/Cheapest Badge */}
       {isCheaper && (
-        <div className="absolute top-0 right-0 z-10">
-          <Badge className={cn(themeColors.badgeBg, "rounded-bl-lg rounded-tr-none px-3 py-1 font-semibold")}>
-            <Check className="h-3 w-3 mr-1" />
-            Billigste
-          </Badge>
+        <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-brand-green to-green-600 text-white text-center py-2 font-bold text-sm">
+          <div className="flex items-center justify-center gap-1">
+            <Star className="h-4 w-4 fill-current" />
+            BILLIGSTE VALG
+            <Star className="h-4 w-4 fill-current" />
+          </div>
         </div>
       )}
       
-      <CardContent className={cn("p-4 md:p-6", isCheaper && "pt-12")}>
-        {/* Provider selector */}
-        <div className="mb-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Zap className={cn("h-4 w-4", isDarkTheme(theme) ? "text-brand-green" : "text-brand-green")} />
-            <Label className={cn("font-semibold text-sm", themeColors.strong)}>
-              {isFirst ? 'Elselskab 1' : 'Elselskab 2'}
-            </Label>
-          </div>
+      <CardContent className={cn("p-6", isCheaper && "pt-12")}>
+        {/* Provider selector with logo */}
+        <div className="mb-6">
+          <Label className={cn("font-semibold text-sm mb-2 block", themeColors.strong)}>
+            {isFirst ? 'Vælg udbyder 1' : 'Vælg udbyder 2'}
+          </Label>
           <Select onValueChange={onSelectProvider} value={provider?.id}>
             <SelectTrigger className={cn("w-full", themeColors.selectBg)}>
-              <SelectValue placeholder="Vælg et selskab" />
+              <SelectValue placeholder="Vælg et selskab">
+                {provider && (
+                  <div className="flex items-center gap-2">
+                    {provider.logoUrl && (
+                      <img 
+                        src={provider.logoUrl} 
+                        alt={provider.providerName}
+                        className="w-5 h-5 object-contain"
+                      />
+                    )}
+                    <span>{provider.providerName}</span>
+                  </div>
+                )}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {providers.map(p => (
                 <SelectItem key={p.id} value={p.id}>
-                  {p.providerName}
+                  <ProviderSelectItem provider={p} />
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
           {provider && (
-            <p className={cn("text-xs mt-1", themeColors.muted)}>{provider.productName}</p>
+            <p className={cn("text-sm mt-2 font-bold", themeColors.strong)}>
+              {provider.productName}
+            </p>
           )}
         </div>
+
+        {/* Features section */}
+        {provider && (
+          <div className="mb-6 space-y-2">
+            <div className="flex items-center gap-2">
+              {provider.isVariablePrice !== false ? (
+                <Check className="h-5 w-5 text-brand-green" />
+              ) : (
+                <X className="h-5 w-5 text-red-500" />
+              )}
+              <span className={cn("text-sm", themeColors.body)}>Variabel pris</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              {!provider.bindingPeriod || provider.bindingPeriod === 0 ? (
+                <Check className="h-5 w-5 text-brand-green" />
+              ) : (
+                <X className="h-5 w-5 text-red-500" />
+              )}
+              <span className={cn("text-sm", themeColors.body)}>
+                {!provider.bindingPeriod || provider.bindingPeriod === 0 
+                  ? 'Ingen binding' 
+                  : `${provider.bindingPeriod} mdr. binding`}
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              {!provider.signupFee || provider.signupFee === 0 ? (
+                <Check className="h-5 w-5 text-brand-green" />
+              ) : (
+                <X className="h-5 w-5 text-red-500" />
+              )}
+              <span className={cn("text-sm", themeColors.body)}>
+                {!provider.signupFee || provider.signupFee === 0 
+                  ? 'Gratis oprettelse' 
+                  : `Oprettelse: ${provider.signupFee} kr`}
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              {provider.isGreenEnergy ? (
+                <Check className="h-5 w-5 text-brand-green" />
+              ) : (
+                <X className="h-5 w-5 text-red-500" />
+              )}
+              <span className={cn("text-sm", themeColors.body)}>100% grøn strøm</span>
+            </div>
+          </div>
+        )}
         
-        {/* Price details */}
-        <div className="space-y-3">
-          <div>
-            <p className={cn("text-xs", themeColors.muted)}>Tillæg pr. kWh</p>
-            <p className={cn("font-semibold", themeColors.strong)}>{formatCurrency(details.tillæg)}</p>
+        {/* Price display */}
+        <div className={cn(
+          "border-t pt-4",
+          isDarkTheme(theme) ? "border-gray-700" : "border-gray-200"
+        )}>
+          <div className="space-y-2 mb-4">
+            <div className="flex justify-between text-sm">
+              <span className={themeColors.muted}>Pris pr. kWh</span>
+              <span className={themeColors.body}>{formatCurrency(details.totalPerKwh)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className={themeColors.muted}>Abonnement</span>
+              <span className={themeColors.body}>{formatCurrency(details.subscription)}</span>
+            </div>
           </div>
           
-          <div>
-            <p className={cn("text-xs", themeColors.muted)}>Abonnement/måned</p>
-            <p className={cn("font-semibold", themeColors.strong)}>{formatCurrency(details.subscription)}</p>
-          </div>
-          
-          <div className={cn("border-t pt-3", isDarkTheme(theme) ? "border-gray-700" : "border-gray-200")}>
-            <p className={cn("text-xs mb-1", themeColors.muted)}>Total pr. måned</p>
+          <div className={cn(
+            "pt-4 border-t",
+            isDarkTheme(theme) ? "border-gray-700" : "border-gray-200"
+          )}>
+            <p className={cn("text-xs mb-2", themeColors.muted)}>
+              Total pr. måned ({monthlyConsumption} kWh)
+            </p>
             <p className={cn(
-              "text-2xl font-bold",
+              "text-3xl font-bold",
               isCheaper && !isDarkTheme(theme) ? "text-brand-green" : themeColors.heading
             )}>
               {formatCurrency(details.total)}
             </p>
-            <p className={cn("text-xs mt-1", themeColors.muted)}>
-              ved {monthlyConsumption} kWh
-            </p>
           </div>
         </div>
+
+        {/* CTA Button */}
+        {provider && (
+          <Button 
+            className={cn(
+              "w-full mt-6",
+              isCheaper 
+                ? "bg-brand-green hover:bg-brand-green-dark text-white font-bold py-3" 
+                : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+            )}
+            onClick={() => provider.signupLink && window.open(provider.signupLink, '_blank')}
+          >
+            {isCheaper ? 'Skift nu og spar!' : 'Se mere'}
+            <ExternalLink className="ml-2 h-4 w-4" />
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
-
-  const isCheaper1 = details1.total < details2.total && selectedProvider1 && selectedProvider2;
-  const isCheaper2 = details2.total < details1.total && selectedProvider1 && selectedProvider2;
 
   return (
     <section className={cn(
       getThemeClasses(settings?.theme),
       getPaddingClasses(settings?.padding)
     )}>
-      <div className="container mx-auto px-4 lg:px-8 max-w-6xl">
+      <div className="container mx-auto px-4 lg:px-8 max-w-7xl">
         {title && (
           <h2 className={cn(
             "text-3xl lg:text-4xl font-bold text-center mb-4 font-display",
@@ -325,7 +496,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
           </p>
         )}
 
-        {/* Consumption slider - always visible */}
+        {/* Consumption slider */}
         <Card className={cn("mb-8 shadow-lg", themeColors.cardBg, themeColors.cardBorder)}>
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -360,10 +531,10 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
           </CardContent>
         </Card>
 
-        {/* Mobile view - Cards */}
-        <div className="md:hidden space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <ComparisonCard
+        {/* Mobile view - Enhanced Cards */}
+        <div className="lg:hidden space-y-6">
+          <div className="space-y-4">
+            <EnhancedComparisonCard
               provider={selectedProvider1}
               details={details1}
               isFirst={true}
@@ -371,7 +542,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
               onSelectProvider={handleSelect1}
               providers={allProviders}
             />
-            <ComparisonCard
+            <EnhancedComparisonCard
               provider={selectedProvider2}
               details={details2}
               isFirst={false}
@@ -382,112 +553,199 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
           </div>
         </div>
 
-        {/* Desktop view - Enhanced Table */}
-        <div className="hidden md:block">
+        {/* Desktop view - Side by side cards + detailed table */}
+        <div className="hidden lg:block">
+          {/* Cards side by side */}
+          <div className="grid grid-cols-2 gap-6 mb-8">
+            <EnhancedComparisonCard
+              provider={selectedProvider1}
+              details={details1}
+              isFirst={true}
+              isCheaper={isCheaper1}
+              onSelectProvider={handleSelect1}
+              providers={allProviders}
+            />
+            <EnhancedComparisonCard
+              provider={selectedProvider2}
+              details={details2}
+              isFirst={false}
+              isCheaper={isCheaper2}
+              onSelectProvider={handleSelect2}
+              providers={allProviders}
+            />
+          </div>
+
+          {/* Detailed price breakdown table */}
           <Card className={cn("shadow-xl overflow-hidden", themeColors.tableBg)}>
             <div className={cn("p-6", themeColors.tableHeader)}>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="flex items-center gap-2">
-                  <Zap className="h-5 w-5" />
-                  <h3 className="font-bold text-lg">Sammenligning</h3>
-                </div>
-                <div className="text-center">
-                  <Select onValueChange={handleSelect1} value={selectedProvider1?.id}>
-                    <SelectTrigger className={cn(
-                      isDarkTheme(theme) || theme === 'primary'
-                        ? "bg-white/20 border-white/30 text-white"
-                        : `${themeColors.selectBg} text-brand-dark placeholder:text-gray-600`
-                    )}>
-                      <SelectValue placeholder="Vælg elselskab 1" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {allProviders.map(p => (
-                        <SelectItem key={p.id} value={p.id}>
-                          {p.providerName} - {p.productName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="text-center">
-                  <Select onValueChange={handleSelect2} value={selectedProvider2?.id}>
-                    <SelectTrigger className={cn(
-                      isDarkTheme(theme) || theme === 'primary'
-                        ? "bg-white/20 border-white/30 text-white"
-                        : `${themeColors.selectBg} text-brand-dark placeholder:text-gray-600`
-                    )}>
-                      <SelectValue placeholder="Vælg elselskab 2" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {allProviders.map(p => (
-                        <SelectItem key={p.id} value={p.id}>
-                          {p.providerName} - {p.productName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              <h3 className="font-bold text-lg flex items-center gap-2">
+                <Info className="h-5 w-5" />
+                Detaljeret prissammenligning
+              </h3>
             </div>
             
             <Table>
               <TableBody>
                 <TableRow className={themeColors.tableRowHover}>
-                  <TableCell className={cn(
-                    "font-semibold py-6 px-8",
-                    themeColors.strong,
-                    isDarkTheme(theme) ? "bg-gray-900" : "bg-gray-50"
-                  )}>
-                    Tillæg pr. kWh
+                  <TableCell className={cn("font-semibold", themeColors.strong)}>
+                    Spotpris
                   </TableCell>
-                  <TableCell className={cn(
-                    "text-center py-6 px-8",
-                    themeColors.body,
-                    isCheaper1 && !isDarkTheme(theme) && "bg-green-50 font-semibold"
-                  )}>
+                  <TableCell className={cn("text-center", themeColors.body)}>
+                    {formatCurrency(details1.spotPrice)}
+                  </TableCell>
+                  <TableCell className={cn("text-center", themeColors.body)}>
+                    {formatCurrency(details2.spotPrice)}
+                  </TableCell>
+                </TableRow>
+                
+                <TableRow className={themeColors.tableRowHover}>
+                  <TableCell className={cn("font-semibold", themeColors.strong)}>
+                    Leverandør tillæg
+                  </TableCell>
+                  <TableCell className={cn("text-center", themeColors.body)}>
                     {formatCurrency(details1.tillæg)}
                   </TableCell>
-                  <TableCell className={cn(
-                    "text-center py-6 px-8",
-                    themeColors.body,
-                    isCheaper2 && !isDarkTheme(theme) && "bg-green-50 font-semibold"
-                  )}>
+                  <TableCell className={cn("text-center", themeColors.body)}>
                     {formatCurrency(details2.tillæg)}
                   </TableCell>
                 </TableRow>
+
+                {(details1.greenCerts > 0 || details2.greenCerts > 0) && (
+                  <TableRow className={themeColors.tableRowHover}>
+                    <TableCell className={cn("font-semibold", themeColors.strong)}>
+                      Grønne certifikater
+                    </TableCell>
+                    <TableCell className={cn("text-center", themeColors.body)}>
+                      {formatCurrency(details1.greenCerts)}
+                    </TableCell>
+                    <TableCell className={cn("text-center", themeColors.body)}>
+                      {formatCurrency(details2.greenCerts)}
+                    </TableCell>
+                  </TableRow>
+                )}
+
+                {(details1.tradingCosts > 0 || details2.tradingCosts > 0) && (
+                  <TableRow className={themeColors.tableRowHover}>
+                    <TableCell className={cn("font-semibold", themeColors.strong)}>
+                      Handelsomkostninger
+                    </TableCell>
+                    <TableCell className={cn("text-center", themeColors.body)}>
+                      {formatCurrency(details1.tradingCosts)}
+                    </TableCell>
+                    <TableCell className={cn("text-center", themeColors.body)}>
+                      {formatCurrency(details2.tradingCosts)}
+                    </TableCell>
+                  </TableRow>
+                )}
+
                 <TableRow className={themeColors.tableRowHover}>
-                  <TableCell className={cn(
-                    "font-semibold py-6 px-8",
-                    themeColors.strong,
-                    isDarkTheme(theme) ? "bg-gray-900" : "bg-gray-50"
-                  )}>
-                    Abonnement pr. måned
+                  <TableCell className={cn("font-semibold", themeColors.strong)}>
+                    Nettarif
+                  </TableCell>
+                  <TableCell className={cn("text-center", themeColors.body)}>
+                    {formatCurrency(details1.networkTariff)}
+                  </TableCell>
+                  <TableCell className={cn("text-center", themeColors.body)}>
+                    {formatCurrency(details2.networkTariff)}
+                  </TableCell>
+                </TableRow>
+
+                <TableRow className={themeColors.tableRowHover}>
+                  <TableCell className={cn("font-semibold", themeColors.strong)}>
+                    Systemtarif
+                  </TableCell>
+                  <TableCell className={cn("text-center", themeColors.body)}>
+                    {formatCurrency(details1.systemTariff)}
+                  </TableCell>
+                  <TableCell className={cn("text-center", themeColors.body)}>
+                    {formatCurrency(details2.systemTariff)}
+                  </TableCell>
+                </TableRow>
+
+                <TableRow className={themeColors.tableRowHover}>
+                  <TableCell className={cn("font-semibold", themeColors.strong)}>
+                    Transmissionstarif
+                  </TableCell>
+                  <TableCell className={cn("text-center", themeColors.body)}>
+                    {formatCurrency(details1.transmissionFee)}
+                  </TableCell>
+                  <TableCell className={cn("text-center", themeColors.body)}>
+                    {formatCurrency(details2.transmissionFee)}
+                  </TableCell>
+                </TableRow>
+
+                <TableRow className={themeColors.tableRowHover}>
+                  <TableCell className={cn("font-semibold", themeColors.strong)}>
+                    Elafgift
+                  </TableCell>
+                  <TableCell className={cn("text-center", themeColors.body)}>
+                    {formatCurrency(details1.electricityTax)}
+                  </TableCell>
+                  <TableCell className={cn("text-center", themeColors.body)}>
+                    {formatCurrency(details2.electricityTax)}
+                  </TableCell>
+                </TableRow>
+
+                <TableRow className={cn("border-t-2", isDarkTheme(theme) ? "border-gray-600" : "border-gray-300")}>
+                  <TableCell className={cn("font-semibold", themeColors.strong)}>
+                    Subtotal (uden moms)
+                  </TableCell>
+                  <TableCell className={cn("text-center", themeColors.body)}>
+                    {formatCurrency(details1.subtotal)}
+                  </TableCell>
+                  <TableCell className={cn("text-center", themeColors.body)}>
+                    {formatCurrency(details2.subtotal)}
+                  </TableCell>
+                </TableRow>
+
+                <TableRow className={themeColors.tableRowHover}>
+                  <TableCell className={cn("font-semibold", themeColors.strong)}>
+                    Moms (25%)
+                  </TableCell>
+                  <TableCell className={cn("text-center", themeColors.body)}>
+                    {formatCurrency(details1.vat)}
+                  </TableCell>
+                  <TableCell className={cn("text-center", themeColors.body)}>
+                    {formatCurrency(details2.vat)}
+                  </TableCell>
+                </TableRow>
+
+                <TableRow className={cn("border-t-2", isDarkTheme(theme) ? "border-gray-600" : "border-brand-green")}>
+                  <TableCell className={cn("font-bold text-lg", themeColors.strong)}>
+                    Total pr. kWh
                   </TableCell>
                   <TableCell className={cn(
-                    "text-center py-6 px-8",
-                    themeColors.body,
-                    isCheaper1 && !isDarkTheme(theme) && "bg-green-50 font-semibold"
+                    "text-center font-bold text-lg",
+                    isCheaper1 && !isDarkTheme(theme) ? "text-brand-green bg-green-50" : themeColors.strong
                   )}>
+                    {formatCurrency(details1.totalPerKwh)}
+                  </TableCell>
+                  <TableCell className={cn(
+                    "text-center font-bold text-lg",
+                    isCheaper2 && !isDarkTheme(theme) ? "text-brand-green bg-green-50" : themeColors.strong
+                  )}>
+                    {formatCurrency(details2.totalPerKwh)}
+                  </TableCell>
+                </TableRow>
+
+                <TableRow className={themeColors.tableRowHover}>
+                  <TableCell className={cn("font-semibold", themeColors.strong)}>
+                    Månedligt abonnement
+                  </TableCell>
+                  <TableCell className={cn("text-center", themeColors.body)}>
                     {formatCurrency(details1.subscription)}
                   </TableCell>
-                  <TableCell className={cn(
-                    "text-center py-6 px-8",
-                    themeColors.body,
-                    isCheaper2 && !isDarkTheme(theme) && "bg-green-50 font-semibold"
-                  )}>
+                  <TableCell className={cn("text-center", themeColors.body)}>
                     {formatCurrency(details2.subscription)}
                   </TableCell>
                 </TableRow>
-                <TableRow className={cn("border-t-2", isDarkTheme(theme) ? "border-gray-600" : "border-brand-green")}>
-                  <TableCell className={cn(
-                    "font-bold py-6 px-8",
-                    themeColors.strong,
-                    isDarkTheme(theme) ? "bg-gray-900" : "bg-gray-50"
-                  )}>
+
+                <TableRow className={cn("border-t-2", isDarkTheme(theme) ? "border-gray-600" : "border-brand-green", "bg-gray-50")}>
+                  <TableCell className={cn("font-bold text-lg", themeColors.strong)}>
                     <div className="flex items-center gap-2">
                       <TrendingDown className={cn("h-5 w-5", isDarkTheme(theme) ? "text-brand-green" : "text-brand-green")} />
                       <div>
-                        <p>Estimeret total pr. måned</p>
+                        <p>Total pr. måned</p>
                         <p className={cn("text-sm font-normal mt-1", themeColors.muted)}>
                           ved {monthlyConsumption} kWh forbrug
                         </p>
@@ -495,7 +753,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
                     </div>
                   </TableCell>
                   <TableCell className={cn(
-                    "text-center py-6 px-8",
+                    "text-center",
                     isCheaper1 && !isDarkTheme(theme) && "bg-green-50"
                   )}>
                     <div className="space-y-1">
@@ -506,15 +764,15 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
                         {formatCurrency(details1.total)}
                       </p>
                       {isCheaper1 && (
-                        <Badge className={themeColors.badgeBg}>
+                        <Badge className="bg-brand-green text-white">
                           <Check className="h-3 w-3 mr-1" />
-                          Billigste
+                          Spar {formatCurrency(details2.total - details1.total)}/md
                         </Badge>
                       )}
                     </div>
                   </TableCell>
                   <TableCell className={cn(
-                    "text-center py-6 px-8",
+                    "text-center",
                     isCheaper2 && !isDarkTheme(theme) && "bg-green-50"
                   )}>
                     <div className="space-y-1">
@@ -525,9 +783,9 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
                         {formatCurrency(details2.total)}
                       </p>
                       {isCheaper2 && (
-                        <Badge className={themeColors.badgeBg}>
+                        <Badge className="bg-brand-green text-white">
                           <Check className="h-3 w-3 mr-1" />
-                          Billigste
+                          Spar {formatCurrency(details1.total - details2.total)}/md
                         </Badge>
                       )}
                     </div>
@@ -539,11 +797,11 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
         </div>
 
         <p className={cn("text-sm text-center mt-8", themeColors.muted)}>
-          * Priserne er baseret på dit valg og inkluderer ikke spotpris, skatter og afgifter.
+          * Priserne er estimater baseret på live spotpriser og inkluderer alle afgifter og moms.
         </p>
       </div>
     </section>
   );
 };
 
-export default RealPriceComparisonTable; 
+export default RealPriceComparisonTable;

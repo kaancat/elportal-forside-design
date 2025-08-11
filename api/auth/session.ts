@@ -20,6 +20,11 @@ const getSigningKey = () => {
   // Use environment variable for signing key
   const key = process.env.ELPORTAL_SIGNING_KEY
   if (!key || key.length < 32) {
+    console.error('Signing key issue:', {
+      hasKey: !!key,
+      length: key?.length || 0,
+      nodeEnv: process.env.NODE_ENV
+    })
     throw new Error('Signing key must be at least 32 characters. Please set ELPORTAL_SIGNING_KEY in environment variables.')
   }
   return new TextEncoder().encode(key)
@@ -110,7 +115,19 @@ async function handleInit(req: VercelRequest, res: VercelResponse) {
     })
   } catch (error) {
     console.error('Failed to create session:', error)
-    return res.status(500).json({ error: 'Failed to create session' })
+    const errorMessage = error instanceof Error ? error.message : 'Failed to create session'
+    // Check if it's a signing key error
+    if (errorMessage.includes('ELPORTAL_SIGNING_KEY')) {
+      return res.status(500).json({ 
+        error: 'Configuration error',
+        message: 'Server signing key not configured. Please contact support.',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      })
+    }
+    return res.status(500).json({ 
+      error: 'Failed to create session',
+      message: errorMessage 
+    })
   }
 }
 

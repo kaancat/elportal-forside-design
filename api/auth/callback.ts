@@ -14,6 +14,11 @@ const REDIRECT_BASE_URL = process.env.NODE_ENV === 'production'
 const getSigningKey = () => {
   const key = process.env.ELPORTAL_SIGNING_KEY
   if (!key || key.length < 32) {
+    console.error('Signing key issue in callback:', {
+      hasKey: !!key,
+      length: key?.length || 0,
+      nodeEnv: process.env.NODE_ENV
+    })
     throw new Error('Signing key not configured')
   }
   return new TextEncoder().encode(key)

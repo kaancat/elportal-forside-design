@@ -8,7 +8,8 @@ import { parse } from 'cookie'
 const SESSION_COOKIE_NAME = 'elportal_session'
 
 // Eloverblik configuration
-const ELOVERBLIK_AUTH_URL = 'https://eloverblik.dk/power-of-attorney'
+// The correct URL for third-party authorization flow
+const ELOVERBLIK_AUTH_URL = 'https://eloverblik.dk/welcome/thirdparty'
 const THIRD_PARTY_ID = '945ac027-559a-4923-a670-66bfda8d27c6'
 const CALLBACK_BASE_URL = process.env.NODE_ENV === 'production' 
   ? 'https://www.dinelportal.dk'
@@ -156,6 +157,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     })
     
     const authorizationUrl = `${ELOVERBLIK_AUTH_URL}?${authParams.toString()}`
+    
+    // Log the URL for debugging
+    console.log('Generated authorization URL:', authorizationUrl)
+    console.log('Callback URL:', callbackUrl)
     
     return res.status(200).json({
       authorizationUrl,

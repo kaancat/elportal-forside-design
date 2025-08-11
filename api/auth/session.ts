@@ -10,7 +10,7 @@ const SESSION_TTL = 24 * 60 * 60 // 24 hours in seconds
 const SESSION_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: true,
-  sameSite: 'strict' as const,
+  sameSite: 'lax' as const, // Changed from 'strict' to allow cookie during redirects
   path: '/',
   maxAge: SESSION_TTL
 }

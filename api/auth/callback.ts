@@ -146,13 +146,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     })
     
     const recentAuth = sortedAuths[0]
-    const customerId = recentAuth.customerCVR || recentAuth.id
     
-    console.log('Callback processing:', {
+    // CRITICAL: Use the authorization ID as the primary identifier
+    // This must match what eloverblik.ts expects
+    const customerId = recentAuth.id // Use the authorization ID consistently
+    
+    console.log('📌 Callback processing - Authorization details:', {
       sessionId,
-      mostRecentAuth: recentAuth.id,
+      authorizationId: recentAuth.id,
+      customerCVR: recentAuth.customerCVR,
+      customerName: recentAuth.customerName,
       timeStamp: recentAuth.timeStamp,
-      customerId
+      validFrom: recentAuth.validFrom,
+      validTo: recentAuth.validTo,
+      storedCustomerId: customerId,
+      allAuthFields: Object.keys(recentAuth)
     })
     
     // Link session to customer
@@ -195,41 +203,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .setExpirationTime('24h')
       .sign(signingKey)
     
-    // Set updated session cookie
+    // Set updated session cookie with lax sameSite for redirect compatibility
     const cookieHeader = serialize(SESSION_COOKIE_NAME, token, {
       httpOnly: true,
       secure: true,
-      sameSite: 'strict',
+      sameSite: 'lax', // Changed from 'strict' to allow cookie during redirect
       path: '/',
       maxAge: SESSION_TTL
     })
     
-    // Create HTML response that sets cookie and redirects
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>Godkendelse modtaget</title>
-        <script>
-          // Store session info in sessionStorage for immediate use
-          sessionStorage.setItem('elportal_auth_complete', JSON.stringify({
-            customerId: '${customerId}',
-            timestamp: ${Date.now()}
-          }));
-          // Redirect to forbrug-tracker
-          window.location.href = '${REDIRECT_BASE_URL}/forbrug-tracker?authorized=true&customer=${customerId}';
-        </script>
-      </head>
-      <body>
-        <p>Godkendelse modtaget. Omdirigerer...</p>
-      </body>
-      </html>
-    `
+    console.log('Setting session cookie for customer:', customerId)
     
+    // Use server-side redirect to ensure cookie is set before navigation
     res.setHeader('Set-Cookie', cookieHeader)
-    res.setHeader('Content-Type', 'text/html')
-    return res.status(200).send(html)
+    
+    // Redirect directly - cookie will be set with the response
+    return res.redirect(302, `${REDIRECT_BASE_URL}/forbrug-tracker?authorized=true&customer=${customerId}`)
     
   } catch (error) {
     console.error('Callback processing failed:', error)

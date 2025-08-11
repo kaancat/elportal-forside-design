@@ -53,6 +53,11 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
         return {
           background: 'linear-gradient(to bottom right, #f1f5f9 0%, rgba(219, 234, 254, 0.3) 50%, #ffffff 100%)'
         };
+      case 'gradientClassic':
+        // The original dark to green gradient from the initial design
+        return {
+          background: 'linear-gradient(to bottom right, #001a12 0%, rgba(132, 219, 65, 0.8) 100%)'
+        };
       case 'lightGray':
         // Light gray background
         return { backgroundColor: '#f9fafb' };
@@ -85,7 +90,8 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
     // Auto mode - determine based on background style
     const needsLightText = [
       'solidGreen',
-      'solidDark'
+      'solidDark',
+      'gradientClassic'  // Classic gradient also needs light text
     ].includes(backgroundStyle);
     
     // If there's a background image with overlay, check opacity

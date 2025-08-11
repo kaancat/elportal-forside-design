@@ -87,6 +87,10 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
     if (textColor === 'light') return 'text-white';
     if (textColor === 'dark') return 'text-gray-900';
     
+    // Debug logging
+    console.log('backgroundStyle:', backgroundStyle);
+    console.log('textColor:', textColor);
+    
     // Auto mode - determine based on background style
     // Dark backgrounds that need white text
     const needsWhiteText = [
@@ -108,15 +112,22 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
     // If there's a background image with dark overlay
     const hasImageWithDarkOverlay = (hasBackgroundUrl || heroImage) && overlayOpacity > 50;
     
+    console.log('needsWhiteText:', needsWhiteText);
+    console.log('needsDarkText:', needsDarkText);
+    console.log('hasImageWithDarkOverlay:', hasImageWithDarkOverlay);
+    
     if (needsWhiteText || hasImageWithDarkOverlay) {
+      console.log('Returning text-white');
       return 'text-white';
     }
     
     if (needsDarkText) {
+      console.log('Returning text-gray-900');
       return 'text-gray-900';
     }
     
     // Default to dark text for unknown/light backgrounds
+    console.log('Returning default text-gray-900');
     return 'text-gray-900';
   };
 

@@ -663,6 +663,19 @@ export class SanityService {
         _type == "hero" => {
           ...,
           cta,
+          image{
+            ...,
+            asset->{
+              _id,
+              url,
+              metadata {
+                dimensions {
+                  width,
+                  height
+                }
+              }
+            }
+          },
           images[]{
             ...,
             asset->{
@@ -675,7 +688,12 @@ export class SanityService {
                 }
               }
             }
-          }
+          },
+          backgroundStyle,
+          textColor,
+          overlayOpacity,
+          padding,
+          alignment
         },
         _type == "heroWithCalculator" => {
           _key,

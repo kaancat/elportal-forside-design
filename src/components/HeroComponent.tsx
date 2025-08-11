@@ -30,44 +30,73 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
   const heroImage = image || (images && images.length > 0 ? images[0] : null);
   const hasBackgroundUrl = backgroundImageUrl && backgroundImageUrl.length > 0;
   
-  // Define gradient styles
-  const getBackgroundClass = () => {
+  // Define background styles - using inline styles for gradients to ensure they work
+  const getBackgroundStyle = () => {
     switch (backgroundStyle) {
       case 'gradientGreenMist':
-        // The nice gradient from forbrug-tracker page
-        return 'bg-gradient-to-br from-white via-white to-brand-green/5';
+        // Subtle gradient with very light green tint (5% opacity)
+        return {
+          background: 'linear-gradient(to bottom right, #ffffff 0%, #ffffff 50%, rgba(132, 219, 65, 0.05) 100%)'
+        };
       case 'gradientOceanBreeze':
-        return 'bg-gradient-to-br from-blue-50 via-white to-brand-green/10';
+        // Blue to green gradient
+        return {
+          background: 'linear-gradient(to bottom right, #dbeafe 0%, #ffffff 50%, rgba(132, 219, 65, 0.1) 100%)'
+        };
       case 'gradientSunriseGlow':
-        return 'bg-gradient-to-br from-orange-50/30 via-white to-yellow-50/40';
+        // Warm orange/yellow gradient
+        return {
+          background: 'linear-gradient(to bottom right, rgba(254, 215, 170, 0.3) 0%, #ffffff 50%, rgba(254, 240, 138, 0.4) 100%)'
+        };
       case 'gradientNordicSky':
-        return 'bg-gradient-to-br from-slate-100 via-blue-50/30 to-white';
+        // Cool blue/gray gradient
+        return {
+          background: 'linear-gradient(to bottom right, #f1f5f9 0%, rgba(219, 234, 254, 0.3) 50%, #ffffff 100%)'
+        };
       case 'lightGray':
-        return 'bg-gray-50';
+        // Light gray background
+        return { backgroundColor: '#f9fafb' };
       case 'solidGreen':
-        return 'bg-brand-green';
+        // Brand green solid color
+        return { backgroundColor: '#84db41' };
       case 'solidDark':
-        return 'bg-brand-dark';
+        // Brand dark solid color
+        return { backgroundColor: '#001a12' };
+      case 'default':
+        // Clean white background
+        return { backgroundColor: '#ffffff' };
       default:
-        // Default gradient (for backward compatibility)
-        return hasBackgroundUrl || heroImage 
-          ? 'bg-gradient-to-br from-brand-dark to-brand-green/80'
-          : 'bg-white';
+        // Fallback for backward compatibility
+        if (hasBackgroundUrl || heroImage) {
+          return {
+            background: 'linear-gradient(to bottom right, rgba(0, 26, 18, 0.9) 0%, rgba(132, 219, 65, 0.8) 100%)'
+          };
+        }
+        return { backgroundColor: '#ffffff' };
     }
   };
 
-  // Determine text color based on background
+  // Determine text color based on background with better contrast logic
   const getTextColorClass = () => {
+    // Manual override
     if (textColor === 'light') return 'text-white';
-    if (textColor === 'dark') return 'text-brand-dark';
+    if (textColor === 'dark') return 'text-gray-900';
     
     // Auto mode - determine based on background style
-    if (backgroundStyle === 'solidGreen' || backgroundStyle === 'solidDark') {
+    const needsLightText = [
+      'solidGreen',
+      'solidDark'
+    ].includes(backgroundStyle);
+    
+    // If there's a background image with overlay, check opacity
+    const hasImageWithDarkOverlay = (hasBackgroundUrl || heroImage) && overlayOpacity > 50;
+    
+    if (needsLightText || hasImageWithDarkOverlay) {
       return 'text-white';
     }
     
-    // For gradients and light backgrounds, use dark text
-    return 'text-brand-dark';
+    // For light backgrounds and gradients, use dark text
+    return 'text-gray-900';
   };
 
   // Get padding classes
@@ -105,7 +134,7 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
     // The outer wrapper provides padding on desktop screens only
     <div className="md:p-4">
       {/* Main container with background style */}
-      <div className={`relative md:rounded-2xl overflow-hidden ${getBackgroundClass()}`}>
+      <div className="relative md:rounded-2xl overflow-hidden" style={getBackgroundStyle()}>
         
         {/* Layer 1: Background Image (if provided) */}
         {(heroImage || hasBackgroundUrl) && (
@@ -182,9 +211,9 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
                     size="lg"
                     className={`${
                       isLightText 
-                        ? 'bg-white text-brand-dark hover:bg-gray-100' 
-                        : 'bg-brand-green text-white hover:bg-brand-green/90'
-                    } font-semibold px-8 py-3 text-lg rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl`}
+                        ? 'bg-white text-gray-900 hover:bg-gray-100' 
+                        : 'bg-brand-green text-white hover:bg-brand-green-dark'
+                    } font-semibold px-8 py-3 text-lg rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl transform hover:scale-105`}
                     onClick={() => {
                       if (cta.url) {
                         window.location.href = cta.url;

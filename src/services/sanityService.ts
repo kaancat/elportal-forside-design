@@ -179,6 +179,8 @@ export class SanityService {
           }
         },
         _type == "priceExampleTable" => {
+          _key,
+          _type,
           title,
           leadingText,
           example1_title,
@@ -713,6 +715,8 @@ export class SanityService {
           }
         },
         _type == "priceExampleTable" => {
+          _key,
+          _type,
           title,
           leadingText,
           example1_title,

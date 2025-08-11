@@ -83,51 +83,34 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
 
   // Determine text color based on background with proper contrast
   const getTextColorClass = () => {
-    // Manual override from Sanity
+    // Only use manual override if explicitly set (not 'auto')
     if (textColor === 'light') return 'text-white';
     if (textColor === 'dark') return 'text-gray-900';
     
-    // Debug logging
-    console.log('backgroundStyle:', backgroundStyle);
-    console.log('textColor:', textColor);
-    
     // Auto mode - determine based on background style
-    // Dark backgrounds that need white text
-    const needsWhiteText = [
-      'solidDark',       // Very dark background
-      'gradientClassic'  // Dark to green gradient
-    ].includes(backgroundStyle);
-    
-    // Light/bright backgrounds that need dark text
-    const needsDarkText = [
-      'default',           // White background
-      'lightGray',         // Light gray
-      'gradientGreenMist', // White to very light green
-      'gradientOceanBreeze', // Light blue to white
-      'gradientSunriseGlow', // Light orange/yellow
-      'gradientNordicSky',   // Light gray/blue
-      'solidGreen'           // Bright green (#84db41) - needs dark text for contrast
-    ].includes(backgroundStyle);
-    
-    // If there's a background image with dark overlay
-    const hasImageWithDarkOverlay = (hasBackgroundUrl || heroImage) && overlayOpacity > 50;
-    
-    console.log('needsWhiteText:', needsWhiteText);
-    console.log('needsDarkText:', needsDarkText);
-    console.log('hasImageWithDarkOverlay:', hasImageWithDarkOverlay);
-    
-    if (needsWhiteText || hasImageWithDarkOverlay) {
-      console.log('Returning text-white');
+    // Force white text for dark backgrounds
+    if (backgroundStyle === 'solidDark' || backgroundStyle === 'gradientClassic') {
       return 'text-white';
     }
     
-    if (needsDarkText) {
-      console.log('Returning text-gray-900');
+    // Force dark text for light/bright backgrounds
+    if (backgroundStyle === 'default' || 
+        backgroundStyle === 'lightGray' || 
+        backgroundStyle === 'gradientGreenMist' ||
+        backgroundStyle === 'gradientOceanBreeze' ||
+        backgroundStyle === 'gradientSunriseGlow' ||
+        backgroundStyle === 'gradientNordicSky' ||
+        backgroundStyle === 'solidGreen') {
       return 'text-gray-900';
     }
     
+    // If there's a background image with dark overlay
+    const hasImageWithDarkOverlay = (hasBackgroundUrl || heroImage) && overlayOpacity > 50;
+    if (hasImageWithDarkOverlay) {
+      return 'text-white';
+    }
+    
     // Default to dark text for unknown/light backgrounds
-    console.log('Returning default text-gray-900');
     return 'text-gray-900';
   };
 

@@ -334,6 +334,13 @@ async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelRes
   // Get customer ID linked to this session
   const customerId = await kv.get(`session:${session.sessionId}:customer`)
   
+  console.log('🔍 Session lookup:', {
+    sessionId: session.sessionId,
+    hasCustomerId: !!customerId,
+    customerIdType: typeof customerId,
+    customerIdValue: customerId
+  })
+  
   if (!customerId) {
     return res.status(403).json({
       error: 'No authorization',
@@ -344,7 +351,11 @@ async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelRes
   // Try both possible environment variable names
   const refreshToken = process.env.ELOVERBLIK_API_TOKEN || process.env.ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN
 
-  console.log('Fetching authorizations for session:', session.sessionId)
+  console.log('📡 Fetching authorizations for session:', {
+    sessionId: session.sessionId,
+    customerId: customerId,
+    hasRefreshToken: !!refreshToken
+  })
   
   if (!refreshToken) {
     console.error('Neither ELOVERBLIK_API_TOKEN nor ELOVERBLIK_THIRDPARTY_REFRESH_TOKEN found in environment variables')
@@ -399,7 +410,16 @@ async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelRes
     }
 
     const authData = await authResponse.json()
-    console.log('Raw authorization data from Eloverblik:', authData) // Debug log
+    console.log('📋 Raw authorization data from Eloverblik:', {
+      hasResult: !!authData.result,
+      resultCount: authData.result?.length || 0,
+      firstAuth: authData.result?.[0] ? {
+        id: authData.result[0].id,
+        customerCVR: authData.result[0].customerCVR,
+        customerName: authData.result[0].customerName,
+        allFields: Object.keys(authData.result[0])
+      } : null
+    })
     
     // For each authorization, fetch metering point IDs
     const authorizationsWithMeteringPoints = []
@@ -468,6 +488,21 @@ async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelRes
     }
     
     // SECURITY: Filter to only return data for the authenticated customer
+    console.log('🔐 Matching authorization for customer:', {
+      lookingFor: customerId,
+      customerIdType: typeof customerId,
+      availableAuths: authorizationsWithMeteringPoints.map(auth => ({
+        authorizationId: auth.authorizationId,
+        customerCVR: auth.customerCVR,
+        customerId: auth.customerId,
+        wouldMatch: {
+          byCVR: auth.customerCVR === customerId,
+          byCustomerId: auth.customerId === customerId,
+          byAuthId: auth.authorizationId === customerId
+        }
+      }))
+    })
+    
     const userAuthorization = authorizationsWithMeteringPoints.find((auth: any) => 
       auth.customerCVR === customerId || 
       auth.customerId === customerId ||
@@ -475,11 +510,30 @@ async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelRes
     )
     
     if (!userAuthorization) {
+      console.error('❌ No matching authorization found:', {
+        searchedFor: customerId,
+        availableIds: authorizationsWithMeteringPoints.map(a => ({
+          authId: a.authorizationId,
+          cvr: a.customerCVR,
+          custId: a.customerId
+        }))
+      })
       return res.status(404).json({
         error: 'Authorization not found',
-        message: 'No authorization found for your account'
+        message: 'No authorization found for your account',
+        debug: process.env.NODE_ENV === 'development' ? {
+          lookingFor: customerId,
+          available: authorizationsWithMeteringPoints.map(a => a.authorizationId)
+        } : undefined
       })
     }
+    
+    console.log('✅ Found matching authorization:', {
+      authorizationId: userAuthorization.authorizationId,
+      customerCVR: userAuthorization.customerCVR,
+      customerName: userAuthorization.customerName,
+      meteringPoints: userAuthorization.meteringPointIds?.length || 0
+    })
     
     const responseData = {
       authorizations: [userAuthorization], // Only return this user's data

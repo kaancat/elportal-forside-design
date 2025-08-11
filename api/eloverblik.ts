@@ -1,6 +1,7 @@
 import { VercelRequest, VercelResponse } from '@vercel/node'
 import { kv } from '@vercel/kv'
-import { getSessionFromRequest } from './auth/session'
+import { jwtVerify } from 'jose'
+import { parse } from 'cookie'
 
 // 🔐 SECURITY: This integration now uses session-based authentication
 // to ensure complete user data isolation. Each user must have a valid
@@ -10,6 +11,73 @@ import { getSessionFromRequest } from './auth/session'
 // All endpoints require authenticated sessions to prevent data leakage
 
 const ELOVERBLIK_API_BASE = 'https://api.eloverblik.dk'
+const SESSION_COOKIE_NAME = 'elportal_session'
+
+// Get signing key from environment - copied from session.ts to avoid import issues
+const getSigningKey = () => {
+  const rawKey = process.env.ELPORTAL_SIGNING_KEY
+  if (!rawKey) {
+    throw new Error('ELPORTAL_SIGNING_KEY environment variable is not set')
+  }
+  
+  // CRITICAL: Trim any whitespace/newlines
+  const key = rawKey.trim()
+  
+  if (key.length < 32) {
+    throw new Error(`Signing key too short: ${key.length} characters (need at least 32)`)
+  }
+  
+  // Try to decode as base64 if it looks like base64
+  if (key.length === 44 || key.length === 64 || /^[A-Za-z0-9+/]+=*$/.test(key)) {
+    try {
+      const decoded = Buffer.from(key, 'base64')
+      if (decoded.length >= 32) {
+        return new Uint8Array(decoded)
+      }
+    } catch (e) {
+      // Not valid base64, use as-is
+    }
+  }
+  
+  // Fallback: use as UTF-8 string
+  return new TextEncoder().encode(key)
+}
+
+// Verify and decode a session token - copied from session.ts
+async function verifySession(token: string): Promise<{ sessionId: string } | null> {
+  try {
+    const signingKey = getSigningKey()
+    const { payload } = await jwtVerify(token, signingKey)
+    
+    if (!payload.sessionId || typeof payload.sessionId !== 'string') {
+      return null
+    }
+    
+    // Check if session hasn't expired
+    if (payload.expiresAt && typeof payload.expiresAt === 'number') {
+      if (Date.now() > payload.expiresAt) {
+        return null
+      }
+    }
+    
+    return { sessionId: payload.sessionId }
+  } catch (error) {
+    console.error('Session verification failed in eloverblik:', error)
+    return null
+  }
+}
+
+// Get session from request cookies - copied from session.ts
+async function getSessionFromRequest(req: VercelRequest): Promise<{ sessionId: string } | null> {
+  const cookies = parse(req.headers.cookie || '')
+  const token = cookies[SESSION_COOKIE_NAME]
+  
+  if (!token) {
+    return null
+  }
+  
+  return verifySession(token)
+}
 
 // Simple helpers and caches for third-party flow
 // WHAT: Detects if a string is a GUID/UUID (authorizationId format)

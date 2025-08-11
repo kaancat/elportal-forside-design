@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading Progress Indicator Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        /* Simulated Navigation */
+        .navigation {
+            position: sticky;
+            top: 0;
+            height: 64px;
+            background: #1a1a1a;
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 50;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .navigation h1 {
+            font-size: 1.25rem;
+        }
+        
+        /* Reading Progress Bar */
+        .reading-progress-container {
+            position: fixed;
+            top: 64px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: rgba(0,0,0,0.1);
+            z-index: 40;
+            transition: opacity 0.3s;
+        }
+        
+        .reading-progress-bar {
+            height: 100%;
+            background: #facc15; /* yellow-400 */
+            width: 0%;
+            transition: width 100ms ease-out;
+            will-change: width;
+            transform: translateZ(0);
+        }
+        
+        .reading-progress-bar.with-percentage {
+            position: relative;
+        }
+        
+        .reading-progress-bar .percentage {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        /* Toggle Button */
+        .toggle-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+        
+        .toggle-container label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        
+        .toggle-container input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        /* Content */
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 20px;
+            margin: -40px -20px 40px;
+            text-align: center;
+        }
+        
+        .hero h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        
+        article {
+            margin-bottom: 60px;
+        }
+        
+        article h3 {
+            font-size: 1.8rem;
+            margin: 40px 0 20px;
+            color: #1a1a1a;
+        }
+        
+        article p {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+        
+        .highlight {
+            background: #fef3c7;
+            padding: 20px;
+            border-left: 4px solid #f59e0b;
+            margin: 30px 0;
+        }
+        
+        footer {
+            background: #1a1a1a;
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            margin-top: 80px;
+        }
+        
+        /* Mobile adjustments */
+        @media (max-width: 768px) {
+            .reading-progress-container {
+                height: 4px;
+            }
+            
+            .hero h2 {
+                font-size: 1.8rem;
+            }
+            
+            article h3 {
+                font-size: 1.4rem;
+            }
+        }
+        
+        /* Animated appearance */
+        .reading-progress-container.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navigation">
+        <h1>DinElportal.dk - Reading Progress Demo</h1>
+    </nav>
+    
+    <!-- Reading Progress Indicator -->
+    <div class="reading-progress-container" id="progressContainer">
+        <div class="reading-progress-bar" id="progressBar">
+            <span class="percentage" id="percentage" style="display: none;"></span>
+        </div>
+    </div>
+    
+    <!-- Toggle Control -->
+    <div class="toggle-container">
+        <label>
+            <input type="checkbox" id="progressToggle" checked>
+            <span>Show Reading Progress</span>
+        </label>
+        <label style="margin-top: 10px;">
+            <input type="checkbox" id="percentageToggle">
+            <span>Show Percentage</span>
+        </label>
+    </div>
+    
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <h2>Læseindikator Test</h2>
+            <p>Scroll ned for at se læseindikatoren i aktion</p>
+        </section>
+        
+        <!-- Article Content -->
+        <article>
+            <h3>Introduktion til Læseindikatoren</h3>
+            <p>
+                Denne side demonstrerer funktionaliteten af en læseindikator, som viser hvor langt du er kommet i artiklen. 
+                Indikatoren er inspireret af DR's implementation og giver læseren en visuel feedback på deres fremskridt gennem indholdet.
+            </p>
+            
+            <p>
+                Læseindikatoren starter fra toppen af artikelindholdet (efter hero-sektionen) og fortsætter indtil footeren kommer i syne. 
+                Dette sikrer at indikatoren kun tracker det faktiske læseindhold og ikke navigation eller footer-elementer.
+            </p>
+            
+            <div class="highlight">
+                <strong>Tip:</strong> Prøv at toggle læseindikatoren on/off med checkboxen i højre side. Du kan også aktivere 
+                procentvisning for at se præcis hvor langt du er kommet.
+            </div>
+            
+            <h3>Hvordan Det Virker</h3>
+            <p>
+                Læseindikatoren bruger JavaScript til at beregne scroll-positionen i forhold til artikellængden. Den tager højde for:
+            </p>
+            <ul style="margin: 20px 0; padding-left: 30px;">
+                <li>Navigationens højde (sticky position)</li>
+                <li>Hero-sektionens position</li>
+                <li>Footerens position</li>
+                <li>Viewport højde</li>
+            </ul>
+            
+            <p>
+                Beregningen sker med throttling via requestAnimationFrame for at sikre smooth performance, selv på mindre kraftfulde 
+                enheder som mobiltelefoner. Indikatoren opdateres kun når det er nødvendigt og bruger CSS transforms for 
+                GPU-accelereret animation.
+            </p>
+            
+            <h3>Sanity Studio Integration</h3>
+            <p>
+                I den faktiske implementation på ElPortal kan læseindikatoren aktiveres/deaktiveres per side direkte fra 
+                Sanity Studio. Dette giver content editors fuld kontrol over hvilke sider der skal have denne funktion.
+            </p>
+            
+            <p>
+                Feltet "Show Reading Progress" er tilføjet til page-skemaet i Sanity og kan toggles on/off ligesom 
+                "Is Homepage" feltet. Dette gør det nemt at aktivere læseindikatoren på lange artikler og guides, 
+                mens den kan deaktiveres på kortere sider hvor den ikke giver værdi.
+            </p>
+            
+            <h3>Tilgængelighed</h3>
+            <p>
+                Læseindikatoren er bygget med tilgængelighed i tankerne:
+            </p>
+            <ul style="margin: 20px 0; padding-left: 30px;">
+                <li>ARIA attributter for screen readers (role="progressbar", aria-valuenow, etc.)</li>
+                <li>Respekterer prefers-reduced-motion indstillinger</li>
+                <li>Keyboard navigation venlig</li>
+                <li>Tilstrækkelig farvekontrast</li>
+            </ul>
+            
+            <div class="highlight">
+                <strong>Performance:</strong> Indikatoren bruger passive event listeners og requestAnimationFrame 
+                for optimal performance. Den har minimal impact på sidens scroll-performance.
+            </div>
+            
+            <h3>Mobile Optimering</h3>
+            <p>
+                På mobile enheder er læseindikatoren lidt tykkere (4px i stedet for 3px) for bedre synlighed på 
+                mindre skærme. Den tager også højde for safe areas på enheder med notch eller gesture navigation.
+            </p>
+            
+            <p>
+                Touch events er optimeret og indikatoren skjules automatisk hvis der ikke er nok indhold at scrolle 
+                (mindre end 1.5 viewport højder).
+            </p>
+            
+            <h3>Edge Cases</h3>
+            <p>
+                Implementationen håndterer flere edge cases elegant:
+            </p>
+            <ul style="margin: 20px 0; padding-left: 30px;">
+                <li>Meget korte sider - indikatoren skjules automatisk</li>
+                <li>Dynamisk indhold - genberegner når indhold ændres</li>
+                <li>Browser resize - opdaterer beregninger ved viewport ændringer</li>
+                <li>Smooth scrolling - fungerer korrekt med smooth scroll behavior</li>
+                <li>Route changes - nulstilles ved sideskift</li>
+            </ul>
+            
+            <h3>Konklusion</h3>
+            <p>
+                Læseindikatoren er en simpel men effektiv måde at forbedre brugeroplevelsen på, især for længere artikler 
+                og guides. Den giver læseren en klar indikation af deres fremskridt og kan motivere til at læse artiklen 
+                færdig.
+            </p>
+            
+            <p>
+                Med Sanity Studio integrationen er det nemt for content teams at aktivere funktionen hvor det giver mening, 
+                uden at skulle involvere udviklere. Dette giver fleksibilitet og kontrol over brugeroplevelsen.
+            </p>
+            
+            <p style="margin-top: 40px; padding: 20px; background: #f3f4f6; border-radius: 8px;">
+                <strong>Note:</strong> Scroll tilbage til toppen for at se hvordan indikatoren nulstilles, eller fortsæt 
+                med at scrolle ned for at se den forsvinde når footeren kommer i syne.
+            </p>
+        </article>
+    </main>
+    
+    <!-- Footer -->
+    <footer>
+        <h3>Footer</h3>
+        <p>Når footeren er synlig, forsvinder læseindikatoren</p>
+        <p style="margin-top: 20px; opacity: 0.7;">© 2025 DinElportal.dk - Demo</p>
+    </footer>
+    
+    <script>
+        // Reading Progress Implementation
+        class ReadingProgress {
+            constructor() {
+                this.progressBar = document.getElementById('progressBar');
+                this.progressContainer = document.getElementById('progressContainer');
+                this.percentageEl = document.getElementById('percentage');
+                this.toggleCheckbox = document.getElementById('progressToggle');
+                this.percentageCheckbox = document.getElementById('percentageToggle');
+                
+                this.rafId = null;
+                this.isVisible = true;
+                this.showPercentage = false;
+                
+                this.init();
+            }
+            
+            init() {
+                this.handleScroll = this.throttleWithRAF(this.calculateProgress.bind(this));
+                
+                // Event listeners
+                window.addEventListener('scroll', this.handleScroll, { passive: true });
+                window.addEventListener('resize', this.handleScroll);
+                
+                // Toggle controls
+                this.toggleCheckbox.addEventListener('change', (e) => {
+                    this.isVisible = e.target.checked;
+                    this.progressContainer.classList.toggle('hidden', !this.isVisible);
+                });
+                
+                this.percentageCheckbox.addEventListener('change', (e) => {
+                    this.showPercentage = e.target.checked;
+                    this.percentageEl.style.display = this.showPercentage ? 'block' : 'none';
+                    this.progressBar.classList.toggle('with-percentage', this.showPercentage);
+                });
+                
+                // Initial calculation
+                this.calculateProgress();
+            }
+            
+            throttleWithRAF(callback) {
+                return () => {
+                    if (this.rafId) {
+                        cancelAnimationFrame(this.rafId);
+                    }
+                    
+                    this.rafId = requestAnimationFrame(() => {
+                        callback();
+                    });
+                };
+            }
+            
+            calculateProgress() {
+                const scrollY = window.scrollY;
+                const windowHeight = window.innerHeight;
+                const documentHeight = document.documentElement.scrollHeight;
+                
+                // Find main content and footer
+                const main = document.querySelector('main');
+                const footer = document.querySelector('footer');
+                const hero = document.querySelector('.hero');
+                
+                if (!main) return;
+                
+                // Calculate content boundaries
+                const mainRect = main.getBoundingClientRect();
+                const mainTop = mainRect.top + scrollY;
+                
+                // Start after hero if it exists
+                let startOffset = mainTop;
+                if (hero) {
+                    const heroRect = hero.getBoundingClientRect();
+                    startOffset = heroRect.bottom + scrollY;
+                }
+                
+                // End when footer comes into view
+                let endOffset = documentHeight - windowHeight;
+                if (footer) {
+                    const footerRect = footer.getBoundingClientRect();
+                    const footerTop = footerRect.top + scrollY;
+                    endOffset = footerTop - windowHeight;
+                }
+                
+                // Calculate readable content height
+                const readableHeight = endOffset - startOffset;
+                
+                // Only show if there's enough content
+                if (readableHeight < windowHeight * 0.5) {
+                    this.progressContainer.classList.add('hidden');
+                    return;
+                }
+                
+                // Calculate progress
+                const scrolled = scrollY - startOffset;
+                const progress = Math.min(Math.max((scrolled / readableHeight) * 100, 0), 100);
+                
+                // Update UI
+                if (scrollY > startOffset && scrollY < endOffset + windowHeight) {
+                    this.progressContainer.classList.remove('hidden');
+                    this.progressBar.style.width = `${progress}%`;
+                    
+                    if (this.showPercentage) {
+                        this.percentageEl.textContent = `${Math.round(progress)}%`;
+                    }
+                } else if (scrollY >= endOffset + windowHeight) {
+                    // Hide when footer is fully visible
+                    this.progressContainer.classList.add('hidden');
+                } else {
+                    this.progressContainer.classList.add('hidden');
+                    this.progressBar.style.width = '0%';
+                }
+            }
+        }
+        
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            new ReadingProgress();
+        });
+    </script>
+</body>
+</html>

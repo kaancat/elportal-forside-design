@@ -7,7 +7,8 @@ import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { Link as LinkType, MegaMenu, MegaMenuColumn } from '@/types/sanity';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Icon, hasValidIcon } from './Icon';
-import { FALLBACK_LOGO, FALLBACK_ALT } from '@/constants/branding';
+import Logo from './Logo';
+import { FALLBACK_ALT } from '@/constants/branding';
 
 // Helper for the rich, icon-driven link style
 const RichLinkCard: React.FC<{ item: any, resolveLink: (link: LinkType) => string }> = ({ item, resolveLink }) => (
@@ -122,15 +123,11 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
         
         {/* Fixed header */}
         <div className="flex-shrink-0 bg-brand-dark p-4 flex justify-between items-center border-b border-neutral-800">
-          <RouterLink to="/" className="flex items-center" onClick={() => setIsOpen(false)}>
-            <img 
-              src={logoSrc || FALLBACK_LOGO} 
-              alt={logoAlt || FALLBACK_ALT} 
+          <RouterLink to="/" className="flex items-center relative" onClick={() => setIsOpen(false)}>
+            <Logo 
+              src={logoSrc}
+              alt={logoAlt || FALLBACK_ALT}
               className="h-8"
-              onError={(e) => {
-                console.error('Mobile nav logo failed to load');
-                e.currentTarget.style.display = 'none';
-              }}
             />
           </RouterLink>
           <Button 

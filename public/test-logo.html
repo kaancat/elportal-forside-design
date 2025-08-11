@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logo Resilience Test</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #444;
+            border-radius: 8px;
+        }
+        .logo-container {
+            display: inline-block;
+            padding: 10px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            margin: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .success { background: #4CAF50; }
+        .error { background: #f44336; }
+        .warning { background: #ff9800; }
+        .info { background: #2196F3; }
+    </style>
+</head>
+<body>
+    <h1>ElPortal Logo Resilience Test</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Normal Logo Loading</h2>
+        <div class="logo-container">
+            <img id="logo1" src="/dinelportal-logo.png" alt="DinElportal" style="height: 40px;">
+        </div>
+        <div id="status1"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Failed CDN URL (404)</h2>
+        <button onclick="testFailedCDN()">Simulate CDN Failure</button>
+        <div class="logo-container">
+            <img id="logo2" src="/dinelportal-logo.png" alt="DinElportal" style="height: 40px;">
+        </div>
+        <div id="status2"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Network Interruption</h2>
+        <button onclick="testNetworkInterruption()">Simulate Network Issue</button>
+        <div class="logo-container">
+            <img id="logo3" src="/dinelportal-logo.png" alt="DinElportal" style="height: 40px;">
+        </div>
+        <div id="status3"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Tab Switch Behavior</h2>
+        <button onclick="simulateTabSwitch()">Simulate Tab Switch</button>
+        <div class="logo-container">
+            <img id="logo4" src="/dinelportal-logo.png" alt="DinElportal" style="height: 40px;">
+        </div>
+        <div id="status4"></div>
+        <p>Instructions: Click button, switch tabs for 5 seconds, then come back.</p>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 5: Retry Mechanism</h2>
+        <button onclick="testRetryMechanism()">Test Retry Logic</button>
+        <div class="logo-container">
+            <img id="logo5" src="/dinelportal-logo.png" alt="DinElportal" style="height: 40px;">
+        </div>
+        <div id="status5"></div>
+    </div>
+
+    <script>
+        // Helper function to add status message
+        function addStatus(id, message, type = 'info') {
+            const statusDiv = document.getElementById(`status${id}`);
+            const statusMsg = document.createElement('div');
+            statusMsg.className = `status ${type}`;
+            statusMsg.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            statusDiv.appendChild(statusMsg);
+        }
+
+        // Monitor all logos
+        document.querySelectorAll('img').forEach((img, index) => {
+            img.addEventListener('load', () => {
+                addStatus(index + 1, 'Logo loaded successfully', 'success');
+            });
+            
+            img.addEventListener('error', () => {
+                addStatus(index + 1, 'Logo failed to load', 'error');
+            });
+        });
+
+        // Test 2: CDN Failure
+        function testFailedCDN() {
+            const logo = document.getElementById('logo2');
+            addStatus(2, 'Attempting to load from fake CDN...', 'warning');
+            logo.src = 'https://cdn.sanity.io/images/fake/production/nonexistent.png';
+            
+            // Fallback after error
+            logo.onerror = () => {
+                addStatus(2, 'CDN failed, falling back to local logo', 'warning');
+                setTimeout(() => {
+                    logo.src = '/dinelportal-logo.png';
+                    addStatus(2, 'Fallback attempted', 'info');
+                }, 1000);
+            };
+        }
+
+        // Test 3: Network Interruption
+        function testNetworkInterruption() {
+            const logo = document.getElementById('logo3');
+            addStatus(3, 'Simulating network interruption...', 'warning');
+            
+            // Remove src to simulate interruption
+            const originalSrc = logo.src;
+            logo.src = '';
+            
+            // Restore after delay
+            setTimeout(() => {
+                logo.src = originalSrc;
+                addStatus(3, 'Network restored, reloading...', 'info');
+            }, 2000);
+        }
+
+        // Test 4: Tab Switch
+        function simulateTabSwitch() {
+            const logo = document.getElementById('logo4');
+            addStatus(4, 'Tab switch simulation started', 'info');
+            
+            // Listen for visibility change
+            document.addEventListener('visibilitychange', function handleVisibilityChange() {
+                if (document.hidden) {
+                    addStatus(4, 'Tab became hidden', 'warning');
+                } else {
+                    addStatus(4, 'Tab became visible again', 'info');
+                    // Force reload
+                    const currentSrc = logo.src;
+                    logo.src = '';
+                    setTimeout(() => {
+                        logo.src = currentSrc;
+                        addStatus(4, 'Logo reloaded after tab switch', 'success');
+                    }, 100);
+                    document.removeEventListener('visibilitychange', handleVisibilityChange);
+                }
+            });
+        }
+
+        // Test 5: Retry Mechanism
+        let retryCount = 0;
+        function testRetryMechanism() {
+            const logo = document.getElementById('logo5');
+            retryCount = 0;
+            
+            addStatus(5, 'Testing retry mechanism (3 attempts)', 'info');
+            
+            function attemptLoad() {
+                retryCount++;
+                if (retryCount <= 2) {
+                    // Fail first 2 attempts
+                    logo.src = 'https://fake-url-that-fails.com/logo.png';
+                    addStatus(5, `Attempt ${retryCount} - Failing intentionally`, 'error');
+                    
+                    setTimeout(() => {
+                        attemptLoad();
+                    }, 1000 * retryCount); // Exponential backoff
+                } else {
+                    // Success on 3rd attempt
+                    logo.src = '/dinelportal-logo.png';
+                    addStatus(5, `Attempt ${retryCount} - Loading fallback`, 'success');
+                }
+            }
+            
+            attemptLoad();
+        }
+
+        // Page visibility API test
+        document.addEventListener('visibilitychange', () => {
+            console.log('Page visibility changed:', document.hidden ? 'hidden' : 'visible');
+        });
+
+        // Log initial load
+        window.addEventListener('load', () => {
+            addStatus(1, 'Page loaded, logo should be visible', 'success');
+        });
+    </script>
+</body>
+</html>

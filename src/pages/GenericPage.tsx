@@ -6,12 +6,14 @@ import UnifiedContentBlocks from '@/components/UnifiedContentBlocks';
 import { getSanityImageUrl } from '@/lib/sanityImage';
 import StructuredData from '@/components/StructuredData';
 import { FAQItem } from '@/utils/structuredData';
+import { useReadingProgress } from '@/contexts/ReadingProgressContext';
 
 const GenericPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const [pageData, setPageData] = useState<UnifiedPage | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { setShowReadingProgress } = useReadingProgress();
 
   useEffect(() => {
     if (!slug) {
@@ -52,6 +54,9 @@ const GenericPage = () => {
   // Update page metadata when page data is loaded
   useEffect(() => {
     if (pageData) {
+      // Update reading progress visibility
+      setShowReadingProgress(pageData.showReadingProgress || false)
+      
       // Update page title
       document.title = pageData.seoMetaTitle || pageData.title || 'ElPortal'
       
@@ -93,7 +98,12 @@ const GenericPage = () => {
         }
       }
     }
-  }, [pageData]);
+    
+    // Cleanup - reset reading progress when leaving the page
+    return () => {
+      setShowReadingProgress(false)
+    }
+  }, [pageData, setShowReadingProgress]);
 
   if (loading) {
     return (

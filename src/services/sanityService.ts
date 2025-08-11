@@ -613,6 +613,7 @@ export class SanityService {
         slug
       },
       isHomepage,
+      showReadingProgress,
       seoMetaTitle,
       seoMetaDescription,
       seoKeywords,

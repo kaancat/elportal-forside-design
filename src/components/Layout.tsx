@@ -2,6 +2,8 @@ import React from 'react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import ReadingProgress from '@/components/ReadingProgress';
+import { useReadingProgress } from '@/contexts/ReadingProgressContext';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,11 +14,18 @@ interface LayoutProps {
  * Prevents navigation remounting on route changes
  */
 const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const { showReadingProgress } = useReadingProgress();
+  
   return (
     <div className="min-h-screen bg-white">
       <ErrorBoundary level="component">
         <Navigation />
       </ErrorBoundary>
+      
+      {/* Reading Progress Indicator */}
+      {showReadingProgress && (
+        <ReadingProgress />
+      )}
       
       <main>
         {children}

@@ -585,6 +585,7 @@ export interface SanityPage {
     alt?: string
   };
   noIndex?: boolean;
+  showReadingProgress?: boolean;
   contentBlocks?: ContentBlock[];
 }
 

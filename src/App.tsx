@@ -11,6 +11,7 @@ import { useSiteMetadata } from "@/hooks/useSiteMetadata";
 import ScrollToTop from "@/components/ScrollToTop";
 import { initWebVitals, observePerformance } from "@/utils/webVitals";
 import CanonicalUrl from "@/components/CanonicalUrl";
+import { ReadingProgressProvider } from "@/contexts/ReadingProgressContext";
 
 // Lazy load pages for code splitting
 const Index = lazy(() => import("./pages/Index"));
@@ -69,22 +70,24 @@ const AppContent = () => {
           <ScrollToTop />
           <CanonicalUrl />
           <ErrorBoundary level="page">
-            <Layout>
-              <Suspense fallback={<PageLoader />}>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="/energispareraad" element={<EnergyTips />} />
-                  <Route path="/icon-test" element={<IconTest />} />
-                  <Route path="/test-eloverblik" element={<TestEloverblik />} />
-                  
-                  {/* Dynamic route for generic pages - must be before the 404 catch-all */}
-                  <Route path="/:slug" element={<GenericPage />} />
-                  
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
-            </Layout>
+            <ReadingProgressProvider>
+              <Layout>
+                <Suspense fallback={<PageLoader />}>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="/energispareraad" element={<EnergyTips />} />
+                    <Route path="/icon-test" element={<IconTest />} />
+                    <Route path="/test-eloverblik" element={<TestEloverblik />} />
+                    
+                    {/* Dynamic route for generic pages - must be before the 404 catch-all */}
+                    <Route path="/:slug" element={<GenericPage />} />
+                    
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </Layout>
+            </ReadingProgressProvider>
           </ErrorBoundary>
         </BrowserRouter>
       </div>

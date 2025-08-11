@@ -8,11 +8,13 @@ import { UnifiedPage } from '@/types/sanity';
 import { getSanityImageUrl } from '@/lib/sanityImage';
 import StructuredData from '@/components/StructuredData';
 import { FAQItem } from '@/utils/structuredData';
+import { useReadingProgress } from '@/contexts/ReadingProgressContext';
 
 const Index = () => {
   const [homepageData, setHomepageData] = useState<UnifiedPage | null>(null)
   const [loading, setLoading] = useState(true)
   const { errorState, clearError, withApiErrorHandling } = useApiErrorHandler()
+  const { setShowReadingProgress } = useReadingProgress()
 
   useEffect(() => {
     const fetchHomepageData = withApiErrorHandling(async () => {
@@ -37,6 +39,9 @@ const Index = () => {
   // Update page title and meta description if Sanity data is available
   useEffect(() => {
     if (homepageData) {
+      // Update reading progress visibility
+      setShowReadingProgress(homepageData.showReadingProgress || false)
+      
       document.title = homepageData.seoMetaTitle || 'Sammenlign Elpriser - Find Billigste Elaftale'
       
       // Update meta description
@@ -72,7 +77,12 @@ const Index = () => {
         }
       }
     }
-  }, [homepageData])
+    
+    // Cleanup - reset reading progress when leaving the page
+    return () => {
+      setShowReadingProgress(false)
+    }
+  }, [homepageData, setShowReadingProgress])
 
   // Show API error if there's an error state
   if (errorState.hasError && !loading) {

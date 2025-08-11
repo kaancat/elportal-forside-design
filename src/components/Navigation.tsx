@@ -4,6 +4,7 @@ import { Link as LinkType, MegaMenu } from '@/types/sanity';
 import { Button } from '@/components/ui/button';
 import MegaMenuContent from './MegaMenuContent';
 import MobileNav from './MobileNav';
+import Logo from './Logo';
 import { AnimatePresence, motion } from 'framer-motion';
 import { resolveLink, checkLinksHealth } from '@/utils/linkResolver';
 import { useNavigationRefresh } from '@/hooks/useNavigationRefresh';
@@ -49,15 +50,11 @@ const Navigation = () => {
     return (
       <header className="sticky top-0 z-50 w-full bg-brand-dark h-16">
         <div className="container mx-auto px-4 flex items-center justify-between h-16">
-          <RouterLink to="/" className="flex-shrink-0">
-            <img 
-              src={FALLBACK_LOGO}
-              alt={FALLBACK_ALT} 
+          <RouterLink to="/" className="flex-shrink-0 relative">
+            <Logo 
+              src={null}
+              alt={FALLBACK_ALT}
               className="h-8 sm:h-10"
-              onError={(e) => {
-                console.error('Navigation logo failed to load');
-                e.currentTarget.style.display = 'none';
-              }}
             />
           </RouterLink>
           <div className="text-white text-sm">Navigation unavailable</div>
@@ -112,18 +109,14 @@ const Navigation = () => {
       onMouseLeave={() => setOpenMenuKey(null)}
     >
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
-        <RouterLink to="/" className="flex-shrink-0">
-          <img 
+        <RouterLink to="/" className="flex-shrink-0 relative">
+          <Logo 
             src={settings.logo?.asset?._ref ? 
               `https://cdn.sanity.io/images/yxesi03x/production/${settings.logo.asset._ref.replace('image-', '').replace('-png', '.png').replace('-jpg', '.jpg').replace('-webp', '.webp')}` :
-              FALLBACK_LOGO
-            } 
-            alt={settings.title || FALLBACK_ALT} 
+              null
+            }
+            alt={settings.title || FALLBACK_ALT}
             className="h-8 sm:h-10"
-            onError={(e) => {
-              console.error('Navigation logo failed to load');
-              e.currentTarget.style.display = 'none';
-            }}
           />
         </RouterLink>
         
@@ -166,7 +159,7 @@ const Navigation = () => {
             resolveLink={(link: LinkType) => resolveLink(link, 'Navigation')}
             logoSrc={settings.logo?.asset?._ref ? 
               `https://cdn.sanity.io/images/yxesi03x/production/${settings.logo.asset._ref.replace('image-', '').replace('-png', '.png').replace('-jpg', '.jpg').replace('-webp', '.webp')}` :
-              FALLBACK_LOGO
+              null
             }
             logoAlt={settings.title || FALLBACK_ALT}
           />

@@ -11,7 +11,7 @@ interface ReadingProgressProps {
 const ReadingProgress: React.FC<ReadingProgressProps> = ({
   className,
   color = 'bg-yellow-400',
-  height = 3,
+  height = 5,
   showPercentage = false,
 }) => {
   const [progress, setProgress] = useState(0);

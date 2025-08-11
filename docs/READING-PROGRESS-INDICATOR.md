@@ -57,7 +57,7 @@ A DR-inspired reading progress indicator that shows users how far they've scroll
 ### Default Appearance
 ```css
 - Position: Fixed below navigation (top: 64px)
-- Height: 3px (desktop) / 4px (mobile)
+- Height: 5px (desktop) / 6px (mobile)
 - Color: Yellow (#facc15 / bg-yellow-400)
 - Background track: rgba(0,0,0,0.1)
 - Z-index: 40 (below nav's 50)

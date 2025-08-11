@@ -607,8 +607,28 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
   const { authorizationId, customerCVR, customerId, customerKey, meteringPointIds, dateFrom, dateTo, aggregation = 'Day' } = req.body
   
   // SECURITY: Verify the requested customer matches the session
+  // CRITICAL: Convert both to strings for comparison to avoid type mismatch
+  const sessionCustomerIdStr = String(sessionCustomerId)
   const requestedCustomer = authorizationId || customerCVR || customerKey || customerId
-  if (requestedCustomer && requestedCustomer !== sessionCustomerId) {
+  const requestedCustomerStr = requestedCustomer ? String(requestedCustomer) : null
+  
+  console.log('🔒 Consumption security check:', {
+    sessionCustomerId: sessionCustomerIdStr,
+    sessionCustomerIdType: typeof sessionCustomerId,
+    requestedCustomer: requestedCustomerStr,
+    requestedCustomerType: typeof requestedCustomer,
+    authorizationId,
+    customerCVR,
+    customerId,
+    customerKey,
+    willMatch: requestedCustomerStr === sessionCustomerIdStr || !requestedCustomerStr
+  })
+  
+  if (requestedCustomerStr && requestedCustomerStr !== sessionCustomerIdStr) {
+    console.error('❌ Consumption access denied - customer mismatch:', {
+      requested: requestedCustomerStr,
+      session: sessionCustomerIdStr
+    })
     return res.status(403).json({
       error: 'Forbidden',
       message: 'You can only access your own consumption data'
@@ -616,7 +636,7 @@ async function handleThirdPartyConsumption(req: VercelRequest, res: VercelRespon
   }
   
   // Use session customer ID for the request
-  const identifier = sessionCustomerId as string
+  const identifier = sessionCustomerIdStr
   // Decide scope smartly: GUID => authorizationId, 8 digits => customerCVR
   const scope = isGuidLike(identifier) ? 'authorizationId' : 'customerCVR'
   

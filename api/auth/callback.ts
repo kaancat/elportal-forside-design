@@ -21,6 +21,18 @@ const getSigningKey = () => {
     })
     throw new Error('Signing key not configured')
   }
+  // Handle base64 encoded keys - decode if it looks like base64
+  // Base64 keys will be longer (44+ chars) and contain +/= chars
+  if (key.length >= 44 && /^[A-Za-z0-9+/]+=*$/.test(key)) {
+    try {
+      // Decode base64 to get raw bytes
+      const decoded = Buffer.from(key, 'base64')
+      return new Uint8Array(decoded)
+    } catch (e) {
+      // If decode fails, use as-is
+      console.log('Base64 decode failed, using key as-is')
+    }
+  }
   return new TextEncoder().encode(key)
 }
 

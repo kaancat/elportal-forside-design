@@ -62,15 +62,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ block }) => {
 
   return (
     <section className="relative overflow-hidden bg-brand-dark">
-      {/* Background overlay with windmill image */}
+      {/* Background overlay */}
       <div className="absolute inset-0">
-        <img 
-          src="/lovable-uploads/e68808e9-f324-4925-93ed-3433c3de4cd9.png"
-          alt="Wind turbines background"
-          className="w-full h-full object-cover"
-          style={{ objectPosition: 'center' }}
-        />
-        <div className="absolute inset-0 bg-brand-dark bg-opacity-70"></div>
+        <div className="absolute inset-0 bg-brand-dark"></div>
       </div>
       
       <div className="container mx-auto px-4 relative z-10 py-16">

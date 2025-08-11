@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -17,7 +17,8 @@ import {
   Loader2,
   User,
   Home,
-  RefreshCw
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react'
 import { ConsumptionChart } from './ConsumptionChart'
 import { ConsumptionDashboard } from './ConsumptionDashboard'
@@ -26,6 +27,7 @@ import { ImprovedConsumptionDashboard } from './ImprovedConsumptionDashboard'
 import { TrueCostCalculator } from './TrueCostCalculator'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import { ContentErrorFallback } from '@/components/ErrorFallbacks'
+import rateLimiter, { debounce } from '@/utils/rateLimiter'
 
 interface ForbrugTrackerProps {
   title?: string
@@ -41,7 +43,9 @@ interface ForbrugTrackerProps {
 
 // Client-side cache helpers
 const STORAGE_KEY = 'elportal_consumption_cache'
+const AUTH_STORAGE_KEY = 'elportal_auth_cache'
 const STORAGE_TTL = 5 * 60 * 1000 // 5 minutes
+const AUTH_TTL = 15 * 60 * 1000 // 15 minutes for auth data
 
 const getCachedData = (key: string): any => {
   try {
@@ -74,6 +78,34 @@ const setCachedData = (key: string, data: any): void => {
   }
 }
 
+const getCachedAuth = (): any => {
+  try {
+    const cached = sessionStorage.getItem(AUTH_STORAGE_KEY)
+    if (!cached) return null
+    
+    const { data, timestamp } = JSON.parse(cached)
+    if (Date.now() - timestamp > AUTH_TTL) {
+      sessionStorage.removeItem(AUTH_STORAGE_KEY)
+      return null
+    }
+    
+    return data
+  } catch {
+    return null
+  }
+}
+
+const setCachedAuth = (data: any): void => {
+  try {
+    sessionStorage.setItem(
+      AUTH_STORAGE_KEY,
+      JSON.stringify({ data, timestamp: Date.now() })
+    )
+  } catch {
+    // Ignore storage errors
+  }
+}
+
 export function ForbrugTracker({
   title = 'Start Din Forbrug Tracker',
   description = 'Forbind med Eloverblik for at se dine personlige forbrugsdata',
@@ -89,8 +121,30 @@ export function ForbrugTracker({
   const [processedConsumptionData, setProcessedConsumptionData] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
   const [isRequestInFlight, setIsRequestInFlight] = useState(false)
+  const [rateLimitRetryAfter, setRateLimitRetryAfter] = useState<number>(0)
+  const [errorRetryCount, setErrorRetryCount] = useState(0)
   const didInitRef = useRef(false)
   const fetchStateRef = useRef<'idle' | 'fetching' | 'complete'>('idle')
+  const retryTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Countdown timer for rate limit retry
+  useEffect(() => {
+    if (rateLimitRetryAfter > 0) {
+      const timer = setInterval(() => {
+        setRateLimitRetryAfter((prev) => {
+          if (prev <= 1) {
+            // Clear error when countdown reaches 0
+            setError(null)
+            setErrorRetryCount(0)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+      
+      return () => clearInterval(timer)
+    }
+  }, [rateLimitRetryAfter])
 
   // Check session and authorization status on mount
   useEffect(() => {
@@ -134,16 +188,50 @@ export function ForbrugTracker({
   }
 
   const checkAuthorization = async (customerId?: string | null) => {
+    // Try to use cached auth data first
+    const cachedAuth = getCachedAuth()
+    if (cachedAuth && cachedAuth.customerId === customerId) {
+      console.log('Using cached authorization data')
+      setIsAuthorized(true)
+      setCustomerData(cachedAuth)
+      // Fetch consumption using cached data
+      await fetchConsumptionData({
+        authorizationId: cachedAuth.authorizationId,
+        customerCVR: cachedAuth.customerCVR,
+        meteringPointIds: cachedAuth.meteringPointIds,
+      })
+      return
+    }
+    
+    // Check rate limit before making request
+    const { allowed, retryAfter } = rateLimiter.canMakeRequest('eloverblik-auth')
+    if (!allowed) {
+      setError(`For mange forespørgsler. Vent venligst ${retryAfter} sekunder.`)
+      setRateLimitRetryAfter(retryAfter || 60)
+      setIsLoading(false)
+      return
+    }
+    
     setIsLoading(true)
     setError(null)
     
     try {
+      // Record the request
+      rateLimiter.recordRequest('eloverblik-auth')
+      
       // Fetch authorized customer data with session
       const response = await fetch('/api/eloverblik?action=thirdparty-authorizations', {
         credentials: 'include'
       })
       
-      if (response.status === 401) {
+      if (response.status === 429) {
+        // Rate limited by server
+        const retryAfter = parseInt(response.headers.get('Retry-After') || '60')
+        rateLimiter.record429Error('eloverblik-auth', retryAfter)
+        setError(`For mange forespørgsler. Systemet er midlertidigt overbelastet.`)
+        setRateLimitRetryAfter(retryAfter)
+        setIsAuthorized(false)
+      } else if (response.status === 401) {
         // No valid session
         setError('Din session er udløbet. Log venligst ind igen.')
         setIsAuthorized(false)
@@ -164,6 +252,8 @@ export function ForbrugTracker({
           if (auth) {
             console.log('Using authorization:', auth) // Debug log
             setCustomerData(auth)
+            // Cache the authorization data
+            setCachedAuth(auth)
             // Fetch consumption using explicit authorizationId and cached metering points when available
             await fetchConsumptionData({
               authorizationId: auth.authorizationId,
@@ -230,7 +320,7 @@ export function ForbrugTracker({
     }
   }
   
-  const fetchConsumptionData = async (params: { authorizationId?: string; customerCVR?: string; meteringPointIds?: string[] }) => {
+  const fetchConsumptionDataInternal = async (params: { authorizationId?: string; customerCVR?: string; meteringPointIds?: string[] }) => {
     try {
       // Prevent double-fetching with proper state tracking
       if (fetchStateRef.current === 'fetching') {
@@ -240,9 +330,20 @@ export function ForbrugTracker({
       
       if (isRequestInFlight) return
       
+      // Check rate limit before making request
+      const { allowed, retryAfter } = rateLimiter.canMakeRequest('eloverblik-consumption')
+      if (!allowed) {
+        setError(`For mange forespørgsler. Vent venligst ${retryAfter} sekunder før næste opdatering.`)
+        setRateLimitRetryAfter(retryAfter || 30)
+        return
+      }
+      
       fetchStateRef.current = 'fetching'
       setIsRequestInFlight(true)
       console.log('Fetching consumption with params:', params) // Debug log
+      
+      // Record the request
+      rateLimiter.recordRequest('eloverblik-consumption')
       
       // Get metering points from customerData if available
       const meteringPointIds = params.meteringPointIds || customerData?.meteringPointIds
@@ -289,7 +390,24 @@ export function ForbrugTracker({
         })
       })
       
-      if (response.status === 401) {
+      if (response.status === 429) {
+        // Rate limited by server
+        const retryAfter = parseInt(response.headers.get('Retry-After') || '30')
+        rateLimiter.record429Error('eloverblik-consumption', retryAfter)
+        setError(`For mange forespørgsler. Systemet er midlertidigt overbelastet.`)
+        setRateLimitRetryAfter(retryAfter)
+        
+        // Try to show cached data if available
+        const cached = getCachedData(cacheKey)
+        if (cached) {
+          console.log('Showing cached data due to rate limit')
+          setConsumptionData(cached)
+          setError(`For mange forespørgsler. Viser gemte data. Prøv igen om ${retryAfter} sekunder.`)
+        }
+        fetchStateRef.current = 'complete'
+        setIsRequestInFlight(false)
+        return
+      } else if (response.status === 401) {
         // Session expired
         setError('Din session er udløbet. Log venligst ind igen.')
         fetchStateRef.current = 'complete'
@@ -361,6 +479,12 @@ export function ForbrugTracker({
       setIsRequestInFlight(false)
     }
   }
+  
+  // Create debounced version of fetchConsumptionData
+  const fetchConsumptionData = useCallback(
+    debounce(fetchConsumptionDataInternal, 1000),
+    [customerData]
+  )
 
   const handleConnect = () => {
     // Start secure session-based authorization
@@ -375,22 +499,70 @@ export function ForbrugTracker({
     }
   }
 
+  // Auto-recovery error handler
+  const [errorBoundaryKey, setErrorBoundaryKey] = useState(0)
+  
+  const handleErrorBoundaryReset = useCallback(() => {
+    // Reset all state
+    setIsAuthorized(false)
+    setIsLoading(false)
+    setCustomerData(null)
+    setConsumptionData(null)
+    setProcessedConsumptionData(null)
+    setError(null)
+    setIsRequestInFlight(false)
+    setRateLimitRetryAfter(0)
+    setErrorRetryCount(0)
+    fetchStateRef.current = 'idle'
+    
+    // Clear rate limiter state
+    rateLimiter.clearState('eloverblik-auth')
+    rateLimiter.clearState('eloverblik-consumption')
+    
+    // Force remount by changing key
+    setErrorBoundaryKey(prev => prev + 1)
+  }, [])
+  
   return (
     <ErrorBoundary
+      key={errorBoundaryKey}
       level="component"
       fallback={
         <div className="w-full py-12">
           <div className="container mx-auto px-4 max-w-6xl">
-            <ContentErrorFallback 
-              onRetry={() => checkAuthorization(null)} 
-              message="Forbrug Tracker stødte på en fejl"
-            />
+            <Card className="border-orange-200 bg-orange-50">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <AlertCircle className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <h3 className="font-medium text-orange-900 mb-2">Forbrug Tracker stødte på en fejl</h3>
+                  <p className="text-sm text-orange-700 mb-4">
+                    Komponenten vil automatisk genstarte om et øjeblik...
+                  </p>
+                  <Button 
+                    onClick={handleErrorBoundaryReset} 
+                    variant="outline" 
+                    size="sm"
+                    className="border-orange-300 text-orange-700 hover:bg-orange-100"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Genstart nu
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       }
       onError={(error) => {
         // Log details for diagnostics without crashing other content
         console.error('ForbrugTracker error boundary caught:', error)
+        
+        // Auto-recover after 5 seconds
+        setTimeout(() => {
+          handleErrorBoundaryReset()
+        }, 5000)
       }}
     >
     <div className="w-full py-12">
@@ -494,15 +666,31 @@ export function ForbrugTracker({
               </Card>
             ) : error ? (
               <div className="space-y-4">
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
+                <Alert variant={rateLimitRetryAfter > 0 ? "default" : "destructive"}>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="space-y-2">
+                      <p>{error}</p>
+                      {rateLimitRetryAfter > 0 && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Clock className="h-4 w-4" />
+                          <span>Automatisk retry om {rateLimitRetryAfter} sekunder...</span>
+                        </div>
+                      )}
+                    </div>
+                  </AlertDescription>
                 </Alert>
                 <div className="text-center">
                   <Button 
-                    onClick={() => checkAuthorization(null)}
+                    onClick={() => {
+                      if (rateLimitRetryAfter === 0) {
+                        checkAuthorization(null)
+                      }
+                    }}
                     variant="outline"
+                    disabled={rateLimitRetryAfter > 0}
                   >
-                    Prøv igen
+                    {rateLimitRetryAfter > 0 ? `Vent ${rateLimitRetryAfter}s` : 'Prøv igen'}
                   </Button>
                 </div>
               </div>
@@ -528,6 +716,11 @@ export function ForbrugTracker({
                           size="sm"
                           variant="ghost"
                           onClick={async () => {
+                            // Prevent rapid clicks/taps
+                            if (isRequestInFlight || rateLimitRetryAfter > 0) {
+                              return
+                            }
+                            
                             console.log('Refreshing data...', customerData)
                             if (customerData?.authorizationId || customerData?.customerCVR) {
                               await fetchConsumptionData({
@@ -539,9 +732,10 @@ export function ForbrugTracker({
                               await checkAuthorization(null)
                             }
                           }}
-                          title="Opdater data"
+                          disabled={isRequestInFlight || rateLimitRetryAfter > 0}
+                          title={rateLimitRetryAfter > 0 ? `Vent ${rateLimitRetryAfter} sekunder` : "Opdater data"}
                         >
-                          <RefreshCw className="h-4 w-4" />
+                          <RefreshCw className={`h-4 w-4 ${isRequestInFlight ? 'animate-spin' : ''}`} />
                         </Button>
                         <Badge variant="outline" className="border-green-600 text-green-700">
                           Aktiv

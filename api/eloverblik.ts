@@ -395,6 +395,18 @@ async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelRes
       },
     })
 
+    if (authResponse.status === 429) {
+      // Rate limited - return with retry-after header
+      const retryAfter = authResponse.headers.get('Retry-After') || '60'
+      res.setHeader('Retry-After', retryAfter)
+      console.error('Authorization fetch failed: Rate limited (429)')
+      return res.status(429).json({ 
+        error: 'Too Many Requests',
+        message: 'For mange forespørgsler. Vent venligst før du prøver igen.',
+        retryAfter: parseInt(retryAfter)
+      })
+    }
+    
     if (!authResponse.ok) {
       const errorText = await authResponse.text()
       console.error('Authorization fetch failed:', {

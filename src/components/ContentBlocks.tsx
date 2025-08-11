@@ -1,9 +1,8 @@
 import React from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { PageSection, FAQItem, PriceExampleTable, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, CO2EmissionsChart, DeclarationProduction, DeclarationGridmix, ConsumptionMap, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
+import { PageSection, FAQItem, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, CO2EmissionsChart, DeclarationProduction, DeclarationGridmix, ConsumptionMap, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
 import PageSectionComponent from './PageSectionComponent'
 import FAQItemComponent from './FAQItemComponent'
-import PriceExampleTableComponent from './PriceExampleTableComponent'
 import VideoSectionComponent from './VideoSectionComponent'
 import FaqGroupComponent from './FaqGroupComponent'
 import RichTextSectionComponent from './RichTextSectionComponent'
@@ -132,9 +131,6 @@ const renderContentBlock = (block: ContentBlock) => {
   switch (block._type) {
     case 'faqGroup':
       return <FaqGroupComponent block={block as FaqGroup} />;
-    
-    case 'priceExampleTable':
-      return <PriceExampleTableComponent block={block as PriceExampleTable} />;
     
     case 'videoSection':
       return <VideoSectionComponent block={block as VideoSection} />;

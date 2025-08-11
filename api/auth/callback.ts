@@ -138,15 +138,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     
     // Get the most recent authorization (user just authorized)
-    // Sort by validFrom date to get the newest
+    // Sort by timeStamp (when the authorization was created) to get the newest
     const sortedAuths = authorizations.sort((a: any, b: any) => {
-      const dateA = new Date(a.validFrom).getTime()
-      const dateB = new Date(b.validFrom).getTime()
+      const dateA = new Date(a.timeStamp || a.validFrom).getTime()
+      const dateB = new Date(b.timeStamp || b.validFrom).getTime()
       return dateB - dateA // Newest first
     })
     
     const recentAuth = sortedAuths[0]
     const customerId = recentAuth.customerCVR || recentAuth.id
+    
+    console.log('Callback processing:', {
+      sessionId,
+      mostRecentAuth: recentAuth.id,
+      timeStamp: recentAuth.timeStamp,
+      customerId
+    })
     
     // Link session to customer
     await kv.set(

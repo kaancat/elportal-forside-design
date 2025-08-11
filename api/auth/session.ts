@@ -15,35 +15,46 @@ const SESSION_COOKIE_OPTIONS = {
   maxAge: SESSION_TTL
 }
 
-// Get signing key from environment
+// Get signing key from environment - with robust handling
 const getSigningKey = () => {
-  // Use environment variable for signing key
-  const key = process.env.ELPORTAL_SIGNING_KEY
-  if (!key || key.length < 32) {
-    console.error('Signing key issue:', {
-      hasKey: !!key,
-      length: key?.length || 0,
-      nodeEnv: process.env.NODE_ENV
-    })
-    throw new Error('Signing key must be at least 32 characters. Please set ELPORTAL_SIGNING_KEY in environment variables.')
+  const rawKey = process.env.ELPORTAL_SIGNING_KEY
+  if (!rawKey) {
+    throw new Error('ELPORTAL_SIGNING_KEY environment variable is not set')
   }
   
-  // The key was generated with openssl rand -base64 32, which creates a base64 string
-  // We need to decode it to get the raw bytes for JWT signing
-  // Base64 encoded 32 bytes = 44 chars minimum, but can be longer with padding
-  try {
-    // Try to decode as base64 first
-    const decoded = Buffer.from(key, 'base64')
-    // If successful and we get at least 32 bytes, use it
-    if (decoded.length >= 32) {
-      return new Uint8Array(decoded)
+  // CRITICAL: Trim any whitespace/newlines that might have been added during copy/paste
+  const key = rawKey.trim()
+  
+  // Log key details for debugging (without exposing the actual key)
+  console.log('Signing key details:', {
+    originalLength: rawKey.length,
+    trimmedLength: key.length,
+    firstChars: key.substring(0, 4) + '...',
+    lastChars: '...' + key.substring(key.length - 4),
+    looksLikeBase64: /^[A-Za-z0-9+/]+=*$/.test(key),
+    nodeEnv: process.env.NODE_ENV
+  })
+  
+  if (key.length < 32) {
+    throw new Error(`Signing key too short: ${key.length} characters (need at least 32)`)
+  }
+  
+  // Try to decode as base64 if it looks like base64
+  // Base64 for 32 bytes = 44 chars, for 48 bytes = 64 chars
+  if (key.length === 44 || key.length === 64 || /^[A-Za-z0-9+/]+=*$/.test(key)) {
+    try {
+      const decoded = Buffer.from(key, 'base64')
+      if (decoded.length >= 32) {
+        console.log('Using base64 decoded key, decoded length:', decoded.length)
+        return new Uint8Array(decoded)
+      }
+    } catch (e) {
+      console.log('Base64 decode failed, will use as UTF-8')
     }
-  } catch (e) {
-    // Not valid base64, use as-is
-    console.log('Not base64, using key as UTF-8 string')
   }
   
-  // Fallback: use the key as a UTF-8 string
+  // Fallback: use as UTF-8 string
+  console.log('Using key as UTF-8 string')
   return new TextEncoder().encode(key)
 }
 

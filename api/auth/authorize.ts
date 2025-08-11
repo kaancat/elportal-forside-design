@@ -95,9 +95,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     })
   } catch (error) {
     console.error('Authorization initialization failed:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    
+    // Provide more detailed error information for debugging
     return res.status(500).json({ 
       error: 'Failed to initialize authorization',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? {
+        stack: error instanceof Error ? error.stack : undefined,
+        type: error?.constructor?.name
+      } : undefined,
+      hint: errorMessage.includes('ELPORTAL_SIGNING_KEY') 
+        ? 'Server configuration issue - please contact support' 
+        : 'Please try again or contact support if the issue persists'
     })
   }
 }

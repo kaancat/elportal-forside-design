@@ -74,18 +74,6 @@ export interface FAQItem {
   answer: BlockContent[]
 }
 
-export interface PriceExampleTable {
-  _type: 'priceExampleTable'
-  _key: string
-  title: string
-  leadingText: BlockContent[]
-  example1_title: string
-  example1_kwh_price: number
-  example1_subscription: number
-  example2_title: string
-  example2_kwh_price: number
-  example2_subscription: number
-}
 
 export interface VideoSection {
   _type: 'videoSection'
@@ -428,7 +416,6 @@ export interface ConsumptionMap {
 export type ContentBlock = 
   | PageSection 
   | FAQItem 
-  | PriceExampleTable 
   | VideoSection 
   | FaqGroup 
   | RichTextSection 

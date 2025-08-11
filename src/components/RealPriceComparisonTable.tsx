@@ -135,6 +135,14 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
       try {
         const providers = await SanityService.getAllProviders();
         setAllProviders(providers);
+        
+        // Auto-select first two providers if available
+        if (providers.length > 0) {
+          setSelectedProvider1(providers[0]);
+          if (providers.length > 1) {
+            setSelectedProvider2(providers[1]);
+          }
+        }
       } catch (error) {
         console.error('Error fetching providers:', error);
       } finally {
@@ -160,10 +168,22 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
       return { tillæg: 0, subscription: 0, total: 0 };
     }
     
-    // Use the correct field names that come from the GROQ query
-    const tillæg = provider.displayPrice_kWh || 0;
-    const subscription = provider.displayMonthlyFee || 0;
+    // Debug logging
+    console.log('Provider data:', provider);
+    
+    // Use the correct field names from the provider data
+    // spotPriceMarkup is in øre/kWh, so convert to kr/kWh
+    const tillæg = provider.spotPriceMarkup !== undefined 
+      ? provider.spotPriceMarkup / 100  // Convert from øre to kr
+      : (provider.displayPrice_kWh || 0);  // Fallback to legacy field
+      
+    const subscription = provider.monthlySubscription !== undefined
+      ? provider.monthlySubscription
+      : (provider.displayMonthlyFee || 0);  // Fallback to legacy field
+      
     const total = (tillæg * monthlyConsumption) + subscription;
+    
+    console.log(`Price details for ${provider.providerName}:`, { tillæg, subscription, total });
     
     return { tillæg, subscription, total };
   };

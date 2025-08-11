@@ -178,18 +178,6 @@ export class SanityService {
             answer
           }
         },
-        _type == "priceExampleTable" => {
-          _key,
-          _type,
-          title,
-          leadingText,
-          example1_title,
-          example1_kwh_price,
-          example1_subscription,
-          example2_title,
-          example2_kwh_price,
-          example2_subscription
-        },
         _type == "videoSection" => {
           title,
           videoUrl,
@@ -713,18 +701,6 @@ export class SanityService {
             value,
             label
           }
-        },
-        _type == "priceExampleTable" => {
-          _key,
-          _type,
-          title,
-          leadingText,
-          example1_title,
-          example1_kwh_price,
-          example1_subscription,
-          example2_title,
-          example2_kwh_price,
-          example2_subscription
         },
         _type == "realPriceComparisonTable" => {
           _key,

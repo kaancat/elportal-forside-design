@@ -7,6 +7,10 @@ import {
   ResponsiveContainer,
   Tooltip,
   Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
 } from 'recharts'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -187,38 +191,74 @@ export function ConsumptionDashboard({
             </h3>
             
             {chartData.length > 0 ? (
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={chartData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ percentage }) => `${percentage}%`}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                      animationBegin={0}
-                      animationDuration={800}
-                    >
-                      {chartData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
+              <div className="space-y-6">
+                {/* Pie Chart */}
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={chartData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ percentage }) => `${percentage}%`}
+                        outerRadius={90}
+                        fill="#8884d8"
+                        dataKey="value"
+                        animationBegin={0}
+                        animationDuration={800}
+                      >
+                        {chartData.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                
+                {/* Bar Chart - Top 3 consumers */}
+                {chartData.length > 1 && (
+                  <div className="h-32">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={chartData.slice(0, 3)} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                        <XAxis 
+                          dataKey="name" 
+                          tick={{ fontSize: 11 }}
+                          interval={0}
+                          angle={0}
+                          height={40}
                         />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<CustomTooltip />} />
-                    <Legend
-                      verticalAlign="bottom"
-                      height={36}
-                      formatter={(value) => (
-                        <span className="text-sm text-gray-700">{value}</span>
-                      )}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                        <YAxis hide />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                          {chartData.slice(0, 3).map((entry, index) => (
+                            <Cell key={`bar-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+                
+                {/* Legend */}
+                <div className="flex flex-wrap gap-x-3 gap-y-2 justify-center">
+                  {chartData.slice(0, 5).map((entry, index) => (
+                    <div key={entry.name} className="flex items-center gap-1.5">
+                      <div 
+                        className="w-3 h-3 rounded-sm flex-shrink-0" 
+                        style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                      />
+                      <span className="text-xs text-gray-600">{entry.name}</span>
+                    </div>
+                  ))}
+                  {chartData.length > 5 && (
+                    <span className="text-xs text-gray-500">+{chartData.length - 5} mere</span>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="h-80 flex items-center justify-center">

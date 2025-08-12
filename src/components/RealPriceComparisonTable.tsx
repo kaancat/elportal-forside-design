@@ -12,7 +12,21 @@ import { SanityService } from '../services/sanityService';
 import { PRICE_CONSTANTS } from '@/services/priceCalculationService';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-const formatCurrency = (amount: number) => `${amount.toFixed(2)} kr.`;
+// Format currency with proper rounding for display
+const formatCurrency = (amount: number) => {
+  // Round to 2 decimal places for display consistency
+  const rounded = Math.round(amount * 100) / 100;
+  return `${rounded.toFixed(2)} kr.`;
+};
+
+// Format monthly total with proper calculation
+const formatMonthlyTotal = (perKwh: number, consumption: number, subscription: number) => {
+  // Calculate with full precision then round final result
+  const energyCost = perKwh * consumption;
+  const totalMonthly = energyCost + subscription;
+  const rounded = Math.round(totalMonthly * 100) / 100;
+  return `${rounded.toFixed(2)} kr.`;
+};
 
 interface RealPriceComparisonTableProps {
   block: RealPriceComparisonTable;
@@ -215,7 +229,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
       };
     }
     
-    // Use the correct field names from the provider data
+    // Use the correct field names from the provider data - maintain full precision
     const spotPrice = currentSpotPrice;
     const tillæg = provider.spotPriceMarkup !== undefined 
       ? provider.spotPriceMarkup / 100  // Convert from øre to kr
@@ -223,24 +237,31 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
     const greenCerts = (provider.greenCertificateFee || 0) / 100;
     const tradingCosts = (provider.tradingCosts || 0) / 100;
     
-    // Fixed fees
+    // Fixed fees - using exact values from PRICE_CONSTANTS
     const networkTariff = 0.30; // Average network tariff
-    const systemTariff = PRICE_CONSTANTS.SYSTEM_TARIFF;
-    const transmissionFee = PRICE_CONSTANTS.TRANSMISSION_FEE;
-    const electricityTax = PRICE_CONSTANTS.ELECTRICITY_TAX;
+    const systemTariff = PRICE_CONSTANTS.SYSTEM_TARIFF; // 0.19
+    const transmissionFee = PRICE_CONSTANTS.TRANSMISSION_FEE; // 0.11
+    const electricityTax = PRICE_CONSTANTS.ELECTRICITY_TAX; // 0.90
     
-    // Calculate subtotal and VAT
+    // Calculate subtotal with full precision
     const subtotal = spotPrice + tillæg + greenCerts + tradingCosts + 
                     networkTariff + systemTariff + transmissionFee + electricityTax;
+    
+    // Calculate VAT on the precise subtotal
     const vat = subtotal * 0.25;
+    
+    // Total per kWh with full precision
     const totalPerKwh = subtotal + vat;
     
+    // Get subscription fee
     const subscription = provider.monthlySubscription !== undefined
       ? provider.monthlySubscription
       : (provider.displayMonthlyFee || 0);
-      
+    
+    // Calculate total monthly cost with full precision
     const total = (totalPerKwh * monthlyConsumption) + subscription;
     
+    // Return all values with full precision - rounding will be done only for display
     return { 
       spotPrice,
       tillæg, 
@@ -469,7 +490,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
               "text-3xl font-bold",
               isCheaper && !isDarkTheme(theme) ? "text-brand-green" : themeColors.heading
             )}>
-              {formatCurrency(details.total)}
+              {formatMonthlyTotal(details.totalPerKwh, monthlyConsumption, details.subscription)}
             </p>
           </div>
         </div>
@@ -812,12 +833,12 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
                         "text-2xl font-bold",
                         isCheaper1 && !isDarkTheme(theme) ? "text-brand-green" : themeColors.heading
                       )}>
-                        {formatCurrency(details1.total)}
+                        {formatMonthlyTotal(details1.totalPerKwh, monthlyConsumption, details1.subscription)}
                       </p>
                       {isCheaper1 && (
                         <Badge className="bg-brand-green text-white">
                           <Check className="h-3 w-3 mr-1" />
-                          Spar {formatCurrency(details2.total - details1.total)}/md
+                          Spar {formatCurrency(Math.abs(details2.total - details1.total))}/md
                         </Badge>
                       )}
                     </div>
@@ -831,12 +852,12 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
                         "text-2xl font-bold",
                         isCheaper2 && !isDarkTheme(theme) ? "text-brand-green" : themeColors.heading
                       )}>
-                        {formatCurrency(details2.total)}
+                        {formatMonthlyTotal(details2.totalPerKwh, monthlyConsumption, details2.subscription)}
                       </p>
                       {isCheaper2 && (
                         <Badge className="bg-brand-green text-white">
                           <Check className="h-3 w-3 mr-1" />
-                          Spar {formatCurrency(details1.total - details2.total)}/md
+                          Spar {formatCurrency(Math.abs(details1.total - details2.total))}/md
                         </Badge>
                       )}
                     </div>

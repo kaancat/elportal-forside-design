@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
@@ -287,18 +286,59 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
     );
   }
 
-  // Custom dropdown item with logo
-  const ProviderSelectItem = ({ provider }: { provider: ProviderProductBlock }) => (
-    <div className="flex items-center gap-2 py-1">
-      {provider.logoUrl && (
-        <img 
-          src={provider.logoUrl} 
-          alt={provider.providerName}
-          className="w-6 h-6 object-contain"
-        />
+  // Provider grid selector component
+  const ProviderGrid = ({ 
+    selectedProviderId,
+    onSelectProvider,
+    label
+  }: {
+    selectedProviderId: string | null;
+    onSelectProvider: (providerId: string) => void;
+    label: string;
+  }) => (
+    <div className="mb-6">
+      <Label className={cn("font-semibold text-sm mb-3 block", themeColors.strong)}>
+        {label}
+      </Label>
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+        {allProviders.map((provider) => (
+          <button
+            key={provider.id}
+            onClick={() => onSelectProvider(provider.id)}
+            className={cn(
+              "p-2 sm:p-3 rounded-lg border-2 transition-all duration-200 hover:scale-105",
+              "flex flex-col items-center justify-center min-h-[70px] sm:min-h-[80px]",
+              selectedProviderId === provider.id
+                ? "border-brand-green bg-brand-green/10 shadow-md ring-2 ring-brand-green/30"
+                : isDarkTheme(theme)
+                  ? "border-gray-600 bg-gray-700 hover:border-gray-500"
+                  : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm"
+            )}
+            title={`${provider.providerName} - ${provider.productName}`}
+          >
+            {provider.logoUrl ? (
+              <img 
+                src={provider.logoUrl} 
+                alt={provider.providerName}
+                className="w-full h-6 sm:h-8 object-contain"
+              />
+            ) : (
+              <span className={cn("text-xs text-center line-clamp-2", themeColors.body)}>
+                {provider.providerName}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+      {selectedProviderId && (
+        <div className="mt-2">
+          {allProviders.find(p => p.id === selectedProviderId) && (
+            <p className={cn("text-sm font-bold", themeColors.strong)}>
+              {allProviders.find(p => p.id === selectedProviderId)?.providerName} - {allProviders.find(p => p.id === selectedProviderId)?.productName}
+            </p>
+          )}
+        </div>
       )}
-      <span>{provider.providerName}</span>
-      <span className="font-bold">- {provider.productName}</span>
     </div>
   );
 
@@ -308,15 +348,13 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
     details, 
     isFirst, 
     isCheaper,
-    onSelectProvider,
-    providers
+    onSelectProvider
   }: {
     provider: ProviderProductBlock | null;
     details: any;
     isFirst: boolean;
     isCheaper: boolean;
     onSelectProvider: (providerId: string) => void;
-    providers: ProviderProductBlock[];
   }) => (
     <Card className={cn(
       "relative overflow-hidden transition-all duration-300",
@@ -336,42 +374,24 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
       )}
       
       <CardContent className={cn("p-6", isCheaper && "pt-12")}>
-        {/* Provider selector with logo */}
-        <div className="mb-6">
-          <Label className={cn("font-semibold text-sm mb-2 block", themeColors.strong)}>
-            {isFirst ? 'Vælg udbyder 1' : 'Vælg udbyder 2'}
-          </Label>
-          <Select onValueChange={onSelectProvider} value={provider?.id}>
-            <SelectTrigger className={cn("w-full", themeColors.selectBg)}>
-              <SelectValue placeholder="Vælg et selskab">
-                {provider && (
-                  <div className="flex items-center gap-2">
-                    {provider.logoUrl && (
-                      <img 
-                        src={provider.logoUrl} 
-                        alt={provider.providerName}
-                        className="w-5 h-5 object-contain"
-                      />
-                    )}
-                    <span>{provider.providerName}</span>
-                  </div>
-                )}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {providers.map(p => (
-                <SelectItem key={p.id} value={p.id}>
-                  <ProviderSelectItem provider={p} />
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {provider && (
-            <p className={cn("text-sm mt-2 font-bold", themeColors.strong)}>
+        {/* Provider name and logo display */}
+        {provider && (
+          <div className="mb-6 text-center">
+            {provider.logoUrl && (
+              <img 
+                src={provider.logoUrl} 
+                alt={provider.providerName}
+                className="w-16 h-16 object-contain mx-auto mb-2"
+              />
+            )}
+            <h3 className={cn("font-bold text-lg", themeColors.heading)}>
+              {provider.providerName}
+            </h3>
+            <p className={cn("text-sm", themeColors.body)}>
               {provider.productName}
             </p>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Features section */}
         {provider && (
@@ -531,49 +551,80 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
           </CardContent>
         </Card>
 
-        {/* Mobile view - Enhanced Cards */}
+        {/* Mobile view - Provider grids and cards stacked */}
         <div className="lg:hidden space-y-6">
-          <div className="space-y-4">
+          {/* Provider 1 selection */}
+          <ProviderGrid
+            selectedProviderId={selectedProvider1?.id || null}
+            onSelectProvider={handleSelect1}
+            label="Vælg udbyder 1"
+          />
+          {selectedProvider1 && (
             <EnhancedComparisonCard
               provider={selectedProvider1}
               details={details1}
               isFirst={true}
               isCheaper={isCheaper1}
               onSelectProvider={handleSelect1}
-              providers={allProviders}
             />
+          )}
+          
+          {/* Provider 2 selection */}
+          <ProviderGrid
+            selectedProviderId={selectedProvider2?.id || null}
+            onSelectProvider={handleSelect2}
+            label="Vælg udbyder 2"
+          />
+          {selectedProvider2 && (
             <EnhancedComparisonCard
               provider={selectedProvider2}
               details={details2}
               isFirst={false}
               isCheaper={isCheaper2}
               onSelectProvider={handleSelect2}
-              providers={allProviders}
             />
-          </div>
+          )}
         </div>
 
         {/* Desktop view - Side by side cards + detailed table */}
         <div className="hidden lg:block">
-          {/* Cards side by side */}
-          <div className="grid grid-cols-2 gap-6 mb-8">
-            <EnhancedComparisonCard
-              provider={selectedProvider1}
-              details={details1}
-              isFirst={true}
-              isCheaper={isCheaper1}
+          {/* Provider selection grids side by side */}
+          <div className="grid grid-cols-2 gap-8 mb-8">
+            <ProviderGrid
+              selectedProviderId={selectedProvider1?.id || null}
               onSelectProvider={handleSelect1}
-              providers={allProviders}
+              label="Vælg udbyder 1"
             />
-            <EnhancedComparisonCard
-              provider={selectedProvider2}
-              details={details2}
-              isFirst={false}
-              isCheaper={isCheaper2}
+            <ProviderGrid
+              selectedProviderId={selectedProvider2?.id || null}
               onSelectProvider={handleSelect2}
-              providers={allProviders}
+              label="Vælg udbyder 2"
             />
           </div>
+          
+          {/* Cards side by side */}
+          {(selectedProvider1 || selectedProvider2) && (
+            <div className="grid grid-cols-2 gap-6 mb-8">
+              {selectedProvider1 && (
+                <EnhancedComparisonCard
+                  provider={selectedProvider1}
+                  details={details1}
+                  isFirst={true}
+                  isCheaper={isCheaper1}
+                  onSelectProvider={handleSelect1}
+                />
+              )}
+              {selectedProvider2 && (
+                <EnhancedComparisonCard
+                  provider={selectedProvider2}
+                  details={details2}
+                  isFirst={false}
+                  isCheaper={isCheaper2}
+                  onSelectProvider={handleSelect2}
+                />
+              )}
+            </div>
+          )}
 
           {/* Detailed price breakdown table */}
           <Card className={cn("shadow-xl overflow-hidden", themeColors.tableBg)}>

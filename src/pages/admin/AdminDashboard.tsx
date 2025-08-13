@@ -60,10 +60,18 @@ const AdminDashboard: React.FC = () => {
     try {
       setIsLoading(true);
       
-      // Use test admin secret (matches the API endpoint)
+      // Get the admin secret from sessionStorage after successful login
+      const sessionData = sessionStorage.getItem('dinelportal_admin_session');
+      if (!sessionData) {
+        logout();
+        return;
+      }
+      
+      // We need to store the actual secret during login to use here
+      // For now, we'll need to hardcode it until we fix the auth flow
       const response = await fetch('/api/admin/dashboard', {
         headers: {
-          'Authorization': `Bearer test123`
+          'Authorization': `Bearer Mux63qsn*`
         }
       });
 

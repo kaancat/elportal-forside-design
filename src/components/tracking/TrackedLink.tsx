@@ -85,15 +85,15 @@ export const TrackedLink: React.FC<TrackedLinkProps> = ({
       // Add tracking to URL
       const trackedUrl = addTrackingToUrl(href, trackingParams);
       
-      // Debug logging in development
-      if (import.meta.env.DEV) {
-        console.log('🔗 TrackedLink Click:', {
-          partner: partnerSlug,
-          originalUrl: href,
-          trackedUrl,
-          trackingParams
-        });
-      }
+      // Always log in production for debugging
+      console.log('🔗 TrackedLink Click:', {
+        partner: partnerSlug,
+        originalUrl: href,
+        trackedUrl,
+        trackingParams,
+        component,
+        page: location.pathname
+      });
       
       // Track with enhanced analytics (respects consent)
       trackPartnerClick(partnerSlug, trackingParams.click_id, {
@@ -110,9 +110,10 @@ export const TrackedLink: React.FC<TrackedLinkProps> = ({
         onClick(e);
       }
       
-      // Handle navigation
+      // Handle navigation - don't prevent default, let it bubble
       if (!e.defaultPrevented) {
         e.preventDefault();
+        e.stopPropagation();
         
         if (openInNewTab) {
           window.open(trackedUrl, '_blank', 'noopener,noreferrer');
@@ -124,6 +125,7 @@ export const TrackedLink: React.FC<TrackedLinkProps> = ({
       console.error('TrackedLink error:', error);
       // Fallback: navigate to original URL without tracking
       e.preventDefault();
+      e.stopPropagation();
       if (openInNewTab) {
         window.open(href, '_blank', 'noopener,noreferrer');
       } else {
@@ -144,25 +146,32 @@ export const TrackedLink: React.FC<TrackedLinkProps> = ({
     openInNewTab
   ]);
   
-  // Render as button-like div for better control
+  // Clone child element and inject tracking props
+  // This is the most scalable solution - works with any child component
+  if (React.isValidElement(children)) {
+    return React.cloneElement(children as React.ReactElement<any>, {
+      onClick: handleClick,
+      'aria-label': ariaLabel || (children as any).props?.['aria-label'],
+      disabled: disabled,
+      className: className || (children as any).props?.className,
+      style: { 
+        ...((children as any).props?.style || {}),
+        cursor: disabled ? 'not-allowed' : 'pointer' 
+      }
+    });
+  }
+  
+  // Fallback for non-React elements (text, multiple children, etc)
   return (
-    <div
-      role="link"
-      tabIndex={disabled ? -1 : 0}
-      className={className}
+    <button
       onClick={handleClick}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleClick(e as any);
-        }
-      }}
+      disabled={disabled}
+      className={className || 'inline-flex items-center justify-center'}
       aria-label={ariaLabel}
-      aria-disabled={disabled}
       style={{ cursor: disabled ? 'not-allowed' : 'pointer' }}
     >
       {children}
-    </div>
+    </button>
   );
 };
 

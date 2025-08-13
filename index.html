@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sammenlign Elpriser - Find Billigste Elaftale</title>
     <meta name="description" content="Spar penge på din elregning! Sammenlign aktuelle elpriser og find den bedste elaftale for dig. Gratis sammenligning af danske eludbydere." />
-    <meta name="author" content="ElPortal" />
+    <meta name="author" content="DinElportal" />
     
     <!-- Preconnect to external domains for faster resource loading -->
     <link rel="preconnect" href="https://cdn.sanity.io" crossorigin>
@@ -45,20 +45,20 @@
     <!-- Enhanced Meta Tags -->
     <meta name="keywords" content="elpriser, sammenlign el, billig el, elselskaber, elaftale, vindstød, grøn energi, spotpris, elmarked, strømpriser" />
     <meta name="robots" content="index, follow" />
-    <meta name="author" content="ElPortal" />
+    <meta name="author" content="DinElportal" />
     <meta http-equiv="content-language" content="da" />
     
     <!-- Open Graph -->
-    <meta property="og:title" content="Sammenlign Elpriser - Find Billigste Elaftale | ElPortal" />
+    <meta property="og:title" content="Sammenlign Elpriser - Find Billigste Elaftale | DinElportal" />
     <meta property="og:description" content="Spar penge på din elregning! Sammenlign aktuelle elpriser og find den bedste elaftale for dig. Gratis sammenligning af danske eludbydere." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://elportal.dk/" />
-    <meta property="og:site_name" content="ElPortal - Din Elportal" />
+    <meta property="og:site_name" content="DinElportal - Din Elportal" />
     <meta property="og:locale" content="da_DK" />
     <meta property="og:image" content="https://elportal.dk/opengraph-elportal.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="ElPortal - Sammenlign elpriser og find den bedste elaftale" />
+    <meta property="og:image:alt" content="DinElportal - Sammenlign elpriser og find den bedste elaftale" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -66,15 +66,77 @@
     <meta name="twitter:title" content="Sammenlign Elpriser - Find Billigste Elaftale" />
     <meta name="twitter:description" content="Spar penge på din elregning! Sammenlign aktuelle elpriser og find den bedste elaftale for dig." />
     <meta name="twitter:image" content="https://elportal.dk/opengraph-elportal.jpg" />
-    <meta name="twitter:image:alt" content="ElPortal - Sammenlign elpriser og find den bedste elaftale" />
+    <meta name="twitter:image:alt" content="DinElportal - Sammenlign elpriser og find den bedste elaftale" />
     
     <!-- App Meta -->
     <meta name="theme-color" content="#00CD52" />
-    <meta name="application-name" content="ElPortal" />
+    <meta name="application-name" content="DinElportal" />
   </head>
 
   <body>
     <div id="root"></div>
+    
+    <!-- Cookiebot Consent Management (GDPR Compliance) -->
+    <script id="Cookiebot" 
+            src="https://consent.cookiebot.com/uc.js" 
+            data-cbid="%VITE_COOKIEBOT_ID%" 
+            data-blockingmode="auto" 
+            type="text/javascript">
+    </script>
+    
+    <!-- Google Consent Mode (from Cookiebot guide) -->
+    <script data-cookieconsent="ignore">
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+        gtag("consent", "default", {
+            ad_personalization: "denied",
+            ad_storage: "denied",
+            ad_user_data: "denied",
+            analytics_storage: "denied",
+            functionality_storage: "denied",
+            personalization_storage: "denied",
+            security_storage: "granted",
+            wait_for_update: 500,
+        });
+        gtag("set", "ads_data_redaction", true);
+        gtag("set", "url_passthrough", false);
+    </script>
+    
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=%VITE_GA4_MEASUREMENT_ID%"></script>
+    <script data-cookieconsent="statistics">
+      gtag('js', new Date());
+      gtag('config', '%VITE_GA4_MEASUREMENT_ID%', {
+        'anonymize_ip': true
+      });
+    </script>
+    
+    <!-- Facebook Pixel with Consent -->
+    <script data-cookieconsent="marketing">
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      
+      // Initialize with Limited Data Use for GDPR
+      fbq('dataProcessingOptions', ['LDU'], 0, 0);
+      fbq('init', '%VITE_FB_PIXEL_ID%');
+      fbq('track', 'PageView');
+      
+      // Update when consent changes
+      window.addEventListener('CookiebotOnAccept', function() {
+        if (Cookiebot.consent.marketing) {
+          fbq('dataProcessingOptions', []);
+        }
+      });
+    </script>
+    
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>

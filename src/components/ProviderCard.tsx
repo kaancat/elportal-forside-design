@@ -195,6 +195,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
                 variant={product.isVindstoedProduct ? 'featured' : 'standard'}
                 consumption={annualConsumption}
                 region={userRegion}
+                estimatedValue={estimatedMonthlyPrice}
                 className="w-full"
               >
                 <Button 

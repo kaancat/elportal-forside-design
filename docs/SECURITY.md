@@ -1,4 +1,4 @@
-# 🔒 ElPortal Security Guidelines
+# 🔒 DinElportal Security Guidelines
 
 ## Environment Variables
 

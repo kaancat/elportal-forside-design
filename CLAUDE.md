@@ -1,4 +1,4 @@
-# ElPortal - AI Context (claude-master)
+# DinElportal - AI Context (claude-master)
 
 ## 1. Project Overview
 - **Vision:** Denmark's most trusted electricity price comparison platform, empowering consumers with real-time data and transparent pricing
@@ -202,7 +202,7 @@ All API responses include `X-Cache` header:
 
 **⚠️ CRITICAL: AI agents MUST read the [Project Structure documentation](/docs/ai-context/project-structure.md) before attempting any task to understand the complete technology stack, file tree and project organization.**
 
-ElPortal follows a two-project architecture with the Frontend directly integrating with Sanity CMS. For the complete tech stack and file tree structure, see [docs/ai-context/project-structure.md](/docs/ai-context/project-structure.md).
+DinElportal follows a two-project architecture with the Frontend directly integrating with Sanity CMS. For the complete tech stack and file tree structure, see [docs/ai-context/project-structure.md](/docs/ai-context/project-structure.md).
 
 ## 3. Coding Standards & AI Instructions
 
@@ -508,7 +508,7 @@ npm run mcp:use @smithery-ai/fetch --list
 
 
 
-## 5. ElPortal-Specific Patterns
+## 5. DinElportal-Specific Patterns
 
 ### Content Block Rendering
 When adding new content blocks:
@@ -579,9 +579,9 @@ Run the appropriate commands based on what was modified:
 - Check responsive design on mobile
 
 ## 8. Icon Management
-ElPortal uses `sanity-plugin-icon-manager` with a sophisticated fallback system. See [/docs/ICON-USAGE-GUIDE.md](/docs/ICON-USAGE-GUIDE.md) for:
+DinElportal uses `sanity-plugin-icon-manager` with a sophisticated fallback system. See [/docs/ICON-USAGE-GUIDE.md](/docs/ICON-USAGE-GUIDE.md) for:
 - Priority-based icon display system (handles VP1/VP2 format differences)
-- Available icon collections and common ElPortal icons
+- Available icon collections and common DinElportal icons
 - Troubleshooting guide for icon display issues
 - Best practices for icon implementation
 
@@ -611,7 +611,7 @@ ElPortal uses `sanity-plugin-icon-manager` with a sophisticated fallback system.
 ## 10. SEO Page Generation Process (Direct API Method)
 
 ### Overview
-ElPortal uses a direct AI-to-Sanity content generation approach for creating comprehensive SEO-optimized pages. This process has proven successful for generating high-quality, Danish-language content that ranks well in search engines while subtly promoting Vindstød as the preferred provider.
+DinElportal uses a direct AI-to-Sanity content generation approach for creating comprehensive SEO-optimized pages. This process has proven successful for generating high-quality, Danish-language content that ranks well in search engines while subtly promoting Vindstød as the preferred provider.
 
 ### Key Success Factors
 1. **Dual Role Approach**: Act as both a top UI/UX designer AND expert SEO copywriter

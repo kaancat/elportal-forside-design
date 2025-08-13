@@ -6,7 +6,7 @@ const InfoSection = () => {
     <section className="py-16 bg-white">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-display font-bold mb-12 text-center">Sådan fungerer ElPortal.dk</h2>
+          <h2 className="text-3xl font-display font-bold mb-12 text-center">Sådan fungerer DinElportal.dk</h2>
           
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
@@ -44,7 +44,7 @@ const InfoSection = () => {
             <div className="flex items-start">
               <Info className="h-6 w-6 text-brand-green mr-4 flex-shrink-0 mt-1" />
               <div>
-                <h3 className="font-bold text-xl mb-2">Hvorfor bruge ElPortal.dk?</h3>
+                <h3 className="font-bold text-xl mb-2">Hvorfor bruge DinElportal.dk?</h3>
                 <ul className="space-y-3">
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-brand-green mr-2 flex-shrink-0 mt-0.5" />
@@ -64,7 +64,7 @@ const InfoSection = () => {
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-brand-green mr-2 flex-shrink-0 mt-0.5" />
-                    <span>Over 10.000 danskere bruger dagligt ElPortal.dk</span>
+                    <span>Over 10.000 danskere bruger dagligt DinElportal.dk</span>
                   </li>
                 </ul>
               </div>

@@ -45,7 +45,7 @@ const StructuredData: React.FC<StructuredDataProps> = ({
 
     // Organization schema (on all pages)
     const organizationSchema = generateOrganizationSchema({
-      name: 'ElPortal - Din Elportal',
+      name: 'DinElportal - Din Elportal',
       url: baseUrl,
       logo: `${baseUrl}/dinelportal-logo.png`,
       description: 'Danmarks førende platform for sammenligning af elpriser og elselskaber. Find den bedste elaftale og spar penge på din elregning.',
@@ -113,7 +113,7 @@ const StructuredData: React.FC<StructuredDataProps> = ({
 
     // WebPage schema (on all pages)
     const webPageSchema = generateWebPageSchema({
-      name: pageTitle || 'ElPortal',
+      name: pageTitle || 'DinElportal',
       description: pageDescription || 'Sammenlign elpriser og find den bedste elaftale',
       url: currentUrl,
       datePublished: '2024-01-01', // Update with actual date

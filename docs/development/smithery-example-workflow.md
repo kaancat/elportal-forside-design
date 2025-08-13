@@ -1,6 +1,6 @@
 # Smithery Example Workflow: Finding Images for Components
 
-This example shows how to use Smithery to find and integrate images into ElPortal components.
+This example shows how to use Smithery to find and integrate images into DinElportal components.
 
 ## Scenario: Adding a Hero Image to a Landing Page
 
@@ -80,7 +80,7 @@ Based on the analysis, you might discover features like:
 - Real-time price updates
 - Consumption calculators
 
-Then implement these in ElPortal with your own improvements.
+Then implement these in DinElportal with your own improvements.
 
 ## Scenario: Generating Danish SEO Content
 

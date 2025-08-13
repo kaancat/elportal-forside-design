@@ -12,7 +12,7 @@
 
 ## Overview
 
-ElPortal uses a direct AI-to-Sanity content generation approach for creating comprehensive SEO-optimized pages. This method has proven successful for generating high-quality, Danish-language content that ranks well in search engines while subtly promoting Vindstød as the preferred provider.
+DinElportal uses a direct AI-to-Sanity content generation approach for creating comprehensive SEO-optimized pages. This method has proven successful for generating high-quality, Danish-language content that ranks well in search engines while subtly promoting Vindstød as the preferred provider.
 
 ## Key Success Factors
 

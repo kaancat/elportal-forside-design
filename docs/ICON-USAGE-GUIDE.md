@@ -1,9 +1,9 @@
-# Icon Usage Guide for ElPortal
+# Icon Usage Guide for DinElportal
 
 > **📌 Important**: For the complete unified icon approach including migration details and component-specific implementations, see [UNIFIED-ICON-APPROACH.md](./UNIFIED-ICON-APPROACH.md)
 
 ## Overview
-ElPortal uses the `sanity-plugin-icon-manager` v1.5.2 for managing icons. This guide provides accurate information about the plugin's requirements and best practices to prevent validation errors.
+DinElportal uses the `sanity-plugin-icon-manager` v1.5.2 for managing icons. This guide provides accurate information about the plugin's requirements and best practices to prevent validation errors.
 
 ## ⚠️ Critical Requirements
 
@@ -93,9 +93,9 @@ The Icon component uses a sophisticated fallback system to ensure reliability:
 1. In Sanity Studio, click on the icon field
 2. Select your icon from the picker
 3. Use the built-in color picker to select from:
-   - ElPortal Green (#84db41)
-   - ElPortal Light Green (#a5e96d)
-   - ElPortal Dark Green (#6bc52d)
+   - DinElportal Green (#84db41)
+   - DinElportal Light Green (#a5e96d)
+   - DinElportal Dark Green (#6bc52d)
    - Other custom palette colors
 4. The plugin generates proper URLs with color parameters
 
@@ -108,7 +108,7 @@ icon.metadata.color = '#a5e96d'  // This breaks validation!
 icon.metadata.color = { hex: '#a5e96d' }  // Missing rgba!
 ```
 
-## Common ElPortal Icons
+## Common DinElportal Icons
 
 ### Energy/Electricity
 - `lucide:zap` - Lightning bolt

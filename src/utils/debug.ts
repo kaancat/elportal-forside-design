@@ -6,19 +6,19 @@
 export const debug = {
   log: (...args: any[]) => {
     // Always log in production to help debug issues
-    console.log('[ElPortal Debug]', ...args);
+    console.log('[DinElportal Debug]', ...args);
   },
   
   error: (...args: any[]) => {
-    console.error('[ElPortal Error]', ...args);
+    console.error('[DinElportal Error]', ...args);
   },
   
   warn: (...args: any[]) => {
-    console.warn('[ElPortal Warning]', ...args);
+    console.warn('[DinElportal Warning]', ...args);
   },
   
   trace: (label: string, data?: any) => {
-    console.log(`[ElPortal Trace] ${label}`, data || '');
+    console.log(`[DinElportal Trace] ${label}`, data || '');
   },
   
   component: (name: string, action: string, data?: any) => {

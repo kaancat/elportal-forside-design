@@ -87,7 +87,7 @@ const Footer = () => {
               )}
               <p className="max-w-xs text-gray-300 text-sm">
                 {footer.footerDescription || 
-                  "ElPortal.dk er Danmarks sammenligningstjeneste for elpriser. Vi hjælper dig med at finde den bedste elpris og spare penge på din elregning."
+                  "DinElportal.dk er Danmarks sammenligningstjeneste for elpriser. Vi hjælper dig med at finde den bedste elpris og spare penge på din elregning."
                 }
               </p>
             </div>
@@ -130,7 +130,7 @@ const Footer = () => {
           </div>
           
           <div className="mt-12 pt-6 border-t border-gray-700 text-sm text-gray-400">
-            <p>{footer.copyrightText || `© ${new Date().getFullYear()} ElPortal.dk - Alle rettigheder forbeholdes`}</p>
+            <p>{footer.copyrightText || `© ${new Date().getFullYear()} DinElportal.dk - Alle rettigheder forbeholdes`}</p>
             <p className="mt-1">{getSecondaryText()}</p>
           </div>
         </div>
@@ -154,7 +154,7 @@ const Footer = () => {
               }}
             />
             <p className="max-w-xs text-gray-300 text-sm">
-              ElPortal.dk er Danmarks sammenligningstjeneste for elpriser.
+              DinElportal.dk er Danmarks sammenligningstjeneste for elpriser.
               Vi hjælper dig med at finde den bedste elpris og spare penge på din elregning.
             </p>
           </div>
@@ -181,7 +181,7 @@ const Footer = () => {
             </div>
             
             <div>
-              <h3 className="font-bold mb-4 text-lg">Om ElPortal</h3>
+              <h3 className="font-bold mb-4 text-lg">Om DinElportal</h3>
               <ul className="space-y-2">
                 <li><a href="#" className="text-gray-300 hover:text-brand-green transition-colors">Om os</a></li>
                 <li><a href="#" className="text-gray-300 hover:text-brand-green transition-colors">Kontakt</a></li>
@@ -193,7 +193,7 @@ const Footer = () => {
         </div>
         
         <div className="mt-12 pt-6 border-t border-gray-700 text-sm text-gray-400">
-          <p>© {new Date().getFullYear()} ElPortal.dk - Alle rettigheder forbeholdes</p>
+          <p>© {new Date().getFullYear()} DinElportal.dk - Alle rettigheder forbeholdes</p>
           <p className="mt-1">Priserne er senest opdateret: {formatDate()}</p>
         </div>
       </div>

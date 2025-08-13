@@ -1,8 +1,8 @@
-# ElPortal System Integration Documentation
+# DinElportal System Integration Documentation
 
 ## Overview
 
-ElPortal operates as a sophisticated two-project ecosystem designed for Danish electricity price comparison. The system integrates the frontend application and Sanity CMS with external data sources to deliver real-time pricing information and SEO-optimized content.
+DinElportal operates as a sophisticated two-project ecosystem designed for Danish electricity price comparison. The system integrates the frontend application and Sanity CMS with external data sources to deliver real-time pricing information and SEO-optimized content.
 
 ## System Architecture
 

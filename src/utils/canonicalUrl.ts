@@ -93,7 +93,7 @@ export function shouldHaveCanonical(path: string): boolean {
 
 /**
  * Gets alternate language URLs for international SEO
- * For future use when ElPortal expands to other markets
+ * For future use when DinElportal expands to other markets
  */
 export function getAlternateUrls(
   path: string,

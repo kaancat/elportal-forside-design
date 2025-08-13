@@ -1,7 +1,7 @@
 # Electricity Calculator Logic Documentation
 
 ## Overview
-The ElPortal electricity price calculator provides transparent, real-time electricity price calculations for Danish consumers. The calculator integrates live spot prices from the Nord Pool market with provider-specific fees to give users accurate cost estimates.
+The DinElportal electricity price calculator provides transparent, real-time electricity price calculations for Danish consumers. The calculator integrates live spot prices from the Nord Pool market with provider-specific fees to give users accurate cost estimates.
 
 ## Price Components
 

@@ -1,12 +1,12 @@
-# Unified Icon Approach for ElPortal
+# Unified Icon Approach for DinElportal
 
 ## Overview
 
-ElPortal has standardized on using `sanity-plugin-icon-manager` v1.5.2 for all icon management across the platform. This document outlines the unified approach, migration details, and best practices.
+DinElportal has standardized on using `sanity-plugin-icon-manager` v1.5.2 for all icon management across the platform. This document outlines the unified approach, migration details, and best practices.
 
 ## Icon Data Structure
 
-All icons in ElPortal must follow this exact structure:
+All icons in DinElportal must follow this exact structure:
 
 ```typescript
 {
@@ -88,11 +88,11 @@ These components use only the standard icon.manager structure. Colors should be 
 ### Icon Colors (via Icon Manager)
 - Use the plugin's color picker
 - Custom palette available:
-  - ElPortal Green (#84db41)
-  - ElPortal Light Green (#a5e96d)
-  - ElPortal Dark Green (#6bc52d)
-  - ElPortal Dark (#001a12)
-  - ElPortal Dark Light (#002a1f)
+  - DinElportal Green (#84db41)
+  - DinElportal Light Green (#a5e96d)
+  - DinElportal Dark Green (#6bc52d)
+  - DinElportal Dark (#001a12)
+  - DinElportal Dark Light (#002a1f)
 
 ### Container Styling (InfoCardsSection only)
 - `iconColor`: Controls the CSS text color class

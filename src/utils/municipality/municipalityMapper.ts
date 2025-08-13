@@ -42,7 +42,7 @@ export function getRegionColor(region: string): string {
 export function getConsumptionColor(consumption: number, maxConsumption: number): string {
   const intensity = Math.min(consumption / maxConsumption, 1);
   
-  // ElPortal brand colors - green to blue scale
+  // DinElportal brand colors - green to blue scale
   if (intensity < 0.2) return '#dcfce7'; // Very light green
   if (intensity < 0.4) return '#bbf7d0'; // Light green
   if (intensity < 0.6) return '#86efac'; // Medium green

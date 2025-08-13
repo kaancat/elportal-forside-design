@@ -76,7 +76,7 @@ export function ThirdPartyFuldmagt() {
   }
   
   const sendFuldmagtEmail = () => {
-    const subject = encodeURIComponent('Giv ElPortal adgang til dine eldata')
+    const subject = encodeURIComponent('Giv DinElportal adgang til dine eldata')
     const body = encodeURIComponent(`Hej,
 
 For at vi kan vise dig dine faktiske elpriser baseret på dit forbrug, har vi brug for din tilladelse til at hente dine eldata.
@@ -92,7 +92,7 @@ Efter du har givet os adgang, kan du se:
 Dine data er sikre og bruges kun til at beregne dine priser.
 
 Med venlig hilsen,
-ElPortal`)
+DinElportal`)
     
     window.open(`mailto:?subject=${subject}&body=${body}`)
   }
@@ -107,7 +107,7 @@ ElPortal`)
             Del Fuldmagtslink med Kunder
           </CardTitle>
           <CardDescription>
-            Send dette link til kunder, så de kan give ElPortal adgang til deres eldata
+            Send dette link til kunder, så de kan give DinElportal adgang til deres eldata
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -150,7 +150,7 @@ ElPortal`)
               <ol className="list-decimal list-inside space-y-1 text-sm">
                 <li>Kunden klikker på linket</li>
                 <li>Logger ind med MitID (privat eller erhverv)</li>
-                <li>Godkender at ElPortal må se deres eldata</li>
+                <li>Godkender at DinElportal må se deres eldata</li>
                 <li>Vi får automatisk adgang til deres forbrugsdata</li>
               </ol>
             </AlertDescription>
@@ -167,7 +167,7 @@ ElPortal`)
             <Badge variant="secondary">{authorizations.length}</Badge>
           </CardTitle>
           <CardDescription>
-            Kunder der har givet ElPortal adgang til deres eldata
+            Kunder der har givet DinElportal adgang til deres eldata
           </CardDescription>
           <Button 
             onClick={fetchAuthorizations}
@@ -256,7 +256,7 @@ ElPortal`)
         </CardHeader>
         <CardContent className="text-blue-700 space-y-2 text-sm">
           <p>
-            Som godkendt tredjepart (mondaybrew ApS) har ElPortal ret til at:
+            Som godkendt tredjepart (mondaybrew ApS) har DinElportal ret til at:
           </p>
           <ul className="list-disc list-inside space-y-1 ml-2">
             <li>Hente kunders elforbrugsdata med deres samtykke</li>

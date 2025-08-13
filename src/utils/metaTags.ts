@@ -61,16 +61,16 @@ export interface MetaTagsConfig {
 }
 
 /**
- * Default meta tags for ElPortal
+ * Default meta tags for DinElportal
  */
 export const DEFAULT_META_TAGS: Partial<MetaTagsConfig> = {
   charset: 'UTF-8',
   viewport: 'width=device-width, initial-scale=1.0',
   language: 'da',
   robots: 'index, follow',
-  author: 'ElPortal',
+  author: 'DinElportal',
   ogType: 'website',
-  ogSiteName: 'ElPortal - Din Elportal',
+  ogSiteName: 'DinElportal - Din Elportal',
   ogLocale: 'da_DK',
   twitterCard: 'summary_large_image',
   twitterSite: '@elportal',
@@ -326,7 +326,7 @@ export function generateDanishMetaTags(
   keywords?: string[]
 ): MetaTagsConfig {
   return {
-    title: `${title} | ElPortal`,
+    title: `${title} | DinElportal`,
     description,
     keywords: keywords || [
       'elpriser', 'strømpriser', 'elselskaber', 'elaftale',

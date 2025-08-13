@@ -58,7 +58,7 @@ const GenericPage = () => {
       setShowReadingProgress(pageData.showReadingProgress || false)
       
       // Update page title
-      document.title = pageData.seoMetaTitle || pageData.title || 'ElPortal'
+      document.title = pageData.seoMetaTitle || pageData.title || 'DinElportal'
       
       // Update meta description
       const metaDescription = document.querySelector('meta[name="description"]')

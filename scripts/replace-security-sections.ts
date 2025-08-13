@@ -342,7 +342,7 @@ async function replaceSections() {
                 {
                   _type: 'span',
                   _key: 'faq1-span',
-                  text: 'Ja. Du logger ind med MitID direkte på Eloverblik (ikke hos os), og giver derefter ElPortal tilladelse til at hente dine data. Forbindelsen er midlertidig og lukker automatisk efter 30 minutter. Vi gemmer ikke dine forbrugsdata - alt hentes direkte når du beder om det. Du kan trække tilladelsen tilbage når som helst på eloverblik.dk.',
+                  text: 'Ja. Du logger ind med MitID direkte på Eloverblik (ikke hos os), og giver derefter DinElPortal tilladelse til at hente dine data. Forbindelsen er midlertidig og lukker automatisk efter 30 minutter. Vi gemmer ikke dine forbrugsdata - alt hentes direkte når du beder om det. Du kan trække tilladelsen tilbage når som helst på eloverblik.dk.',
                   marks: []
                 }
               ]
@@ -389,7 +389,7 @@ async function replaceSections() {
               {
                 _type: 'span',
                 _key: 'faq12-span',
-                text: 'DataHub er Danmarks centrale database for alle elforbrugsdata, drevet af Energinet. Dit netselskab (f.eks. Radius, N1, Cerius) sender automatisk dit forbrug til DataHub hver time via fjernaflæste målere. Disse data bliver så tilgængelige gennem Eloverblik, hvor du kan give tredjeparter som ElPortal adgang til at se dem.',
+                text: 'DataHub er Danmarks centrale database for alle elforbrugsdata, drevet af Energinet. Dit netselskab (f.eks. Radius, N1, Cerius) sender automatisk dit forbrug til DataHub hver time via fjernaflæste målere. Disse data bliver så tilgængelige gennem Eloverblik, hvor du kan give tredjeparter som DinElPortal adgang til at se dem.',
                 marks: []
               }
             ]

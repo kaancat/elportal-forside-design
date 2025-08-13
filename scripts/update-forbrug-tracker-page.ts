@@ -25,7 +25,7 @@ async function updateForbrugTrackerPage() {
     },
     seo: {
       _type: 'seo',
-      metaTitle: 'Forbrug Tracker - Dit Personlige Elforbrug i Realtid | ElPortal',
+      metaTitle: 'Forbrug Tracker - Dit Personlige Elforbrug i Realtid | DinElPortal',
       metaDescription: 'Forbind sikkert med Eloverblik via MitID. Se dit faktiske elforbrug time for time, beregn præcise omkostninger og find besparelser hos forskellige elleverandører.',
       keywords: 'elforbrug tracker, eloverblik integration, strømforbrug måler, elregning beregner, faktisk elforbrug, spar på elregningen, grøn energi forbrug, vindstrøm priser, MitID eloverblik, energiforbrug analyse'
     },
@@ -54,7 +54,7 @@ async function updateForbrugTrackerPage() {
       {
         _type: 'valueProposition',
         _key: 'benefits',
-        heading: 'Hvorfor Bruge ElPortals Forbrug Tracker?',
+        heading: 'Hvorfor Bruge DinElPortals Forbrug Tracker?',
         subheading: 'Få fuld kontrol over dit elforbrug med markedets mest sikre og præcise løsning',
         valueItems: [
           {
@@ -119,7 +119,7 @@ async function updateForbrugTrackerPage() {
             children: [
               {
                 _type: 'span',
-                text: 'Når du bruger ElPortals Forbrug Tracker, er sikkerheden i højsædet. Vi forstår, at dine elforbrugsdata er personlige, og derfor har vi implementeret markedets strengeste sikkerhedsforanstaltninger.',
+                text: 'Når du bruger DinElPortals Forbrug Tracker, er sikkerheden i højsædet. Vi forstår, at dine elforbrugsdata er personlige, og derfor har vi implementeret markedets strengeste sikkerhedsforanstaltninger.',
                 marks: []
               }
             ]
@@ -171,7 +171,7 @@ async function updateForbrugTrackerPage() {
             children: [
               {
                 _type: 'span',
-                text: 'ElPortal (mondaybrew ApS) overholder fuldt ud GDPR og den danske databeskyttelseslov. Vi er registreret som databehandler hos Datatilsynet og følger alle krav om databeskyttelse. Energinet, som driver Eloverblik og DataHub, er underlagt strenge sikkerhedskrav fra den danske stat og EU\'s energiregulering.',
+                text: 'DinElPortal (mondaybrew ApS) overholder fuldt ud GDPR og den danske databeskyttelseslov. Vi er registreret som databehandler hos Datatilsynet og følger alle krav om databeskyttelse. Energinet, som driver Eloverblik og DataHub, er underlagt strenge sikkerhedskrav fra den danske stat og EU\'s energiregulering.',
                 marks: []
               }
             ]
@@ -223,7 +223,7 @@ async function updateForbrugTrackerPage() {
             children: [
               {
                 _type: 'span',
-                text: 'Via Eloverblik kan du til enhver tid se hvilke tredjeparter der har adgang til dine data, og du kan trække tilladelsen tilbage med øjeblikkelig virkning. Log ind på eloverblik.dk under "Fuldmagter" for at administrere dine tilladelser. ElPortal fremgår som "mondaybrew ApS" i listen over godkendte tredjeparter.',
+                text: 'Via Eloverblik kan du til enhver tid se hvilke tredjeparter der har adgang til dine data, og du kan trække tilladelsen tilbage med øjeblikkelig virkning. Log ind på eloverblik.dk under "Fuldmagter" for at administrere dine tilladelser. DinElPortal fremgår som "mondaybrew ApS" i listen over godkendte tredjeparter.',
                 marks: []
               }
             ]
@@ -305,7 +305,7 @@ async function updateForbrugTrackerPage() {
             children: [
               {
                 _type: 'span',
-                text: 'Hver elmåler i Danmark har et unikt 18-cifret målepunkt-ID. Dette ID sikrer, at dine data aldrig kan forveksles med andres. Når du giver ElPortal adgang gennem Eloverblik, får vi kun adgang til data fra dine specifikke målepunkter - intet andet.',
+                text: 'Hver elmåler i Danmark har et unikt 18-cifret målepunkt-ID. Dette ID sikrer, at dine data aldrig kan forveksles med andres. Når du giver DinElPortal adgang gennem Eloverblik, får vi kun adgang til data fra dine specifikke målepunkter - intet andet.',
                 marks: []
               }
             ]
@@ -357,7 +357,7 @@ async function updateForbrugTrackerPage() {
             children: [
               {
                 _type: 'span',
-                text: 'For at beskytte Eloverblik\'s servere mod overbelastning, er der begrænsninger på hvor ofte data kan hentes. ElPortal bruger intelligent caching for at sikre hurtig respons uden at overbelaste systemet. Vi cacher kun aggregerede data (aldrig personlige forbrugsdata) i op til 5 minutter for at give dig den bedste brugeroplevelse.',
+                text: 'For at beskytte Eloverblik\'s servere mod overbelastning, er der begrænsninger på hvor ofte data kan hentes. DinElPortal bruger intelligent caching for at sikre hurtig respons uden at overbelaste systemet. Vi cacher kun aggregerede data (aldrig personlige forbrugsdata) i op til 5 minutter for at give dig den bedste brugeroplevelse.',
                 marks: []
               }
             ]
@@ -397,7 +397,7 @@ async function updateForbrugTrackerPage() {
             children: [
               {
                 _type: 'span',
-                text: 'At forstå dit elforbrug er første skridt mod lavere elregninger. Med ElPortals Forbrug Tracker får du ikke bare tal - du får indsigt i dine forbrugsmønstre og konkrete sparemuligheder.',
+                text: 'At forstå dit elforbrug er første skridt mod lavere elregninger. Med DinElPortals Forbrug Tracker får du ikke bare tal - du får indsigt i dine forbrugsmønstre og konkrete sparemuligheder.',
                 marks: []
               }
             ]
@@ -656,7 +656,7 @@ async function updateForbrugTrackerPage() {
             children: [
               {
                 _type: 'span',
-                text: 'Med ElPortals CO2-tracker kan du se din elforbrugs klimapåvirkning time for time. En gennemsnitsfamilie kan reducere deres CO2-udledning med op til 2 tons årligt ved at skifte til 100% grøn strøm. Det svarer til at plante 100 træer eller undlade at køre 10.000 km i bil.',
+                text: 'Med DinElPortals CO2-tracker kan du se din elforbrugs klimapåvirkning time for time. En gennemsnitsfamilie kan reducere deres CO2-udledning med op til 2 tons årligt ved at skifte til 100% grøn strøm. Det svarer til at plante 100 træer eller undlade at køre 10.000 km i bil.',
                 marks: []
               }
             ]
@@ -845,8 +845,8 @@ async function updateForbrugTrackerPage() {
           {
             _type: 'faqItem',
             _key: 'faq2',
-            question: 'Hvordan giver jeg ElPortal adgang til mine data?',
-            answer: 'Klik på "Forbind med Eloverblik" og du bliver sendt til Eloverblik\'s sikre login-side. Log ind med MitID og godkend at mondaybrew ApS (ElPortals juridiske navn) må se dine forbrugsdata. Processen tager under 2 minutter og du kan trække tilladelsen tilbage når som helst.'
+            question: 'Hvordan giver jeg DinElPortal adgang til mine data?',
+            answer: 'Klik på "Forbind med Eloverblik" og du bliver sendt til Eloverblik\'s sikre login-side. Log ind med MitID og godkend at mondaybrew ApS (DinElPortals juridiske navn) må se dine forbrugsdata. Processen tager under 2 minutter og du kan trække tilladelsen tilbage når som helst.'
           },
           {
             _type: 'faqItem',
@@ -894,7 +894,7 @@ async function updateForbrugTrackerPage() {
             _type: 'faqItem',
             _key: 'faq10',
             question: 'Kan jeg eksportere mine data?',
-            answer: 'Gennem Eloverblik kan du downloade dine rådata som CSV-filer. I ElPortals Forbrug Tracker fokuserer vi på visualisering og analyse direkte i browseren.'
+            answer: 'Gennem Eloverblik kan du downloade dine rådata som CSV-filer. I DinElPortals Forbrug Tracker fokuserer vi på visualisering og analyse direkte i browseren.'
           }
         ]
       }

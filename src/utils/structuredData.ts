@@ -218,7 +218,7 @@ export function generateArticleSchema(data: ArticleSchema): object {
 
   schema.publisher = {
     "@type": "Organization",
-    "name": "ElPortal",
+    "name": "DinElportal",
     "url": "https://elportal.dk"
   };
 
@@ -285,7 +285,7 @@ export function generateFAQSchema(items: FAQItem[]): object {
 }
 
 /**
- * Generate Energy Utility Company schema (specific for ElPortal)
+ * Generate Energy Utility Company schema (specific for DinElportal)
  */
 export function generateEnergyCompanySchema(data: {
   name: string;

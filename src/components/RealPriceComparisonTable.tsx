@@ -11,6 +11,7 @@ import type { RealPriceComparisonTable, ProviderProductBlock } from '../types/sa
 import { SanityService } from '../services/sanityService';
 import { PRICE_CONSTANTS } from '@/services/priceCalculationService';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { TrackedLink } from '@/components/tracking/TrackedLink';
 
 // Format currency with proper rounding for display
 const formatCurrency = (amount: number) => {
@@ -495,21 +496,37 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
           </div>
         </div>
 
-        {/* CTA Button */}
-        {provider && (
-          <Button 
-            className={cn(
-              "w-full mt-6",
-              isCheaper 
-                ? "bg-brand-green hover:bg-brand-green-dark text-white font-bold py-3" 
-                : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-            )}
-            onClick={() => provider.signupLink && window.open(provider.signupLink, '_blank')}
+        {/* CTA Button with Tracking */}
+        {provider && provider.signupLink ? (
+          <TrackedLink
+            href={provider.signupLink}
+            partner={provider.providerName || 'unknown'}
+            component="price_comparison_table"
+            variant={isCheaper ? 'cheapest' : 'comparison'}
+            consumption={monthlyConsumption * 12} // Convert to annual
+            estimatedValue={parseFloat(formatMonthlyTotal(details.totalPerKwh, monthlyConsumption, details.subscription).replace(' kr.', ''))}
+            className="block mt-6"
           >
-            {isCheaper ? 'Skift nu og spar!' : 'Se mere'}
-            <ExternalLink className="ml-2 h-4 w-4" />
+            <Button 
+              className={cn(
+                "w-full",
+                isCheaper 
+                  ? "bg-brand-green hover:bg-brand-green-dark text-white font-bold py-3" 
+                  : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+              )}
+            >
+              {isCheaper ? 'Skift nu og spar!' : 'Se mere'}
+              <ExternalLink className="ml-2 h-4 w-4" />
+            </Button>
+          </TrackedLink>
+        ) : provider ? (
+          <Button 
+            disabled
+            className="w-full mt-6 bg-gray-300 text-gray-500 cursor-not-allowed"
+          >
+            Link ikke tilgængelig
           </Button>
-        )}
+        ) : null}
       </CardContent>
     </Card>
   );

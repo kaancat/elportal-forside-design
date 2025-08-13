@@ -110,16 +110,15 @@ export const TrackedLink: React.FC<TrackedLinkProps> = ({
         onClick(e);
       }
       
-      // Handle navigation - don't prevent default, let it bubble
-      if (!e.defaultPrevented) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        if (openInNewTab) {
-          window.open(trackedUrl, '_blank', 'noopener,noreferrer');
-        } else {
-          window.location.href = trackedUrl;
-        }
+      // Always prevent default and handle navigation ourselves
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Open the tracked URL with parameters
+      if (openInNewTab) {
+        window.open(trackedUrl, '_blank', 'noopener,noreferrer');
+      } else {
+        window.location.href = trackedUrl;
       }
     } catch (error) {
       console.error('TrackedLink error:', error);
@@ -146,38 +145,29 @@ export const TrackedLink: React.FC<TrackedLinkProps> = ({
     openInNewTab
   ]);
   
-  // Clone child element and inject tracking props
-  // This is the most scalable solution - works with any child component
-  if (React.isValidElement(children)) {
-    // Debug logging
-    console.log('TrackedLink rendering with href:', href);
-    
-    return React.cloneElement(children as React.ReactElement<any>, {
-      onClick: (e: React.MouseEvent) => {
-        console.log('TrackedLink onClick triggered!');
-        handleClick(e);
-      },
-      'aria-label': ariaLabel || (children as any).props?.['aria-label'],
-      disabled: disabled,
-      className: className || (children as any).props?.className,
-      style: { 
-        ...((children as any).props?.style || {}),
-        cursor: disabled ? 'not-allowed' : 'pointer' 
-      }
-    });
-  }
-  
-  // Fallback for non-React elements (text, multiple children, etc)
+  // Wrap children in a span that intercepts clicks
+  // This ensures we capture the click regardless of child component implementation
   return (
-    <button
+    <span
       onClick={handleClick}
-      disabled={disabled}
-      className={className || 'inline-flex items-center justify-center'}
+      style={{ 
+        display: 'inline-block',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        width: '100%'
+      }}
+      className={className}
       aria-label={ariaLabel}
-      style={{ cursor: disabled ? 'not-allowed' : 'pointer' }}
+      role="link"
+      tabIndex={disabled ? -1 : 0}
+      onKeyDown={(e) => {
+        if (!disabled && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          handleClick(e as any);
+        }
+      }}
     >
       {children}
-    </button>
+    </span>
   );
 };
 

@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DinElportal Partner Test - Monday Brew</title>
+    
+    <!-- DinElportal Universal Tracking Script -->
+    <script src="https://dinelportal.dk/api/tracking/universal.js?partner_id=mondaybrew&debug=true" async></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .status-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #ddd;
+        }
+        
+        .status-item.success {
+            border-left-color: #10b981;
+            background: #f0fdf4;
+        }
+        
+        .status-item.error {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+        
+        .status-item.warning {
+            border-left-color: #f59e0b;
+            background: #fffbeb;
+        }
+        
+        .status-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        
+        .status-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+            word-break: break-all;
+        }
+        
+        .button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .button:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .button.secondary {
+            background: #6b7280;
+        }
+        
+        .button.secondary:hover {
+            background: #4b5563;
+        }
+        
+        .button.success {
+            background: #10b981;
+        }
+        
+        .button.success:hover {
+            background: #059669;
+        }
+        
+        .code-block {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+        
+        .test-form {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .console-log {
+            background: #111827;
+            color: #10b981;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .console-log .log-entry {
+            margin-bottom: 5px;
+            opacity: 0;
+            animation: fadeIn 0.3s forwards;
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .badge.success {
+            background: #10b981;
+            color: white;
+        }
+        
+        .badge.warning {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .badge.error {
+            background: #ef4444;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Card -->
+        <div class="card">
+            <h1>🚀 DinElportal Partner Test Page</h1>
+            <p class="subtitle">Monday Brew Integration Testing</p>
+            
+            <!-- Status Grid -->
+            <div class="status-grid" id="statusGrid">
+                <div class="status-item" id="urlStatus">
+                    <div class="status-label">Click ID from URL</div>
+                    <div class="status-value">Checking...</div>
+                </div>
+                <div class="status-item" id="scriptStatus">
+                    <div class="status-label">Script Status</div>
+                    <div class="status-value">Loading...</div>
+                </div>
+                <div class="status-item" id="apiStatus">
+                    <div class="status-label">API Status</div>
+                    <div class="status-value">Waiting...</div>
+                </div>
+                <div class="status-item" id="trackingStatus">
+                    <div class="status-label">Tracking Data</div>
+                    <div class="status-value">Not loaded</div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div>
+                <button class="button" onclick="testApi()">Test API</button>
+                <button class="button secondary" onclick="getTrackingData()">Get Tracking Data</button>
+                <button class="button success" onclick="testConversion()">Test Conversion</button>
+                <button class="button secondary" onclick="clearData()">Clear Data</button>
+                <button class="button" onclick="enableDebug()">Enable Debug</button>
+            </div>
+        </div>
+        
+        <!-- Test Conversion Form -->
+        <div class="card">
+            <h2 style="margin-bottom: 20px;">Test Conversion Tracking</h2>
+            
+            <div class="test-form">
+                <form id="signupForm" onsubmit="handleSignup(event)">
+                    <div class="form-group">
+                        <label for="email">Email (test)</label>
+                        <input type="email" id="email" value="test@mondaybrew.dk" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product">Product</label>
+                        <input type="text" id="product" value="premium_subscription" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="value">Value (DKK)</label>
+                        <input type="number" id="value" value="299" required>
+                    </div>
+                    <button type="submit" class="button success">Simulate Signup</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Console Output -->
+        <div class="card">
+            <h2 style="margin-bottom: 20px;">Console Output</h2>
+            <div class="console-log" id="consoleOutput">
+                <div class="log-entry">Waiting for DinElportal script to load...</div>
+            </div>
+        </div>
+        
+        <!-- Integration Code -->
+        <div class="card">
+            <h2 style="margin-bottom: 20px;">Your Integration Code</h2>
+            <p style="margin-bottom: 15px; color: #6b7280;">
+                This is the only code you need to add to Monday Brew:
+            </p>
+            <div class="code-block">
+&lt;script src="https://dinelportal.dk/api/tracking/universal.js?partner_id=mondaybrew" async&gt;&lt;/script&gt;
+            </div>
+            
+            <p style="margin-bottom: 15px; color: #6b7280;">
+                Optional: Manual conversion tracking when a user signs up:
+            </p>
+            <div class="code-block">
+window.DinElportal.trackConversion({
+    conversion_type: 'signup',
+    conversion_value: 299,
+    product: 'premium_subscription'
+});
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Console logger
+        function log(message, type = 'info') {
+            const output = document.getElementById('consoleOutput');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const color = type === 'error' ? '#ef4444' : 
+                         type === 'success' ? '#10b981' : 
+                         type === 'warning' ? '#f59e0b' : '#6b7280';
+            
+            entry.style.color = color;
+            entry.textContent = `[${timestamp}] ${message}`;
+            output.appendChild(entry);
+            output.scrollTop = output.scrollHeight;
+            
+            // Also log to browser console
+            console.log(`[MondayBrew Test] ${message}`);
+        }
+        
+        // Check URL parameters
+        function checkUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            const clickId = params.get('click_id');
+            const urlStatus = document.getElementById('urlStatus');
+            
+            if (clickId) {
+                urlStatus.classList.add('success');
+                urlStatus.querySelector('.status-value').textContent = clickId;
+                log(`✅ Click ID found in URL: ${clickId}`, 'success');
+            } else {
+                urlStatus.classList.add('warning');
+                urlStatus.querySelector('.status-value').textContent = 'No click_id';
+                log('⚠️ No click_id in URL parameters', 'warning');
+            }
+        }
+        
+        // Check script status
+        function checkScriptStatus() {
+            const scriptStatus = document.getElementById('scriptStatus');
+            const scripts = Array.from(document.querySelectorAll('script'));
+            const universalScript = scripts.find(s => s.src && s.src.includes('universal.js'));
+            
+            if (universalScript) {
+                scriptStatus.classList.add('success');
+                scriptStatus.querySelector('.status-value').textContent = 'Loaded';
+                log('✅ Universal script tag found', 'success');
+            } else {
+                scriptStatus.classList.add('error');
+                scriptStatus.querySelector('.status-value').textContent = 'Not found';
+                log('❌ Universal script not found', 'error');
+            }
+        }
+        
+        // Check API availability
+        function checkApiStatus() {
+            const apiStatus = document.getElementById('apiStatus');
+            
+            if (typeof window.DinElportal !== 'undefined') {
+                apiStatus.classList.add('success');
+                apiStatus.querySelector('.status-value').textContent = `v${window.DinElportal.version || '1.0.0'}`;
+                log(`✅ DinElportal API available (v${window.DinElportal.version || '1.0.0'})`, 'success');
+                
+                // Check tracking data
+                updateTrackingStatus();
+            } else {
+                apiStatus.classList.add('error');
+                apiStatus.querySelector('.status-value').textContent = 'Not available';
+                log('❌ DinElportal API not available', 'error');
+            }
+        }
+        
+        // Update tracking status
+        function updateTrackingStatus() {
+            const trackingStatus = document.getElementById('trackingStatus');
+            
+            if (window.DinElportal) {
+                const data = window.DinElportal.getTrackingData();
+                if (data && data.click_id) {
+                    trackingStatus.classList.add('success');
+                    trackingStatus.querySelector('.status-value').textContent = 'Active';
+                    log(`✅ Tracking active with click_id: ${data.click_id}`, 'success');
+                } else if (data) {
+                    trackingStatus.classList.add('warning');
+                    trackingStatus.querySelector('.status-value').textContent = 'No click_id';
+                    log('⚠️ Tracking active but no click_id', 'warning');
+                } else {
+                    trackingStatus.classList.add('warning');
+                    trackingStatus.querySelector('.status-value').textContent = 'No data';
+                    log('⚠️ No tracking data available', 'warning');
+                }
+            }
+        }
+        
+        // Test API functions
+        function testApi() {
+            log('Testing DinElportal API...');
+            
+            if (typeof window.DinElportal === 'undefined') {
+                log('❌ API not loaded', 'error');
+                return;
+            }
+            
+            try {
+                const methods = Object.keys(window.DinElportal);
+                log(`✅ API methods available: ${methods.join(', ')}`, 'success');
+                
+                const config = window.DinElportal.getConfig();
+                log(`✅ Partner ID: ${config.partner_id}`, 'success');
+                log(`✅ Partner Domain: ${config.partner_domain}`, 'success');
+            } catch (error) {
+                log(`❌ API test error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Get tracking data
+        function getTrackingData() {
+            log('Getting tracking data...');
+            
+            if (!window.DinElportal) {
+                log('❌ API not loaded', 'error');
+                return;
+            }
+            
+            const data = window.DinElportal.getTrackingData();
+            if (data) {
+                log(`✅ Tracking data retrieved:`, 'success');
+                log(JSON.stringify(data, null, 2));
+            } else {
+                log('⚠️ No tracking data available', 'warning');
+            }
+        }
+        
+        // Test conversion
+        async function testConversion() {
+            log('Testing conversion tracking...');
+            
+            if (!window.DinElportal) {
+                log('❌ API not loaded', 'error');
+                return;
+            }
+            
+            try {
+                const result = await window.DinElportal.trackConversion({
+                    conversion_type: 'test',
+                    conversion_value: 100,
+                    product: 'test_product',
+                    test_mode: true
+                });
+                
+                if (result) {
+                    log('✅ Test conversion tracked successfully!', 'success');
+                } else {
+                    log('⚠️ Conversion tracking returned false', 'warning');
+                }
+            } catch (error) {
+                log(`❌ Conversion error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Clear data
+        function clearData() {
+            log('Clearing tracking data...');
+            
+            if (!window.DinElportal) {
+                log('❌ API not loaded', 'error');
+                return;
+            }
+            
+            window.DinElportal.clearData();
+            log('✅ Tracking data cleared', 'success');
+            updateTrackingStatus();
+        }
+        
+        // Enable debug mode
+        function enableDebug() {
+            log('Enabling debug mode...');
+            
+            if (!window.DinElportal) {
+                log('❌ API not loaded', 'error');
+                return;
+            }
+            
+            window.DinElportal.debug(true);
+            log('✅ Debug mode enabled - check browser console', 'success');
+        }
+        
+        // Handle signup form
+        async function handleSignup(event) {
+            event.preventDefault();
+            log('Processing signup form...');
+            
+            const email = document.getElementById('email').value;
+            const product = document.getElementById('product').value;
+            const value = parseInt(document.getElementById('value').value);
+            
+            log(`Signup: ${email}, Product: ${product}, Value: ${value} DKK`);
+            
+            if (!window.DinElportal) {
+                log('❌ Cannot track conversion - API not loaded', 'error');
+                return;
+            }
+            
+            try {
+                const result = await window.DinElportal.trackConversion({
+                    conversion_type: 'signup',
+                    conversion_value: value,
+                    product: product,
+                    customer_email: email, // Don't do this in production (GDPR)
+                    test_mode: true
+                });
+                
+                if (result) {
+                    log('✅ Signup conversion tracked successfully!', 'success');
+                    
+                    // Simulate redirect to thank you page
+                    setTimeout(() => {
+                        log('Would redirect to thank you page...', 'success');
+                    }, 1000);
+                } else {
+                    log('⚠️ Conversion tracking failed', 'warning');
+                }
+            } catch (error) {
+                log(`❌ Signup error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            log('Page loaded, checking status...');
+            checkUrlParams();
+            checkScriptStatus();
+            
+            // Wait for DinElportal to load
+            let checkCount = 0;
+            const checkInterval = setInterval(() => {
+                checkCount++;
+                
+                if (window.DinElportal) {
+                    clearInterval(checkInterval);
+                    log('✅ DinElportal loaded!', 'success');
+                    checkApiStatus();
+                } else if (checkCount > 20) { // 10 seconds timeout
+                    clearInterval(checkInterval);
+                    log('❌ DinElportal failed to load after 10 seconds', 'error');
+                    checkApiStatus();
+                }
+            }, 500);
+        });
+        
+        // Listen for DinElportal events (if available)
+        window.addEventListener('dinelportal:loaded', () => {
+            log('📢 DinElportal loaded event received', 'success');
+            checkApiStatus();
+        });
+        
+        window.addEventListener('dinelportal:conversion', (event) => {
+            log(`📢 Conversion event: ${JSON.stringify(event.detail)}`, 'success');
+        });
+    </script>
+</body>
+</html>

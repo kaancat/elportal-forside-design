@@ -16,8 +16,16 @@ export default async function handler(
   try {
     const { credentials } = req.body;
 
-    // Check against environment variable (fallback for testing)
-    const adminSecret = process.env.ADMIN_SECRET || 'test123';
+    // Check against environment variable
+    const adminSecret = process.env.ADMIN_SECRET;
+    
+    if (!adminSecret) {
+      console.error('ADMIN_SECRET environment variable not set');
+      return res.status(500).json({ 
+        success: false,
+        error: 'Server configuration error'
+      });
+    }
 
     if (credentials === adminSecret) {
       return res.status(200).json({ 

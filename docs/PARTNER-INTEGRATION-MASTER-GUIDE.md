@@ -450,10 +450,25 @@ Response time: Within 24 hours on business days
 
 ### Common Partner IDs (Examples)
 
-- Vindstød: `vindstod`
+- Test Partner: `test-partner` (for testing and demo purposes)
+- Vindstød: `vindstod` 
 - Andel Energi: `andelenergi`
 - OK: `ok`
-- Test/Development: `test`
+
+### Where Partner IDs Come From
+
+Partner IDs are stored in Vercel KV (Redis-like database) and managed through our API:
+
+1. **Production Partners**: Created by DinElportal admin team when onboarding new partners
+2. **Test Partner**: Use `test-partner` for all testing and demonstrations
+3. **Storage**: Configurations are stored in Vercel KV with keys like `partner_config:partner-id`
+4. **API Access**: Partner configurations are accessed via `/api/tracking/config/[partnerId]`
+
+Each partner configuration includes:
+- Domain whitelist (which domains can use the tracking)
+- Tracking settings (cookie duration, conversion patterns)
+- Security settings (webhook hash, rate limits)
+- Metadata (status, tier, creation date)
 
 ### Frequently Asked Questions
 

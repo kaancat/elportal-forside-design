@@ -152,7 +152,7 @@ const AdminDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Debug info removed for production */}
+          {/* Debug info completely removed */}
         </div>
       </div>
     );

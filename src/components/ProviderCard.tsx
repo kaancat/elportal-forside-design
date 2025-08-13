@@ -10,6 +10,7 @@ import {
   getPriceBreakdown,
   PRICE_CONSTANTS 
 } from '@/services/priceCalculationService';
+import { TrackedLink } from '@/components/tracking/TrackedLink';
 
 interface ProviderCardProps {
   product: ElectricityProduct;
@@ -29,11 +30,8 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
     return null;
   }
 
-  const handleSignupClick = () => {
-    if (product.signupLink) {
-      window.open(product.signupLink, '_blank', 'noopener,noreferrer');
-    }
-  };
+  // Region can be passed via props or context in the future
+  const userRegion = networkTariff && networkTariff > 0.26 ? 'DK2' : 'DK1'; // Simple heuristic
 
   // Use the shared calculation service with network tariff and additional fees
   const baseSpotPrice = spotPrice !== null ? spotPrice : PRICE_CONSTANTS.DEFAULT_SPOT_PRICE;
@@ -189,13 +187,31 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
               </div>
             </div>
             
-            <Button 
-              onClick={handleSignupClick}
-              className="bg-brand-dark hover:bg-brand-dark/90 text-white rounded-lg w-full font-semibold py-3 px-6"
-              disabled={!product.signupLink}
-            >
-              Skift til {product.supplierName || 'denne leverandør'} <ExternalLink className="ml-2 h-4 w-4" />
-            </Button>
+            {product.signupLink ? (
+              <TrackedLink
+                href={product.signupLink}
+                partner={product.supplierName || 'unknown'}
+                component="provider_card"
+                variant={product.isVindstoedProduct ? 'featured' : 'standard'}
+                consumption={annualConsumption}
+                region={userRegion}
+                className="w-full"
+              >
+                <Button 
+                  className="bg-brand-dark hover:bg-brand-dark/90 text-white rounded-lg w-full font-semibold py-3 px-6"
+                  onClick={(e) => e.stopPropagation()} // Prevent double handling
+                >
+                  Skift til {product.supplierName || 'denne leverandør'} <ExternalLink className="ml-2 h-4 w-4" />
+                </Button>
+              </TrackedLink>
+            ) : (
+              <Button 
+                className="bg-gray-300 text-gray-500 rounded-lg w-full font-semibold py-3 px-6 cursor-not-allowed"
+                disabled
+              >
+                Link ikke tilgængelig
+              </Button>
+            )}
           </div>
         </div>
       </div>

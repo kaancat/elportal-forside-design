@@ -198,7 +198,8 @@ export default async function handler(
       res.setHeader('CDN-Cache-Control', 'public, max-age=86400');
       
       // Set ETag based on script content and config
-      const etag = require('crypto')
+      const crypto = await import('crypto');
+      const etag = crypto
         .createHash('md5')
         .update(configuredScript)
         .digest('hex');

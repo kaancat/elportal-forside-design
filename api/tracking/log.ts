@@ -71,10 +71,6 @@ async function validatePartnerDomain(partnerId: string, domain: string): Promise
     // Check domain whitelist (if configured)
     if (config.domain_whitelist && config.domain_whitelist.length > 0) {
       return config.domain_whitelist.some((allowedDomain: string) => {
-        // Allow wildcard for all domains (testing only!)
-        if (allowedDomain === '*') {
-          return true;
-        }
         // Support wildcard subdomains
         if (allowedDomain.startsWith('*.')) {
           const baseDomain = allowedDomain.substring(2);

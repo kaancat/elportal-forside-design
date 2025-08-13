@@ -241,13 +241,19 @@
         cookieString += '; domain=' + this.options.domain;
       }
       
-      if (this.options.secure) {
+      if (this.options.secure && location.protocol === 'https:') {
         cookieString += '; secure';
       }
       
       cookieString += '; samesite=' + this.options.sameSite;
       
+      this.log('Setting cookie:', key, 'with domain:', this.options.domain, 'full string:', cookieString);
       document.cookie = cookieString;
+      
+      // Verify the cookie was set
+      var verifyValue = this.getCookie(key);
+      this.log('Cookie verification for', key, '- Expected:', value.substring(0, 50), 'Got:', verifyValue ? verifyValue.substring(0, 50) : 'null');
+      
       return true;
     } catch (e) {
       this.log('setCookie failed:', e);
@@ -259,6 +265,8 @@
     try {
       if (typeof document === 'undefined') return null;
       
+      this.log('Getting cookie:', key, 'All cookies:', document.cookie);
+      
       var nameEQ = key + "=";
       var ca = document.cookie.split(';');
       
@@ -267,9 +275,11 @@
         while (c.charAt(0) === ' ') c = c.substring(1, c.length);
         if (c.indexOf(nameEQ) === 0) {
           var value = decodeURIComponent(c.substring(nameEQ.length, c.length));
+          this.log('Found cookie:', key, 'Value:', value.substring(0, 50));
           return value;
         }
       }
+      this.log('Cookie not found:', key);
       return null;
     } catch (e) {
       this.log('getCookie failed:', e);
@@ -291,10 +301,21 @@
       if (typeof location === 'undefined') return '';
       
       var hostname = location.hostname;
+      
+      // Don't set domain for localhost or IP addresses
+      if (hostname === 'localhost' || /^[0-9.]+$/.test(hostname)) {
+        return '';
+      }
+      
       var parts = hostname.split('.');
       
-      if (parts.length > 2) {
-        return '.' + parts.slice(-2).join('.');
+      // For domains like example.com or www.example.com, use .example.com
+      // This ensures cookies work across all subdomains
+      if (parts.length >= 2) {
+        // Get the last two parts (e.g., mondaybrew.dk)
+        var domain = '.' + parts.slice(-2).join('.');
+        this.log('Cookie domain set to:', domain);
+        return domain;
       }
       
       return hostname;
@@ -614,13 +635,19 @@
 
       // Capture click_id from URL
       var urlClickId = self.extractClickIdFromUrl();
+      self.log('URL click_id:', urlClickId);
       
       // Get or generate tracking data
       var trackingData = self.storageManager.getData();
+      self.log('Retrieved tracking data:', trackingData);
       
       if (!trackingData || self.shouldRefreshData(trackingData, urlClickId)) {
+        self.log('Creating new tracking data (no existing data or refresh needed)');
         trackingData = self.createTrackingData(urlClickId);
         self.storageManager.storeData(trackingData);
+        self.log('Stored new tracking data:', trackingData);
+      } else {
+        self.log('Using existing tracking data');
       }
 
       // Initialize conversion detection
@@ -639,9 +666,50 @@
 
       // Send initial tracking event
       self.sendTrackingData(trackingData);
+      
+      // Track page navigation
+      self.trackPageView();
 
     } catch (error) {
       self.log('Error initializing tracker:', error);
+    }
+  };
+
+  UniversalTracker.prototype.trackPageView = function() {
+    var self = this;
+    
+    try {
+      // Get stored tracking data
+      var trackingData = self.storageManager.getData();
+      
+      self.log('trackPageView - Current tracking data:', trackingData);
+      
+      // Always send page view event, even without click_id
+      var pageViewData = {
+        type: 'track',
+        partner_id: self.config.partner_id,
+        partner_domain: self.config.partner_domain,
+        data: {
+          click_id: trackingData ? trackingData.click_id : null,
+          fingerprint: trackingData ? trackingData.fingerprint : self.fingerprinter.generate(),
+          session_id: trackingData ? trackingData.session_id : self.storageManager.getOrCreateSessionId(),
+          page_url: typeof location !== 'undefined' ? location.href : '',
+          referrer: typeof document !== 'undefined' ? document.referrer : '',
+          user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+          timestamp: Date.now(),
+          event_type: 'page_view'
+        }
+      };
+      
+      self.log('Sending page view event:', pageViewData);
+      
+      // Send directly to endpoint
+      self.sendToEndpoint(pageViewData, function(success) {
+        self.log('Page view tracked:', success);
+      });
+      
+    } catch (error) {
+      self.log('Error tracking page view:', error);
     }
   };
 
@@ -978,7 +1046,7 @@
     try {
       if (typeof window === 'undefined') return;
 
-      var tracker = new UniversalTracker(window.__DINELPORTAL_CONFIG || {});
+      var tracker = new UniversalTracker(window.DinElportalConfig || window.__DINELPORTAL_CONFIG || {});
       
       var api = {
         trackConversion: function(data) { return tracker.trackConversion(data); },

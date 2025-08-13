@@ -139,7 +139,7 @@ export default async function handler(
 
   // Simple auth check via header
   const authHeader = req.headers.authorization;
-  const adminSecret = process.env.ADMIN_SECRET || 'dev-admin-123';
+  const adminSecret = process.env.ADMIN_SECRET || 'test123';
   
   if (!authHeader || authHeader !== `Bearer ${adminSecret}`) {
     return res.status(401).json({ error: 'Unauthorized' });

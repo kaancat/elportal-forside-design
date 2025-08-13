@@ -5,7 +5,7 @@ import { kv } from '@vercel/kv';
 const TEST_PARTNER_CONFIG = {
   partner_id: 'test-partner',
   partner_name: 'Test Partner (Demo)',
-  domain_whitelist: ['localhost', 'dinelportal.dk', 'www.dinelportal.dk'],
+  domain_whitelist: ['*'], // Accept ALL domains for testing purposes
   tracking_config: {
     endpoint: 'https://www.dinelportal.dk/api/tracking/log',
     clickIdParam: 'click_id',

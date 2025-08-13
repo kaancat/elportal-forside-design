@@ -62,8 +62,9 @@ export default async function handler(
   
   try {
     if (req.method === 'POST') {
-      // Create test partner
+      // Create or update test partner (overwrite existing)
       const key = `partner_config:test-partner`;
+      await kv.del(key); // Delete existing config first
       await kv.set(key, TEST_PARTNER_CONFIG);
       
       // Also store in partner index

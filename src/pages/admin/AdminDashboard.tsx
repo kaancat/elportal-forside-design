@@ -83,11 +83,23 @@ const AdminDashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchDashboardData();
-    
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchDashboardData, 30000);
-    return () => clearInterval(interval);
+    // Only fetch data if we have a valid session
+    const sessionData = sessionStorage.getItem('dinelportal_admin_session');
+    if (sessionData) {
+      try {
+        const session = JSON.parse(sessionData);
+        if (session.authenticated && Date.now() < session.expiresAt) {
+          fetchDashboardData();
+          
+          // Auto-refresh every 30 seconds
+          const interval = setInterval(fetchDashboardData, 30000);
+          return () => clearInterval(interval);
+        }
+      } catch (error) {
+        console.error('Session validation failed:', error);
+        logout();
+      }
+    }
   }, []);
 
   const formatCurrency = (amount: number) => {

@@ -131,10 +131,14 @@ export default async function handler(
       });
     }
     
-    // Return success
+    // Return success with standardized format
     return res.status(200).json({ 
       success: true,
-      click_id: data.click_id
+      data: {
+        click_id: data.click_id
+      },
+      message: 'Click tracked successfully',
+      timestamp: new Date().toISOString()
     });
     
   } catch (error) {

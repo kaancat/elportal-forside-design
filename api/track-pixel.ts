@@ -79,12 +79,17 @@ export default async function handler(
         });
     }
     
-    // Log in development
+    // Log in development with standardized format
     if (process.env.NODE_ENV === 'development') {
       console.log('🖼️ Pixel tracked:', {
-        click_id,
-        event,
-        value: numericValue
+        success: true,
+        data: {
+          click_id: String(click_id),
+          event: String(event),
+          value: numericValue
+        },
+        message: 'Pixel tracked successfully',
+        timestamp: new Date().toISOString()
       });
     }
     

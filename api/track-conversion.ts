@@ -186,8 +186,7 @@ export default async function handler(
     const isDuplicate = await checkDuplicate(data.click_id);
     if (isDuplicate) {
       return res.status(409).json({ 
-        error: 'Conversion already tracked',
-        click_id: data.click_id
+        error: 'Conversion already tracked'
       });
     }
     
@@ -204,11 +203,16 @@ export default async function handler(
       });
     }
     
-    // Return success
+    // Return success with standardized format
     return res.status(200).json({ 
       success: true,
+      data: {
+        click_id: data.click_id,
+        partner_id: validation.clickData!.partner_id,
+        contract_value: data.contract_value
+      },
       message: 'Conversion tracked successfully',
-      click_id: data.click_id
+      timestamp: new Date().toISOString()
     });
     
   } catch (error) {

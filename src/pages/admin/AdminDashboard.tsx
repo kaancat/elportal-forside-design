@@ -30,15 +30,7 @@ const AdminDashboard: React.FC = () => {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [isDashboardLoading, setIsDashboardLoading] = useState(false);
   const [dashboardError, setDashboardError] = useState('');
-  const [debugInfo, setDebugInfo] = useState<any>(null);
-
-  // Fetch debug info on mount
-  useEffect(() => {
-    fetch('/api/admin/debug')
-      .then(res => res.json())
-      .then(setDebugInfo)
-      .catch(console.error);
-  }, []);
+  // Remove debug info from production login page
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,19 +152,7 @@ const AdminDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Debug Info */}
-          {debugInfo && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Debug Information</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <pre className="bg-gray-100 p-4 rounded text-sm overflow-auto">
-                  {JSON.stringify(debugInfo, null, 2)}
-                </pre>
-              </CardContent>
-            </Card>
-          )}
+          {/* Debug info removed for production */}
         </div>
       </div>
     );

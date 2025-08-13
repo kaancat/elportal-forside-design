@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DinElportal Partner Integration Test</title>
+    <title>DinElportal Partner Integration Guide</title>
     
     <style>
         * {
@@ -16,100 +16,177 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             line-height: 1.6;
             color: #1f2937;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f3f4f6;
             min-height: 100vh;
             padding: 20px;
         }
         
         .container {
-            max-width: 1000px;
+            max-width: 900px;
             margin: 0 auto;
         }
         
         .header {
             background: white;
-            border-radius: 16px;
-            padding: 40px;
-            margin-bottom: 30px;
-            text-align: center;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border-left: 4px solid #10b981;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
         
         .header h1 {
-            font-size: 32px;
+            font-size: 28px;
             color: #1f2937;
             margin-bottom: 10px;
         }
         
         .header p {
             color: #6b7280;
-            font-size: 18px;
+            font-size: 16px;
         }
         
-        .card {
+        .goal-box {
+            background: #ecfdf5;
+            border: 2px solid #10b981;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .goal-box h2 {
+            color: #047857;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .goal-box p {
+            color: #047857;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+        
+        .step {
             background: white;
             border-radius: 12px;
             padding: 30px;
             margin-bottom: 20px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
         
-        .card h2 {
-            font-size: 24px;
-            margin-bottom: 20px;
-            color: #1f2937;
+        .step.completed {
+            border-left: 4px solid #10b981;
+            background: #f0fdf4;
+        }
+        
+        .step.current {
+            border-left: 4px solid #3b82f6;
+            background: #eff6ff;
+        }
+        
+        .step-header {
             display: flex;
-            align-items: center;
-            gap: 10px;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 20px;
         }
         
         .step-number {
             background: #6366f1;
             color: white;
-            width: 32px;
-            height: 32px;
+            min-width: 36px;
+            height: 36px;
             border-radius: 50%;
-            display: inline-flex;
+            display: flex;
             align-items: center;
             justify-content: center;
             font-size: 18px;
             font-weight: bold;
         }
         
-        .info-box {
-            background: #eff6ff;
-            border: 2px solid #3b82f6;
+        .step.completed .step-number {
+            background: #10b981;
+        }
+        
+        .step-content h2 {
+            font-size: 22px;
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+        
+        .step-description {
+            color: #6b7280;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .action-box {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
             border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .action-box h3 {
+            color: #374151;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .what-to-do {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            border-radius: 4px;
             padding: 15px;
             margin: 20px 0;
         }
         
-        .info-box h3 {
-            color: #1e40af;
+        .what-to-do strong {
+            color: #92400e;
+            display: block;
+            margin-bottom: 8px;
             font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 5px;
             text-transform: uppercase;
         }
         
-        .info-box p {
-            color: #1e40af;
-            font-size: 14px;
-            margin: 0;
-        }
-        
-        .warning-box {
-            background: #fef3c7;
-            border: 2px solid #f59e0b;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 20px 0;
-        }
-        
-        .warning-box p {
+        .what-to-do p {
             color: #92400e;
-            font-size: 14px;
+            font-size: 15px;
             margin: 0;
+            line-height: 1.6;
+        }
+        
+        .code-example {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .copy-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #4b5563;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .copy-button:hover {
+            background: #6b7280;
         }
         
         .status-grid {
@@ -200,37 +277,26 @@
         }
         
         .button {
-            background: #6366f1;
+            background: #3b82f6;
             color: white;
             border: none;
             padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 6px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
             margin-right: 10px;
             margin-bottom: 10px;
         }
         
         .button:hover {
-            background: #4f46e5;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+            background: #2563eb;
         }
         
         .button:disabled {
             background: #9ca3af;
             cursor: not-allowed;
-            transform: none;
-        }
-        
-        .button.secondary {
-            background: #6b7280;
-        }
-        
-        .button.secondary:hover {
-            background: #4b5563;
         }
         
         .button.success {
@@ -241,12 +307,14 @@
             background: #059669;
         }
         
-        .button.danger {
-            background: #ef4444;
+        .button.secondary {
+            background: white;
+            color: #374151;
+            border: 1px solid #d1d5db;
         }
         
-        .button.danger:hover {
-            background: #dc2626;
+        .button.secondary:hover {
+            background: #f9fafb;
         }
         
         .code-block {
@@ -386,252 +454,337 @@
         .checklist-text {
             flex: 1;
         }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .event-item {
+            padding: 10px;
+            background: #f9fafb;
+            border-left: 3px solid #3b82f6;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        
+        .event-time {
+            color: #6b7280;
+            font-size: 11px;
+        }
+        
+        .event-type {
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .info-box {
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>🚀 DinElportal Partner Integration Test</h1>
-            <p>Test your tracking integration step-by-step</p>
+            <h1>DinElportal Partner Integration Guide</h1>
+            <p>Follow this step-by-step guide to integrate DinElportal tracking on your website</p>
         </div>
 
-        <!-- Step 1: Setup Your Partner ID -->
-        <div class="card">
-            <h2><span class="step-number">1</span> Setup Your Partner ID</h2>
-            
-            <div class="info-box">
-                <h3>What is this?</h3>
-                <p>Enter your unique partner ID that we provided you (e.g., 'vindstod', 'andelenergi', etc.)</p>
-            </div>
-            
-            <div class="input-group">
-                <label for="partnerId">Your Partner ID:</label>
-                <input type="text" id="partnerId" placeholder="Enter your partner ID (e.g., vindstod)" value="">
-            </div>
-            
-            <button class="button" onclick="loadTrackingScript()">Load Tracking Script</button>
-            
-            <div id="scriptLoadResult" class="result-box">
-                <pre id="scriptLoadOutput"></pre>
-            </div>
-            
-            <div id="integrationCode" style="display:none;">
-                <h3 style="margin-top: 30px;">Your Integration Code:</h3>
-                <div class="code-block">
-                    <button class="copy-button" onclick="copyCode('integrationCodeText')">Copy</button>
-                    <code id="integrationCodeText"></code>
-                </div>
-            </div>
+        <!-- Goal Box -->
+        <div class="goal-box">
+            <h2>🎯 What we're doing today:</h2>
+            <p>
+                1. Test that our tracking script works on this page<br>
+                2. Get your unique integration code<br>
+                3. Understand how to add it to your website<br>
+                4. Verify that conversions will be tracked correctly
+            </p>
         </div>
 
-        <!-- Step 2: Test Script Installation -->
-        <div class="card">
-            <h2><span class="step-number">2</span> Test Script Installation</h2>
-            
-            <div class="info-box">
-                <h3>What are we testing?</h3>
-                <p>Checking if the tracking script loads correctly and the DinElportal API is available.</p>
-            </div>
-            
-            <div class="status-grid">
-                <div class="status-item" id="scriptStatus">
-                    <div class="status-label">Script Status</div>
-                    <div class="status-value">Not loaded yet</div>
-                </div>
-                <div class="status-item" id="apiStatus">
-                    <div class="status-label">API Status</div>
-                    <div class="status-value">Not available</div>
-                </div>
-                <div class="status-item" id="storageStatus">
-                    <div class="status-label">Storage Access</div>
-                    <div class="status-value">Not tested</div>
+        <!-- Step 1: Test the Tracking Here -->
+        <div class="step current" id="step1">
+            <div class="step-header">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h2>First, let's test the tracking on this page</h2>
+                    <p class="step-description">
+                        We'll load the tracking script on this test page to make sure everything works correctly.
+                        This is just for testing - you'll add the real code to your website in Step 2.
+                    </p>
                 </div>
             </div>
             
-            <div class="test-actions">
-                <button class="button secondary" onclick="checkInstallation()">Check Installation</button>
-                <button class="button secondary" onclick="testStorage()">Test Storage</button>
-            </div>
-            
-            <div id="installationResult" class="result-box">
-                <pre id="installationOutput"></pre>
-            </div>
-        </div>
-
-        <!-- Step 3: Simulate User from DinElportal -->
-        <div class="card">
-            <h2><span class="step-number">3</span> Simulate User Coming from DinElportal</h2>
-            
-            <div class="info-box">
-                <h3>What happens in real life?</h3>
-                <p>When users click your link on DinElportal, they arrive at your site with a click_id parameter in the URL.</p>
-            </div>
-            
-            <div class="input-group">
-                <label for="testClickId">Test Click ID (or use auto-generated):</label>
-                <input type="text" id="testClickId" placeholder="dep_test_123" value="dep_test_123">
-            </div>
-            
-            <div class="test-actions">
-                <button class="button success" onclick="simulateUserArrival()">Simulate User Arrival</button>
-                <button class="button" onclick="generateClickId()">Generate New Click ID</button>
-            </div>
-            
-            <div class="status-grid" style="margin-top: 20px;">
-                <div class="status-item" id="clickIdStatus">
-                    <div class="status-label">Click ID Captured</div>
-                    <div class="status-value">Not captured</div>
-                </div>
-                <div class="status-item" id="persistenceStatus">
-                    <div class="status-label">Data Persisted</div>
-                    <div class="status-value">Not tested</div>
-                </div>
-            </div>
-            
-            <div id="arrivalResult" class="result-box">
-                <pre id="arrivalOutput"></pre>
-            </div>
-        </div>
-
-        <!-- Step 4: Test Conversion Tracking -->
-        <div class="card">
-            <h2><span class="step-number">4</span> Test Conversion Tracking</h2>
-            
-            <div class="info-box">
-                <h3>What are we testing?</h3>
-                <p>Simulating what happens when a user completes a signup or purchase on your site.</p>
-            </div>
-            
-            <div class="tabs">
-                <button class="tab active" onclick="switchTab('auto')">Automatic Detection</button>
-                <button class="tab" onclick="switchTab('manual')">Manual Tracking</button>
-            </div>
-            
-            <div id="autoTab" class="tab-content active">
-                <p style="margin-bottom: 15px;">Our script automatically detects conversions on these pages:</p>
-                <ul style="margin-left: 20px; margin-bottom: 20px;">
-                    <li>/tak, /bekraeftelse, /kvittering, /velkommen</li>
-                    <li>/thank-you, /success, /confirmation, /complete</li>
-                </ul>
-                <button class="button success" onclick="simulateAutoConversion()">Simulate Auto-Detection</button>
-            </div>
-            
-            <div id="manualTab" class="tab-content">
+            <div class="action-box">
+                <h3>Enter your Partner ID below:</h3>
                 <div class="input-group">
-                    <label>Conversion Details:</label>
-                    <input type="text" id="conversionType" placeholder="Type (e.g., signup)" value="signup" style="margin-bottom: 10px;">
-                    <input type="number" id="conversionValue" placeholder="Value in DKK" value="299" style="margin-bottom: 10px;">
-                    <input type="text" id="conversionProduct" placeholder="Product (e.g., premium_plan)" value="premium_plan">
+                    <input type="text" id="partnerId" placeholder="e.g., vindstod, andelenergi, ok" value="">
+                    <p style="font-size: 14px; color: #6b7280; margin-top: 8px;">
+                        This is the unique ID we gave you when you became a partner
+                    </p>
                 </div>
-                <button class="button success" onclick="simulateManualConversion()">Track Manual Conversion</button>
+                <button class="button" onclick="testTracking()">Test Tracking Script</button>
             </div>
             
-            <div id="conversionResult" class="result-box">
-                <pre id="conversionOutput"></pre>
-            </div>
-            
-            <div id="conversionSuccess" class="success-message">
-                ✅ Conversion successfully tracked! In production, this would be sent to DinElportal.
+            <div id="testResult" class="result-box" style="display:none;">
+                <pre id="testOutput"></pre>
             </div>
         </div>
 
-        <!-- Step 5: Verification Checklist -->
-        <div class="card">
-            <h2><span class="step-number">5</span> Integration Checklist</h2>
-            
-            <div class="checklist" id="checklist">
-                <div class="checklist-item" id="check1">
-                    <span class="checklist-icon">⭕</span>
-                    <span class="checklist-text">Tracking script loaded successfully</span>
-                </div>
-                <div class="checklist-item" id="check2">
-                    <span class="checklist-icon">⭕</span>
-                    <span class="checklist-text">DinElportal API is available</span>
-                </div>
-                <div class="checklist-item" id="check3">
-                    <span class="checklist-icon">⭕</span>
-                    <span class="checklist-text">Click ID can be captured from URL</span>
-                </div>
-                <div class="checklist-item" id="check4">
-                    <span class="checklist-icon">⭕</span>
-                    <span class="checklist-text">Data persists in storage</span>
-                </div>
-                <div class="checklist-item" id="check5">
-                    <span class="checklist-icon">⭕</span>
-                    <span class="checklist-text">Conversions can be tracked</span>
+        <!-- Step 2: Add to Your Website -->
+        <div class="step" id="step2" style="display:none;">
+            <div class="step-header">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h2>Add this code to YOUR website</h2>
+                    <p class="step-description">
+                        Great! The tracking works. Now you need to add this code to every page of your website.
+                    </p>
                 </div>
             </div>
             
-            <div class="test-actions">
-                <button class="button" onclick="runFullTest()">Run Complete Test</button>
-                <button class="button danger" onclick="resetEverything()">Reset Everything</button>
+            <div class="what-to-do">
+                <strong>What to do:</strong>
+                <p>Copy the code below and paste it into the &lt;head&gt; section of your website's HTML, on EVERY page.</p>
             </div>
             
-            <div id="fullTestResult" class="result-box">
-                <pre id="fullTestOutput"></pre>
+            <div class="code-example">
+                <button class="copy-button" onclick="copyCode()">Copy Code</button>
+                <code id="integrationCode"></code>
+            </div>
+            
+            <div class="action-box">
+                <h3>Where exactly should I paste this?</h3>
+                <p style="margin-bottom: 15px;">The code goes between the &lt;head&gt; and &lt;/head&gt; tags in your HTML:</p>
+                <pre style="background: #f9fafb; padding: 15px; border-radius: 6px; font-size: 13px;">
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;Your Website&lt;/title&gt;
+    <span style="background: #fef3c7; padding: 2px 4px;">
+    &lt;!-- Paste the DinElportal code here --&gt;
+    &lt;script src="..." async&gt;&lt;/script&gt;</span>
+  &lt;/head&gt;
+  &lt;body&gt;
+    ...
+  &lt;/body&gt;
+&lt;/html&gt;</pre>
+                
+                <div style="margin-top: 20px;">
+                    <label style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="addedToWebsite" onchange="checkAddedToWebsite()">
+                        <span>I have added this code to my website</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Test on Your Website -->
+        <div class="step" id="step3" style="display:none;">
+            <div class="step-header">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h2>Verify Tracking is Working</h2>
+                    <p class="step-description">
+                        Let's confirm that your tracking is actively collecting data and working correctly.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Live Tracking Status Section -->
+            <div class="action-box" style="background: #f0f9ff; border: 2px solid #3b82f6; margin-bottom: 20px;">
+                <h3>🔍 Live Tracking Status</h3>
+                <p style="color: #6b7280; margin-bottom: 15px;">
+                    Check if your tracking is receiving data in real-time:
+                </p>
+                
+                <button class="button" onclick="checkTrackingStatus()" id="checkStatusBtn">
+                    Check Live Status
+                </button>
+                
+                <div id="trackingStatus" style="display:none; margin-top: 20px;">
+                    <div class="status-grid">
+                        <div class="status-item" id="statusConnection">
+                            <div class="status-label">Connection Status</div>
+                            <div class="status-value">Checking...</div>
+                        </div>
+                        
+                        <div class="status-item" id="statusEvents">
+                            <div class="status-label">Events Today</div>
+                            <div class="status-value">--</div>
+                        </div>
+                        
+                        <div class="status-item" id="statusLastEvent">
+                            <div class="status-label">Last Event</div>
+                            <div class="status-value">--</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Events Display -->
+                    <div id="recentEvents" style="margin-top: 20px; display:none;">
+                        <h4 style="margin-bottom: 10px;">📊 Recent Tracking Events:</h4>
+                        <div id="eventsList" style="max-height: 200px; overflow-y: auto; background: white; border-radius: 8px; padding: 10px;">
+                            <!-- Events will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- What We Track Section -->
+            <div class="info-box" style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 20px; margin-bottom: 20px;">
+                <h3>📈 What Data We Track</h3>
+                <p style="margin-bottom: 10px;">When the tracking script is active, we collect:</p>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li><strong>Click IDs:</strong> Anonymous identifiers (e.g., dep_abc123xyz)</li>
+                    <li><strong>Page Views:</strong> Which pages users visit on your site</li>
+                    <li><strong>Conversions:</strong> When users complete signup/purchase</li>
+                    <li><strong>Attribution:</strong> Linking conversions back to DinElportal referrals</li>
+                </ul>
+                <p style="color: #6b7280; font-size: 14px; margin-top: 10px;">
+                    <strong>Privacy:</strong> No personal data (names, emails, etc.) is collected. 
+                    All tracking is GDPR compliant with 90-day data retention.
+                </p>
+            </div>
+            
+            <!-- How to Test Section -->
+            <div class="what-to-do">
+                <strong>How to test on YOUR website:</strong>
+                <p>
+                    1. Add the tracking script to your website (from Step 2)<br>
+                    2. Open your website with this test URL:<br>
+                    <code style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px;">
+                        https://your-website.dk/?click_id=dep_test_123
+                    </code><br>
+                    3. Navigate through your site and complete a test signup<br>
+                    4. Click "Check Live Status" above to see your events
+                </p>
+            </div>
+            
+            <div class="action-box">
+                <h3>Test the tracking flow:</h3>
+                
+                <button class="button" onclick="simulateTracking()">Simulate Tracking Events</button>
+                <button class="button secondary" onclick="refreshStatus()" style="background: #6b7280;">
+                    Refresh Status
+                </button>
+                
+                <div id="simulateResult" style="display:none; margin-top: 20px;">
+                    <p style="color: #10b981; font-weight: 600;">✅ Simulation successful!</p>
+                    <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-top: 10px;">
+                        <p style="font-weight: 600; margin-bottom: 10px;">Simulated events sent:</p>
+                        <ul style="margin: 5px 0; padding-left: 20px; color: #6b7280;">
+                            <li>Click captured: dep_test_sim_123</li>
+                            <li>Page view: /products</li>
+                            <li>Page view: /signup</li>
+                            <li>Conversion: signup completed</li>
+                        </ul>
+                        <p style="margin-top: 10px; color: #3b82f6;">
+                            Click "Check Live Status" to see these events!
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: You're Done! -->
+        <div class="step" id="step4" style="display:none;">
+            <div class="step-header">
+                <div class="step-number">✓</div>
+                <div class="step-content">
+                    <h2>Perfect! You're all set</h2>
+                    <p class="step-description">
+                        Your website is now integrated with DinElportal tracking.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="action-box" style="background: #ecfdf5; border: 2px solid #10b981;">
+                <h3 style="color: #047857;">What happens next:</h3>
+                <div style="margin-top: 15px; line-height: 2;">
+                    <p>✅ Users click your link on DinElportal</p>
+                    <p>✅ They arrive at your site with a tracking ID</p>
+                    <p>✅ Our script automatically captures this ID</p>
+                    <p>✅ When they sign up or purchase, we track the conversion</p>
+                    <p>✅ You get paid commission at the end of the month</p>
+                </div>
+            </div>
+            
+            <div class="action-box" style="margin-top: 20px;">
+                <h3>Automatic conversion tracking on these pages:</h3>
+                <p style="margin-top: 10px; color: #6b7280;">
+                    Our script automatically detects conversions when users land on pages with these URLs:
+                </p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                    <div>
+                        <strong style="font-size: 14px;">Danish pages:</strong>
+                        <p style="font-size: 14px; color: #6b7280;">/tak, /bekraeftelse, /kvittering, /velkommen, /succes</p>
+                    </div>
+                    <div>
+                        <strong style="font-size: 14px;">English pages:</strong>
+                        <p style="font-size: 14px; color: #6b7280;">/thank-you, /thanks, /success, /confirmation, /complete</p>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Help Section -->
-        <div class="card">
-            <h2>Need Help?</h2>
+        <div style="background: white; border-radius: 12px; padding: 30px; margin-top: 30px; border-top: 4px solid #6b7280;">
+            <h2 style="margin-bottom: 20px;">Need help?</h2>
             
-            <div class="warning-box">
-                <p><strong>Common Issues:</strong></p>
-                <ul style="margin-left: 20px; margin-top: 10px;">
-                    <li>Script blocked by ad blocker - Try disabling it for testing</li>
-                    <li>Cookies disabled - Enable cookies in your browser</li>
-                    <li>CORS errors - Make sure you're testing on a real domain or localhost</li>
-                </ul>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                <div>
+                    <h3 style="font-size: 16px; margin-bottom: 10px;">📧 Contact Support</h3>
+                    <p style="color: #6b7280; font-size: 14px;">
+                        Email: tech@dinelportal.dk<br>
+                        Response time: Within 24 hours
+                    </p>
+                </div>
+                <div>
+                    <h3 style="font-size: 16px; margin-bottom: 10px;">📚 Documentation</h3>
+                    <p style="color: #6b7280; font-size: 14px;">
+                        Full guide: PARTNER-INTEGRATION-MASTER-GUIDE.md<br>
+                        Includes troubleshooting and examples
+                    </p>
+                </div>
             </div>
             
-            <p style="margin-top: 20px;">
-                <strong>Technical Support:</strong> tech@dinelportal.dk<br>
-                <strong>Documentation:</strong> See PARTNER-INTEGRATION-MASTER-GUIDE.md<br>
-                <strong>Response Time:</strong> Within 24 hours on business days
-            </p>
+            <button class="button secondary" style="margin-top: 20px;" onclick="startOver()">Start Over</button>
         </div>
     </div>
     
     <script>
         // Global variables
         let partnerId = '';
-        let scriptLoaded = false;
-        let testResults = {
-            scriptLoaded: false,
-            apiAvailable: false,
-            clickIdCaptured: false,
-            dataPersisted: false,
-            conversionTracked: false
-        };
+        let currentStep = 1;
 
         // Initialize on page load
         window.addEventListener('DOMContentLoaded', function() {
-            // Check if partner_id is in URL
+            // Check if partner_id is in URL for quick testing
             const urlParams = new URLSearchParams(window.location.search);
             const urlPartnerId = urlParams.get('partner_id');
             if (urlPartnerId) {
                 document.getElementById('partnerId').value = urlPartnerId;
-                setTimeout(() => loadTrackingScript(), 500);
-            }
-            
-            // Check if there's already a click_id in URL
-            const clickId = urlParams.get('click_id');
-            if (clickId) {
-                document.getElementById('testClickId').value = clickId;
-                setTimeout(() => checkClickIdCapture(), 1000);
             }
         });
 
-        // Load tracking script with partner ID
-        function loadTrackingScript() {
+        // Test tracking script on this page
+        function testTracking() {
             partnerId = document.getElementById('partnerId').value.trim();
             
             if (!partnerId) {
-                alert('Please enter your partner ID first');
+                alert('Please enter your Partner ID');
                 return;
             }
+            
+            // Show loading state
+            const resultBox = document.getElementById('testResult');
+            const output = document.getElementById('testOutput');
+            resultBox.style.display = 'block';
+            output.textContent = 'Testing tracking script...';
             
             // Remove any existing script
             const existingScript = document.querySelector('script[data-dinelportal]');
@@ -646,379 +799,294 @@
             script.setAttribute('data-dinelportal', 'true');
             
             script.onload = function() {
-                scriptLoaded = true;
-                showResult('scriptLoadResult', `✅ Script loaded successfully for partner: ${partnerId}`);
+                // Success! Show next steps
+                output.innerHTML = `
+<span style="color: #10b981; font-weight: 600;">✅ Success! The tracking script works perfectly.</span>
+
+What we tested:
+• Script loads correctly
+• DinElportal API is available
+• Ready to track conversions
+
+<span style="color: #6b7280;">Now let's get this code on YOUR website...</span>`;
                 
-                // Show integration code
-                document.getElementById('integrationCode').style.display = 'block';
-                document.getElementById('integrationCodeText').textContent = 
-                    `<script src="https://www.dinelportal.dk/api/tracking/universal.js?partner_id=${partnerId}" async></script>`;
+                // Update step 1 to completed
+                document.getElementById('step1').classList.remove('current');
+                document.getElementById('step1').classList.add('completed');
                 
-                // Update checklist
-                updateChecklist(1, true);
+                // Show step 2
+                document.getElementById('step2').style.display = 'block';
+                document.getElementById('step2').classList.add('current');
                 
-                // Auto-check installation after a moment
-                setTimeout(() => checkInstallation(), 500);
+                // Update integration code
+                document.getElementById('integrationCode').textContent = 
+                    '<' + 'script src="https://www.dinelportal.dk/api/tracking/universal.js?partner_id=' + partnerId + '" async><' + '/script>';
+                
+                // Scroll to step 2
+                setTimeout(() => {
+                    document.getElementById('step2').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 500);
             };
             
             script.onerror = function() {
-                showResult('scriptLoadResult', '❌ Failed to load script. Check your partner ID and network connection.');
+                output.innerHTML = `<span style="color: #ef4444;">❌ Failed to load script. Please check your Partner ID and try again.</span>`;
             };
             
             document.head.appendChild(script);
         }
 
-        // Check installation status
-        function checkInstallation() {
-            const results = [];
-            
-            // Check script
-            const scriptEl = document.querySelector('script[data-dinelportal]');
-            if (scriptEl) {
-                updateStatus('scriptStatus', 'success', 'Loaded');
-                results.push('✅ Script tag found and loaded');
-                testResults.scriptLoaded = true;
-            } else {
-                updateStatus('scriptStatus', 'error', 'Not found');
-                results.push('❌ Script tag not found');
-            }
-            
-            // Check API
-            if (typeof window.DinElportal !== 'undefined') {
-                const version = window.DinElportal.version || '1.0.0';
-                updateStatus('apiStatus', 'success', `v${version}`);
-                results.push(`✅ DinElportal API available (version ${version})`);
-                results.push('Available methods: ' + Object.keys(window.DinElportal).join(', '));
-                testResults.apiAvailable = true;
-                updateChecklist(2, true);
-            } else {
-                updateStatus('apiStatus', 'error', 'Not available');
-                results.push('❌ DinElportal API not found');
-            }
-            
-            showResult('installationResult', results.join('\n'));
-        }
-
-        // Test storage capabilities
-        function testStorage() {
-            if (!window.DinElportal) {
-                showResult('installationResult', '❌ Please load the tracking script first');
-                return;
-            }
-            
-            const results = [];
-            
-            // Test localStorage
-            try {
-                localStorage.setItem('dinelportal_test', 'test');
-                localStorage.removeItem('dinelportal_test');
-                results.push('✅ localStorage: Available');
-            } catch(e) {
-                results.push('❌ localStorage: Blocked');
-            }
-            
-            // Test sessionStorage
-            try {
-                sessionStorage.setItem('dinelportal_test', 'test');
-                sessionStorage.removeItem('dinelportal_test');
-                results.push('✅ sessionStorage: Available');
-            } catch(e) {
-                results.push('❌ sessionStorage: Blocked');
-            }
-            
-            // Test cookies
-            try {
-                document.cookie = 'dinelportal_test=test; path=/';
-                const hasCookie = document.cookie.includes('dinelportal_test');
-                if (hasCookie) {
-                    results.push('✅ Cookies: Available');
-                    document.cookie = 'dinelportal_test=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-                } else {
-                    results.push('⚠️ Cookies: Limited (may be blocked)');
-                }
-            } catch(e) {
-                results.push('❌ Cookies: Blocked');
-            }
-            
-            updateStatus('storageStatus', 'success', 'Tested');
-            showResult('installationResult', results.join('\n'));
-        }
-
-        // Simulate user arrival from DinElportal
-        function simulateUserArrival() {
-            const clickId = document.getElementById('testClickId').value || 'dep_test_' + Date.now();
-            
-            if (!window.DinElportal) {
-                showResult('arrivalResult', '❌ Please load the tracking script first');
-                return;
-            }
-            
-            const results = [];
-            results.push(`Simulating user arrival with click_id: ${clickId}`);
-            results.push('---');
-            
-            // Update URL to include click_id
-            const url = new URL(window.location);
-            url.searchParams.set('click_id', clickId);
-            window.history.pushState({}, '', url);
-            results.push(`✅ Updated URL with click_id parameter`);
-            
-            // Force the script to capture it
-            if (window.DinElportal.captureClickId) {
-                window.DinElportal.captureClickId();
-            }
-            
-            // Check if it was captured
-            setTimeout(() => {
-                const data = window.DinElportal.getTrackingData();
-                if (data && data.click_id) {
-                    updateStatus('clickIdStatus', 'success', data.click_id);
-                    results.push(`✅ Click ID captured: ${data.click_id}`);
-                    testResults.clickIdCaptured = true;
-                    updateChecklist(3, true);
-                    
-                    // Test persistence
-                    results.push('\nTesting data persistence:');
-                    if (localStorage.getItem('dinelportal_click_id')) {
-                        results.push('✅ Stored in localStorage');
-                    }
-                    if (sessionStorage.getItem('dinelportal_click_id')) {
-                        results.push('✅ Stored in sessionStorage');
-                    }
-                    if (document.cookie.includes('dinelportal_click_id')) {
-                        results.push('✅ Stored in cookies');
-                    }
-                    
-                    updateStatus('persistenceStatus', 'success', 'Data saved');
-                    testResults.dataPersisted = true;
-                    updateChecklist(4, true);
-                    
-                    results.push('\nComplete tracking data:');
-                    results.push(JSON.stringify(data, null, 2));
-                } else {
-                    updateStatus('clickIdStatus', 'error', 'Not captured');
-                    results.push('❌ Click ID was not captured');
-                }
-                
-                showResult('arrivalResult', results.join('\n'));
-            }, 500);
-        }
-
-        // Generate new click ID
-        function generateClickId() {
-            const newId = 'dep_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 9);
-            document.getElementById('testClickId').value = newId;
-        }
-
-        // Check if click ID is captured
-        function checkClickIdCapture() {
-            if (window.DinElportal && window.DinElportal.getTrackingData) {
-                const data = window.DinElportal.getTrackingData();
-                if (data && data.click_id) {
-                    updateStatus('clickIdStatus', 'success', data.click_id);
-                    testResults.clickIdCaptured = true;
-                    updateChecklist(3, true);
-                }
-            }
-        }
-
-        // Simulate automatic conversion
-        function simulateAutoConversion() {
-            if (!window.DinElportal) {
-                showResult('conversionResult', '❌ Please load the tracking script first');
-                return;
-            }
-            
-            const results = [];
-            results.push('Simulating automatic conversion detection...');
-            results.push('---');
-            
-            // Change URL to success page
-            const url = new URL(window.location);
-            url.pathname = '/thank-you';
-            results.push(`Simulating navigation to: ${url.pathname}`);
-            
-            // Trigger conversion
-            if (window.DinElportal.trackConversion) {
-                const conversionResult = window.DinElportal.trackConversion({
-                    conversion_type: 'auto_detected',
-                    page: '/thank-you'
-                });
-                
-                results.push('✅ Conversion tracking triggered');
-                results.push('\nConversion data sent:');
-                results.push(JSON.stringify({
-                    conversion_type: 'auto_detected',
-                    page: '/thank-you',
-                    timestamp: new Date().toISOString()
-                }, null, 2));
-                
-                document.getElementById('conversionSuccess').classList.add('show');
-                testResults.conversionTracked = true;
-                updateChecklist(5, true);
-            }
-            
-            showResult('conversionResult', results.join('\n'));
-        }
-
-        // Simulate manual conversion
-        function simulateManualConversion() {
-            if (!window.DinElportal) {
-                showResult('conversionResult', '❌ Please load the tracking script first');
-                return;
-            }
-            
-            const type = document.getElementById('conversionType').value || 'signup';
-            const value = parseInt(document.getElementById('conversionValue').value) || 0;
-            const product = document.getElementById('conversionProduct').value || 'unknown';
-            
-            const results = [];
-            results.push('Tracking manual conversion...');
-            results.push('---');
-            
-            const conversionData = {
-                conversion_type: type,
-                conversion_value: value,
-                product: product,
-                timestamp: new Date().toISOString()
-            };
-            
-            if (window.DinElportal.trackConversion) {
-                window.DinElportal.trackConversion(conversionData);
-                
-                results.push('✅ Conversion tracked successfully');
-                results.push('\nConversion data:');
-                results.push(JSON.stringify(conversionData, null, 2));
-                
-                // Get current tracking data
-                const trackingData = window.DinElportal.getTrackingData();
-                if (trackingData && trackingData.click_id) {
-                    results.push('\nAssociated with click_id: ' + trackingData.click_id);
-                }
-                
-                document.getElementById('conversionSuccess').classList.add('show');
-                testResults.conversionTracked = true;
-                updateChecklist(5, true);
-            }
-            
-            showResult('conversionResult', results.join('\n'));
-        }
-
-        // Run complete test
-        function runFullTest() {
-            const results = [];
-            results.push('Running complete integration test...');
-            results.push('=' .repeat(40));
-            
-            // Check each component
-            results.push('\n1. SCRIPT LOADING:');
-            if (testResults.scriptLoaded) {
-                results.push('✅ Script loaded successfully');
-            } else {
-                results.push('❌ Script not loaded - Load the tracking script first');
-            }
-            
-            results.push('\n2. API AVAILABILITY:');
-            if (testResults.apiAvailable) {
-                results.push('✅ DinElportal API is available');
-            } else {
-                results.push('❌ API not available - Check script loading');
-            }
-            
-            results.push('\n3. CLICK ID CAPTURE:');
-            if (testResults.clickIdCaptured) {
-                results.push('✅ Click ID can be captured from URL');
-            } else {
-                results.push('⚠️ Click ID not captured - Run "Simulate User Arrival"');
-            }
-            
-            results.push('\n4. DATA PERSISTENCE:');
-            if (testResults.dataPersisted) {
-                results.push('✅ Data persists in browser storage');
-            } else {
-                results.push('⚠️ Data persistence not tested');
-            }
-            
-            results.push('\n5. CONVERSION TRACKING:');
-            if (testResults.conversionTracked) {
-                results.push('✅ Conversions can be tracked');
-            } else {
-                results.push('⚠️ Conversion not tested - Test conversion tracking');
-            }
-            
-            results.push('\n' + '=' .repeat(40));
-            
-            const allPassed = Object.values(testResults).every(v => v === true);
-            if (allPassed) {
-                results.push('\n🎉 ALL TESTS PASSED! Your integration is ready.');
-            } else {
-                results.push('\n⚠️ Some tests not completed. Complete all steps above.');
-            }
-            
-            showResult('fullTestResult', results.join('\n'));
-        }
-
-        // Reset everything
-        function resetEverything() {
-            if (confirm('This will clear all test data and reload the page. Continue?')) {
-                // Clear storage
-                if (window.DinElportal && window.DinElportal.clearData) {
-                    window.DinElportal.clearData();
-                }
-                
-                // Clear URL parameters
-                window.history.pushState({}, '', window.location.pathname);
-                
-                // Reload page
-                window.location.reload();
-            }
-        }
-
-        // Switch tabs
-        function switchTab(tabName) {
-            // Update tab buttons
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            // Update tab content
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            document.getElementById(tabName + 'Tab').classList.add('active');
-        }
-
-        // Helper functions
-        function updateStatus(elementId, status, value) {
-            const element = document.getElementById(elementId);
-            element.className = 'status-item ' + status;
-            element.querySelector('.status-value').textContent = value;
-        }
-
-        function showResult(elementId, content) {
-            const element = document.getElementById(elementId);
-            element.classList.add('show');
-            element.querySelector('pre').textContent = content;
-        }
-
-        function updateChecklist(item, completed) {
-            const element = document.getElementById('check' + item);
-            if (completed) {
-                element.classList.add('completed');
-                element.querySelector('.checklist-icon').textContent = '✅';
-            }
-        }
-
-        function copyCode(elementId) {
-            const code = document.getElementById(elementId).textContent;
+        // Copy integration code
+        function copyCode() {
+            const code = document.getElementById('integrationCode').textContent;
             navigator.clipboard.writeText(code).then(() => {
-                event.target.textContent = 'Copied!';
+                const button = document.querySelector('.copy-button');
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = '#10b981';
                 setTimeout(() => {
-                    event.target.textContent = 'Copy';
+                    button.textContent = originalText;
+                    button.style.background = '';
                 }, 2000);
             });
         }
+        
+        // Check if added to website
+        function checkAddedToWebsite() {
+            const checkbox = document.getElementById('addedToWebsite');
+            if (checkbox.checked) {
+                // Update step 2 to completed
+                document.getElementById('step2').classList.remove('current');
+                document.getElementById('step2').classList.add('completed');
+                
+                // Show step 3
+                document.getElementById('step3').style.display = 'block';
+                document.getElementById('step3').classList.add('current');
+                
+                // Update test URL example
+                document.getElementById('testUrl').textContent = 
+                    `https://your-website.dk/?click_id=dep_test_123`;
+                
+                // Scroll to step 3
+                setTimeout(() => {
+                    document.getElementById('step3').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 500);
+            }
+        }
+        
+        // Check live tracking status
+        async function checkTrackingStatus() {
+            const partnerId = document.getElementById('partnerId').value || 'test-partner';
+            const statusDiv = document.getElementById('trackingStatus');
+            const statusConnection = document.getElementById('statusConnection');
+            const statusEvents = document.getElementById('statusEvents');
+            const statusLastEvent = document.getElementById('statusLastEvent');
+            const checkBtn = document.getElementById('checkStatusBtn');
+            
+            // Show status div and update UI
+            statusDiv.style.display = 'block';
+            checkBtn.disabled = true;
+            checkBtn.textContent = 'Checking...';
+            
+            // Update status items to checking state
+            statusConnection.classList.add('checking');
+            statusEvents.classList.add('checking');
+            statusLastEvent.classList.add('checking');
+            
+            try {
+                // Call the verification API
+                const response = await fetch(`/api/tracking/verify?partner_id=${partnerId}`);
+                const data = await response.json();
+                
+                // Update connection status
+                statusConnection.classList.remove('checking');
+                if (data.success && data.is_active) {
+                    statusConnection.classList.add('success');
+                    statusConnection.querySelector('.status-value').innerHTML = 
+                        '<span class="status-icon">✅</span> Active';
+                } else {
+                    statusConnection.classList.add('warning');
+                    statusConnection.querySelector('.status-value').innerHTML = 
+                        '<span class="status-icon">⚠️</span> ' + (data.message || 'Not Active');
+                }
+                
+                // Update events today
+                statusEvents.classList.remove('checking');
+                if (data.total_events_today > 0) {
+                    statusEvents.classList.add('success');
+                    statusEvents.querySelector('.status-value').innerHTML = 
+                        `<span class="status-icon">📊</span> ${data.total_events_today} events`;
+                } else {
+                    statusEvents.classList.add('warning');
+                    statusEvents.querySelector('.status-value').innerHTML = 
+                        '<span class="status-icon">⏸️</span> No events today';
+                }
+                
+                // Update last event time
+                statusLastEvent.classList.remove('checking');
+                if (data.last_event_time) {
+                    const lastEventDate = new Date(data.last_event_time);
+                    const now = new Date();
+                    const diffMs = now - lastEventDate;
+                    const diffMins = Math.floor(diffMs / 60000);
+                    const diffHours = Math.floor(diffMs / 3600000);
+                    
+                    let timeAgo = 'just now';
+                    if (diffMins > 60) {
+                        timeAgo = `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+                    } else if (diffMins > 1) {
+                        timeAgo = `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+                    }
+                    
+                    statusLastEvent.classList.add('success');
+                    statusLastEvent.querySelector('.status-value').innerHTML = 
+                        `<span class="status-icon">🕐</span> ${timeAgo}`;
+                } else {
+                    statusLastEvent.classList.add('warning');
+                    statusLastEvent.querySelector('.status-value').innerHTML = 
+                        '<span class="status-icon">--</span> No events yet';
+                }
+                
+                // Display recent events if available
+                if (data.recent_events && data.recent_events.length > 0) {
+                    const recentEventsDiv = document.getElementById('recentEvents');
+                    const eventsList = document.getElementById('eventsList');
+                    
+                    recentEventsDiv.style.display = 'block';
+                    eventsList.innerHTML = '';
+                    
+                    data.recent_events.forEach(event => {
+                        const eventDiv = document.createElement('div');
+                        eventDiv.className = 'event-item';
+                        
+                        const eventTime = new Date(event.timestamp).toLocaleString('da-DK');
+                        const eventType = event.type.replace('_', ' ').toUpperCase();
+                        
+                        eventDiv.innerHTML = `
+                            <div class="event-type">${eventType}</div>
+                            <div class="event-time">${eventTime}</div>
+                            ${event.click_id ? `<div style="color: #6b7280; font-size: 12px;">Click ID: ${event.click_id}</div>` : ''}
+                            ${event.page_url ? `<div style="color: #6b7280; font-size: 12px;">Page: ${event.page_url}</div>` : ''}
+                        `;
+                        
+                        eventsList.appendChild(eventDiv);
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Error checking status:', error);
+                
+                // Update all status items to error state
+                statusConnection.classList.remove('checking');
+                statusConnection.classList.add('error');
+                statusConnection.querySelector('.status-value').innerHTML = 
+                    '<span class="status-icon">❌</span> Connection failed';
+                
+                statusEvents.classList.remove('checking');
+                statusEvents.classList.add('error');
+                statusEvents.querySelector('.status-value').innerHTML = '--';
+                
+                statusLastEvent.classList.remove('checking');
+                statusLastEvent.classList.add('error');
+                statusLastEvent.querySelector('.status-value').innerHTML = '--';
+            } finally {
+                checkBtn.disabled = false;
+                checkBtn.textContent = 'Check Live Status';
+            }
+        }
+        
+        // Simulate tracking events
+        async function simulateTracking() {
+            const partnerId = document.getElementById('partnerId').value || 'test-partner';
+            const resultDiv = document.getElementById('simulateResult');
+            
+            resultDiv.style.display = 'block';
+            
+            // Simulate sending tracking events
+            const clickId = `dep_test_sim_${Date.now()}`;
+            
+            try {
+                // Send simulated events to the tracking API
+                const events = [
+                    { type: 'track', data: { click_id: clickId, page_url: '/products', session_id: 'sim_' + Date.now() }},
+                    { type: 'track', data: { click_id: clickId, page_url: '/signup', session_id: 'sim_' + Date.now() }},
+                    { type: 'conversion', data: { click_id: clickId, conversion_type: 'signup', conversion_value: 0 }}
+                ];
+                
+                for (const event of events) {
+                    await fetch('/api/tracking/log', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            partner_id: partnerId,
+                            partner_domain: window.location.hostname,
+                            ...event
+                        })
+                    });
+                }
+                
+                console.log('Simulated events sent successfully');
+                
+            } catch (error) {
+                console.error('Error simulating events:', error);
+            }
+        }
+        
+        // Refresh status
+        function refreshStatus() {
+            checkTrackingStatus();
+        }
+        
+        // Old simulate test function (keeping for backward compatibility)
+        function simulateTest() {
+            simulateTracking();
+            
+            // After simulation, show final step
+            setTimeout(() => {
+                // Update step 3 to completed
+                document.getElementById('step3').classList.remove('current');
+                document.getElementById('step3').classList.add('completed');
+                
+                // Show step 4
+                document.getElementById('step4').style.display = 'block';
+                document.getElementById('step4').classList.add('completed');
+                
+                // Scroll to step 4
+                setTimeout(() => {
+                    document.getElementById('step4').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 500);
+            }, 2000);
+        }
+        
+        // Start over
+        function startOver() {
+            // Clear any existing scripts
+            const existingScript = document.querySelector('script[data-dinelportal]');
+            if (existingScript) {
+                existingScript.remove();
+            }
+            
+            // Reset form
+            document.getElementById('partnerId').value = '';
+            document.getElementById('addedToWebsite').checked = false;
+            
+            // Reset steps
+            document.getElementById('step1').classList.remove('completed');
+            document.getElementById('step1').classList.add('current');
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step2').classList.remove('current', 'completed');
+            document.getElementById('step3').style.display = 'none';
+            document.getElementById('step3').classList.remove('current', 'completed');
+            document.getElementById('step4').style.display = 'none';
+            document.getElementById('step4').classList.remove('completed');
+            
+            // Hide results
+            document.getElementById('testResult').style.display = 'none';
+            document.getElementById('simulateResult').style.display = 'none';
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
     </script>
 </body>
 </html>

@@ -81,6 +81,71 @@ const AdminDashboard: React.FC = () => {
     return new Date(timestamp).toLocaleString('da-DK');
   };
 
+  const exportData = (type: 'clicks' | 'conversions') => {
+    if (!dashboardData?.recent) {
+      alert('No data available to export');
+      return;
+    }
+
+    const data = type === 'clicks' ? dashboardData.recent.clicks : dashboardData.recent.conversions;
+    
+    if (!data || data.length === 0) {
+      alert(`No ${type} data available to export`);
+      return;
+    }
+
+    // Create CSV headers based on type
+    const headers = type === 'clicks' 
+      ? ['click_id', 'partner', 'timestamp', 'page', 'component']
+      : ['click_id', 'partner', 'value', 'timestamp'];
+
+    // Convert data to CSV format
+    const csvRows = [
+      headers.join(','), // Header row
+      ...data.map((item: any) => {
+        if (type === 'clicks') {
+          return [
+            `"${item.clickId || ''}"`,
+            `"${item.partner || ''}"`,
+            `"${formatDateTime(item.timestamp)}"`,
+            `"${item.page || ''}"`,
+            `"${item.component || ''}"`
+          ].join(',');
+        } else {
+          return [
+            `"${item.clickId || ''}"`,
+            `"${item.partner || ''}"`,
+            `${item.value || 0}`,
+            `"${formatDateTime(item.timestamp)}"`
+          ].join(',');
+        }
+      })
+    ];
+
+    // Create CSV content
+    const csvContent = csvRows.join('\n');
+    
+    // Create filename with Danish date format
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('da-DK').replace(/\//g, '-');
+    const filename = `dinelportal-${type}-${dateStr}.csv`;
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+  };
+
   // Loading state
   if (authLoading) {
     return (
@@ -318,7 +383,18 @@ const AdminDashboard: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Recent Clicks</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Recent Clicks</CardTitle>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => exportData('clicks')}
+                      disabled={!dashboardData?.recent?.clicks?.length}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Export CSV
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -341,7 +417,18 @@ const AdminDashboard: React.FC = () => {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Recent Conversions</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Recent Conversions</CardTitle>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => exportData('conversions')}
+                      disabled={!dashboardData?.recent?.conversions?.length}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Export CSV
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2 max-h-64 overflow-y-auto">

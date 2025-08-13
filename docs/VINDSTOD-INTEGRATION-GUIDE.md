@@ -95,7 +95,7 @@ When a customer from DinElportal successfully signs up, send a webhook to our tr
 
 ### Webhook Details
 
-**Endpoint**: `https://elportal.dk/api/track-conversion`
+**Endpoint**: `https://www.dinelportal.dk/api/track-conversion`
 
 **Method**: `POST`
 
@@ -143,7 +143,7 @@ async function sendDinElPortalConversion(customer) {
     
     try {
         const response = await axios.post(
-            'https://elportal.dk/api/track-conversion',
+            'https://www.dinelportal.dk/api/track-conversion',
             payload,
             {
                 headers: {
@@ -175,7 +175,7 @@ function sendDinElPortalConversion($customer) {
         'contract_length_months' => 12
     ];
     
-    $ch = curl_init('https://elportal.dk/api/track-conversion');
+    $ch = curl_init('https://www.dinelportal.dk/api/track-conversion');
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -210,7 +210,7 @@ Add this tracking pixel to your thank you/confirmation page for redundant tracki
     
     // Create tracking pixel
     var img = new Image(1, 1);
-    img.src = 'https://elportal.dk/api/track-pixel?click_id=' + clickId + 
+    img.src = 'https://www.dinelportal.dk/api/track-pixel?click_id=' + clickId + 
               '&event=conversion&value=' + (window.contractValue || 0);
     
     // Clear the click ID after conversion
@@ -224,7 +224,7 @@ Add this tracking pixel to your thank you/confirmation page for redundant tracki
 ### Test Environment
 We provide a test endpoint for integration testing:
 
-**Test Endpoint**: `https://elportal.dk/api/track-conversion-test`
+**Test Endpoint**: `https://www.dinelportal.dk/api/track-conversion-test`
 
 Use the same payload format. The test endpoint will:
 1. Validate your request format
@@ -235,7 +235,7 @@ Use the same payload format. The test endpoint will:
 ### Test with cURL
 ```bash
 # Test your webhook implementation
-curl -X POST https://elportal.dk/api/track-conversion-test \
+curl -X POST https://www.dinelportal.dk/api/track-conversion-test \
   -H "Content-Type: application/json" \
   -H "X-Webhook-Secret: YOUR_SECRET_KEY" \
   -d '{
@@ -260,7 +260,7 @@ curl -X POST https://elportal.dk/api/track-conversion-test \
 ```
 
 ### Testing Checklist
-- [ ] Click through from our test page: https://elportal.dk/test-tracking
+- [ ] Click through from our test page: https://www.dinelportal.dk/test-tracking
 - [ ] Verify click_id is captured in your system
 - [ ] Complete a test signup
 - [ ] Verify webhook is sent successfully
@@ -390,7 +390,7 @@ async function handleSignupSubmit(formData) {
     
     // Send conversion webhook
     if (customer.dinelportal_click_id) {
-        await fetch('https://elportal.dk/api/track-conversion', {
+        await fetch('https://www.dinelportal.dk/api/track-conversion', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -426,7 +426,7 @@ async function handleSignupSubmit(formData) {
         var clickId = sessionStorage.getItem('dinelportal_click_id');
         if (clickId) {
             var img = new Image(1, 1);
-            img.src = 'https://elportal.dk/api/track-pixel?click_id=' + clickId + '&event=conversion';
+            img.src = 'https://www.dinelportal.dk/api/track-pixel?click_id=' + clickId + '&event=conversion';
             sessionStorage.removeItem('dinelportal_click_id');
         }
     })();

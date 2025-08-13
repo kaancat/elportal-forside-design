@@ -36,6 +36,9 @@
     "api/track-pixel.ts": {
       "maxDuration": 3
     },
+    "api/track-conversion-test.ts": {
+      "maxDuration": 5
+    },
     "api/admin/auth.ts": {
       "maxDuration": 5
     },

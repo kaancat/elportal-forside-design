@@ -145,30 +145,18 @@ export const TrackedLink: React.FC<TrackedLinkProps> = ({
     openInNewTab
   ]);
   
-  // Clone the child element and inject our onClick handler
-  // This ensures our tracking handler is called regardless of child implementation
-  if (React.isValidElement(children)) {
-    return React.cloneElement(children as React.ReactElement<any>, {
-      onClick: handleClick,
-      disabled,
-      className: className || (children as React.ReactElement<any>).props.className,
-      'aria-label': ariaLabel || (children as React.ReactElement<any>).props['aria-label'],
-      style: {
-        ...(children as React.ReactElement<any>).props.style,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        width: '100%'
-      }
-    });
-  }
-  
-  // Fallback for non-React elements (text, etc)
+  // Wrap everything in a div that captures clicks at the highest level
+  // This ensures we intercept clicks regardless of child implementation
   return (
-    <span
+    <div
       onClick={handleClick}
+      onClickCapture={handleClick} // Use capture phase to ensure we get the event first
       style={{ 
         display: 'inline-block',
         cursor: disabled ? 'not-allowed' : 'pointer',
-        width: '100%'
+        width: '100%',
+        // Remove any pointer-events that might block clicks
+        pointerEvents: disabled ? 'none' : 'auto'
       }}
       className={className}
       aria-label={ariaLabel}
@@ -182,7 +170,7 @@ export const TrackedLink: React.FC<TrackedLinkProps> = ({
       }}
     >
       {children}
-    </span>
+    </div>
   );
 };
 

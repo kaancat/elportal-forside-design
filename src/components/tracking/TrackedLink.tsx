@@ -61,45 +61,73 @@ export const TrackedLink: React.FC<TrackedLinkProps> = ({
       return;
     }
     
-    // Get partner slug
-    const partnerSlug = getPartnerSlug(partner);
-    
-    // Build tracking parameters
-    const trackingParams = buildTrackingParams({
-      partner: partnerSlug,
-      component,
-      page: location.pathname,
-      variant,
-      consumption,
-      region
-    });
-    
-    // Add tracking to URL
-    const trackedUrl = addTrackingToUrl(href, trackingParams);
-    
-    // Track with enhanced analytics (respects consent)
-    trackPartnerClick(partnerSlug, trackingParams.click_id, {
-      component,
-      page: location.pathname,
-      variant,
-      consumption,
-      region,
-      estimatedValue
-    });
-    
-    // Call custom onClick if provided
-    if (onClick) {
-      onClick(e);
+    // Validate href
+    if (!href || typeof href !== 'string') {
+      console.error('TrackedLink: Invalid href provided:', href);
+      e.preventDefault();
+      return;
     }
     
-    // Handle navigation
-    if (!e.defaultPrevented) {
-      e.preventDefault();
+    try {
+      // Get partner slug
+      const partnerSlug = getPartnerSlug(partner);
       
+      // Build tracking parameters
+      const trackingParams = buildTrackingParams({
+        partner: partnerSlug,
+        component,
+        page: location.pathname,
+        variant,
+        consumption,
+        region
+      });
+      
+      // Add tracking to URL
+      const trackedUrl = addTrackingToUrl(href, trackingParams);
+      
+      // Debug logging in development
+      if (import.meta.env.DEV) {
+        console.log('🔗 TrackedLink Click:', {
+          partner: partnerSlug,
+          originalUrl: href,
+          trackedUrl,
+          trackingParams
+        });
+      }
+      
+      // Track with enhanced analytics (respects consent)
+      trackPartnerClick(partnerSlug, trackingParams.click_id, {
+        component,
+        page: location.pathname,
+        variant,
+        consumption,
+        region,
+        estimatedValue
+      });
+      
+      // Call custom onClick if provided
+      if (onClick) {
+        onClick(e);
+      }
+      
+      // Handle navigation
+      if (!e.defaultPrevented) {
+        e.preventDefault();
+        
+        if (openInNewTab) {
+          window.open(trackedUrl, '_blank', 'noopener,noreferrer');
+        } else {
+          window.location.href = trackedUrl;
+        }
+      }
+    } catch (error) {
+      console.error('TrackedLink error:', error);
+      // Fallback: navigate to original URL without tracking
+      e.preventDefault();
       if (openInNewTab) {
-        window.open(trackedUrl, '_blank', 'noopener,noreferrer');
+        window.open(href, '_blank', 'noopener,noreferrer');
       } else {
-        window.location.href = trackedUrl;
+        window.location.href = href;
       }
     }
   }, [

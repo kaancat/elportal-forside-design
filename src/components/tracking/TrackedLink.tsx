@@ -145,32 +145,29 @@ export const TrackedLink: React.FC<TrackedLinkProps> = ({
     openInNewTab
   ]);
   
-  // Wrap everything in a div that captures clicks at the highest level
-  // This ensures we intercept clicks regardless of child implementation
+  // Use an anchor tag that looks like a div but handles navigation properly
+  // This ensures proper link behavior while intercepting for tracking
   return (
-    <div
+    <a
+      href={href}
       onClick={handleClick}
-      onClickCapture={handleClick} // Use capture phase to ensure we get the event first
       style={{ 
         display: 'inline-block',
         cursor: disabled ? 'not-allowed' : 'pointer',
         width: '100%',
+        textDecoration: 'none', // Remove underline
+        color: 'inherit', // Inherit color from children
         // Remove any pointer-events that might block clicks
         pointerEvents: disabled ? 'none' : 'auto'
       }}
       className={className}
       aria-label={ariaLabel}
-      role="link"
-      tabIndex={disabled ? -1 : 0}
-      onKeyDown={(e) => {
-        if (!disabled && (e.key === 'Enter' || e.key === ' ')) {
-          e.preventDefault();
-          handleClick(e as any);
-        }
-      }}
+      aria-disabled={disabled}
+      target={openInNewTab ? '_blank' : undefined}
+      rel={openInNewTab ? 'noopener noreferrer' : undefined}
     >
       {children}
-    </div>
+    </a>
   );
 };
 

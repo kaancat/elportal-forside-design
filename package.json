@@ -17,7 +17,9 @@
     "mcp:screenshot": "tsx scripts/mcp-browserbase.ts screenshot",
     "mcp:analyze": "tsx scripts/mcp-browserbase.ts analyze",
     "navigation:health": "tsx scripts/check-navigation-health.ts",
-    "generate:sitemap": "tsx scripts/generate-sitemap.ts"
+    "generate:sitemap": "tsx scripts/generate-sitemap.ts",
+    "build:universal": "tsx scripts/build-universal.ts",
+    "validate:partner": "tsx scripts/validate-partner-tracking.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -98,7 +100,7 @@
     "@vercel/node": "^5.2.1",
     "@vitejs/plugin-react-swc": "^3.5.0",
     "autoprefixer": "^10.4.20",
-    "chalk": "^5.4.1",
+    "chalk": "^5.5.0",
     "commander": "^14.0.0",
     "dotenv": "^17.2.1",
     "eslint": "^9.9.0",
@@ -107,6 +109,7 @@
     "globals": "^15.9.0",
     "lovable-tagger": "^1.1.7",
     "node-fetch": "^3.3.2",
+    "playwright": "^1.54.2",
     "postcss": "^8.4.47",
     "react-helmet-async": "^2.0.5",
     "tailwindcss": "^3.4.11",

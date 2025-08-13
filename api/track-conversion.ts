@@ -11,6 +11,15 @@ interface ConversionData {
   product_selected?: string;
   contract_value?: number;
   contract_length_months?: number;
+  // Universal script fields
+  conversion_type?: string;
+  conversion_value?: number;
+  conversion_currency?: string;
+  fingerprint?: string;
+  session_id?: string;
+  page_url?: string;
+  metadata?: Record<string, any>;
+  source?: 'webhook' | 'universal_script';
 }
 
 interface StoredClickData {
@@ -32,6 +41,34 @@ function verifyWebhookAuth(req: VercelRequest): boolean {
   const expectedSecret = process.env.CONVERSION_WEBHOOK_SECRET || 'dev-secret';
   
   return secret === expectedSecret;
+}
+
+/**
+ * Detect if request is from universal script vs webhook
+ */
+function detectRequestSource(req: VercelRequest, data: ConversionData): 'webhook' | 'universal_script' {
+  // Check for explicit source field
+  if (data.source) {
+    return data.source;
+  }
+  
+  // Check for universal script specific fields
+  if (data.fingerprint || data.session_id || data.conversion_type) {
+    return 'universal_script';
+  }
+  
+  // Check for webhook authentication header
+  if (req.headers['x-webhook-secret']) {
+    return 'webhook';
+  }
+  
+  // Check for traditional webhook fields
+  if (data.customer_id || data.contract_length_months) {
+    return 'webhook';
+  }
+  
+  // Default to universal script for CORS requests
+  return 'universal_script';
 }
 
 /**
@@ -117,10 +154,11 @@ async function storeConversion(
   const dailyKey = `conversions:daily:${today}:${clickData.partner_id}`;
   await kv.incr(dailyKey);
   
-  // Update revenue if provided
-  if (data.contract_value) {
+  // Update revenue if provided (support both contract_value and conversion_value)
+  const revenue = data.contract_value || data.conversion_value;
+  if (revenue) {
     const revenueKey = `revenue:daily:${today}:${clickData.partner_id}`;
-    await kv.incrbyfloat(revenueKey, data.contract_value);
+    await kv.incrbyfloat(revenueKey, revenue);
   }
   
   // Add to conversion queue for processing
@@ -148,15 +186,23 @@ export default async function handler(
   }
   
   try {
-    // Verify authentication
-    if (!verifyWebhookAuth(req)) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-    
     // Parse request body
     const data: ConversionData = typeof req.body === 'string' 
       ? JSON.parse(req.body)
       : req.body;
+
+    // Detect request source
+    const source = detectRequestSource(req, data);
+    
+    // Apply authentication based on source
+    if (source === 'webhook') {
+      if (!verifyWebhookAuth(req)) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+    }
+    
+    // Add source to data for storage
+    data.source = source;
     
     // Validate required fields
     if (!data.click_id) {
@@ -194,11 +240,14 @@ export default async function handler(
     await storeConversion(data, validation.clickData!);
     
     // Log significant conversions
-    if (data.contract_value && data.contract_value > 0) {
+    const revenue = data.contract_value || data.conversion_value;
+    if (revenue && revenue > 0) {
       console.log('💰 Conversion tracked:', {
         click_id: data.click_id,
         partner: validation.clickData!.partner_id,
-        value: data.contract_value,
+        value: revenue,
+        type: data.conversion_type || 'webhook',
+        source: data.source,
         product: data.product_selected
       });
     }
@@ -209,7 +258,8 @@ export default async function handler(
       data: {
         click_id: data.click_id,
         partner_id: validation.clickData!.partner_id,
-        contract_value: data.contract_value
+        value: data.contract_value || data.conversion_value,
+        source: data.source
       },
       message: 'Conversion tracked successfully',
       timestamp: new Date().toISOString()

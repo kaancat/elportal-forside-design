@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { TrackedLink } from '@/components/tracking/TrackedLink';
 import { 
   generateClickId, 
@@ -10,7 +12,8 @@ import {
   isEnhancedTrackingEnabled,
   isMarketingTrackingEnabled 
 } from '@/utils/tracking';
-import { Check, X, AlertCircle, Loader2, ExternalLink } from 'lucide-react';
+import { Check, X, AlertCircle, Loader2, ExternalLink, Copy, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 
 /**
  * Test page for tracking implementation
@@ -20,6 +23,7 @@ const TestTracking: React.FC = () => {
   const [testResults, setTestResults] = useState<Record<string, { status: 'pending' | 'success' | 'error'; message?: string }>>({});
   const [isTestingApi, setIsTestingApi] = useState(false);
   const [generatedClickId, setGeneratedClickId] = useState<string>('');
+  const [universalScriptLoaded, setUniversalScriptLoaded] = useState(false);
   const [consentStatus, setConsentStatus] = useState({
     statistics: false,
     marketing: false,
@@ -174,6 +178,98 @@ const TestTracking: React.FC = () => {
     }
   };
   
+  // Test universal script loading
+  const testUniversalScript = async () => {
+    try {
+      const response = await fetch('/api/tracking/universal.js?partner_id=test&debug=true');
+      
+      if (response.ok) {
+        const script = await response.text();
+        if (script.includes('DinElportal') && script.includes('trackConversion')) {
+          setTestResults(prev => ({
+            ...prev,
+            universalScript: { status: 'success', message: `Script size: ${(script.length / 1024).toFixed(2)} KB` }
+          }));
+        } else {
+          setTestResults(prev => ({
+            ...prev,
+            universalScript: { status: 'error', message: 'Script incomplete' }
+          }));
+        }
+      } else {
+        setTestResults(prev => ({
+          ...prev,
+          universalScript: { status: 'error', message: `HTTP ${response.status}` }
+        }));
+      }
+    } catch (error) {
+      setTestResults(prev => ({
+        ...prev,
+        universalScript: { status: 'error', message: String(error) }
+      }));
+    }
+  };
+
+  // Load universal script dynamically
+  const loadUniversalScript = () => {
+    if (universalScriptLoaded) {
+      toast.info('Universal script already loaded');
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = '/api/tracking/universal.js?partner_id=test&debug=true';
+    script.async = true;
+    script.onload = () => {
+      setUniversalScriptLoaded(true);
+      toast.success('Universal script loaded! Check console for logs.');
+      
+      // Check if API is available
+      if ((window as any).DinElportal) {
+        console.log('✅ DinElportal API available:', (window as any).DinElportal);
+      }
+    };
+    script.onerror = () => {
+      toast.error('Failed to load universal script');
+    };
+    document.head.appendChild(script);
+  };
+
+  // Test universal API
+  const testUniversalApi = () => {
+    if (!(window as any).DinElportal) {
+      setTestResults(prev => ({
+        ...prev,
+        universalApi: { status: 'error', message: 'API not loaded (load script first)' }
+      }));
+      return;
+    }
+
+    try {
+      const api = (window as any).DinElportal;
+      const trackingData = api.getTrackingData();
+      
+      setTestResults(prev => ({
+        ...prev,
+        universalApi: { 
+          status: 'success', 
+          message: `API v${api.version} - ${trackingData ? 'Has tracking data' : 'No data yet'}` 
+        }
+      }));
+    } catch (error) {
+      setTestResults(prev => ({
+        ...prev,
+        universalApi: { status: 'error', message: String(error) }
+      }));
+    }
+  };
+
+  // Copy to clipboard helper
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Copied to clipboard!');
+  };
+
   const renderTestResult = (key: string) => {
     const result = testResults[key];
     if (!result) return <Badge variant="outline">Not tested</Badge>;
@@ -356,6 +452,94 @@ const TestTracking: React.FC = () => {
         </CardContent>
       </Card>
       
+      {/* Universal Script Testing */}
+      <Card className="mb-6 border-purple-500">
+        <CardHeader>
+          <CardTitle className="text-purple-600">🚀 Universal Tracking Script (NEW)</CardTitle>
+          <CardDescription>
+            One-line implementation that works like ShareASale, Impact, or CJ Affiliate
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Script Loading Test */}
+          <div className="flex items-center justify-between p-4 border rounded">
+            <div>
+              <h3 className="font-semibold">Universal Script Loading</h3>
+              <p className="text-sm text-gray-600">Test if script endpoint works</p>
+            </div>
+            <div className="flex items-center gap-4">
+              {renderTestResult('universalScript')}
+              <Button onClick={testUniversalScript} size="sm">
+                Test
+              </Button>
+            </div>
+          </div>
+
+          {/* Load Script Button */}
+          <div className="flex items-center justify-between p-4 border rounded bg-purple-50">
+            <div>
+              <h3 className="font-semibold">Load Universal Script</h3>
+              <p className="text-sm text-gray-600">Actually load the script in this page</p>
+            </div>
+            <Button 
+              onClick={loadUniversalScript} 
+              size="sm"
+              variant={universalScriptLoaded ? "outline" : "default"}
+            >
+              {universalScriptLoaded ? '✅ Loaded' : 'Load Script'}
+            </Button>
+          </div>
+
+          {/* API Test */}
+          <div className="flex items-center justify-between p-4 border rounded">
+            <div>
+              <h3 className="font-semibold">Global API (window.DinElportal)</h3>
+              <p className="text-sm text-gray-600">Test if API is available</p>
+            </div>
+            <div className="flex items-center gap-4">
+              {renderTestResult('universalApi')}
+              <Button onClick={testUniversalApi} size="sm">
+                Test
+              </Button>
+            </div>
+          </div>
+
+          {/* Script Embed Code */}
+          <div className="space-y-2">
+            <h3 className="font-semibold text-sm">One-Line Partner Implementation:</h3>
+            <div className="bg-gray-50 p-3 rounded font-mono text-xs break-all flex items-center justify-between">
+              <span>{`<script src="https://dinelportal.dk/api/tracking/universal.js?partner_id=test" async></script>`}</span>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => copyToClipboard(`<script src="https://dinelportal.dk/api/tracking/universal.js?partner_id=test" async></script>`)}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Manual API Usage */}
+          {universalScriptLoaded && (
+            <Alert className="border-purple-200">
+              <AlertCircle className="h-4 w-4 text-purple-600" />
+              <AlertTitle>Script Loaded - Try These Commands in Console:</AlertTitle>
+              <AlertDescription className="mt-2 space-y-2">
+                <code className="block bg-gray-100 p-2 rounded text-xs">
+                  DinElportal.getTrackingData()
+                </code>
+                <code className="block bg-gray-100 p-2 rounded text-xs">
+                  DinElportal.trackConversion({`{conversion_type: 'test'}`})
+                </code>
+                <code className="block bg-gray-100 p-2 rounded text-xs">
+                  DinElportal.debug(true)
+                </code>
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Tracking Pixel Test */}
       <Card className="mb-6">
         <CardHeader>

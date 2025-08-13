@@ -1,114 +1,81 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
+  Loader2, 
+  Shield, 
+  RefreshCw, 
+  LogOut, 
   TrendingUp, 
   MousePointer, 
   DollarSign, 
-  Users, 
+  Users,
   Download,
-  RefreshCw,
-  LogOut,
   AlertCircle
 } from 'lucide-react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 
-interface DashboardData {
-  realtime: {
-    clicksToday: number;
-    conversionsToday: number;
-    revenueToday: number;
-    activePartners: string[];
-  };
-  partners: Array<{
-    id: string;
-    name: string;
-    clicksLast30d: number;
-    conversionsLast30d: number;
-    conversionRate: number;
-    revenueLast30d: number;
-    lastConversion?: string;
-  }>;
-  recent: {
-    clicks: Array<{
-      clickId: string;
-      partner: string;
-      timestamp: number;
-      source: any;
-    }>;
-    conversions: Array<{
-      clickId: string;
-      partner: string;
-      value: number;
-      timestamp: number;
-    }>;
-  };
-}
-
 const AdminDashboard: React.FC = () => {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const { logout } = useAdminAuth();
+  const { isAuthenticated, isLoading: authLoading, login, logout, getAuthHeaders } = useAdminAuth();
+  const [credentials, setCredentials] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  
+  // Dashboard state
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [isDashboardLoading, setIsDashboardLoading] = useState(false);
+  const [dashboardError, setDashboardError] = useState('');
+  const [debugInfo, setDebugInfo] = useState<any>(null);
+
+  // Fetch debug info on mount
+  useEffect(() => {
+    fetch('/api/admin/debug')
+      .then(res => res.json())
+      .then(setDebugInfo)
+      .catch(console.error);
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoggingIn(true);
+    setLoginError('');
+
+    const result = await login(credentials);
+    
+    if (!result.success) {
+      setLoginError(result.error || 'Login failed');
+    }
+    
+    setIsLoggingIn(false);
+  };
 
   const fetchDashboardData = async () => {
+    setIsDashboardLoading(true);
+    setDashboardError('');
+    
     try {
-      setIsLoading(true);
-      
-      // Get the admin secret from sessionStorage after successful login
-      const sessionData = sessionStorage.getItem('dinelportal_admin_session');
-      if (!sessionData) {
-        logout();
-        return;
-      }
-      
-      // We need to store the actual secret during login to use here
-      // For now, we'll need to hardcode it until we fix the auth flow
       const response = await fetch('/api/admin/dashboard', {
-        headers: {
-          'Authorization': `Bearer Mux63qsn*`
-        }
+        headers: getAuthHeaders()
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
       const result = await response.json();
-      setData(result.data);
-      setLastUpdated(new Date());
-      setError('');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load data');
+      
+      if (response.ok) {
+        setDashboardData(result.data);
+      } else {
+        setDashboardError(result.error || 'Failed to load dashboard');
+      }
+    } catch (error) {
+      setDashboardError('Network error: ' + String(error));
     } finally {
-      setIsLoading(false);
+      setIsDashboardLoading(false);
     }
   };
-
-  useEffect(() => {
-    // Only fetch data if we have a valid session
-    const sessionData = sessionStorage.getItem('dinelportal_admin_session');
-    if (sessionData) {
-      try {
-        const session = JSON.parse(sessionData);
-        if (session.authenticated && Date.now() < session.expiresAt) {
-          fetchDashboardData();
-          
-          // Auto-refresh every 30 seconds
-          const interval = setInterval(fetchDashboardData, 30000);
-          return () => clearInterval(interval);
-        }
-      } catch (error) {
-        console.error('Session validation failed:', error);
-        logout();
-      }
-    }
-  }, []);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('da-DK', {
@@ -122,66 +89,96 @@ const AdminDashboard: React.FC = () => {
     return new Date(timestamp).toLocaleString('da-DK');
   };
 
-  const exportData = async (type: 'clicks' | 'conversions') => {
-    if (!data) return;
-
-    const csvData = type === 'clicks' 
-      ? data.recent.clicks.map(click => ({
-          click_id: click.clickId,
-          partner: click.partner,
-          timestamp: formatDateTime(click.timestamp),
-          page: click.source?.page || '',
-          component: click.source?.component || ''
-        }))
-      : data.recent.conversions.map(conv => ({
-          click_id: conv.clickId,
-          partner: conv.partner,
-          value: conv.value,
-          timestamp: formatDateTime(conv.timestamp)
-        }));
-
-    const headers = Object.keys(csvData[0] || {}).join(',');
-    const rows = csvData.map(row => Object.values(row).join(','));
-    const csv = [headers, ...rows].join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `dinelportal-${type}-${today}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  if (isLoading && !data) {
+  // Loading state
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card>
           <CardContent className="p-6 text-center">
-            <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
-            <p>Loading dashboard...</p>
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p>Loading...</p>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  if (error && !data) {
+  // Login form
+  if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card>
-          <CardContent className="p-6 text-center">
-            <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-4" />
-            <p className="text-red-600 mb-4">{error}</p>
-            <Button onClick={fetchDashboardData}>Retry</Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="w-full max-w-2xl space-y-6">
+          {/* Login Card */}
+          <Card>
+            <CardHeader className="text-center">
+              <div className="mx-auto w-12 h-12 bg-brand-green rounded-full flex items-center justify-center mb-4">
+                <Shield className="h-6 w-6 text-white" />
+              </div>
+              <CardTitle>Admin Dashboard</CardTitle>
+              <CardDescription>
+                Enter your admin credentials to access tracking metrics
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="credentials">Access Code</Label>
+                  <Input
+                    id="credentials"
+                    type="text"
+                    value={credentials}
+                    onChange={(e) => setCredentials(e.target.value)}
+                    placeholder="Enter admin access code"
+                    required
+                    disabled={isLoggingIn}
+                  />
+                </div>
+                
+                {loginError && (
+                  <Alert className="border-red-200 bg-red-50">
+                    <AlertDescription className="text-red-800">
+                      {loginError}
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
+                <Button 
+                  type="submit" 
+                  className="w-full"
+                  disabled={isLoggingIn || !credentials.trim()}
+                >
+                  {isLoggingIn ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Checking...
+                    </>
+                  ) : (
+                    'Access Dashboard'
+                  )}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Debug Info */}
+          {debugInfo && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Debug Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <pre className="bg-gray-100 p-4 rounded text-sm overflow-auto">
+                  {JSON.stringify(debugInfo, null, 2)}
+                </pre>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     );
   }
 
-  const today = new Date().toISOString().split('T')[0];
-
+  // Dashboard interface
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -189,24 +186,17 @@ const AdminDashboard: React.FC = () => {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">DinElportal Admin</h1>
-            <p className="text-sm text-gray-600">
-              Revenue Tracking Dashboard
-              {lastUpdated && (
-                <span className="ml-2">
-                  • Last updated: {lastUpdated.toLocaleTimeString('da-DK')}
-                </span>
-              )}
-            </p>
+            <p className="text-sm text-gray-600">Revenue Tracking Dashboard</p>
           </div>
           <div className="flex items-center gap-2">
             <Button 
               variant="outline" 
               size="sm"
               onClick={fetchDashboardData}
-              disabled={isLoading}
+              disabled={isDashboardLoading}
             >
-              {isLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-              Refresh
+              {isDashboardLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              Load Data
             </Button>
             <Button variant="outline" size="sm" onClick={logout}>
               <LogOut className="h-4 w-4 mr-2" />
@@ -217,166 +207,165 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       <div className="container mx-auto px-4 py-6">
-        {error && (
-          <Alert className="mb-6 border-yellow-200 bg-yellow-50">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="text-yellow-800">
-              {error} - Showing cached data
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        {/* Dashboard Content */}
+        {!dashboardData ? (
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Clicks Today</p>
-                  <p className="text-2xl font-bold">{data?.realtime.clicksToday || 0}</p>
-                </div>
-                <MousePointer className="h-8 w-8 text-blue-500" />
-              </div>
+            <CardContent className="p-8 text-center">
+              <p className="mb-4">Click "Load Data" to fetch tracking metrics</p>
+              <Button onClick={fetchDashboardData} disabled={isDashboardLoading}>
+                {isDashboardLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  'Load Dashboard Data'
+                )}
+              </Button>
             </CardContent>
           </Card>
+        ) : (
+          <>
+            {dashboardError && (
+              <Alert className="mb-6 border-red-200 bg-red-50">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="text-red-800">
+                  {dashboardError}
+                </AlertDescription>
+              </Alert>
+            )}
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Conversions Today</p>
-                  <p className="text-2xl font-bold">{data?.realtime.conversionsToday || 0}</p>
-                </div>
-                <TrendingUp className="h-8 w-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
+            {/* Key Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Clicks Today</p>
+                      <p className="text-2xl font-bold">{dashboardData.realtime?.clicksToday || 0}</p>
+                    </div>
+                    <MousePointer className="h-8 w-8 text-blue-500" />
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Revenue Today</p>
-                  <p className="text-2xl font-bold">{formatCurrency(data?.realtime.revenueToday || 0)}</p>
-                </div>
-                <DollarSign className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Conversions Today</p>
+                      <p className="text-2xl font-bold">{dashboardData.realtime?.conversionsToday || 0}</p>
+                    </div>
+                    <TrendingUp className="h-8 w-8 text-green-500" />
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Active Partners</p>
-                  <p className="text-2xl font-bold">{data?.realtime.activePartners.length || 0}</p>
-                </div>
-                <Users className="h-8 w-8 text-purple-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Revenue Today</p>
+                      <p className="text-2xl font-bold">{formatCurrency(dashboardData.realtime?.revenueToday || 0)}</p>
+                    </div>
+                    <DollarSign className="h-8 w-8 text-green-600" />
+                  </div>
+                </CardContent>
+              </Card>
 
-        {/* Main Content */}
-        <Tabs defaultValue="partners" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="partners">Partner Performance</TabsTrigger>
-            <TabsTrigger value="recent">Recent Activity</TabsTrigger>
-            <TabsTrigger value="export">Export Data</TabsTrigger>
-          </TabsList>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Active Partners</p>
+                      <p className="text-2xl font-bold">{dashboardData.realtime?.activePartners?.length || 0}</p>
+                    </div>
+                    <Users className="h-8 w-8 text-purple-500" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
-          {/* Partner Performance */}
-          <TabsContent value="partners">
-            <Card>
+            {/* Partner Performance */}
+            <Card className="mb-6">
               <CardHeader>
-                <CardTitle>Partner Performance (Last 30 Days)</CardTitle>
+                <CardTitle>Partner Performance</CardTitle>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Partner</TableHead>
-                      <TableHead className="text-right">Clicks</TableHead>
-                      <TableHead className="text-right">Conversions</TableHead>
-                      <TableHead className="text-right">Rate</TableHead>
-                      <TableHead className="text-right">Revenue</TableHead>
-                      <TableHead className="text-right">Last Conversion</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {data?.partners.map((partner) => (
-                      <TableRow key={partner.id}>
-                        <TableCell className="font-medium">
-                          {partner.name}
-                          {partner.name.toLowerCase().includes('vindstod') && (
-                            <Badge className="ml-2 bg-green-100 text-green-800">Primary</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">{partner.clicksLast30d}</TableCell>
-                        <TableCell className="text-right">{partner.conversionsLast30d}</TableCell>
-                        <TableCell className="text-right">
-                          <Badge variant={partner.conversionRate > 5 ? "default" : "outline"}>
-                            {partner.conversionRate.toFixed(1)}%
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
-                          {formatCurrency(partner.revenueLast30d)}
-                        </TableCell>
-                        <TableCell className="text-right text-sm text-gray-600">
-                          {partner.lastConversion 
-                            ? new Date(partner.lastConversion).toLocaleDateString('da-DK')
-                            : 'Never'
-                          }
-                        </TableCell>
+                {dashboardData.partners?.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Partner</TableHead>
+                        <TableHead className="text-right">Clicks</TableHead>
+                        <TableHead className="text-right">Conversions</TableHead>
+                        <TableHead className="text-right">Rate</TableHead>
+                        <TableHead className="text-right">Revenue</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-
-                {(!data?.partners || data.partners.length === 0) && (
+                    </TableHeader>
+                    <TableBody>
+                      {dashboardData.partners.map((partner: any) => (
+                        <TableRow key={partner.id}>
+                          <TableCell className="font-medium">
+                            {partner.name}
+                            {partner.name.toLowerCase().includes('vindstod') && (
+                              <Badge className="ml-2 bg-green-100 text-green-800">Primary</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">{partner.clicksLast30d}</TableCell>
+                          <TableCell className="text-right">{partner.conversionsLast30d}</TableCell>
+                          <TableCell className="text-right">
+                            <Badge variant={partner.conversionRate > 5 ? "default" : "outline"}>
+                              {partner.conversionRate.toFixed(1)}%
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            {formatCurrency(partner.revenueLast30d)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
                   <div className="text-center py-8 text-gray-500">
-                    No partner data available yet. Start tracking some clicks!
+                    No partner data yet. Track some clicks first!
                   </div>
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
 
-          {/* Recent Activity */}
-          <TabsContent value="recent">
+            {/* Recent Activity */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Recent Clicks */}
               <Card>
                 <CardHeader>
                   <CardTitle>Recent Clicks</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {data?.recent.clicks.slice(0, 20).map((click) => (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {dashboardData.recent?.clicks?.slice(0, 10).map((click: any) => (
                       <div key={click.clickId} className="flex justify-between items-center p-3 bg-gray-50 rounded">
                         <div>
                           <p className="font-medium text-sm">{click.partner}</p>
                           <p className="text-xs text-gray-600">
-                            {click.source?.component || 'unknown'} • {formatDateTime(click.timestamp)}
+                            {formatDateTime(click.timestamp)}
                           </p>
                         </div>
                         <Badge variant="outline" className="text-xs">
                           {click.clickId.split('_')[1]}
                         </Badge>
                       </div>
-                    ))}
+                    )) || <div className="text-sm text-gray-500">No recent clicks</div>}
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Recent Conversions */}
               <Card>
                 <CardHeader>
                   <CardTitle>Recent Conversions</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {data?.recent.conversions.map((conversion) => (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {dashboardData.recent?.conversions?.slice(0, 10).map((conversion: any) => (
                       <div key={conversion.clickId} className="flex justify-between items-center p-3 bg-green-50 rounded">
                         <div>
                           <p className="font-medium text-sm">{conversion.partner}</p>
@@ -386,63 +375,15 @@ const AdminDashboard: React.FC = () => {
                         </div>
                         <div className="text-right">
                           <p className="font-bold text-green-600">{formatCurrency(conversion.value)}</p>
-                          <p className="text-xs text-gray-600">{conversion.clickId.split('_')[1]}</p>
                         </div>
                       </div>
-                    ))}
+                    )) || <div className="text-sm text-gray-500">No conversions yet</div>}
                   </div>
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
-
-          {/* Export */}
-          <TabsContent value="export">
-            <Card>
-              <CardHeader>
-                <CardTitle>Export Data</CardTitle>
-                <CardDescription>
-                  Download tracking data for accounting and analysis
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => exportData('clicks')}
-                    className="h-16"
-                  >
-                    <Download className="mr-2 h-4 w-4" />
-                    <div className="text-left">
-                      <div className="font-medium">Export Clicks</div>
-                      <div className="text-sm text-gray-600">Last 30 days</div>
-                    </div>
-                  </Button>
-
-                  <Button 
-                    variant="outline" 
-                    onClick={() => exportData('conversions')}
-                    className="h-16"
-                  >
-                    <Download className="mr-2 h-4 w-4" />
-                    <div className="text-left">
-                      <div className="font-medium">Export Conversions</div>
-                      <div className="text-sm text-gray-600">All time</div>
-                    </div>
-                  </Button>
-                </div>
-
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Exported data contains click IDs and timestamps but no personal information. 
-                    Safe for accounting and tax purposes.
-                  </AlertDescription>
-                </Alert>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+          </>
+        )}
       </div>
     </div>
   );

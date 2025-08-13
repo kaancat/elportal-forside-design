@@ -41,6 +41,15 @@
     },
     "api/admin/dashboard.ts": {
       "maxDuration": 10
+    },
+    "api/admin/auth-v2.ts": {
+      "maxDuration": 5
+    },
+    "api/admin/dashboard-v2.ts": {
+      "maxDuration": 15
+    },
+    "api/admin/debug.ts": {
+      "maxDuration": 5
     }
   }
 }

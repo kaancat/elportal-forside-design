@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { 
   buildTrackingParams, 
   addTrackingToUrl, 
-  trackClick,
+  trackPartnerClick,
   getPartnerSlug 
 } from '@/utils/tracking';
 
@@ -17,6 +17,7 @@ interface TrackedLinkProps {
   variant?: string; // e.g., 'featured', 'standard'
   consumption?: number; // User's consumption if available
   region?: string; // DK1 or DK2
+  estimatedValue?: number; // Estimated monthly/annual value for analytics
   
   // Link behavior
   onClick?: (e: React.MouseEvent) => void;
@@ -43,6 +44,7 @@ export const TrackedLink: React.FC<TrackedLinkProps> = ({
   variant,
   consumption,
   region,
+  estimatedValue,
   onClick,
   openInNewTab = true,
   className,
@@ -75,13 +77,14 @@ export const TrackedLink: React.FC<TrackedLinkProps> = ({
     // Add tracking to URL
     const trackedUrl = addTrackingToUrl(href, trackingParams);
     
-    // Track the click (fire and forget)
-    trackClick(partnerSlug, trackingParams.click_id, {
+    // Track with enhanced analytics (respects consent)
+    trackPartnerClick(partnerSlug, trackingParams.click_id, {
       component,
       page: location.pathname,
       variant,
       consumption,
-      region
+      region,
+      estimatedValue
     });
     
     // Call custom onClick if provided
@@ -106,7 +109,8 @@ export const TrackedLink: React.FC<TrackedLinkProps> = ({
     location.pathname, 
     variant, 
     consumption, 
-    region, 
+    region,
+    estimatedValue,
     href, 
     onClick, 
     openInNewTab

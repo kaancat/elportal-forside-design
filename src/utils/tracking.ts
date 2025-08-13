@@ -156,10 +156,32 @@ export function getPartnerSlug(providerName: string): string {
 }
 
 /**
- * Check if tracking should be enabled
+ * Check if enhanced tracking should be enabled (requires consent)
+ */
+export function isEnhancedTrackingEnabled(): boolean {
+  // Check if Cookiebot has loaded and user consented to statistics
+  if (typeof window !== 'undefined' && (window as any).Cookiebot) {
+    return (window as any).Cookiebot.consent.statistics;
+  }
+  return false;
+}
+
+/**
+ * Check if marketing tracking should be enabled (requires consent)
+ */
+export function isMarketingTrackingEnabled(): boolean {
+  // Check if Cookiebot has loaded and user consented to marketing
+  if (typeof window !== 'undefined' && (window as any).Cookiebot) {
+    return (window as any).Cookiebot.consent.marketing;
+  }
+  return false;
+}
+
+/**
+ * Check if basic tracking should be enabled
  * Always returns true for click tracking (no consent needed)
  */
-export function isTrackingEnabled(): boolean {
+export function isBasicTrackingEnabled(): boolean {
   // Click tracking with anonymous IDs doesn't require consent
   return true;
 }
@@ -224,4 +246,117 @@ export function clearClickId(): void {
   } catch (e) {
     // Ignore
   }
+}
+
+/**
+ * Enhanced tracking with consent (GA4 events)
+ */
+export function trackEnhancedEvent(
+  eventName: string,
+  parameters: Record<string, any> = {}
+): void {
+  // Only track if consent granted
+  if (!isEnhancedTrackingEnabled()) {
+    return;
+  }
+  
+  if (typeof window !== 'undefined' && (window as any).gtag) {
+    (window as any).gtag('event', eventName, parameters);
+    
+    if (import.meta.env.DEV) {
+      console.log('📊 GA4 Event:', eventName, parameters);
+    }
+  }
+}
+
+/**
+ * Marketing tracking with consent (Facebook Pixel events)
+ */
+export function trackMarketingEvent(
+  eventName: string,
+  parameters: Record<string, any> = {}
+): void {
+  // Only track if consent granted
+  if (!isMarketingTrackingEnabled()) {
+    return;
+  }
+  
+  if (typeof window !== 'undefined' && (window as any).fbq) {
+    (window as any).fbq('track', eventName, parameters);
+    
+    if (import.meta.env.DEV) {
+      console.log('📱 FB Pixel Event:', eventName, parameters);
+    }
+  }
+}
+
+/**
+ * Track partner click with all available methods (respects consent)
+ */
+export function trackPartnerClick(
+  partner: string,
+  clickId: string,
+  context: {
+    component?: string;
+    page?: string;
+    variant?: string;
+    consumption?: number;
+    region?: string;
+    estimatedValue?: number;
+  }
+): void {
+  // Always track basic click (no consent needed)
+  trackClick(partner, clickId, context);
+  
+  // Enhanced analytics with consent
+  trackEnhancedEvent('partner_click', {
+    'partner_name': partner,
+    'click_id': clickId,
+    'component': context.component,
+    'page': context.page,
+    'variant': context.variant,
+    'consumption': context.consumption,
+    'region': context.region,
+    'value': context.estimatedValue || 0,
+    'currency': 'DKK'
+  });
+  
+  // Marketing tracking with consent
+  trackMarketingEvent('InitiateCheckout', {
+    'content_category': 'electricity_provider',
+    'content_name': partner,
+    'value': context.estimatedValue || 0,
+    'currency': 'DKK'
+  });
+}
+
+/**
+ * Track conversion with all available methods
+ */
+export function trackPartnerConversion(
+  partner: string,
+  clickId: string,
+  value: number = 0
+): void {
+  // Enhanced analytics
+  trackEnhancedEvent('purchase', {
+    'transaction_id': clickId,
+    'value': value,
+    'currency': 'DKK',
+    'items': [{
+      'item_id': `${partner}_referral`,
+      'item_name': `${partner} Referral`,
+      'item_category': 'electricity_provider',
+      'price': value,
+      'quantity': 1
+    }]
+  });
+  
+  // Marketing tracking
+  trackMarketingEvent('Purchase', {
+    'value': value,
+    'currency': 'DKK',
+    'content_name': `${partner} Conversion`,
+    'content_category': 'electricity_provider'
+  });
 }

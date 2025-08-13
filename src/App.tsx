@@ -21,6 +21,7 @@ const EnergyTips = lazy(() => import("./pages/EnergyTips").then(m => ({ default:
 const IconTest = lazy(() => import("./pages/IconTest"));
 const TestEloverblik = lazy(() => import("./pages/TestEloverblik").then(m => ({ default: m.TestEloverblik })));
 const TestTracking = lazy(() => import("./pages/TestTracking"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 
 // Loading component for Suspense fallback
 const PageLoader = () => (
@@ -81,6 +82,7 @@ const AppContent = () => {
                     <Route path="/icon-test" element={<IconTest />} />
                     <Route path="/test-eloverblik" element={<TestEloverblik />} />
                     <Route path="/test-tracking" element={<TestTracking />} />
+                    <Route path="/privatlivspolitik" element={<PrivacyPolicy />} />
                     
                     {/* Dynamic route for generic pages - must be before the 404 catch-all */}
                     <Route path="/:slug" element={<GenericPage />} />

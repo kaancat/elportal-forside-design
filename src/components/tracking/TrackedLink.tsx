@@ -149,8 +149,14 @@ export const TrackedLink: React.FC<TrackedLinkProps> = ({
   // Clone child element and inject tracking props
   // This is the most scalable solution - works with any child component
   if (React.isValidElement(children)) {
+    // Debug logging
+    console.log('TrackedLink rendering with href:', href);
+    
     return React.cloneElement(children as React.ReactElement<any>, {
-      onClick: handleClick,
+      onClick: (e: React.MouseEvent) => {
+        console.log('TrackedLink onClick triggered!');
+        handleClick(e);
+      },
       'aria-label': ariaLabel || (children as any).props?.['aria-label'],
       disabled: disabled,
       className: className || (children as any).props?.className,

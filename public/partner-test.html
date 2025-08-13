@@ -799,6 +799,12 @@
             script.setAttribute('data-dinelportal', 'true');
             
             script.onload = function() {
+                // Enable debug mode
+                if (window.DinElportal && window.DinElportal.debug) {
+                    window.DinElportal.debug(true);
+                    console.log('✅ DinElportal debug mode enabled - check browser console for detailed logs');
+                }
+                
                 // Success! Show next steps
                 output.innerHTML = `
 <span style="color: #10b981; font-weight: 600;">✅ Success! The tracking script works perfectly.</span>
@@ -807,6 +813,7 @@ What we tested:
 • Script loads correctly
 • DinElportal API is available
 • Ready to track conversions
+• Debug mode enabled (check browser console)
 
 <span style="color: #6b7280;">Now let's get this code on YOUR website...</span>`;
                 

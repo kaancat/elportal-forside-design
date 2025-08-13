@@ -151,7 +151,7 @@ export function useMetaTags(config: MetaTagsProps) {
  */
 export const META_PRESETS = {
   homepage: {
-    title: 'Sammenlign Elpriser - Find Billigste Elaftale | ElPortal',
+    title: 'Sammenlign Elpriser - Find Billigste Elaftale | DinElportal',
     description: 'Spar penge på din elregning! Sammenlign aktuelle elpriser og find den bedste elaftale. Gratis sammenligning af danske eludbydere. Vindstød anbefales.',
     keywords: [
       'elpriser', 'sammenlign el', 'billig el', 'elselskaber',

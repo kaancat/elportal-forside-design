@@ -31,7 +31,7 @@ npm run mcp:use <server-id> --list
 npm run mcp:use <server-id> --info
 ```
 
-## Common Use Cases for ElPortal Development
+## Common Use Cases for DinElportal Development
 
 ### 1. Finding Images for Landing Pages
 

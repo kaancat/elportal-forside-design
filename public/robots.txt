@@ -1,4 +1,4 @@
-# ElPortal Robots.txt
+# DinElportal Robots.txt
 # Allow all legitimate crawlers
 
 User-agent: Googlebot

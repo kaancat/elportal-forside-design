@@ -1,6 +1,6 @@
-# ElPortal Documentation Overview
+# DinElportal Documentation Overview
 
-This document provides a comprehensive map of the ElPortal documentation, helping AI agents and developers quickly find relevant information.
+This document provides a comprehensive map of the DinElportal documentation, helping AI agents and developers quickly find relevant information.
 
 ## Core Documentation
 

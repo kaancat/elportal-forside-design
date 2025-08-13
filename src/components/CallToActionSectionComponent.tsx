@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { CallToActionSection } from '@/types/sanity'
 import { Button } from '@/components/ui/button'
 import { useScrollAnimation, animationClasses } from '@/hooks/useScrollAnimation'
+import { TrackedLink } from '@/components/tracking/TrackedLink'
 
 interface CallToActionSectionComponentProps {
   block: CallToActionSection
@@ -16,12 +17,14 @@ const CallToActionSectionComponent: React.FC<CallToActionSectionComponentProps> 
     return null
   }
 
-  const handleButtonClick = () => {
-    if (block.buttonUrl.startsWith('http') || block.buttonUrl.startsWith('https')) {
-      window.open(block.buttonUrl, '_blank', 'noopener,noreferrer')
-    } else {
-      navigate(block.buttonUrl)
-    }
+  // Check if this is an external partner link
+  const isExternalPartnerLink = (url: string): boolean => {
+    return (url.startsWith('http') || url.startsWith('https')) && 
+           (url.includes('vindstod') || url.includes('andelenergi') || url.includes('elselskab'));
+  }
+  
+  const handleInternalNavigation = () => {
+    navigate(block.buttonUrl);
   }
 
   return (
@@ -42,13 +45,30 @@ const CallToActionSectionComponent: React.FC<CallToActionSectionComponentProps> 
           <motion.div
             {...useScrollAnimation({ duration: 0.5, type: 'fadeUp', delay: 0.2 })}
           >
-            <Button
-              onClick={handleButtonClick}
-              size="lg"
-              className="bg-brand-green hover:bg-brand-green-hover text-white font-semibold px-8 py-4 text-lg"
-            >
-              {block.buttonText}
-            </Button>
+            {isExternalPartnerLink(block.buttonUrl) ? (
+              <TrackedLink
+                href={block.buttonUrl}
+                partner={new URL(block.buttonUrl).hostname.split('.')[0]} // Extract partner from domain
+                component="cta_section"
+                variant="hero_cta"
+                className="inline-block"
+              >
+                <Button
+                  size="lg"
+                  className="bg-brand-green hover:bg-brand-green-hover text-white font-semibold px-8 py-4 text-lg"
+                >
+                  {block.buttonText}
+                </Button>
+              </TrackedLink>
+            ) : (
+              <Button
+                onClick={handleInternalNavigation}
+                size="lg"
+                className="bg-brand-green hover:bg-brand-green-hover text-white font-semibold px-8 py-4 text-lg"
+              >
+                {block.buttonText}
+              </Button>
+            )}
           </motion.div>
         </motion.div>
       </div>

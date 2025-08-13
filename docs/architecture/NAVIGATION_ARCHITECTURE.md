@@ -1,8 +1,8 @@
-# ElPortal Navigation Architecture
+# DinElportal Navigation Architecture
 
 ## Overview
 
-ElPortal uses a reference-based navigation system powered by Sanity CMS. This architecture ensures that navigation links remain valid even when page slugs change, providing a robust and maintainable solution for content management.
+DinElportal uses a reference-based navigation system powered by Sanity CMS. This architecture ensures that navigation links remain valid even when page slugs change, providing a robust and maintainable solution for content management.
 
 ## Architecture Components
 
@@ -233,7 +233,7 @@ const updateNavigationReferences = async (oldId, newId) => {
 
 ## Summary
 
-ElPortal's navigation architecture provides:
+DinElportal's navigation architecture provides:
 - ✅ Automatic link updates when slugs change
 - ✅ Protection against broken links
 - ✅ Real-time update capability

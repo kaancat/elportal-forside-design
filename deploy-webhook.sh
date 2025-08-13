@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 ElPortal Webhook Deployment Script"
+echo "🚀 DinElPortal Webhook Deployment Script"
 echo "===================================="
 echo ""
 

@@ -96,9 +96,9 @@ Based on similar pages: 1,500-2,500 words
 - Social proof (user counts, testimonials)
 - Simplified decision-making process
 
-## Recommendations for ElPortal
+## Recommendations for DinElportal
 
-Based on this analysis, ElPortal should consider:
+Based on this analysis, DinElportal should consider:
 
 ### 1. Content Strategy
 - Match or exceed the content depth (2,000+ words)
@@ -125,7 +125,7 @@ Based on this analysis, ElPortal should consider:
 
 ## Implementation Notes
 
-When creating similar pages for ElPortal:
+When creating similar pages for DinElportal:
 1. Use Sanity CMS page builder for flexibility
 2. Integrate live API data for authenticity
 3. Ensure mobile-responsive design
@@ -134,4 +134,4 @@ When creating similar pages for ElPortal:
 
 ## Conclusion
 
-The elberegner.dk/elselskaber/ page serves as a comprehensive provider comparison hub. ElPortal can compete by leveraging our real-time data capabilities, superior technical infrastructure, and focus on green energy to create an even more valuable resource for Danish electricity consumers.
+The elberegner.dk/elselskaber/ page serves as a comprehensive provider comparison hub. DinElportal can compete by leveraging our real-time data capabilities, superior technical infrastructure, and focus on green energy to create an even more valuable resource for Danish electricity consumers.

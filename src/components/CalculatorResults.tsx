@@ -13,6 +13,7 @@ import {
   formatConsumption,
   getPriceBreakdown
 } from '@/services/priceCalculationService';
+import { TrackedLink } from '@/components/tracking/TrackedLink';
 
 interface CalculatorResultsProps {
   providers: ProviderProductBlock[];
@@ -51,11 +52,7 @@ const CalculatorResults: React.FC<CalculatorResultsProps> = ({
   const cheapest = [...providersWithCosts].sort((a, b) => a.monthlyCost - b.monthlyCost)[0];
   const mostExpensive = [...providersWithCosts].sort((a, b) => b.monthlyCost - a.monthlyCost)[0];
 
-  const handleSignup = (signupLink: string | undefined) => {
-    if (signupLink) {
-      window.open(signupLink, '_blank', 'noopener,noreferrer');
-    }
-  };
+  // Remove handleSignup - TrackedLink will handle this
 
   return (
     <div className="space-y-6">
@@ -139,14 +136,33 @@ const CalculatorResults: React.FC<CalculatorResultsProps> = ({
                     </div>
                   </div>
                   
-                  <Button
-                    size="sm"
-                    className={provider.isVindstoedProduct ? 'bg-brand-green hover:bg-brand-green/90' : ''}
-                    onClick={() => handleSignup(provider.signupLink)}
-                  >
-                    Vælg
-                    <ArrowRight className="ml-1 h-3 w-3" />
-                  </Button>
+                  {provider.signupLink ? (
+                    <TrackedLink
+                      href={provider.signupLink}
+                      partner={provider.providerName || 'unknown'}
+                      component="calculator_results"
+                      variant={provider.isVindstoedProduct ? 'featured' : 'standard'}
+                      consumption={annualConsumption}
+                      estimatedValue={provider.monthlyCost}
+                      className="inline-block"
+                    >
+                      <Button
+                        size="sm"
+                        className={provider.isVindstoedProduct ? 'bg-brand-green hover:bg-brand-green/90' : ''}
+                      >
+                        Vælg
+                        <ArrowRight className="ml-1 h-3 w-3" />
+                      </Button>
+                    </TrackedLink>
+                  ) : (
+                    <Button
+                      size="sm"
+                      disabled
+                      className="bg-gray-300 text-gray-500 cursor-not-allowed"
+                    >
+                      Ikke tilgængelig
+                    </Button>
+                  )}
                 </div>
                 
                 {/* Price breakdown on first item */}

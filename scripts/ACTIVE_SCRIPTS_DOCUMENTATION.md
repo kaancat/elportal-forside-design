@@ -4,7 +4,7 @@ Last Updated: 2025-08-06
 
 ## Overview
 
-This directory contains only essential infrastructure and utility scripts for the ElPortal project. All static Sanity content manipulation scripts have been removed in favor of real-time schema reading.
+This directory contains only essential infrastructure and utility scripts for the DinElPortal project. All static Sanity content manipulation scripts have been removed in favor of real-time schema reading.
 
 ## Philosophy
 

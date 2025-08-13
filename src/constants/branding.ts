@@ -1,4 +1,4 @@
-// Brand constants for ElPortal
+// Brand constants for DinElportal
 // This file centralizes brand assets like logos to avoid hardcoded references
 
 // Fallback logo - Uses the DinElportal logo when Sanity is unavailable

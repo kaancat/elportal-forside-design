@@ -5,8 +5,8 @@ import ErrorBoundary from './components/ErrorBoundary'
 import { registerIconCacheServiceWorker } from './utils/registerIconCache'
 
 // Deployment verification
-console.log('[ElPortal] App initialized - Build timestamp:', new Date().toISOString());
-console.log('[ElPortal] Build version: 2025-07-19-icon-race-condition-fix');
+console.log('[DinElportal] App initialized - Build timestamp:', new Date().toISOString());
+console.log('[DinElportal] Build version: 2025-07-19-icon-race-condition-fix');
 
 // Register icon cache service worker
 registerIconCacheServiceWorker();

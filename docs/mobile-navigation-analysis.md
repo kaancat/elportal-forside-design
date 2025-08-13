@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-After conducting a comprehensive investigation into ElPortal's mobile navigation issues, followed by a rigorous re-evaluation with heightened skepticism, I've identified that the problems are more complex and multifaceted than initially assessed. The intermittent menu disappearance stems not just from state management conflicts, but also from critical missing accessibility infrastructure and a lack of industry-standard patterns.
+After conducting a comprehensive investigation into DinElportal's mobile navigation issues, followed by a rigorous re-evaluation with heightened skepticism, I've identified that the problems are more complex and multifaceted than initially assessed. The intermittent menu disappearance stems not just from state management conflicts, but also from critical missing accessibility infrastructure and a lack of industry-standard patterns.
 
 ### Critical Findings (Revised)
 - **Sheet Component State Loss**: Confirmed - The `isOpen` state in MobileNav.tsx is managed locally, causing it to lose synchronization during route transitions
@@ -1114,7 +1114,7 @@ Sheet uses portal rendering which can lose React event connections and cause hyd
    ```typescript
    // In constants/branding.ts
    export const FALLBACK_LOGO = '/lovable-uploads/[CURRENT_LOGO_ID].png';
-   export const FALLBACK_ALT = 'ElPortal.dk Logo';
+   export const FALLBACK_ALT = 'DinElportal.dk Logo';
    
    // Usage across components
    import { FALLBACK_LOGO, FALLBACK_ALT } from '@/constants/branding';
@@ -1128,7 +1128,7 @@ Sheet uses portal rendering which can lose React event connections and cause hyd
      
      return {
        logo: settings?.logo?.url || import.meta.env.VITE_FALLBACK_LOGO || '/default-logo.png',
-       alt: settings?.logo?.alt || 'ElPortal.dk',
+       alt: settings?.logo?.alt || 'DinElportal.dk',
      };
    };
    ```
@@ -1484,7 +1484,7 @@ useEffect(() => {
 ```typescript
 // Get current logo URL from Sanity or design team
 export const FALLBACK_LOGO = '/lovable-uploads/[CURRENT_LOGO_ID].png';
-export const FALLBACK_ALT = 'ElPortal.dk Logo';
+export const FALLBACK_ALT = 'DinElportal.dk Logo';
 ```
 
 #### Step 2.2: Update All Logo References
@@ -2123,7 +2123,7 @@ refetchOnWindowFocus: true,    // Fresh data on focus
 #### Step 2.2: Update Brand Constants ✅
 **File**: `src/constants/branding.ts`
 **Changes**:
-- Added proper DinElPortal logo from user's design
+- Added proper DinDinElportal logo from user's design
 - Logo copied to `/public/dinelportal-logo.png`
 - Updated constants to use new logo
 ```typescript
@@ -2178,7 +2178,7 @@ grep -r "lovable-uploads/97984f7d" src/ | wc -l
 2. **Legacy Branding Removed** ✅
    - All 7 hardcoded logo references updated
    - Central brand constants established
-   - Modern DinElPortal logo as fallback
+   - Modern DinDinElportal logo as fallback
 
 3. **Code Quality** ✅
    - Clean, maintainable imports
@@ -2707,7 +2707,7 @@ After an intensive debugging session involving 7 phases of implementation, the m
 1. **✅ Menu closes on route change** - Navigation properly detects route changes
 2. **✅ No scroll lock conflicts** - Delegated to Radix UI's built-in mechanism
 3. **✅ Menu persists across page loads** - React Query cache times optimized
-4. **✅ All legacy branding removed** - Replaced with DinElPortal branding
+4. **✅ All legacy branding removed** - Replaced with DinDinElportal branding
 5. **✅ Menu content stays visible** - Fixed CSS transform breaking fixed positioning
 6. **✅ Accessibility compliance** - Full ARIA support and keyboard navigation
 

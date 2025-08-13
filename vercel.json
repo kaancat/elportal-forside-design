@@ -26,6 +26,15 @@
     },
     "api/consumption-map.ts": {
       "maxDuration": 10
+    },
+    "api/track-click.ts": {
+      "maxDuration": 5
+    },
+    "api/track-conversion.ts": {
+      "maxDuration": 10
+    },
+    "api/track-pixel.ts": {
+      "maxDuration": 3
     }
   }
 }

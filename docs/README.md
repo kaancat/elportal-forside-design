@@ -1,6 +1,6 @@
-# ElPortal Documentation
+# DinElportal Documentation
 
-Essential technical documentation for the ElPortal electricity price comparison platform.
+Essential technical documentation for the DinElportal electricity price comparison platform.
 
 ## Quick Start
 
@@ -42,5 +42,5 @@ Essential technical documentation for the ElPortal electricity price comparison 
 
 **Common Mistakes to Avoid:**
 - Never guess field names - check the actual GROQ queries
-- Don't create generic documentation - keep it ElPortal-specific
+- Don't create generic documentation - keep it DinElportal-specific
 - Always validate content by checking what fields are actually fetched

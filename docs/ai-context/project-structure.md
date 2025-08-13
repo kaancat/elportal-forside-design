@@ -1,6 +1,6 @@
-# ElPortal Forside Design - Project Structure
+# DinElportal Forside Design - Project Structure
 
-This document provides the complete technology stack and file tree structure for the ElPortal Forside Design project. **AI agents MUST read this file to understand the project organization before making any changes.**
+This document provides the complete technology stack and file tree structure for the DinElportal Forside Design project. **AI agents MUST read this file to understand the project organization before making any changes.**
 
 ## Technology Stack
 
@@ -44,7 +44,7 @@ This document provides the complete technology stack and file tree structure for
 
 ## Complete System Architecture
 
-The ElPortal ecosystem consists of two interconnected projects:
+The DinElportal ecosystem consists of two interconnected projects:
 
 1. **elportal-forside-design** (This Project)
    - Frontend web application

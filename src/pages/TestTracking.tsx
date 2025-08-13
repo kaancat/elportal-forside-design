@@ -3,7 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TrackedLink } from '@/components/tracking/TrackedLink';
-import { generateClickId, getClickIdFromUrl, createTrackingPixelUrl } from '@/utils/tracking';
+import { 
+  generateClickId, 
+  getClickIdFromUrl, 
+  createTrackingPixelUrl,
+  isEnhancedTrackingEnabled,
+  isMarketingTrackingEnabled 
+} from '@/utils/tracking';
 import { Check, X, AlertCircle, Loader2, ExternalLink } from 'lucide-react';
 
 /**
@@ -14,6 +20,11 @@ const TestTracking: React.FC = () => {
   const [testResults, setTestResults] = useState<Record<string, { status: 'pending' | 'success' | 'error'; message?: string }>>({});
   const [isTestingApi, setIsTestingApi] = useState(false);
   const [generatedClickId, setGeneratedClickId] = useState<string>('');
+  const [consentStatus, setConsentStatus] = useState({
+    statistics: false,
+    marketing: false,
+    loaded: false
+  });
   
   // Check if we arrived with a click_id (partner simulation)
   const urlClickId = getClickIdFromUrl();
@@ -21,6 +32,27 @@ const TestTracking: React.FC = () => {
   useEffect(() => {
     // Generate a test click ID on mount
     setGeneratedClickId(generateClickId());
+    
+    // Check consent status
+    const checkConsent = () => {
+      setConsentStatus({
+        statistics: isEnhancedTrackingEnabled(),
+        marketing: isMarketingTrackingEnabled(),
+        loaded: typeof (window as any).Cookiebot !== 'undefined'
+      });
+    };
+    
+    // Check immediately
+    checkConsent();
+    
+    // Listen for consent changes
+    window.addEventListener('CookiebotOnAccept', checkConsent);
+    window.addEventListener('CookiebotOnDecline', checkConsent);
+    
+    return () => {
+      window.removeEventListener('CookiebotOnAccept', checkConsent);
+      window.removeEventListener('CookiebotOnDecline', checkConsent);
+    };
   }, []);
   
   // Test click ID generation
@@ -191,6 +223,45 @@ const TestTracking: React.FC = () => {
         </Card>
       )}
       
+      {/* Consent Status */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>GDPR Consent Status</CardTitle>
+          <CardDescription>
+            Current consent levels and what tracking is enabled
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span>Cookiebot Loaded:</span>
+            {consentStatus.loaded ? (
+              <Badge className="bg-green-500">✅ Ready</Badge>
+            ) : (
+              <Badge variant="outline">⏳ Loading</Badge>
+            )}
+          </div>
+          <div className="flex items-center justify-between">
+            <span>Statistics (GA4):</span>
+            {consentStatus.statistics ? (
+              <Badge className="bg-green-500">✅ Consented</Badge>
+            ) : (
+              <Badge variant="outline">❌ Not Consented</Badge>
+            )}
+          </div>
+          <div className="flex items-center justify-between">
+            <span>Marketing (Facebook):</span>
+            {consentStatus.marketing ? (
+              <Badge className="bg-green-500">✅ Consented</Badge>
+            ) : (
+              <Badge variant="outline">❌ Not Consented</Badge>
+            )}
+          </div>
+          <div className="text-sm text-gray-600 mt-4">
+            <strong>Note:</strong> Basic click tracking works regardless of consent (GDPR compliant)
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Test Controls */}
       <Card className="mb-6">
         <CardHeader>

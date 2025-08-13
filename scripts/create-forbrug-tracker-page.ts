@@ -24,7 +24,7 @@ async function createForbrugTrackerPage() {
     },
     seo: {
       _type: 'seo',
-      metaTitle: 'Forbrug Tracker - Se Dit Faktiske Elforbrug | ElPortal',
+      metaTitle: 'Forbrug Tracker - Se Dit Faktiske Elforbrug | DinElPortal',
       metaDescription: 'Forbind med Eloverblik og se dit faktiske elforbrug, præcise omkostninger og potentielle besparelser hos forskellige elleverandører.',
       keywords: 'elforbrug, eloverblik, forbrugsdata, elpriser, besparelser, strømforbrug tracker'
     },
@@ -55,7 +55,7 @@ async function createForbrugTrackerPage() {
             children: [
               {
                 _type: 'span',
-                text: 'Med ElPortals Forbrug Tracker får du direkte adgang til dine forbrugsdata fra Eloverblik. Se præcis hvor meget strøm du bruger, hvornår du bruger den, og hvad det koster dig.',
+                text: 'Med DinElPortals Forbrug Tracker får du direkte adgang til dine forbrugsdata fra Eloverblik. Se præcis hvor meget strøm du bruger, hvornår du bruger den, og hvad det koster dig.',
                 marks: []
               }
             ]
@@ -147,7 +147,7 @@ async function createForbrugTrackerPage() {
             children: [
               {
                 _type: 'span',
-                text: 'Klik på "Forbind med Eloverblik" og log ind med MitID for at give ElPortal adgang til dine forbrugsdata.',
+                text: 'Klik på "Forbind med Eloverblik" og log ind med MitID for at give DinElPortal adgang til dine forbrugsdata.',
                 marks: []
               }
             ]
@@ -230,8 +230,8 @@ async function createForbrugTrackerPage() {
           {
             _type: 'faqItem',
             _key: 'faq2',
-            question: 'Hvordan giver jeg ElPortal adgang?',
-            answer: 'Du logger ind med MitID på Eloverblik og godkender at mondaybrew ApS (ElPortal) må se dine forbrugsdata. Du kan til enhver tid trække tilladelsen tilbage.'
+            question: 'Hvordan giver jeg DinElPortal adgang?',
+            answer: 'Du logger ind med MitID på Eloverblik og godkender at mondaybrew ApS (DinElPortal) må se dine forbrugsdata. Du kan til enhver tid trække tilladelsen tilbage.'
           },
           {
             _type: 'faqItem',

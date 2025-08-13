@@ -1,7 +1,7 @@
 /**
  * Danish Electricity Price Calculation Service
  * 
- * This service centralizes all electricity price calculations for the ElPortal platform.
+ * This service centralizes all electricity price calculations for the DinElportal platform.
  * All prices are in Danish Kroner (DKK/kr) per kWh unless otherwise specified.
  * 
  * Price Components:

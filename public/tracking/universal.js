@@ -560,7 +560,7 @@
     config = config || {};
     
     this.config = {
-      endpoint: config.endpoint || 'https://dinelportal.dk/api/tracking/log',
+      endpoint: config.endpoint || 'https://www.dinelportal.dk/api/tracking/log',
       partner_id: config.partner_id || this.extractPartnerIdFromScript() || 'unknown',
       partner_domain: typeof location !== 'undefined' ? location.hostname : 'unknown',
       clickIdParam: config.clickIdParam || 'click_id',

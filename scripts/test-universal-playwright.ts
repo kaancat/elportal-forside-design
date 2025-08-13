@@ -37,9 +37,19 @@ async function testUniversalScript() {
       console.log('Script content length:', content.length);
       console.log('First 500 chars:', content.substring(0, 500));
       
-      // Check for TypeScript artifacts
-      if (content.includes('export ') || content.includes('import ') || content.includes(': ') || content.includes('interface ')) {
-        console.error('❌ TypeScript artifacts found in JavaScript!');
+      // Check for TypeScript artifacts (be more specific to avoid false positives)
+      const tsArtifacts = [
+        /^export\s+/m,
+        /^import\s+/m,
+        /interface\s+\w+\s*{/,
+        /:\s*(string|number|boolean|void|any)\s*[;,)]/
+      ];
+      
+      const foundArtifacts = tsArtifacts.filter(pattern => pattern.test(content));
+      if (foundArtifacts.length > 0) {
+        console.error('❌ TypeScript artifacts found in JavaScript!', foundArtifacts);
+      } else {
+        console.log('✅ No TypeScript artifacts found');
       }
     }
   } catch (error) {

@@ -115,7 +115,7 @@ function getPartnerConfig(req: VercelRequest): TrackingConfig {
   const config: TrackingConfig = {
     partner_id: typeof partner_id === 'string' ? partner_id : 'unknown',
     partner_domain: req.headers['referer'] ? new URL(req.headers['referer'] as string).hostname : 'unknown',
-    endpoint: typeof endpoint === 'string' ? endpoint : 'https://dinelportal.dk/api/tracking/log',
+    endpoint: typeof endpoint === 'string' ? endpoint : 'https://www.dinelportal.dk/api/tracking/log',
     clickIdParam: typeof click_param === 'string' ? click_param : 'click_id',
     cookieDays: parseInt(typeof cookie_days === 'string' ? cookie_days : '90'),
     enableAutoConversion: (typeof auto_conversion === 'string' ? auto_conversion : 'true') === 'true',

@@ -60,11 +60,10 @@ const AdminDashboard: React.FC = () => {
     try {
       setIsLoading(true);
       
-      // For now, use a fixed admin secret since we can't access process.env on client side
-      // TODO: Get this from the login process instead
+      // Use test admin secret (matches the API endpoint)
       const response = await fetch('/api/admin/dashboard', {
         headers: {
-          'Authorization': `Bearer dev-admin-123`
+          'Authorization': `Bearer test123`
         }
       });
 

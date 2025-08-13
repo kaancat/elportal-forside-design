@@ -23,6 +23,7 @@ const TestEloverblik = lazy(() => import("./pages/TestEloverblik").then(m => ({ 
 const TestTracking = lazy(() => import("./pages/TestTracking"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const TestProviderLinks = lazy(() => import("./pages/TestProviderLinks"));
 
 // Loading component for Suspense fallback
 const PageLoader = () => (
@@ -85,6 +86,7 @@ const AppContent = () => {
                     <Route path="/test-tracking" element={<TestTracking />} />
                     <Route path="/privatlivspolitik" element={<PrivacyPolicy />} />
                     <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                    <Route path="/test-provider-links" element={<TestProviderLinks />} />
                     
                     {/* Dynamic route for generic pages - must be before the 404 catch-all */}
                     <Route path="/:slug" element={<GenericPage />} />

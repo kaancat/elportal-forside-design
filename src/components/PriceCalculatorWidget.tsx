@@ -175,10 +175,10 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
                         <div className="p-4 border-2 border-transparent rounded-lg"></div>
                     </div>
                     <div className="text-center mb-2">
-                        <h4 className="font-semibold text-gray-700 relative inline-block">
-                            Eller angiv <span className="relative">præcist<FloatingConsumptionHelper variant="floating" /></span> årligt forbrug:
-                        </h4>
-                        <p className="font-bold text-brand-green text-lg">{annualConsumption.toLocaleString('da-DK')} kWh</p>
+                        <h4 className="font-semibold text-gray-700">Eller angiv præcist årligt forbrug:</h4>
+                        <p className="font-bold text-brand-green text-lg relative inline-block">
+                            {annualConsumption.toLocaleString('da-DK')} kWh<FloatingConsumptionHelper variant="floating" />
+                        </p>
                     </div>
                     <div className="py-4 px-2 -mx-2">
                         <Slider value={[annualConsumption]} onValueChange={handleSliderChange} min={500} max={15000} step={100} />

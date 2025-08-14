@@ -1,50 +1,83 @@
 /*!
  * DinElportal Universal Tracking Script v1.0.0
- * One-line embed for partner websites
- * Features: Auto-capture click_id, Multi-storage persistence, Auto-conversion detection, GDPR compliant
+ * Built: 2025-08-14T14:35:22.568Z
+ * 
+ * One-line embed for partner websites:
+ * <script src="https://dinelportal.dk/api/tracking/universal.js?partner_id=YOUR_ID" async></script>
+ * 
+ * Features:
+ * - Auto-capture click_id from URL
+ * - Multi-storage persistence
+ * - Auto-conversion detection
+ * - Device fingerprinting
+ * - GDPR compliant
  */
+
 (function(window, document, undefined) {
-  'use strict';
+"use strict";
 
-  // Configuration injected by server
-  /* PARTNER_CONFIG_PLACEHOLDER */
+/* PARTNER_CONFIG_PLACEHOLDER */
 
-  // ===== Storage Manager =====
-  var StorageManager = function(options) {
-    this.CLICK_ID_KEY = 'dinelportal_click_id';
-    this.FINGERPRINT_KEY = 'dinelportal_fp';
-    this.SESSION_KEY = 'dinelportal_session';
-    this.DATA_KEY = 'dinelportal_data';
-    
+// === StorageManager.ts ===
+/**
+ * StorageManager - Multi-storage persistence for tracking data
+ * Handles localStorage, sessionStorage, and first-party cookies
+ * GDPR compliant - no personal data collection
+ */
+
+
+  click_id;
+  fingerprint;
+  timestamp;
+  source;
+  page_url;
+  referrer;
+  user_agent;
+  session_id;
+}
+
+
+  cookieDays;
+  domain;
+  secure;
+  sameSite;
+  debug;
+}
+
+
+  private readonly CLICK_ID_KEY = 'dinelportal_click_id';
+  private readonly FINGERPRINT_KEY = 'dinelportal_fp';
+  private readonly SESSION_KEY = 'dinelportal_session';
+  private readonly DATA_KEY = 'dinelportal_data';
+  
+  private options;
+  private debug;
+
+  constructor(options) {
     this.options = {
-      cookieDays: options.cookieDays || 90,
-      domain: options.domain || this.getDomain(),
-      secure: options.secure !== false,
-      sameSite: options.sameSite || 'lax',
-      debug: options.debug || false
-    };
+      cookieDays,
+      domain),
+      secure),
+      sameSite,
+      debug};
     this.debug = this.options.debug;
-  };
+  }
 
-  StorageManager.prototype.storeData = function(data) {
+  /**
+   * Store tracking data in all available storage methods
+   */
+  public storeData(data){
     try {
-      var completeData = {
-        session_id: data.session_id || this.getOrCreateSessionId(),
-        source: data.source || 'direct',
-        timestamp: Date.now()
+      const completeData),
+        session_id),
+        source,
+        ...data
       };
-      
-      // Merge with provided data
-      for (var key in data) {
-        if (data.hasOwnProperty(key)) {
-          completeData[key] = data[key];
-        }
-      }
 
-      var success = {
-        localStorage: this.setLocalStorage(this.DATA_KEY, completeData),
-        sessionStorage: this.setSessionStorage(this.DATA_KEY, completeData),
-        cookie: this.setCookie(this.DATA_KEY, JSON.stringify(completeData))
+      const success = {
+        localStorage, completeData),
+        sessionStorage, completeData),
+        cookie, JSON.stringify(completeData))
       };
 
       // Store individual values for easier access
@@ -59,337 +92,351 @@
         this.setCookie(this.FINGERPRINT_KEY, completeData.fingerprint);
       }
 
-      this.log('Data stored:', completeData, 'Success rates:', success);
-      return success.localStorage || success.sessionStorage || success.cookie;
+      this.log('Data stored, completeData, 'Success rates, success);
+      return Object.values(success).some(s => s); // At least one succeeded
 
     } catch (error) {
-      this.log('Error storing data:', error);
+      this.log('Error storing data, error);
       return false;
     }
-  };
+  }
 
-  StorageManager.prototype.getData = function() {
+  /**
+   * Retrieve tracking data with fallback priority
+   */
+  public getData(){
     try {
-      // Priority: sessionStorage > localStorage > cookies
-      var data = this.getSessionStorage(this.DATA_KEY);
+      // Priority);
       if (!data) {
         data = this.getLocalStorage(this.DATA_KEY);
       }
       if (!data) {
-        var cookieData = this.getCookie(this.DATA_KEY);
+        const cookieData = this.getCookie(this.DATA_KEY);
         if (cookieData) {
           try {
             data = JSON.parse(cookieData);
           } catch (e) {
-            this.log('Error parsing cookie data:', e);
+            this.log('Error parsing cookie data, e);
           }
         }
       }
 
       // Fallback to individual values if complete data not found
       if (!data) {
-        var click_id = this.getClickId();
-        var fingerprint = this.getFingerprint();
-        var session_id = this.getOrCreateSessionId();
+        const click_id = this.getClickId();
+        const fingerprint = this.getFingerprint();
+        const session_id = this.getOrCreateSessionId();
 
         if (click_id || fingerprint) {
           data = {
-            click_id: click_id,
-            fingerprint: fingerprint,
-            session_id: session_id,
-            timestamp: Date.now(),
-            source: 'reconstructed'
-          };
+            click_id,
+            fingerprint,
+            session_id,
+            timestamp),
+            source};
         }
       }
 
       if (data) {
-        this.log('Retrieved data:', data);
+        this.log('Retrieved data, data);
         return data;
       }
 
       return null;
     } catch (error) {
-      this.log('Error retrieving data:', error);
+      this.log('Error retrieving data, error);
       return null;
     }
-  };
+  }
 
-  StorageManager.prototype.getClickId = function() {
+  /**
+   * Get click_id from any available storage
+   */
+  public getClickId(){
     return this.getSessionStorage(this.CLICK_ID_KEY) ||
            this.getLocalStorage(this.CLICK_ID_KEY) ||
            this.getCookie(this.CLICK_ID_KEY);
-  };
+  }
 
-  StorageManager.prototype.getFingerprint = function() {
+  /**
+   * Get fingerprint from storage
+   */
+  public getFingerprint(){
     return this.getLocalStorage(this.FINGERPRINT_KEY) ||
            this.getCookie(this.FINGERPRINT_KEY);
-  };
+  }
 
-  StorageManager.prototype.getOrCreateSessionId = function() {
-    var sessionId = this.getSessionStorage(this.SESSION_KEY);
+  /**
+   * Get or create session ID
+   */
+  public getOrCreateSessionId(){
+    let sessionId = this.getSessionStorage(this.SESSION_KEY);
     if (!sessionId) {
       sessionId = this.generateSessionId();
       this.setSessionStorage(this.SESSION_KEY, sessionId);
     }
     return sessionId;
-  };
+  }
 
-  StorageManager.prototype.clear = function() {
+  /**
+   * Clear all tracking data
+   */
+  public clear(){
     try {
-      var keys = [this.CLICK_ID_KEY, this.FINGERPRINT_KEY, this.SESSION_KEY, this.DATA_KEY];
-      for (var i = 0; i < keys.length; i++) {
-        this.removeLocalStorage(keys[i]);
-        this.removeSessionStorage(keys[i]);
-        this.removeCookie(keys[i]);
-      }
+      // Clear individual keys
+      [this.CLICK_ID_KEY, this.FINGERPRINT_KEY, this.SESSION_KEY, this.DATA_KEY].forEach(key => {
+        this.removeLocalStorage(key);
+        this.removeSessionStorage(key);
+        this.removeCookie(key);
+      });
+
       this.log('All tracking data cleared');
     } catch (error) {
-      this.log('Error clearing data:', error);
+      this.log('Error clearing data, error);
     }
-  };
+  }
 
-  StorageManager.prototype.isExpired = function(data, maxAgeMs) {
+  /**
+   * Check if data is expired
+   */
+  public isExpired(data, maxAgeMs){
     return (Date.now() - data.timestamp) > maxAgeMs;
-  };
+  }
 
-  // Private storage methods
-  StorageManager.prototype.setLocalStorage = function(key, value) {
+  // Private storage methods with error handling
+
+  private setLocalStorage(key, value){
     try {
       if (typeof Storage === 'undefined') return false;
-      localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+      localStorage.setItem(key, typeof value === 'string' ? value ));
       return true;
     } catch (e) {
-      this.log('localStorage.setItem failed:', e);
+      this.log('localStorage.setItem failed, e);
       return false;
     }
-  };
+  }
 
-  StorageManager.prototype.getLocalStorage = function(key) {
+  private getLocalStorage(key){
     try {
       if (typeof Storage === 'undefined') return null;
-      var item = localStorage.getItem(key);
+      const item = localStorage.getItem(key);
       if (!item) return null;
       try {
         return JSON.parse(item);
-      } catch (e) {
-        return item; // Return as string if not JSON
-      }
+      } catch {
+        return item; // Return}
     } catch (e) {
-      this.log('localStorage.getItem failed:', e);
+      this.log('localStorage.getItem failed, e);
       return null;
     }
-  };
+  }
 
-  StorageManager.prototype.removeLocalStorage = function(key) {
+  private removeLocalStorage(key){
     try {
       if (typeof Storage !== 'undefined') {
         localStorage.removeItem(key);
       }
     } catch (e) {
-      this.log('localStorage.removeItem failed:', e);
+      this.log('localStorage.removeItem failed, e);
     }
-  };
+  }
 
-  StorageManager.prototype.setSessionStorage = function(key, value) {
+  private setSessionStorage(key, value){
     try {
       if (typeof Storage === 'undefined') return false;
-      sessionStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+      sessionStorage.setItem(key, typeof value === 'string' ? value ));
       return true;
     } catch (e) {
-      this.log('sessionStorage.setItem failed:', e);
+      this.log('sessionStorage.setItem failed, e);
       return false;
     }
-  };
+  }
 
-  StorageManager.prototype.getSessionStorage = function(key) {
+  private getSessionStorage(key){
     try {
       if (typeof Storage === 'undefined') return null;
-      var item = sessionStorage.getItem(key);
+      const item = sessionStorage.getItem(key);
       if (!item) return null;
       try {
         return JSON.parse(item);
-      } catch (e) {
-        return item; // Return as string if not JSON
-      }
+      } catch {
+        return item; // Return}
     } catch (e) {
-      this.log('sessionStorage.getItem failed:', e);
+      this.log('sessionStorage.getItem failed, e);
       return null;
     }
-  };
+  }
 
-  StorageManager.prototype.removeSessionStorage = function(key) {
+  private removeSessionStorage(key){
     try {
       if (typeof Storage !== 'undefined') {
         sessionStorage.removeItem(key);
       }
     } catch (e) {
-      this.log('sessionStorage.removeItem failed:', e);
+      this.log('sessionStorage.removeItem failed, e);
     }
-  };
+  }
 
-  StorageManager.prototype.setCookie = function(key, value) {
+  private setCookie(key, value){
     try {
       if (typeof document === 'undefined') return false;
       
-      var expires = new Date();
+      const expires = new Date();
       expires.setTime(expires.getTime() + (this.options.cookieDays * 24 * 60 * 60 * 1000));
       
-      var cookieString = key + '=' + encodeURIComponent(value) + '; expires=' + expires.toUTCString() + '; path=/';
+      let cookieString = `${key}=${encodeURIComponent(value)}; expires=${expires.toUTCString()}; path=/`;
       
       if (this.options.domain) {
-        cookieString += '; domain=' + this.options.domain;
+        cookieString += `; domain=${this.options.domain}`;
       }
       
-      if (this.options.secure && location.protocol === 'https:') {
+      if (this.options.secure) {
         cookieString += '; secure';
       }
       
-      cookieString += '; samesite=' + this.options.sameSite;
+      cookieString += `; samesite=${this.options.sameSite}`;
       
-      this.log('Setting cookie:', key, 'with domain:', this.options.domain, 'full string:', cookieString);
       document.cookie = cookieString;
-      
-      // Verify the cookie was set
-      var verifyValue = this.getCookie(key);
-      this.log('Cookie verification for', key, '- Expected:', value.substring(0, 50), 'Got:', verifyValue ? verifyValue.substring(0, 50) : 'null');
-      
       return true;
     } catch (e) {
-      this.log('setCookie failed:', e);
+      this.log('setCookie failed, e);
       return false;
     }
-  };
+  }
 
-  StorageManager.prototype.getCookie = function(key) {
+  private getCookie(key){
     try {
       if (typeof document === 'undefined') return null;
       
-      this.log('Getting cookie:', key, 'All cookies:', document.cookie);
+      const nameEQ = key + "=";
+      const ca = document.cookie.split(';');
       
-      var nameEQ = key + "=";
-      var ca = document.cookie.split(';');
-      
-      for (var i = 0; i < ca.length; i++) {
-        var c = ca[i];
-        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-        if (c.indexOf(nameEQ) === 0) {
-          var value = decodeURIComponent(c.substring(nameEQ.length, c.length));
-          this.log('Found cookie:', key, 'Value:', value.substring(0, 50));
-          return value;
-        }
-      }
-      this.log('Cookie not found:', key);
-      return null;
-    } catch (e) {
-      this.log('getCookie failed:', e);
-      return null;
-    }
-  };
-
-  StorageManager.prototype.removeCookie = function(key) {
-    try {
-      if (typeof document === 'undefined') return;
-      document.cookie = key + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    } catch (e) {
-      this.log('removeCookie failed:', e);
-    }
-  };
-
-  StorageManager.prototype.getDomain = function() {
-    try {
-      if (typeof location === 'undefined') return '';
-      
-      var hostname = location.hostname;
-      
-      // Don't set domain for localhost or IP addresses
-      if (hostname === 'localhost' || /^[0-9.]+$/.test(hostname)) {
-        return '';
-      }
-      
-      var parts = hostname.split('.');
-      
-      // For domains like example.com or www.example.com, use .example.com
-      // This ensures cookies work across all subdomains
-      if (parts.length >= 2) {
-        // Get the last two parts (e.g., mondaybrew.dk)
-        var domain = '.' + parts.slice(-2).join('.');
-        this.log('Cookie domain set to:', domain);
-        return domain;
+      for (let i = 0; i  2) {
+        return '.' + parts.slice(-2).join('.');
       }
       
       return hostname;
     } catch (e) {
-      this.log('getDomain failed:', e);
+      this.log('getDomain failed, e);
       return '';
     }
-  };
+  }
 
-  StorageManager.prototype.generateSessionId = function() {
-    return 'sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2);
-  };
+  private generateSessionId(){
+    return 'sess_' + Date.now().toString(36) + Math.random().toString(36).substr(2);
+  }
 
-  StorageManager.prototype.log = function() {
+  private log(...args){
     if (this.debug && typeof console !== 'undefined') {
-      var args = Array.prototype.slice.call(arguments);
-      args.unshift('[DinElportal Storage]');
-      console.log.apply(console, args);
+      console.log('[DinElportal Storage]', ...args);
     }
-  };
+  }
+}
 
-  // ===== Device Fingerprint =====
-  var DeviceFingerprint = function(options) {
+// === Fingerprint.ts ===
+/**
+ * Fingerprint - GDPR-compliant device fingerprinting for tracking fallback
+ * Uses only technical browser characteristics, no personal data
+ */
+
+
+  screen;
+  timezone;
+  language;
+  platform;
+  cookieEnabled;
+  doNotTrack;
+  canvas;
+  webgl;
+  audio;
+}
+
+
+  includeCanvas;
+  includeWebGL;
+  includeAudio;
+  debug;
+}
+
+
+  private options;
+  private debug;
+
+  constructor(options) {
     this.options = {
-      includeCanvas: options.includeCanvas !== false,
-      includeWebGL: options.includeWebGL !== false,
-      includeAudio: false, // Disabled by default
-      debug: options.debug || false
-    };
+      includeCanvas,
+      includeWebGL,
+      includeAudio, // Audio can be unreliable
+      debug};
     this.debug = this.options.debug;
-  };
+  }
 
-  DeviceFingerprint.prototype.generate = function() {
+  /**
+   * Generate device fingerprint hash
+   */
+  public async generate(){
     try {
-      var data = this.collectFingerprint();
-      var hash = this.hashFingerprint(data);
-      this.log('Generated fingerprint:', hash, 'from data:', data);
+      const data = await this.collectFingerprint();
+      const hash = this.hashFingerprint(data);
+      
+      this.log('Generated fingerprint, hash, 'from data, data);
       return hash;
     } catch (error) {
-      this.log('Error generating fingerprint:', error);
+      this.log('Error generating fingerprint, error);
+      // Fallback to simple hash
       return this.getFallbackFingerprint();
     }
-  };
+  }
 
-  DeviceFingerprint.prototype.collectFingerprint = function() {
-    var data = {
-      screen: screen.width + 'x' + screen.height + 'x' + screen.colorDepth,
-      timezone: new Date().getTimezoneOffset(),
-      language: navigator.language || 'unknown',
-      platform: navigator.platform || 'unknown',
-      cookieEnabled: navigator.cookieEnabled,
-      doNotTrack: navigator.doNotTrack === '1' || navigator.doNotTrack === 'yes'
-    };
+  /**
+   * Collect all fingerprint data points
+   */
+  private async collectFingerprint(){
+    const data}x${screen.height}x${screen.colorDepth}`,
+      
+      // Timezone (offset only, not location)
+      timezone).getTimezoneOffset(),
+      
+      // Language preferences
+      language,
+      
+      // Platform information
+      platform,
+      
+      // Privacy settings
+      cookieEnabled,
+      doNotTrack};
 
+    // Optional canvas fingerprint
     if (this.options.includeCanvas) {
-      data.canvas = this.getCanvasFingerprint();
+      data.canvas = await this.getCanvasFingerprint();
     }
 
+    // Optional WebGL fingerprint
     if (this.options.includeWebGL) {
       data.webgl = this.getWebGLFingerprint();
     }
 
-    return data;
-  };
+    // Optional audio fingerprint
+    if (this.options.includeAudio) {
+      data.audio = await this.getAudioFingerprint();
+    }
 
-  DeviceFingerprint.prototype.getCanvasFingerprint = function() {
+    return data;
+  }
+
+  /**
+   * Generate canvas fingerprint (geometric shapes rendering)
+   */
+  private async getCanvasFingerprint(){
     try {
       if (typeof document === 'undefined') return undefined;
 
-      var canvas = document.createElement('canvas');
+      const canvas = document.createElement('canvas');
       canvas.width = 200;
       canvas.height = 50;
       
-      var ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d');
       if (!ctx) return undefined;
 
       // Draw geometric shapes with text
@@ -412,39 +459,101 @@
       ctx.closePath();
       ctx.fill();
 
-      var dataURL = canvas.toDataURL();
+      const dataURL = canvas.toDataURL();
       return this.simpleHash(dataURL).substring(0, 16);
     } catch (error) {
-      this.log('Canvas fingerprint failed:', error);
+      this.log('Canvas fingerprint failed, error);
       return undefined;
     }
-  };
+  }
 
-  DeviceFingerprint.prototype.getWebGLFingerprint = function() {
+  /**
+   * Generate WebGL fingerprint
+   */
+  private getWebGLFingerprint(){
     try {
       if (typeof document === 'undefined') return undefined;
 
-      var canvas = document.createElement('canvas');
-      var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
       
       if (!gl) return undefined;
 
-      var info = {
-        vendor: gl.getParameter(gl.VENDOR),
-        renderer: gl.getParameter(gl.RENDERER),
-        version: gl.getParameter(gl.VERSION),
-        shadingLanguageVersion: gl.getParameter(gl.SHADING_LANGUAGE_VERSION)
+      // Type assertion for WebGL context
+      const webgl = gl;
+
+      const info = {
+        vendor),
+        renderer),
+        version),
+        shadingLanguageVersion),
+        extensions)?.join(',') || ''
       };
 
       return this.simpleHash(JSON.stringify(info)).substring(0, 16);
     } catch (error) {
-      this.log('WebGL fingerprint failed:', error);
+      this.log('WebGL fingerprint failed, error);
       return undefined;
     }
-  };
+  }
 
-  DeviceFingerprint.prototype.hashFingerprint = function(data) {
-    var components = [
+  /**
+   * Generate audio fingerprint (may be unreliable)
+   */
+  private async getAudioFingerprint(){
+    try {
+      if (typeof window === 'undefined' || !window.AudioContext && !window.webkitAudioContext) {
+        return undefined;
+      }
+
+      return new Promise((resolve) => {
+        const timeout = setTimeout(() => resolve(undefined), 1000);
+
+        try {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          const context = new AudioContextClass();
+          
+          const oscillator = context.createOscillator();
+          const analyser = context.createAnalyser();
+          const gain = context.createGain();
+          const scriptProcessor = context.createScriptProcessor(4096, 1, 1);
+
+          gain.gain.value = 0; // Silent
+          oscillator.frequency.value = 10000;
+          oscillator.connect(analyser);
+          analyser.connect(scriptProcessor);
+          scriptProcessor.connect(gain);
+          gain.connect(context.destination);
+
+          scriptProcessor.onaudioprocess = (event) => {
+            clearTimeout(timeout);
+            const buffer = event.inputBuffer.getChannelData(0);
+            const hash = this.simpleHash(Array.from(buffer).join(','));
+            
+            oscillator.disconnect();
+            scriptProcessor.disconnect();
+            context.close();
+            
+            resolve(hash.substring(0, 16));
+          };
+
+          oscillator.start();
+        } catch (error) {
+          clearTimeout(timeout);
+          resolve(undefined);
+        }
+      });
+    } catch (error) {
+      this.log('Audio fingerprint failed, error);
+      return undefined;
+    }
+  }
+
+  /**
+   * Create hash from fingerprint data
+   */
+  private hashFingerprint(data){
+    const components = [
       data.screen,
       data.timezone.toString(),
       data.language,
@@ -452,371 +561,822 @@
       data.cookieEnabled.toString(),
       data.doNotTrack.toString(),
       data.canvas || '',
-      data.webgl || ''
+      data.webgl || '',
+      data.audio || ''
     ];
 
-    var combined = components.join('|');
+    const combined = components.join('|');
     return 'fp_' + this.simpleHash(combined);
-  };
+  }
 
-  DeviceFingerprint.prototype.getFallbackFingerprint = function() {
+  /**
+   * Fallback fingerprint for error cases
+   */
+  private getFallbackFingerprint(){
     try {
-      var simple = [
-        typeof screen !== 'undefined' ? screen.width + 'x' + screen.height : 'unknown',
-        typeof navigator !== 'undefined' ? navigator.language : 'unknown',
-        typeof navigator !== 'undefined' ? navigator.platform : 'unknown',
+      const simple = [
+        typeof screen !== 'undefined' ? `${screen.width}x${screen.height}` : 'unknown',
+        typeof navigator !== 'undefined' ? navigator.language,
+        typeof navigator !== 'undefined' ? navigator.platform,
         new Date().getTimezoneOffset().toString()
       ].join('|');
 
       return 'fp_' + this.simpleHash(simple);
     } catch (error) {
+      // Ultimate fallback
       return 'fp_' + Date.now().toString(36) + Math.random().toString(36);
     }
-  };
+  }
 
-  DeviceFingerprint.prototype.simpleHash = function(str) {
-    var hash = 5381;
-    for (var i = 0; i < str.length; i++) {
-      hash = ((hash << 5) + hash) + str.charCodeAt(i);
-      hash = hash & hash; // Convert to 32bit integer
+  /**
+   * Simple hash function (djb2 algorithm)
+   */
+  private simpleHash(str){
+    let hash = 5381;
+    for (let i = 0; i  setTimeout(resolve, 100));
+      const fp2 = await this.generate();
+      
+      const stable = fp1 === fp2;
+      this.log('Fingerprint stability check, { fp1, fp2, stable });
+      return stable;
+    } catch (error) {
+      this.log('Stability check failed, error);
+      return false;
     }
-    return Math.abs(hash).toString(36);
-  };
+  }
 
-  DeviceFingerprint.prototype.log = function() {
+  private log(...args){
     if (this.debug && typeof console !== 'undefined') {
-      var args = Array.prototype.slice.call(arguments);
-      args.unshift('[DinElportal Fingerprint]');
-      console.log.apply(console, args);
+      console.log('[DinElportal Fingerprint]', ...args);
     }
-  };
+  }
+}
 
-  // ===== Conversion Detector =====
-  var ConversionDetector = function(config) {
+// Extend Window interface for audio context
+declare global {
+  interface Window {
+    AudioContext;
+    webkitAudioContext;
+  }
+}
+
+// === ConversionDetector.ts ===
+/**
+ * ConversionDetector - Auto-detect conversion pages and events
+ * Supports multiple detection methods, page content, form submissions
+ */
+
+
+  type;
+  page_url;
+  timestamp;
+  confidence;
+  method;
+  value;
+  currency;
+  metadata, any>;
+}
+
+
+  // URL patterns for conversion pages
+  urlPatterns;
+  // Page title patterns
+  titlePatterns;
+  // Content selectors that indicate conversion
+  contentSelectors;
+  // Form selectors to monitor
+  formSelectors;
+  // Button selectors for conversion actions
+  buttonSelectors;
+  // Custom conversion functions
+  customDetectors) => boolean>;
+  // Enable different detection methods
+  enableUrlDetection;
+  enableContentDetection;
+  enableFormDetection;
+  enableButtonDetection;
+  debug;
+}
+
+
+  private config;
+  private debug;
+  private observers;
+  private eventListeners; event; handler}> = [];
+  private detectedConversions;
+
+  constructor(config) {
     this.config = {
-      urlPatterns: (config.urlPatterns || []).concat([
-        '/thank-you', '/thanks', '/tak', '/success', '/confirmation',
-        '/bekraeftelse', '/gennemfoert', '/complete', '/welcome', '/velkommen'
-      ]),
-      enableFormDetection: config.enableFormDetection !== false,
-      enableButtonDetection: config.enableButtonDetection !== false,
-      debug: config.debug || false
-    };
-    this.debug = this.config.debug;
-    this.detectedConversions = [];
-  };
+      // Default Danish and English conversion URL patterns
+      urlPatterns,
+        '/success',
+        '/confirmation',
+        '/complete',
+        '/done',
+        '/tak',
+        '/takker',
+        '/bekraeftelse',
+        '/bekraeftet',
+        '/gennemfoert',
+        '/succes',
+        '/velgennemfoert',
+        '/ordre-bekraeftelse',
+        '/bestilling-bekraeftelse',
+        '/ordre-gennemfoert',
+        '/koebt',
+        '/tilmeldt',
+        '/registreret',
+        '/signup-success',
+        '/registration-complete',
+        '/checkout-complete',
+        '/payment-success',
+        '/order-complete',
+        '/subscription-active',
+        '/welcome',
+        '/velkommen',
+        ...config.urlPatterns || []
+      ],
 
-  ConversionDetector.prototype.initialize = function() {
+      // Page title patterns
+      titlePatterns,
+        'tak*',
+        'bekræft*',
+        'succes*',
+        'velkommen*',
+        'gennemført*',
+        'ordre*',
+        'bestilling*',
+        'købt*',
+        'tilmeldt*',
+        'registreret*',
+        'success*',
+        'complete*',
+        'confirmed*',
+        'welcome*',
+        'order*',
+        'payment*',
+        ...config.titlePatterns || []
+      ],
+
+      // Content selectors
+      contentSelectors,
+        '.thank-you',
+        '.confirmation',
+        '.order-complete',
+        '.payment-success',
+        '[class*="success"]',
+        '[class*="thank"]',
+        '[class*="confirm"]',
+        '[class*="complete"]',
+        '[data-conversion="true"]',
+        '[data-success="true"]',
+        ...config.contentSelectors || []
+      ],
+
+      // Form selectors
+      formSelectors,
+        'form[action*="order"]',
+        'form[action*="signup"]',
+        'form[action*="subscribe"]',
+        'form[action*="tilmeld"]',
+        'form[action*="bestil"]',
+        'form[action*="køb"]',
+        'form.checkout',
+        'form.order',
+        'form.signup',
+        'form.subscription',
+        '#checkout-form',
+        '#order-form',
+        '#signup-form',
+        '#contact-form',
+        '.checkout-form',
+        '.order-form',
+        '.signup-form',
+        ...config.formSelectors || []
+      ],
+
+      // Button selectors
+      buttonSelectors,
+        'input[type="submit"]',
+        '.btn-primary',
+        '.buy-now',
+        '.order-now',
+        '.checkout-btn',
+        '.signup-btn',
+        '.subscribe-btn',
+        '[data-track="conversion"]',
+        '[onclick*="track"]',
+        '[onclick*="convert"]',
+        ...config.buttonSelectors || []
+      ],
+
+      customDetectors,
+      enableUrlDetection,
+      enableContentDetection,
+      enableFormDetection,
+      enableButtonDetection,
+      debug};
+
+    this.debug = this.config.debug;
+  }
+
+  /**
+   * Initialize conversion detection
+   */
+  public initialize(){
     try {
       this.log('Initializing conversion detection');
+
+      // Check current page immediately
       this.checkCurrentPage();
+
+      // Set up DOM monitoring for dynamic content
+      this.setupMutationObserver();
+
+      // Set up form monitoring
+      if (this.config.enableFormDetection) {
+        this.setupFormMonitoring();
+      }
+
+      // Set up button monitoring
+      if (this.config.enableButtonDetection) {
+        this.setupButtonMonitoring();
+      }
+
       this.log('Conversion detection initialized');
     } catch (error) {
-      this.log('Error initializing conversion detection:', error);
+      this.log('Error initializing conversion detection, error);
     }
-  };
+  }
 
-  ConversionDetector.prototype.checkCurrentPage = function() {
+  /**
+   * Check if current page is a conversion page
+   */
+  public checkCurrentPage(){
     try {
-      var url = typeof window !== 'undefined' ? window.location.href : '';
-      var pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+      const url = typeof window !== 'undefined' ? window.location.href;
+      const pathname = typeof window !== 'undefined' ? window.location.pathname;
       
-      var conversion = null;
+      let conversion;
 
       // URL-based detection
-      if (this.checkUrlPatterns(pathname)) {
+      if (this.config.enableUrlDetection && this.checkUrlPatterns(pathname)) {
         conversion = {
-          type: 'page_view',
-          page_url: url,
-          timestamp: Date.now(),
-          confidence: 0.8,
-          method: 'url_pattern'
-        };
+          type,
+          page_url,
+          timestamp),
+          confidence,
+          method};
+      }
+
+      // Title-based detection
+      if (!conversion && typeof document !== 'undefined') {
+        const title = document.title.toLowerCase();
+        if (this.checkTitlePatterns(title)) {
+          conversion = {
+            type,
+            page_url,
+            timestamp),
+            confidence,
+            method};
+        }
+      }
+
+      // Content-based detection
+      if (!conversion && this.config.enableContentDetection) {
+        const contentMatch = this.checkContentSelectors();
+        if (contentMatch) {
+          conversion = {
+            type,
+            page_url,
+            timestamp),
+            confidence,
+            method,
+            metadata}
+          };
+        }
+      }
+
+      // Custom detectors
+      if (!conversion) {
+        for (const detector of this.config.customDetectors) {
+          try {
+            if (detector()) {
+              conversion = {
+                type,
+                page_url,
+                timestamp),
+                confidence,
+                method};
+              break;
+            }
+          } catch (error) {
+            this.log('Custom detector error, error);
+          }
+        }
       }
 
       if (conversion) {
         this.detectedConversions.push(conversion);
-        this.log('Conversion detected:', conversion);
+        this.log('Conversion detected, conversion);
       }
 
       return conversion;
     } catch (error) {
-      this.log('Error checking current page:', error);
+      this.log('Error checking current page, error);
       return null;
     }
-  };
+  }
 
-  ConversionDetector.prototype.checkUrlPatterns = function(pathname) {
-    var lowerPath = pathname.toLowerCase();
-    for (var i = 0; i < this.config.urlPatterns.length; i++) {
-      if (lowerPath.indexOf(this.config.urlPatterns[i]) !== -1) {
-        return true;
+  /**
+   * Get all detected conversions
+   */
+  public getDetectedConversions(){
+    return [...this.detectedConversions];
+  }
+
+  /**
+   * Clear detected conversions
+   */
+  public clearDetectedConversions(){
+    this.detectedConversions = [];
+  }
+
+  /**
+   * Cleanup event listeners and observers
+   */
+  public cleanup(){
+    try {
+      // Stop mutation observers
+      this.observers.forEach(observer => observer.disconnect());
+      this.observers = [];
+
+      // Remove event listeners
+      this.eventListeners.forEach(({ element, event, handler }) => {
+        element.removeEventListener(event, handler);
+      });
+      this.eventListeners = [];
+
+      this.log('Conversion detection cleaned up');
+    } catch (error) {
+      this.log('Error during cleanup, error);
+    }
+  }
+
+  // Private detection methods
+
+  private checkUrlPatterns(pathname){
+    const lowerPath = pathname.toLowerCase();
+    return this.config.urlPatterns.some(pattern => {
+      if (pattern.includes('*')) {
+        const regex = new RegExp(pattern.replace(/\*/g, '.*'), 'i');
+        return regex.test(lowerPath);
+      }
+      return lowerPath.includes(pattern.toLowerCase());
+    });
+  }
+
+  private checkTitlePatterns(title){
+    return this.config.titlePatterns.some(pattern => {
+      if (pattern.includes('*')) {
+        const regex = new RegExp(pattern.replace(/\*/g, '.*'), 'i');
+        return regex.test(title);
+      }
+      return title.includes(pattern.toLowerCase());
+    });
+  }
+
+  private checkContentSelectors(){
+    if (typeof document === 'undefined') return null;
+
+    for (const selector of this.config.contentSelectors) {
+      try {
+        const element = document.querySelector(selector);
+        if (element) {
+          return selector;
+        }
+      } catch (error) {
+        this.log('Invalid selector, selector, error);
       }
     }
-    return false;
-  };
+    return null;
+  }
 
-  ConversionDetector.prototype.getDetectedConversions = function() {
-    return this.detectedConversions.slice(); // Return copy
-  };
+  private setupMutationObserver(){
+    if (typeof document === 'undefined' || typeof MutationObserver === 'undefined') return;
 
-  ConversionDetector.prototype.clearDetectedConversions = function() {
-    this.detectedConversions = [];
-  };
+    const observer = new MutationObserver((mutations) => {
+      let hasNewContent = false;
+      
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+          hasNewContent = true;
+        }
+      });
 
-  ConversionDetector.prototype.cleanup = function() {
-    this.log('Conversion detection cleaned up');
-  };
+      if (hasNewContent) {
+        // Debounce checks for performance
+        setTimeout(() => this.checkCurrentPage(), 500);
+      }
+    });
 
-  ConversionDetector.prototype.log = function() {
-    if (this.debug && typeof console !== 'undefined') {
-      var args = Array.prototype.slice.call(arguments);
-      args.unshift('[DinElportal Conversion]');
-      console.log.apply(console, args);
-    }
-  };
+    observer.observe(document.body, {
+      childList,
+      subtree});
 
-  // ===== Universal Tracker =====
-  var UniversalTracker = function(config) {
-    config = config || {};
-    
-    this.config = {
-      endpoint: config.endpoint || 'https://www.dinelportal.dk/api/tracking/log',
-      partner_id: config.partner_id || this.extractPartnerIdFromScript() || 'unknown',
-      partner_domain: typeof location !== 'undefined' ? location.hostname : 'unknown',
-      clickIdParam: config.clickIdParam || 'click_id',
-      cookieDays: config.cookieDays || 90,
-      domain: config.domain || this.getDomain(),
-      enableAutoConversion: config.enableAutoConversion !== false,
-      enableFingerprinting: config.enableFingerprinting !== false,
-      enableFormTracking: config.enableFormTracking !== false,
-      enableButtonTracking: config.enableButtonTracking !== false,
-      conversionPatterns: config.conversionPatterns || [],
-      debug: config.debug || false,
-      respectDoNotTrack: config.respectDoNotTrack !== false,
-      requireConsent: config.requireConsent || false
+    this.observers.push(observer);
+  }
+
+  private setupFormMonitoring(){
+    if (typeof document === 'undefined') return;
+
+    const monitorForm = (form) => {
+      const handler = (event) => {
+        const conversion,
+          page_url,
+          timestamp),
+          confidence,
+          method,
+          metadata,
+            form_method,
+            form_id,
+            form_class}
+        };
+
+        this.detectedConversions.push(conversion);
+        this.log('Form conversion detected, conversion);
+      };
+
+      form.addEventListener('submit', handler);
+      this.eventListeners.push({ element, event, handler });
     };
 
-    this.debug = this.config.debug;
-    this.initialized = false;
+    // Monitor existing forms
+    this.config.formSelectors.forEach(selector => {
+      try {
+        document.querySelectorAll(selector).forEach((form) => {
+          if (form instanceof HTMLFormElement) {
+            monitorForm(form);
+          }
+        });
+      } catch (error) {
+        this.log('Form selector error, selector, error);
+      }
+    });
+
+    // Monitor for dynamically added forms
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node instanceof HTMLFormElement) {
+            monitorForm(node);
+          } else if (node instanceof Element) {
+            this.config.formSelectors.forEach(selector => {
+              try {
+                node.querySelectorAll(selector).forEach((form) => {
+                  if (form instanceof HTMLFormElement) {
+                    monitorForm(form);
+                  }
+                });
+              } catch (error) {
+                this.log('Dynamic form selector error, selector, error);
+              }
+            });
+          }
+        });
+      });
+    });
+
+    observer.observe(document.body, { childList, subtree});
+    this.observers.push(observer);
+  }
+
+  private setupButtonMonitoring(){
+    if (typeof document === 'undefined') return;
+
+    const monitorButton = (button) => {
+      const handler = (event) => {
+        const conversion,
+          page_url,
+          timestamp),
+          confidence,
+          method,
+          metadata),
+            button_id).id,
+            button_class,
+            button_type)
+          }
+        };
+
+        this.detectedConversions.push(conversion);
+        this.log('Button conversion detected, conversion);
+      };
+
+      button.addEventListener('click', handler);
+      this.eventListeners.push({ element, event, handler });
+    };
+
+    // Monitor existing buttons
+    this.config.buttonSelectors.forEach(selector => {
+      try {
+        document.querySelectorAll(selector).forEach(monitorButton);
+      } catch (error) {
+        this.log('Button selector error, selector, error);
+      }
+    });
+
+    // Monitor for dynamically added buttons
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node instanceof Element) {
+            this.config.buttonSelectors.forEach(selector => {
+              try {
+                if (node.matches(selector)) {
+                  monitorButton(node);
+                } else {
+                  node.querySelectorAll(selector).forEach(monitorButton);
+                }
+              } catch (error) {
+                this.log('Dynamic button selector error, selector, error);
+              }
+            });
+          }
+        });
+      });
+    });
+
+    observer.observe(document.body, { childList, subtree});
+    this.observers.push(observer);
+  }
+
+  private log(...args){
+    if (this.debug && typeof console !== 'undefined') {
+      console.log('[DinElportal Conversion]', ...args);
+    }
+  }
+}
+
+// === UniversalScript.ts ===
+/**
+ * DinElportal Universal Tracking Script
+ * 
+ * One-line embed script for partner websites
+ * Features, sessionStorage, cookies)
+ * - Auto-detect conversion pages
+ * - Device fingerprinting fallback
+ * - Global API)
+ * - GDPR compliant
+ * - Handles all edge cases (blocked cookies, private browsing, etc.)
+ * 
+ * Usage;
+  fingerprint;
+  session_id;
+  page_url;
+  referrer;
+  timestamp;
+  user_agent;
+}
+
+
+  click_id;
+  fingerprint;
+  session_id;
+  conversion_type;
+  conversion_value;
+  conversion_currency;
+  page_url;
+  timestamp;
+  metadata, any>;
+}
+
+
+  // API endpoint for sending data
+  endpoint;
+  // Partner identification
+  partner_id;
+  partner_domain;
+  // Click ID parameter name
+  clickIdParam;
+  // Storage configuration
+  cookieDays;
+  domain;
+  // Feature toggles
+  enableAutoConversion;
+  enableFingerprinting;
+  enableFormTracking;
+  enableButtonTracking;
+  // Custom conversion patterns
+  conversionPatterns;
+  // Debug mode
+  debug;
+  // GDPR compliance
+  respectDoNotTrack;
+  requireConsent;
+}
+
+
+  trackConversion) => Promise;
+  getTrackingData) => TrackingData | null;
+  clearData) => void;
+  setConfig) => void;
+  getConfig) => TrackingConfig;
+  debug) => void;
+  version;
+}
+
+class UniversalTracker {
+  private config;
+  private storageManager;
+  private fingerprinter;
+  private conversionDetector;
+  private initialized = false;
+  private debug = false;
+
+  constructor(config) {
+    this.config = {
+      endpoint,
+      partner_id) || 'unknown',
+      partner_domain,
+      clickIdParam,
+      cookieDays,
+      domain),
+      enableAutoConversion,
+      enableFingerprinting,
+      enableFormTracking,
+      enableButtonTracking,
+      conversionPatterns,
+      debug,
+      respectDoNotTrack,
+      requireConsent,
+      ...config
+    };
+
+    this.debug = this.config.debug || false;
 
     // Initialize components
     this.storageManager = new StorageManager({
-      cookieDays: this.config.cookieDays,
-      domain: this.config.domain,
-      debug: this.debug
-    });
+      cookieDays,
+      domain,
+      debug});
 
     this.fingerprinter = new DeviceFingerprint({
-      debug: this.debug
-    });
+      debug);
 
     this.conversionDetector = new ConversionDetector({
-      urlPatterns: this.config.conversionPatterns,
-      enableFormDetection: this.config.enableFormTracking,
-      enableButtonDetection: this.config.enableButtonTracking,
-      debug: this.debug
-    });
-  };
+      urlPatterns,
+      enableFormDetection,
+      enableButtonDetection,
+      debug});
+  }
 
-  UniversalTracker.prototype.initialize = function() {
-    var self = this;
-    
+  /**
+   * Initialize tracking system
+   */
+  public async initialize(){
     try {
-      if (self.initialized) return;
+      if (this.initialized) return;
 
-      self.log('Initializing DinElportal Universal Tracker');
+      this.log('Initializing DinElportal Universal Tracker');
 
       // Check GDPR compliance
-      if (!self.isTrackingAllowed()) {
-        self.log('Tracking not allowed (DNT or consent required)');
+      if (!this.isTrackingAllowed()) {
+        this.log('Tracking not allowed (DNT or consent required)');
         return;
       }
 
       // Capture click_id from URL
-      var urlClickId = self.extractClickIdFromUrl();
-      self.log('URL click_id:', urlClickId);
+      const urlClickId = this.extractClickIdFromUrl();
       
       // Get or generate tracking data
-      var trackingData = self.storageManager.getData();
-      self.log('Retrieved tracking data:', trackingData);
+      let trackingData = this.storageManager.getData();
       
-      if (!trackingData || self.shouldRefreshData(trackingData, urlClickId)) {
-        self.log('Creating new tracking data (no existing data or refresh needed)');
-        trackingData = self.createTrackingData(urlClickId);
-        self.storageManager.storeData(trackingData);
-        self.log('Stored new tracking data:', trackingData);
-      } else {
-        self.log('Using existing tracking data');
+      if (!trackingData || this.shouldRefreshData(trackingData, urlClickId)) {
+        trackingData = await this.createTrackingData(urlClickId);
+        this.storageManager.storeData(trackingData);
       }
 
       // Initialize conversion detection
-      if (self.config.enableAutoConversion) {
-        self.conversionDetector.initialize();
+      if (this.config.enableAutoConversion) {
+        this.conversionDetector.initialize();
         
         // Check for immediate conversion
-        var conversion = self.conversionDetector.checkCurrentPage();
+        const conversion = this.conversionDetector.checkCurrentPage();
         if (conversion) {
-          self.handleConversion(conversion);
+          await this.handleConversion(conversion);
         }
       }
 
-      self.initialized = true;
-      self.log('Tracking initialized successfully', trackingData);
+      this.initialized = true;
+      this.log('Tracking initialized successfully', trackingData);
 
       // Send initial tracking event
-      self.sendTrackingData(trackingData);
-      
-      // Track page navigation
-      self.trackPageView();
+      await this.sendTrackingData(trackingData);
 
     } catch (error) {
-      self.log('Error initializing tracker:', error);
+      this.log('Error initializing tracker, error);
     }
-  };
+  }
 
-  UniversalTracker.prototype.trackPageView = function() {
-    var self = this;
-    
+  /**
+   * Track conversion manually
+   */
+  public async trackConversion(data){
     try {
-      // Get stored tracking data
-      var trackingData = self.storageManager.getData();
-      
-      self.log('trackPageView - Current tracking data:', trackingData);
-      
-      // Always send page view event, even without click_id
-      var pageViewData = {
-        type: 'track',
-        partner_id: self.config.partner_id,
-        partner_domain: self.config.partner_domain,
-        data: {
-          click_id: trackingData ? trackingData.click_id : null,
-          fingerprint: trackingData ? trackingData.fingerprint : self.fingerprinter.generate(),
-          session_id: trackingData ? trackingData.session_id : self.storageManager.getOrCreateSessionId(),
-          page_url: typeof location !== 'undefined' ? location.href : '',
-          referrer: typeof document !== 'undefined' ? document.referrer : '',
-          user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
-          timestamp: Date.now(),
-          event_type: 'page_view'
-        }
-      };
-      
-      self.log('Sending page view event:', pageViewData);
-      
-      // Send directly to endpoint
-      self.sendToEndpoint(pageViewData, function(success) {
-        self.log('Page view tracked:', success);
-      });
-      
-    } catch (error) {
-      self.log('Error tracking page view:', error);
-    }
-  };
-
-  UniversalTracker.prototype.trackConversion = function(data) {
-    var self = this;
-    data = data || {};
-    
-    return new Promise(function(resolve) {
-      try {
-        var trackingData = self.storageManager.getData();
-        if (!trackingData) {
-          self.log('No tracking data available for conversion');
-          resolve(false);
-          return;
-        }
-
-        var conversionData = {
-          click_id: trackingData.click_id,
-          fingerprint: trackingData.fingerprint,
-          session_id: trackingData.session_id,
-          conversion_type: data.conversion_type || 'manual',
-          conversion_value: data.conversion_value,
-          page_url: typeof location !== 'undefined' ? location.href : '',
-          timestamp: Date.now()
-        };
-
-        // Merge additional data
-        for (var key in data) {
-          if (data.hasOwnProperty(key) && !conversionData.hasOwnProperty(key)) {
-            conversionData[key] = data[key];
-          }
-        }
-
-        self.sendConversionData(conversionData, function(success) {
-          self.log('Manual conversion tracked:', conversionData, 'Success:', success);
-          resolve(success);
-        });
-      } catch (error) {
-        self.log('Error tracking conversion:', error);
-        resolve(false);
+      const trackingData = this.storageManager.getData();
+      if (!trackingData) {
+        this.log('No tracking data available for conversion');
+        return false;
       }
-    });
-  };
 
-  UniversalTracker.prototype.getTrackingData = function() {
-    var data = this.storageManager.getData();
+      const conversionData,
+        fingerprint,
+        session_id,
+        conversion_type,
+        page_url,
+        timestamp),
+        ...data
+      };
+
+      const success = await this.sendConversionData(conversionData);
+      this.log('Manual conversion tracked, conversionData, 'Success, success);
+      
+      return success;
+    } catch (error) {
+      this.log('Error tracking conversion, error);
+      return false;
+    }
+  }
+
+  /**
+   * Get current tracking data
+   */
+  public getTrackingData(){
+    const data = this.storageManager.getData();
     if (!data) return null;
 
     return {
-      click_id: data.click_id,
-      fingerprint: data.fingerprint,
-      session_id: data.session_id,
-      page_url: data.page_url || '',
-      referrer: data.referrer || '',
-      timestamp: data.timestamp,
-      user_agent: data.user_agent || ''
-    };
-  };
+      click_id,
+      fingerprint,
+      session_id,
+      page_url,
+      referrer,
+      timestamp,
+      user_agent};
+  }
 
-  UniversalTracker.prototype.clearData = function() {
+  /**
+   * Clear all tracking data
+   */
+  public clearData(){
     this.storageManager.clear();
     this.conversionDetector.clearDetectedConversions();
     this.log('All tracking data cleared');
-  };
+  }
 
-  UniversalTracker.prototype.setConfig = function(newConfig) {
-    for (var key in newConfig) {
-      if (newConfig.hasOwnProperty(key)) {
-        this.config[key] = newConfig[key];
-      }
-    }
+  /**
+   * Update configuration
+   */
+  public setConfig(newConfig){
+    this.config = { ...this.config, ...newConfig };
     this.debug = this.config.debug || false;
-    this.log('Configuration updated:', newConfig);
-  };
+    this.log('Configuration updated, newConfig);
+  }
 
-  UniversalTracker.prototype.getConfig = function() {
-    var config = {};
-    for (var key in this.config) {
-      if (this.config.hasOwnProperty(key)) {
-        config[key] = this.config[key];
-      }
-    }
-    return config;
-  };
+  /**
+   * Get current configuration
+   */
+  public getConfig(){
+    return { ...this.config };
+  }
 
-  UniversalTracker.prototype.setDebug = function(enabled) {
+  /**
+   * Toggle debug mode
+   */
+  public setDebug(enabled){
     this.debug = enabled;
     this.config.debug = enabled;
-    this.log('Debug mode:', enabled ? 'enabled' : 'disabled');
-  };
+    this.log('Debug mode, enabled ? 'enabled' : 'disabled');
+  }
 
-  UniversalTracker.prototype.cleanup = function() {
+  /**
+   * Cleanup resources
+   */
+  public cleanup(){
     this.conversionDetector.cleanup();
     this.initialized = false;
     this.log('Tracker cleaned up');
-  };
+  }
 
   // Private methods
-  UniversalTracker.prototype.createTrackingData = function(clickId) {
-    var data = {
-      session_id: this.storageManager.getOrCreateSessionId(),
-      timestamp: Date.now(),
-      source: clickId ? 'url' : 'generated',
-      page_url: typeof location !== 'undefined' ? location.href : '',
-      referrer: typeof document !== 'undefined' ? document.referrer : '',
-      user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : ''
-    };
+
+  private async createTrackingData(clickId?){
+    const data),
+      timestamp),
+      source,
+      page_url,
+      referrer,
+      user_agent};
 
     if (clickId) {
       data.click_id = clickId;
@@ -824,181 +1384,141 @@
 
     if (this.config.enableFingerprinting) {
       try {
-        data.fingerprint = this.fingerprinter.generate();
+        data.fingerprint = await this.fingerprinter.generate();
       } catch (error) {
-        this.log('Fingerprinting failed:', error);
+        this.log('Fingerprinting failed, error);
       }
     }
 
     return data;
-  };
+  }
 
-  UniversalTracker.prototype.shouldRefreshData = function(existing, newClickId) {
+  private shouldRefreshData(existing, newClickId){
     // Refresh if we have a new click_id
     if (newClickId && newClickId !== existing.click_id) {
       return true;
     }
 
     // Refresh if data is too old (90 days)
-    var maxAge = 90 * 24 * 60 * 60 * 1000;
+    const maxAge = 90 * 24 * 60 * 60 * 1000;
     if (this.storageManager.isExpired(existing, maxAge)) {
       return true;
     }
 
     return false;
-  };
+  }
 
-  UniversalTracker.prototype.handleConversion = function(conversion) {
-    var self = this;
+  private async handleConversion(conversion){
     try {
-      var trackingData = self.storageManager.getData();
+      const trackingData = this.storageManager.getData();
       if (!trackingData) return;
 
-      var conversionData = {
-        click_id: trackingData.click_id,
-        fingerprint: trackingData.fingerprint,
-        session_id: trackingData.session_id,
-        conversion_type: conversion.type,
-        page_url: conversion.page_url,
-        timestamp: conversion.timestamp,
-        metadata: {
-          confidence: conversion.confidence,
-          method: conversion.method
-        }
+      const conversionData,
+        fingerprint,
+        session_id,
+        conversion_type,
+        page_url,
+        timestamp,
+        metadata,
+          confidence,
+          method}
       };
 
-      self.sendConversionData(conversionData, function(success) {
-        self.log('Auto conversion tracked:', conversionData);
-      });
+      await this.sendConversionData(conversionData);
+      this.log('Auto conversion tracked, conversionData);
     } catch (error) {
-      self.log('Error handling conversion:', error);
+      this.log('Error handling conversion, error);
     }
-  };
+  }
 
-  UniversalTracker.prototype.sendTrackingData = function(data, callback) {
-    var self = this;
+  private async sendTrackingData(data){
     try {
-      var payload = {
-        type: 'track',
-        partner_id: self.config.partner_id,
-        partner_domain: self.config.partner_domain,
-        data: {
-          click_id: data.click_id,
-          fingerprint: data.fingerprint,
-          session_id: data.session_id,
-          page_url: data.page_url,
-          referrer: data.referrer,
-          user_agent: data.user_agent,
-          timestamp: data.timestamp
-        }
+      const payload = {
+        type,
+        partner_id,
+        partner_domain,
+        data,
+          fingerprint,
+          session_id,
+          page_url,
+          referrer,
+          user_agent,
+          timestamp}
       };
 
-      self.sendToEndpoint(payload, function(success) {
-        if (callback) callback(success);
-      });
+      const response = await this.sendToEndpoint(payload);
+      return response.ok;
     } catch (error) {
-      self.log('Error sending tracking data:', error);
-      if (callback) callback(false);
+      this.log('Error sending tracking data, error);
+      return false;
     }
-  };
+  }
 
-  UniversalTracker.prototype.sendConversionData = function(data, callback) {
-    var self = this;
+  private async sendConversionData(data){
     try {
-      var payload = {
-        type: 'conversion',
-        partner_id: self.config.partner_id,
-        partner_domain: self.config.partner_domain,
-        data: data
+      const payload = {
+        type,
+        partner_id,
+        partner_domain,
+        data
       };
 
-      self.sendToEndpoint(payload, function(success) {
-        if (callback) callback(success);
-      });
+      const response = await this.sendToEndpoint(payload);
+      return response.ok;
     } catch (error) {
-      self.log('Error sending conversion data:', error);
-      if (callback) callback(false);
+      this.log('Error sending conversion data, error);
+      return false;
     }
-  };
+  }
 
-  UniversalTracker.prototype.sendToEndpoint = function(payload, callback) {
-    var self = this;
-    var endpoint = self.config.endpoint;
+  private async sendToEndpoint(payload){
+    const endpoint = this.config.endpoint!;
     
-    if (typeof fetch !== 'undefined') {
-      // Modern browser with fetch
-      fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload),
-        mode: 'cors'
-      }).then(function(response) {
-        if (callback) callback(response.ok);
-      }).catch(function(error) {
-        self.log('Fetch error:', error);
-        if (callback) callback(false);
-      });
-    } else if (typeof XMLHttpRequest !== 'undefined') {
-      // Fallback to XHR
-      var xhr = new XMLHttpRequest();
-      xhr.open('POST', endpoint, true);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4) {
-          if (callback) callback(xhr.status === 200);
-        }
-      };
-      xhr.send(JSON.stringify(payload));
-    } else {
-      // No way to send data
-      self.log('No fetch or XHR available');
-      if (callback) callback(false);
-    }
-  };
+    return fetch(endpoint, {
+      method,
+      headers},
+      body),
+      mode});
+  }
 
-  UniversalTracker.prototype.extractClickIdFromUrl = function() {
+  private extractClickIdFromUrl(){
     try {
       if (typeof URLSearchParams === 'undefined' || typeof location === 'undefined') {
         return null;
       }
 
-      var params = new URLSearchParams(location.search);
-      return params.get(this.config.clickIdParam) || null;
+      const params = new URLSearchParams(location.search);
+      return params.get(this.config.clickIdParam!) || null;
     } catch (error) {
-      this.log('Error extracting click_id from URL:', error);
+      this.log('Error extracting click_id from URL, error);
       return null;
     }
-  };
+  }
 
-  UniversalTracker.prototype.extractPartnerIdFromScript = function() {
+  private extractPartnerIdFromScript(){
     try {
       if (typeof document === 'undefined') return null;
 
-      // Try to find the script tag and extract partner_id from URL
-      var scripts = document.querySelectorAll('script[src*="dinelportal"]');
-      for (var i = 0; i < scripts.length; i++) {
-        var src = scripts[i].getAttribute('src');
-        if (src) {
-          var match = src.match(/[?&]partner_id=([^&]+)/);
-          if (match) return match[1];
-        }
+      // Try to find the script tag and extract partner_id from data attribute
+      const scripts = document.querySelectorAll('script[src*="dinelportal"]');
+      for (const script of scripts) {
+        const partnerId = script.getAttribute('data-partner-id');
+        if (partnerId) return partnerId;
       }
 
       return null;
     } catch (error) {
-      this.log('Error extracting partner ID:', error);
+      this.log('Error extracting partner ID, error);
       return null;
     }
-  };
+  }
 
-  UniversalTracker.prototype.getDomain = function() {
+  private getDomain(){
     try {
       if (typeof location === 'undefined') return '';
       
-      var hostname = location.hostname;
-      var parts = hostname.split('.');
+      const hostname = location.hostname;
+      const parts = hostname.split('.');
       
       if (parts.length > 2) {
         return '.' + parts.slice(-2).join('.');
@@ -1006,12 +1526,12 @@
       
       return hostname;
     } catch (error) {
-      this.log('Error getting domain:', error);
+      this.log('Error getting domain, error);
       return '';
     }
-  };
+  }
 
-  UniversalTracker.prototype.isTrackingAllowed = function() {
+  private isTrackingAllowed(){
     // Respect Do Not Track
     if (this.config.respectDoNotTrack && typeof navigator !== 'undefined') {
       if (navigator.doNotTrack === '1' || navigator.doNotTrack === 'yes') {
@@ -1023,76 +1543,73 @@
     if (this.config.requireConsent) {
       // Look for common consent flags
       if (typeof window !== 'undefined') {
-        var consent = window.dinelportal_consent || 
-                     window.gtag_consent ||
-                     (localStorage.getItem('consent') === 'true');
+        const consent = (window).dinelportal_consent || 
+                       (window).gtag_consent ||
+                       localStorage.getItem('consent') === 'true';
         if (!consent) return false;
       }
     }
 
     return true;
-  };
+  }
 
-  UniversalTracker.prototype.log = function() {
+  private log(...args){
     if (this.debug && typeof console !== 'undefined') {
-      var args = Array.prototype.slice.call(arguments);
-      args.unshift('[DinElportal Tracker]');
-      console.log.apply(console, args);
-    }
-  };
-
-  // ===== Global API Setup =====
-  function createGlobalAPI() {
-    try {
-      if (typeof window === 'undefined') return;
-
-      var tracker = new UniversalTracker(window.DinElportalConfig || window.__DINELPORTAL_CONFIG || {});
-      
-      var api = {
-        trackConversion: function(data) { return tracker.trackConversion(data); },
-        getTrackingData: function() { return tracker.getTrackingData(); },
-        clearData: function() { return tracker.clearData(); },
-        setConfig: function(config) { return tracker.setConfig(config); },
-        getConfig: function() { return tracker.getConfig(); },
-        debug: function(enabled) { return tracker.setDebug(enabled); },
-        version: '1.0.0'
-      };
-
-      // Create global namespace
-      window.DinElportal = api;
-
-      // Auto-initialize
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-          tracker.initialize();
-        });
-      } else {
-        tracker.initialize();
-      }
-
-      // Handle page unload
-      window.addEventListener('beforeunload', function() {
-        tracker.cleanup();
-      });
-
-      console.log('DinElportal Universal Tracker v1.0.0 loaded');
-    } catch (error) {
-      console.error('Error creating DinElportal API:', error);
+      console.log('[DinElportal Tracker]', ...args);
     }
   }
+}
 
-  // Auto-execute when script loads
-  if (typeof window !== 'undefined') {
+// Global API setup
+function createGlobalAPI(){
+  try {
+    if (typeof window === 'undefined') return;
+
+    const tracker = new UniversalTracker();
+    
+    const api),
+      getTrackingData),
+      clearData),
+      setConfig),
+      getConfig),
+      debug),
+      version};
+
+    // Create global namespace
+    (window).DinElportal = api;
+
+    // Auto-initialize
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', createGlobalAPI);
+      document.addEventListener('DOMContentLoaded', () => tracker.initialize());
     } else {
-      createGlobalAPI();
+      tracker.initialize();
     }
-  }
 
-  // Make constructor available for testing
-  if (typeof window !== 'undefined') {
-    window.DinElportalTracker = UniversalTracker;
+    // Handle page unload
+    window.addEventListener('beforeunload', () => tracker.cleanup());
+
+    console.log('DinElportal Universal Tracker v1.0.0 loaded');
+  } catch (error) {
+    console.error('Error creating DinElportal API, error);
   }
+}
+
+// Auto-execute when script loads
+if (typeof window !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', createGlobalAPI);
+  } else {
+    createGlobalAPI();
+  }
+}
+
+// Export for TypeScript/module usage
+
+
+
+// Make available for direct browser usage
+if (typeof window !== 'undefined') {
+  (window).DinElportalTracker = UniversalTracker;
+}
 
 })(typeof window !== "undefined" ? window : this, typeof document !== "undefined" ? document : {});

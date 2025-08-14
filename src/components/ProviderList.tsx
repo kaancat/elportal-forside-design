@@ -13,6 +13,7 @@ import type { ProviderListBlock } from '../types/sanity';
 import { useScrollAnimation, staggerContainer, animationClasses } from '@/hooks/useScrollAnimation';
 import { ElectricityProduct } from '@/types/product';
 import { calculatePricePerKwh, calculateMonthlyCost } from '@/services/priceCalculationService';
+import { FloatingConsumptionHelper } from './FloatingConsumptionHelper';
 
 interface ProviderListProps {
   block: ProviderListBlock;
@@ -322,7 +323,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
               Præcis årligt forbrug
             </h2>
             <label className="block text-sm font-medium text-brand-dark mb-4 text-center">
-              Forventet årligt kWh-forbrug: <span className="font-bold text-brand-green">{annualConsumption[0].toLocaleString()} kWh</span>
+              Forventet årligt kWh-forbrug: <span className="font-bold text-brand-green relative inline-block">{annualConsumption[0].toLocaleString()} kWh<FloatingConsumptionHelper variant="neon" /></span>
             </label>
             <Slider
               value={annualConsumption}

@@ -14,36 +14,38 @@ export const FloatingConsumptionHelper: React.FC<FloatingConsumptionHelperProps>
   const PopoverContentComponent = () => (
     <PopoverContent className="w-80 p-0" side="top" align="end">
       <Card className="border-0 shadow-lg">
-        <CardContent className="p-4">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-brand-green/10 flex items-center justify-center">
-                <Zap className="h-4 w-4 text-brand-green" />
+        <CardContent className="p-5">
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 rounded-full bg-brand-green/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Zap className="h-5 w-5 text-brand-green" />
               </div>
-              <h3 className="font-semibold text-gray-900">Kender du ikke dit forbrug?</h3>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-gray-900 text-base leading-tight">Kender du ikke dit forbrug?</h3>
+              </div>
             </div>
             
-            <p className="text-sm text-gray-600 leading-relaxed">
+            <p className="text-sm text-gray-600 leading-relaxed pl-13">
               Ingen problem! Med vores forbrug tracker kan du nemt finde dit præcise elforbrug 
               ved at forbinde til Eloverblik med MitID.
             </p>
             
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs text-gray-700">
-                <BarChart3 className="h-3 w-3 text-brand-green" />
-                <span>Se dit faktiske forbrug time for time</span>
+            <div className="space-y-3 pl-13">
+              <div className="flex items-start gap-3">
+                <BarChart3 className="h-4 w-4 text-brand-green flex-shrink-0 mt-0.5" />
+                <span className="text-sm text-gray-700 leading-relaxed">Se dit faktiske forbrug time for time</span>
               </div>
-              <div className="flex items-center gap-2 text-xs text-gray-700">
-                <Calculator className="h-3 w-3 text-brand-green" />
-                <span>Få præcise prisberegninger</span>
+              <div className="flex items-start gap-3">
+                <Calculator className="h-4 w-4 text-brand-green flex-shrink-0 mt-0.5" />
+                <span className="text-sm text-gray-700 leading-relaxed">Få præcise prisberegninger</span>
               </div>
             </div>
             
-            <div className="pt-2">
+            <div className="pt-1">
               <Button 
                 asChild 
                 className="w-full bg-brand-green hover:bg-brand-green-hover text-white"
-                size="sm"
+                size="default"
               >
                 <a href="/forbrug-tracker" target="_blank" rel="noopener noreferrer">
                   <Zap className="mr-2 h-4 w-4" />

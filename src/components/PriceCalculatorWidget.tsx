@@ -174,7 +174,12 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
                         <PresetButton icon={<Sun size={20}/>} label="Sommerhus" value="Feriebolig" consumption={2000} isActive={activePreset === 'sommerhus'} onClick={() => handlePresetClick('sommerhus')} />
                         <div className="p-4 border-2 border-transparent rounded-lg"></div>
                     </div>
-                    <div className="text-center mb-2"><h4 className="font-semibold text-gray-700">Eller angiv præcist årligt forbrug:</h4><p className="font-bold text-brand-green text-lg">{annualConsumption.toLocaleString('da-DK')} kWh</p></div>
+                    <div className="text-center mb-2">
+                        <h4 className="font-semibold text-gray-700 relative inline-block">
+                            Eller angiv <span className="relative">præcist<FloatingConsumptionHelper variant="floating" /></span> årligt forbrug:
+                        </h4>
+                        <p className="font-bold text-brand-green text-lg">{annualConsumption.toLocaleString('da-DK')} kWh</p>
+                    </div>
                     <div className="py-4 px-2 -mx-2">
                         <Slider value={[annualConsumption]} onValueChange={handleSliderChange} min={500} max={15000} step={100} />
                     </div>
@@ -186,9 +191,6 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
                         <Button onClick={() => setCurrentStep(1)} variant="outline" className="w-full"><ArrowLeft className="mr-2 h-4 w-4" /> Tilbage</Button>
                         <Button onClick={handleGoToResults} className="w-full bg-brand-green hover:opacity-90">Se dine priser <ArrowRight className="ml-2 h-4 w-4" /></Button>
                     </div>
-                    
-                    {/* Desktop floating helper */}
-                    <FloatingConsumptionHelper variant="floating" />
                 </div>
             )}
 

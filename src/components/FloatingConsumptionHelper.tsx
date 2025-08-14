@@ -12,20 +12,16 @@ export const FloatingConsumptionHelper: React.FC<FloatingConsumptionHelperProps>
   variant = 'floating' 
 }) => {
   const PopoverContentComponent = () => (
-    <PopoverContent className="w-64 p-0" side="top" align="end">
-      <div className="p-3">
-        <div className="space-y-2">
-          <h3 className="font-semibold text-gray-900 text-sm">Kender du ikke dit forbrug?</h3>
-          
-          <p className="text-xs text-gray-600 leading-relaxed">
-            Find dit præcise elforbrug med vores forbrug tracker.
-          </p>
+    <PopoverContent className="w-48 p-0" side="top" align="start">
+      <div className="p-2">
+        <div className="space-y-1.5">
+          <h3 className="font-medium text-gray-900 text-xs">Kender du ikke dit forbrug?</h3>
           
           <a 
             href="/forbrug-tracker" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 bg-brand-green hover:bg-brand-green-hover text-white px-2 py-1 rounded text-xs font-medium transition-colors mt-3"
+            className="inline-flex items-center gap-1 bg-brand-green hover:bg-brand-green-hover text-white px-1.5 py-0.5 rounded text-xs font-medium transition-colors"
           >
             <span className="text-xs">⚡</span>
             Tjek dit forbrug
@@ -65,25 +61,20 @@ export const FloatingConsumptionHelper: React.FC<FloatingConsumptionHelperProps>
     );
   }
 
-  // Floating version for desktop
+  // Floating version for inline positioning
   return (
-    <div className="hidden md:block absolute top-16 right-4 z-10">
-      <Popover>
-        <PopoverTrigger asChild>
-          <button className="group relative">
-            {/* Pulsing glow effect */}
-            <div className="absolute inset-0 rounded-full bg-brand-green animate-pulse-glow group-hover:opacity-60 transition-opacity duration-300"></div>
-            
-            {/* Main button - 70% smaller */}
-            <div className="relative h-8 w-8 rounded-full bg-brand-dark border border-brand-green shadow-md flex items-center justify-center hover:scale-105 transition-all duration-200 cursor-pointer group-hover:shadow-lg group-hover:bg-brand-dark-light">
-              <HelpCircle className="h-3.5 w-3.5 text-brand-green group-hover:text-brand-green-light transition-colors" />
-            </div>
-          </button>
-        </PopoverTrigger>
-        
-        <PopoverContentComponent />
-      </Popover>
-    </div>
+    <Popover>
+      <PopoverTrigger asChild>
+        <button className="group relative inline-block ml-1 -mt-0.5">
+          {/* Main button - small like question mark ring */}
+          <div className="relative h-4 w-4 rounded-full bg-brand-dark border border-brand-green flex items-center justify-center hover:scale-110 transition-all duration-200 cursor-pointer">
+            <HelpCircle className="h-2.5 w-2.5 text-brand-green transition-colors" />
+          </div>
+        </button>
+      </PopoverTrigger>
+      
+      <PopoverContentComponent />
+    </Popover>
   );
 };
 

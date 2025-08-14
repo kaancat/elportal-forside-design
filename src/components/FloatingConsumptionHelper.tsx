@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface FloatingConsumptionHelperProps {
-  variant?: 'floating' | 'inline';
+  variant?: 'floating' | 'inline' | 'neon';
 }
 
 export const FloatingConsumptionHelper: React.FC<FloatingConsumptionHelperProps> = ({ 
@@ -65,7 +65,25 @@ export const FloatingConsumptionHelper: React.FC<FloatingConsumptionHelperProps>
     );
   }
 
-  // Floating version for inline positioning
+  if (variant === 'neon') {
+    // Neon green version for provider list
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <button className="group relative inline-block ml-1 -mt-0.5">
+            {/* Neon green outline, no background */}
+            <div className="relative h-4 w-4 rounded-full border border-brand-green flex items-center justify-center hover:scale-110 transition-all duration-200 cursor-pointer">
+              <HelpCircle className="h-2.5 w-2.5 text-brand-green transition-colors" />
+            </div>
+          </button>
+        </PopoverTrigger>
+        
+        <PopoverContentComponent />
+      </Popover>
+    );
+  }
+
+  // Default floating version for inline positioning  
   return (
     <Popover>
       <PopoverTrigger asChild>

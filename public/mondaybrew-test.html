@@ -6,7 +6,16 @@
     <title>MondayBrew - Test Tracking</title>
     
     <!-- DinElportal Tracking Script with Debug Mode -->
-    <script src="https://www.dinelportal.dk/api/tracking/universal.js?partner_id=test-partner&debug=true" async></script>
+    <script src="https://www.dinelportal.dk/universal-static.js" async></script>
+    <script>
+    window.DinElportalConfig = {
+      "partner_id": "test-partner",
+      "clickIdParam": "click_id",
+      "enableAutoConversion": true,
+      "conversionPatterns": ["/tak"],
+      "debug": true
+    };
+    </script>
     
     <style>
         body {

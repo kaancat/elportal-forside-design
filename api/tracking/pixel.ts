@@ -80,15 +80,25 @@ export default async function handler(
       const metricsKey = `metrics:daily:${today}:${trackingData.partner_id}`;
       
       if (trackingData.event_type === 'conversion') {
-        await kv.hincrby(metricsKey, 'conversions', 1);
-        
-        // Store conversion with click attribution
+        // Store conversion with click attribution (check for duplicates)
         if (trackingData.click_id) {
           const conversionKey = `conversion:${trackingData.partner_id}:${trackingData.click_id}`;
-          await kv.set(conversionKey, {
-            ...trackingData,
-            conversion_time: Date.now()
-          }, { ex: 30 * 24 * 60 * 60 });
+          
+          // Check if conversion already exists
+          const existingConversion = await kv.get(conversionKey);
+          if (!existingConversion) {
+            // Only create new conversion if it doesn't exist
+            await kv.set(conversionKey, {
+              ...trackingData,
+              conversion_time: Date.now()
+            }, { ex: 30 * 24 * 60 * 60 });
+            
+            // Only increment metrics for new conversions
+            await kv.hincrby(metricsKey, 'conversions', 1);
+          }
+        } else {
+          // No click_id - count as unattributed conversion
+          await kv.hincrby(metricsKey, 'conversions', 1);
         }
       } else {
         await kv.hincrby(metricsKey, 'page_views', 1);

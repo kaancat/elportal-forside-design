@@ -52,7 +52,7 @@ export default async function handler(
     
     // Store in KV if we have the required data
     if (trackingData.partner_id) {
-      const eventKey = `event:${trackingData.partner_id}:${Date.now()}:${Math.random().toString(36).substr(2)}`;
+      const eventKey = `tracking_event:${trackingData.partner_id}:${Date.now()}:${Math.random().toString(36).substr(2)}`;
       
       const event = {
         type: trackingData.event_type || 'track',

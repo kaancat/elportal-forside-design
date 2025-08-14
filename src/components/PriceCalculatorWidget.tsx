@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { SanityService } from '@/services/sanityService';
 import { ProviderProductBlock } from '@/types/sanity';
 import CalculatorResults from './CalculatorResults';
+import { FloatingConsumptionHelper } from './FloatingConsumptionHelper';
 import { rankProviders, PRICE_CONSTANTS } from '@/services/priceCalculationService';
 import { useNetworkTariff } from '@/hooks/useNetworkTariff';
 import { gridProviders } from '@/data/gridProviders';
@@ -163,7 +164,7 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
             
             {/* Step 2 */}
             {currentStep === 2 && (
-                <div className="mt-8">
+                <div className="mt-8 relative">
                     <div className="text-center mb-4"><h3 className="text-base font-bold text-gray-800">Vælg din boligtype for et hurtigt estimat:</h3></div>
                     <div className="grid grid-cols-3 gap-2 md:gap-4 mb-6">
                         <PresetButton icon={<Building size={20}/>} label="Lille Lejlighed" value="< 80 m²" consumption={2000} isActive={activePreset === 'lilleLejlighed'} onClick={() => handlePresetClick('lilleLejlighed')} />
@@ -177,10 +178,17 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
                     <div className="py-4 px-2 -mx-2">
                         <Slider value={[annualConsumption]} onValueChange={handleSliderChange} min={500} max={15000} step={100} />
                     </div>
+                    
+                    {/* Mobile inline helper */}
+                    <FloatingConsumptionHelper variant="inline" />
+                    
                     <div className="flex gap-4 mt-6">
                         <Button onClick={() => setCurrentStep(1)} variant="outline" className="w-full"><ArrowLeft className="mr-2 h-4 w-4" /> Tilbage</Button>
                         <Button onClick={handleGoToResults} className="w-full bg-brand-green hover:opacity-90">Se dine priser <ArrowRight className="ml-2 h-4 w-4" /></Button>
                     </div>
+                    
+                    {/* Desktop floating helper */}
+                    <FloatingConsumptionHelper variant="floating" />
                 </div>
             )}
 

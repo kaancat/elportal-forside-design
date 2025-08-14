@@ -1,5 +1,5 @@
 import React from 'react';
-import { HelpCircle, Zap } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -21,16 +21,15 @@ export const FloatingConsumptionHelper: React.FC<FloatingConsumptionHelperProps>
             Find dit præcise elforbrug med vores forbrug tracker.
           </p>
           
-          <Button 
-            asChild 
-            className="bg-brand-green hover:bg-brand-green-hover text-white mt-3 px-3 py-1.5 h-auto text-xs"
-            size="sm"
+          <a 
+            href="/forbrug-tracker" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 bg-brand-green hover:bg-brand-green-hover text-white px-2 py-1 rounded text-xs font-medium transition-colors mt-3"
           >
-            <a href="/forbrug-tracker" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1">
-              <Zap className="h-3 w-3" />
-              Tjek dit forbrug
-            </a>
-          </Button>
+            <span className="text-xs">⚡</span>
+            Tjek dit forbrug
+          </a>
         </div>
       </div>
     </PopoverContent>
@@ -50,17 +49,15 @@ export const FloatingConsumptionHelper: React.FC<FloatingConsumptionHelperProps>
               <p className="text-xs text-gray-600">
                 Brug vores forbrug tracker til at finde dit præcise elforbrug
               </p>
-              <Button 
-                asChild 
-                variant="outline" 
-                size="sm"
-                className="border-brand-green text-brand-green hover:bg-brand-green hover:text-white"
+              <a 
+                href="/forbrug-tracker" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 border border-brand-green text-brand-green hover:bg-brand-green hover:text-white px-2 py-1 rounded text-xs font-medium transition-colors"
               >
-                <a href="/forbrug-tracker" target="_blank" rel="noopener noreferrer">
-                  <Zap className="mr-2 h-3 w-3" />
-                  Tjek dit forbrug
-                </a>
-              </Button>
+                <span className="text-xs">⚡</span>
+                Tjek dit forbrug
+              </a>
             </div>
           </CardContent>
         </Card>

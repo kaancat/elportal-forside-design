@@ -30,6 +30,9 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
   const heroImage = image || (images && images.length > 0 ? images[0] : null);
   const hasBackgroundUrl = backgroundImageUrl && backgroundImageUrl.length > 0;
   
+  // Check if heroImage has a valid _ref property (is a proper Sanity image)
+  const hasValidSanityImage = heroImage && heroImage._ref;
+  
   // Define background styles - using inline styles for gradients to ensure they work
   const getBackgroundStyle = () => {
     switch (backgroundStyle) {
@@ -72,7 +75,7 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
         return { backgroundColor: '#ffffff' };
       default:
         // Fallback for backward compatibility
-        if (hasBackgroundUrl || heroImage) {
+        if (hasBackgroundUrl || hasValidSanityImage) {
           return {
             background: 'linear-gradient(to bottom right, rgba(0, 26, 18, 0.9) 0%, rgba(132, 219, 65, 0.8) 100%)'
           };
@@ -89,13 +92,13 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
     
     // CRITICAL: If there's an image with any meaningful overlay (30%+), use white text
     // This handles pages like /elselskaber where images have overlays
-    if ((hasBackgroundUrl || heroImage) && overlayOpacity >= 30) {
+    if ((hasBackgroundUrl || hasValidSanityImage) && overlayOpacity >= 30) {
       return 'text-white';
     }
     
     // Check if we're using the fallback dark gradient 
     // (when backgroundStyle is missing/unknown but there's an image)
-    if (!backgroundStyle && (hasBackgroundUrl || heroImage)) {
+    if (!backgroundStyle && (hasBackgroundUrl || hasValidSanityImage)) {
       return 'text-white';
     }
     
@@ -161,7 +164,7 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
       <div className="relative md:rounded-2xl overflow-hidden" style={getBackgroundStyle()}>
         
         {/* Layer 1: Background Image (if provided) */}
-        {(heroImage || hasBackgroundUrl) && (
+        {(hasValidSanityImage || hasBackgroundUrl) && (
           <div className="absolute inset-0">
             {hasBackgroundUrl ? (
               // Direct URL image (e.g., from Unsplash)
@@ -173,8 +176,8 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
                 width={1920}
                 height={1080}
               />
-            ) : heroImage ? (
-              // Sanity image
+            ) : hasValidSanityImage ? (
+              // Sanity image - only process if it has a valid _ref
               <OptimizedImage
                 src={urlFor(heroImage).width(1920).height(1080).quality(85).url()}
                 alt={heroImage.alt || imageAlt || "Hero background"}
@@ -250,7 +253,7 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
               )}
               
               {/* Image credit (if provided) */}
-              {imageCredit && (heroImage || hasBackgroundUrl) && (
+              {imageCredit && (hasValidSanityImage || hasBackgroundUrl) && (
                 <p className={`absolute bottom-2 right-2 text-xs ${
                   isLightText ? 'text-white/60' : 'text-gray-500'
                 }`}>

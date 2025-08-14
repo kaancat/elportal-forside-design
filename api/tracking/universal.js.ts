@@ -4,8 +4,11 @@ import fs from 'fs';
 
 // Cache compiled script in memory for performance
 let cachedScript: string | null = null;
-let cachedMinifiedScript: string | null = null;
 let lastModified: string | null = null;
+
+// Force cache clear for debugging
+cachedScript = null;
+lastModified = null;
 
 interface TrackingConfig {
   partner_id?: string;
@@ -26,9 +29,11 @@ interface TrackingConfig {
 /**
  * Get compiled universal script from file system
  */
-function getCompiledScript(minified: boolean = false): string | null {
+function getCompiledScript(): string | null {
   try {
-    const scriptPath = path.join(process.cwd(), 'public', 'tracking', minified ? 'universal.min.js' : 'universal.js');
+    // Force use of simplified script - ignore old universal.js completely
+    const scriptName = 'universal-simple.js';
+    const scriptPath = path.join(process.cwd(), 'public', 'tracking', scriptName);
     
     if (!fs.existsSync(scriptPath)) {
       console.error(`Compiled script not found: ${scriptPath}`);
@@ -39,24 +44,13 @@ function getCompiledScript(minified: boolean = false): string | null {
     const currentModified = stats.mtime.toISOString();
     
     // Check cache
-    if (minified) {
-      if (cachedMinifiedScript && lastModified === currentModified) {
-        return cachedMinifiedScript;
-      }
-    } else {
-      if (cachedScript && lastModified === currentModified) {
-        return cachedScript;
-      }
+    if (cachedScript && lastModified === currentModified) {
+      return cachedScript;
     }
 
     // Read and cache
     const script = fs.readFileSync(scriptPath, 'utf-8');
-    
-    if (minified) {
-      cachedMinifiedScript = script;
-    } else {
-      cachedScript = script;
-    }
+    cachedScript = script;
     lastModified = currentModified;
     
     return script;
@@ -70,7 +64,17 @@ function getCompiledScript(minified: boolean = false): string | null {
  * Inject partner configuration into the script
  */
 function injectConfiguration(script: string, config: TrackingConfig): string {
-  const configJson = JSON.stringify(config, null, 2);
+  // Create a simplified config object for the simplified script
+  const simplifiedConfig = {
+    partner_id: config.partner_id,
+    // endpoint: config.endpoint, // REMOVED - script should always use pixel tracking
+    clickIdParam: config.clickIdParam,
+    enableAutoConversion: config.enableAutoConversion !== false,
+    conversionPatterns: config.conversionPatterns || ['/tak', '/thank-you'],
+    debug: config.debug || false
+  };
+  
+  const configJson = JSON.stringify(simplifiedConfig, null, 2);
   
   // Replace placeholder with actual configuration
   const configPlaceholder = '/* PARTNER_CONFIG_PLACEHOLDER */';
@@ -99,13 +103,14 @@ function validatePartnerId(partnerId: string): boolean {
 function getPartnerConfig(req: VercelRequest): TrackingConfig {
   const {
     partner_id,
+    thank_you,  // NEW: Custom thank you page URL
     endpoint,
     click_param = 'click_id',
     cookie_days = '90',
     auto_conversion = 'true',
-    fingerprinting = 'true',
-    form_tracking = 'true',
-    button_tracking = 'true',
+    fingerprinting = 'false',  // Changed default to false - we don't need it
+    form_tracking = 'false',    // Simplified - no form tracking
+    button_tracking = 'false',  // Simplified - no button tracking
     debug = 'false',
     dnt = 'true',
     require_consent = 'false',
@@ -115,20 +120,24 @@ function getPartnerConfig(req: VercelRequest): TrackingConfig {
   const config: TrackingConfig = {
     partner_id: typeof partner_id === 'string' ? partner_id : 'unknown',
     partner_domain: req.headers['referer'] ? new URL(req.headers['referer'] as string).hostname : 'unknown',
-    endpoint: typeof endpoint === 'string' ? endpoint : 'https://www.dinelportal.dk/api/tracking/log',
+    // endpoint: typeof endpoint === 'string' ? endpoint : 'https://www.dinelportal.dk/api/tracking/log', // REMOVED - always use pixel
     clickIdParam: typeof click_param === 'string' ? click_param : 'click_id',
     cookieDays: parseInt(typeof cookie_days === 'string' ? cookie_days : '90'),
     enableAutoConversion: (typeof auto_conversion === 'string' ? auto_conversion : 'true') === 'true',
-    enableFingerprinting: (typeof fingerprinting === 'string' ? fingerprinting : 'true') === 'true',
-    enableFormTracking: (typeof form_tracking === 'string' ? form_tracking : 'true') === 'true',
-    enableButtonTracking: (typeof button_tracking === 'string' ? button_tracking : 'true') === 'true',
+    enableFingerprinting: (typeof fingerprinting === 'string' ? fingerprinting : 'false') === 'true',
+    enableFormTracking: (typeof form_tracking === 'string' ? form_tracking : 'false') === 'true',
+    enableButtonTracking: (typeof button_tracking === 'string' ? button_tracking : 'false') === 'true',
     debug: (typeof debug === 'string' ? debug : 'false') === 'true',
     respectDoNotTrack: (typeof dnt === 'string' ? dnt : 'true') === 'true',
     requireConsent: (typeof require_consent === 'string' ? require_consent : 'false') === 'true'
   };
 
-  // Parse conversion patterns
-  if (typeof conversion_patterns === 'string') {
+  // Handle thank_you page parameter - this is the key configuration
+  if (typeof thank_you === 'string' && thank_you) {
+    // Use the custom thank you page as the only conversion pattern
+    config.conversionPatterns = [thank_you];
+  } else if (typeof conversion_patterns === 'string') {
+    // Fallback to old conversion_patterns if provided
     try {
       config.conversionPatterns = JSON.parse(conversion_patterns);
     } catch (e) {
@@ -136,6 +145,9 @@ function getPartnerConfig(req: VercelRequest): TrackingConfig {
     }
   } else if (Array.isArray(conversion_patterns)) {
     config.conversionPatterns = conversion_patterns as string[];
+  } else {
+    // Default thank you pages if nothing specified
+    config.conversionPatterns = ['/tak', '/thank-you', '/success'];
   }
 
   return config;
@@ -173,11 +185,8 @@ export default async function handler(
       return res.status(400).json({ error: 'Invalid partner_id format' });
     }
 
-    // Determine if we should serve minified version
-    const useMinified = process.env.NODE_ENV === 'production' && !config.debug;
-    
-    // Get compiled script
-    const script = getCompiledScript(useMinified);
+    // Always use simplified script (universal-simple.js)
+    const script = getCompiledScript();
     if (!script) {
       return res.status(500).json({ 
         error: 'Tracking script not available',
@@ -217,7 +226,7 @@ export default async function handler(
     // Add debugging headers in development
     if (process.env.NODE_ENV === 'development') {
       res.setHeader('X-Debug-Partner-ID', config.partner_id || 'none');
-      res.setHeader('X-Debug-Minified', useMinified.toString());
+      res.setHeader('X-Debug-Script-Version', 'simplified-v2.0.0');
       res.setHeader('X-Debug-Script-Size', configuredScript.length.toString());
     }
 
@@ -225,7 +234,7 @@ export default async function handler(
     console.log('Universal script served:', {
       partner_id: config.partner_id,
       partner_domain: config.partner_domain,
-      minified: useMinified,
+      version: 'simplified-v2.0.0',
       size: configuredScript.length,
       user_agent: req.headers['user-agent']?.substring(0, 100),
       timestamp: new Date().toISOString()

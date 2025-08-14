@@ -747,18 +747,14 @@ export function ForbrugTracker({
 
                 {/* Data Tabs */}
                 <Tabs defaultValue="consumption" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="consumption">
                       <BarChart3 className="h-4 w-4 mr-2" />
                       Forbrug
                     </TabsTrigger>
                     <TabsTrigger value="costs">
-                      <Calculator className="h-4 w-4 mr-2" />
-                      Omkostninger
-                    </TabsTrigger>
-                    <TabsTrigger value="savings">
-                      <TrendingUp className="h-4 w-4 mr-2" />
-                      Besparelser
+                      <TrendingDown className="h-4 w-4 mr-2" />
+                      Sammenlign & Spar
                     </TabsTrigger>
                   </TabsList>
 
@@ -776,27 +772,6 @@ export function ForbrugTracker({
                       processedData={processedConsumptionData}
                       customerData={customerData}
                     />
-                  </TabsContent>
-
-                  <TabsContent value="savings" className="mt-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Potentielle Besparelser</CardTitle>
-                        <CardDescription>
-                          Baseret på dit faktiske forbrug
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <Alert>
-                            <TrendingUp className="h-4 w-4" />
-                            <AlertDescription>
-                              Vi analyserer dit forbrug og finder de bedste tilbud...
-                            </AlertDescription>
-                          </Alert>
-                        </div>
-                      </CardContent>
-                    </Card>
                   </TabsContent>
                 </Tabs>
               </div>

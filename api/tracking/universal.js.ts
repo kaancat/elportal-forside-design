@@ -33,10 +33,23 @@ function getCompiledScript(): string | null {
   try {
     // Force use of simplified script - ignore old universal.js completely
     const scriptName = 'universal-simple.js';
-    const scriptPath = path.join(process.cwd(), 'public', 'tracking', scriptName);
+    // Try multiple paths for Vercel compatibility
+    const possiblePaths = [
+      path.join(process.cwd(), 'public', 'tracking', scriptName),
+      path.join(__dirname, '..', '..', 'public', 'tracking', scriptName),
+      path.join('/var/task', 'public', 'tracking', scriptName)
+    ];
     
-    if (!fs.existsSync(scriptPath)) {
-      console.error(`Compiled script not found: ${scriptPath}`);
+    let scriptPath = null;
+    for (const testPath of possiblePaths) {
+      if (fs.existsSync(testPath)) {
+        scriptPath = testPath;
+        break;
+      }
+    }
+    
+    if (!scriptPath) {
+      console.error(`Script not found in any of these paths:`, possiblePaths);
       return null;
     }
 
@@ -52,6 +65,8 @@ function getCompiledScript(): string | null {
     const script = fs.readFileSync(scriptPath, 'utf-8');
     cachedScript = script;
     lastModified = currentModified;
+    
+    console.log(`Serving script from: ${scriptPath}, size: ${script.length} bytes`);
     
     return script;
   } catch (error) {

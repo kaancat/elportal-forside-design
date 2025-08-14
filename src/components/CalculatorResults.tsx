@@ -80,8 +80,12 @@ const CalculatorResults: React.FC<CalculatorResultsProps> = ({
           return (
             <Card 
               key={provider.id} 
-              className={`relative overflow-hidden transition-all ${
-                provider.isVindstoedProduct ? 'ring-2 ring-brand-green' : ''
+              className={`relative overflow-hidden transition-all border ${
+                provider.isVindstoedProduct 
+                  ? 'border-brand-green bg-brand-green/5' 
+                  : index === 0 
+                  ? 'border-green-500 bg-green-50' 
+                  : 'border-gray-200'
               }`}
             >
               {provider.isVindstoedProduct && (
@@ -95,8 +99,22 @@ const CalculatorResults: React.FC<CalculatorResultsProps> = ({
               <CardContent className={`p-4 ${provider.isVindstoedProduct ? 'pt-12' : ''}`}>
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900">{provider.productName}</h4>
-                    <p className="text-sm text-gray-600">{provider.providerName}</p>
+                    <div className="flex items-center gap-3 mb-3">
+                      {provider.logoUrl && (
+                        <img 
+                          src={provider.logoUrl} 
+                          alt={provider.providerName}
+                          className="h-6 sm:h-8 w-auto"
+                        />
+                      )}
+                      <div>
+                        <h4 className="font-semibold text-gray-900">{provider.productName}</h4>
+                        <p className="text-sm text-gray-600">{provider.providerName}</p>
+                      </div>
+                      {index === 0 && !provider.isVindstoedProduct && (
+                        <Badge className="bg-green-600 text-xs px-2 py-0.5">Billigst</Badge>
+                      )}
+                    </div>
                     
                     {/* Price display */}
                     <div className="mt-3 space-y-1">

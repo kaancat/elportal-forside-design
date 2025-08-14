@@ -12,45 +12,27 @@ export const FloatingConsumptionHelper: React.FC<FloatingConsumptionHelperProps>
   variant = 'floating' 
 }) => {
   const PopoverContentComponent = () => (
-    <PopoverContent className="w-72 p-0" side="top" align="end">
-      <Card className="border-0 shadow-lg">
-        <CardContent className="p-4">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-brand-green/10 flex items-center justify-center flex-shrink-0">
-                <Zap className="h-4 w-4 text-brand-green" />
-              </div>
-              <h3 className="font-semibold text-gray-900 text-sm">Kender du ikke dit forbrug?</h3>
-            </div>
-            
-            <p className="text-xs text-gray-600 leading-relaxed">
-              Med vores forbrug tracker kan du nemt finde dit præcise elforbrug ved at forbinde til Eloverblik.
-            </p>
-            
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="h-3 w-3 text-brand-green flex-shrink-0" />
-                <span className="text-xs text-gray-700">Se dit faktiske forbrug</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Calculator className="h-3 w-3 text-brand-green flex-shrink-0" />
-                <span className="text-xs text-gray-700">Få præcise beregninger</span>
-              </div>
-            </div>
-            
-            <Button 
-              asChild 
-              className="w-full bg-brand-green hover:bg-brand-green-hover text-white"
-              size="sm"
-            >
-              <a href="/forbrug-tracker" target="_blank" rel="noopener noreferrer">
-                <Zap className="mr-2 h-3 w-3" />
-                Tjek dit forbrug
-              </a>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+    <PopoverContent className="w-64 p-0" side="top" align="end">
+      <div className="p-3">
+        <div className="space-y-2">
+          <h3 className="font-semibold text-gray-900 text-sm">Kender du ikke dit forbrug?</h3>
+          
+          <p className="text-xs text-gray-600 leading-relaxed">
+            Find dit præcise elforbrug med vores forbrug tracker.
+          </p>
+          
+          <Button 
+            asChild 
+            className="w-full bg-brand-green hover:bg-brand-green-hover text-white mt-3"
+            size="sm"
+          >
+            <a href="/forbrug-tracker" target="_blank" rel="noopener noreferrer">
+              <Zap className="mr-1 h-3 w-3" />
+              Tjek dit forbrug
+            </a>
+          </Button>
+        </div>
+      </div>
     </PopoverContent>
   );
 

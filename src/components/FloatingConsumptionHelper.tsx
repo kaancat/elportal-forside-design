@@ -12,10 +12,14 @@ export const FloatingConsumptionHelper: React.FC<FloatingConsumptionHelperProps>
   variant = 'floating' 
 }) => {
   const PopoverContentComponent = () => (
-    <PopoverContent className="w-48 p-0" side="top" align="start">
+    <PopoverContent className="w-52 p-0" side="top" align="start">
       <div className="p-2">
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <h3 className="font-medium text-gray-900 text-xs">Kender du ikke dit forbrug?</h3>
+          
+          <p className="text-xs text-gray-600 leading-relaxed">
+            Find dit præcise elforbrug med vores forbrug tracker.
+          </p>
           
           <a 
             href="/forbrug-tracker" 

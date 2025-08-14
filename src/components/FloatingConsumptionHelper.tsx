@@ -23,11 +23,11 @@ export const FloatingConsumptionHelper: React.FC<FloatingConsumptionHelperProps>
           
           <Button 
             asChild 
-            className="w-full bg-brand-green hover:bg-brand-green-hover text-white mt-3"
+            className="bg-brand-green hover:bg-brand-green-hover text-white mt-3 px-3 py-1.5 h-auto text-xs"
             size="sm"
           >
-            <a href="/forbrug-tracker" target="_blank" rel="noopener noreferrer">
-              <Zap className="mr-1 h-3 w-3" />
+            <a href="/forbrug-tracker" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1">
+              <Zap className="h-3 w-3" />
               Tjek dit forbrug
             </a>
           </Button>

@@ -17,7 +17,7 @@
     "mcp:screenshot": "tsx scripts/mcp-browserbase.ts screenshot",
     "mcp:analyze": "tsx scripts/mcp-browserbase.ts analyze",
     "navigation:health": "tsx scripts/check-navigation-health.ts",
-    "generate:sitemap": "tsx scripts/generate-sitemap.ts",
+    "generate:sitemap": "tsx scripts/generate-sitemap.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

@@ -67,16 +67,16 @@ export const FloatingConsumptionHelper: React.FC<FloatingConsumptionHelperProps>
 
   // Floating version for desktop
   return (
-    <div className="hidden md:block absolute bottom-4 right-4 z-10">
+    <div className="hidden md:block absolute top-16 right-4 z-10">
       <Popover>
         <PopoverTrigger asChild>
           <button className="group relative">
             {/* Pulsing glow effect */}
             <div className="absolute inset-0 rounded-full bg-brand-green animate-pulse-glow group-hover:opacity-60 transition-opacity duration-300"></div>
             
-            {/* Main button */}
-            <div className="relative h-12 w-12 rounded-full bg-brand-dark border-2 border-brand-green shadow-lg flex items-center justify-center hover:scale-105 transition-all duration-200 cursor-pointer group-hover:shadow-xl group-hover:bg-brand-dark-light">
-              <HelpCircle className="h-5 w-5 text-brand-green group-hover:text-brand-green-light transition-colors" />
+            {/* Main button - 70% smaller */}
+            <div className="relative h-8 w-8 rounded-full bg-brand-dark border border-brand-green shadow-md flex items-center justify-center hover:scale-105 transition-all duration-200 cursor-pointer group-hover:shadow-lg group-hover:bg-brand-dark-light">
+              <HelpCircle className="h-3.5 w-3.5 text-brand-green group-hover:text-brand-green-light transition-colors" />
             </div>
           </button>
         </PopoverTrigger>

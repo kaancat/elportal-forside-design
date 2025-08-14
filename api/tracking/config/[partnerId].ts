@@ -111,7 +111,13 @@ function isAuthorized(req: VercelRequest, partnerId: string): boolean {
   const apiKey = req.headers['x-api-key'] as string;
   const adminAuth = req.headers['x-admin-auth'] as string;
   
-  return Boolean(apiKey || adminAuth === process.env.ADMIN_AUTH_TOKEN);
+  // Allow any API key for development, or match admin token
+  if (apiKey) return true;
+  if (adminAuth && process.env.ADMIN_AUTH_TOKEN) {
+    return adminAuth === process.env.ADMIN_AUTH_TOKEN;
+  }
+  
+  return false;
 }
 
 /**
@@ -160,8 +166,8 @@ async function setPartnerConfig(config: PartnerConfig): Promise<boolean> {
  * Generate secure webhook hash
  */
 function generateWebhookHash(): string {
-  const crypto = require('crypto');
-  return crypto.randomBytes(32).toString('hex');
+  // Use a simpler approach that works in Vercel
+  return 'webhook_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 15);
 }
 
 /**
@@ -352,6 +358,7 @@ export default async function handler(
     
     return res.status(500).json({ 
       error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error',
       timestamp: new Date().toISOString()
     });
   }

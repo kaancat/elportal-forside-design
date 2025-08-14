@@ -27,6 +27,12 @@
     "api/consumption-map.ts": {
       "maxDuration": 10
     },
+    "api/tracking/log.ts": {
+      "maxDuration": 10
+    },
+    "api/tracking/pixel.ts": {
+      "maxDuration": 3
+    },
     "api/admin/auth.ts": {
       "maxDuration": 5
     },

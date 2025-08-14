@@ -586,9 +586,9 @@
             currentPartnerId = partnerId;
             currentThankYouPage = thankYouPage;
             
-            // Generate script code using working static approach
-            const scriptCode = `<script src="https://www.dinelportal.dk/universal-static.js" async></script>
-<script>
+            // Generate script code using working static approach (escape script tags)
+            const scriptCode = `<` + `script src="https://www.dinelportal.dk/universal-static.js" async><` + `/script>
+<` + `script>
 window.DinElportalConfig = {
   "partner_id": "${partnerId}",
   "clickIdParam": "click_id",
@@ -596,7 +596,7 @@ window.DinElportalConfig = {
   "conversionPatterns": ["${thankYouPage}"],
   "debug": true
 };
-</script>`;
+<` + `/script>`;
             
             // Show generated code
             document.getElementById('scriptCode').textContent = scriptCode;

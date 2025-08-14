@@ -10,7 +10,9 @@ const TEST_PARTNER_CONFIG = {
     'dinelportal.dk',
     'www.dinelportal.dk',
     'mondaybrew.dk',
-    'www.mondaybrew.dk'
+    'www.mondaybrew.dk',
+    'reginaschleuning.com',
+    'www.reginaschleuning.com'
   ], // Whitelisted domains for testing
   tracking_config: {
     endpoint: 'https://www.dinelportal.dk/api/tracking/log',

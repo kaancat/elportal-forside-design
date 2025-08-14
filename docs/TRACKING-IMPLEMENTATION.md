@@ -6,12 +6,21 @@ The universal tracking script is fully implemented and tested. Partners can inte
 
 ## Quick Start for Partners
 
-### One-Line Integration
+### Static Script Integration (Recommended)
 
-Add this single line to your website's `<head>` section:
+Add these lines to your website's `<head>` section:
 
 ```html
-<script src="https://www.dinelportal.dk/api/tracking/universal.js?partner_id=YOUR_PARTNER_ID" async></script>
+<script src="https://www.dinelportal.dk/universal-static.js" async></script>
+<script>
+window.DinElportalConfig = {
+  "partner_id": "YOUR_PARTNER_ID",
+  "clickIdParam": "click_id",
+  "enableAutoConversion": true,
+  "conversionPatterns": ["/tak", "/thank-you", "/success"],
+  "debug": false
+};
+</script>
 ```
 
 That's it! The script automatically:
@@ -24,7 +33,14 @@ That's it! The script automatically:
 ### Live Testing Example (mondaybrew test site)
 
 ```html
-<script src="https://www.dinelportal.dk/api/tracking/universal.js?partner_id=mondaybrew" async></script>
+<script src="https://www.dinelportal.dk/universal-static.js" async></script>
+<script>
+window.DinElportalConfig = {
+  "partner_id": "mondaybrew",
+  "conversionPatterns": ["/tak"],
+  "debug": true
+};
+</script>
 ```
 
 *Note: mondaybrew.dk is our test integration site, not an actual partner.*
@@ -47,11 +63,9 @@ That's it! The script automatically:
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
-| [`/api/tracking/universal.js`](https://www.dinelportal.dk/api/tracking/universal.js?partner_id=test&debug=true) | GET | Serve tracking script |
+| [`/universal-static.js`](https://www.dinelportal.dk/universal-static.js) | GET | Static tracking script |
 | `/api/tracking/log` | POST | Receive tracking events |
-| `/api/track-click` | POST | Track outbound clicks |
-| `/api/track-conversion` | POST | Webhook for conversions |
-| `/api/track-pixel` | GET | Tracking pixel endpoint |
+| `/api/tracking/pixel` | GET | Tracking pixel endpoint |
 | [`/api/tracking/config/[partnerId]`](https://www.dinelportal.dk/api/tracking/config/vindstod) | GET | Partner configuration |
 
 ### Testing Tools

@@ -2,10 +2,19 @@
 
 ## 🚀 Quick Start: 5-Minute Integration
 
-Add this ONE line to your website's `<head>` section on ALL pages:
+Add these lines to your website's `<head>` section on ALL pages:
 
 ```html
-<script src="https://www.dinelportal.dk/api/tracking/universal.js?partner_id=YOUR_PARTNER_ID" async></script>
+<script src="https://www.dinelportal.dk/universal-static.js" async></script>
+<script>
+window.DinElportalConfig = {
+  "partner_id": "YOUR_PARTNER_ID",
+  "clickIdParam": "click_id",
+  "enableAutoConversion": true,
+  "conversionPatterns": ["/tak", "/thank-you", "/success"],
+  "debug": false
+};
+</script>
 ```
 
 **That's it!** You're now tracking conversions. No backend changes, no webhooks, no complexity.

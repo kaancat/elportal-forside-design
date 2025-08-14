@@ -18,8 +18,6 @@
     "mcp:analyze": "tsx scripts/mcp-browserbase.ts analyze",
     "navigation:health": "tsx scripts/check-navigation-health.ts",
     "generate:sitemap": "tsx scripts/generate-sitemap.ts",
-    "build:universal": "tsx scripts/build-universal.ts",
-    "validate:partner": "tsx scripts/validate-partner-tracking.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

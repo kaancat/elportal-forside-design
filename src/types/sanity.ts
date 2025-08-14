@@ -178,6 +178,13 @@ export interface HeroWithCalculator {
     value: string
     label: string
   }>
+  // Style & Appearance fields
+  image?: SanityImage
+  backgroundStyle?: 'default' | 'lightGray' | 'gradientGreenMist' | 'gradientOceanBreeze' | 'gradientSunriseGlow' | 'gradientNordicSky' | 'gradientClassic' | 'solidGreen' | 'solidDark'
+  textColor?: 'auto' | 'dark' | 'light'
+  overlayOpacity?: number
+  padding?: 'small' | 'medium' | 'large' | 'xlarge'
+  alignment?: 'left' | 'center' | 'right'
 }
 
 export interface HeroBlock {

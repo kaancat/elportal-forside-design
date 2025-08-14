@@ -238,6 +238,13 @@ export const HeroWithCalculatorSchema = z.object({
     value: z.string(),
     label: z.string()
   })).optional().nullable(),
+  // Style & Appearance fields
+  image: SanityImageSchema.optional(),
+  backgroundStyle: z.enum(['default', 'lightGray', 'gradientGreenMist', 'gradientOceanBreeze', 'gradientSunriseGlow', 'gradientNordicSky', 'gradientClassic', 'solidGreen', 'solidDark']).optional(),
+  textColor: z.enum(['auto', 'dark', 'light']).optional(),
+  overlayOpacity: z.number().min(0).max(100).optional(),
+  padding: z.enum(['small', 'medium', 'large', 'xlarge']).optional(),
+  alignment: z.enum(['left', 'center', 'right']).optional(),
 });
 
 

@@ -96,33 +96,37 @@ const CalculatorResults: React.FC<CalculatorResultsProps> = ({
                 </div>
               )}
               
-              <CardContent className={`p-4 ${provider.isVindstoedProduct ? 'pt-12' : ''}`}>
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
+              <CardContent className={`p-3 sm:p-4 ${provider.isVindstoedProduct ? 'pt-10 sm:pt-12' : ''}`}>
+                {/* Mobile-first layout */}
+                <div className="space-y-3">
+                  {/* Header with logo and provider info */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                       {provider.logoUrl && (
                         <img 
                           src={provider.logoUrl} 
                           alt={provider.providerName}
-                          className="h-6 sm:h-8 w-auto"
+                          className="h-6 sm:h-8 w-auto flex-shrink-0"
                         />
                       )}
-                      <div>
-                        <h4 className="font-semibold text-gray-900">{provider.productName}</h4>
-                        <p className="text-sm text-gray-600">{provider.providerName}</p>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{provider.productName}</h4>
+                        <p className="text-xs sm:text-sm text-gray-600 truncate">{provider.providerName}</p>
                       </div>
-                      {index === 0 && !provider.isVindstoedProduct && (
-                        <Badge className="bg-green-600 text-xs px-2 py-0.5">Billigst</Badge>
-                      )}
                     </div>
-                    
-                    {/* Price display */}
-                    <div className="mt-3 space-y-1">
+                    {index === 0 && !provider.isVindstoedProduct && (
+                      <Badge className="bg-green-600 text-xs px-2 py-0.5 flex-shrink-0">Billigst</Badge>
+                    )}
+                  </div>
+                  
+                  {/* Price display */}
+                  <div className="flex items-end justify-between gap-4">
+                    <div className="space-y-1">
                       <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-bold text-gray-900">
+                        <span className="text-xl sm:text-2xl font-bold text-gray-900">
                           {formatPrice(provider.monthlyCost)}
                         </span>
-                        <span className="text-sm text-gray-500">/måned</span>
+                        <span className="text-xs sm:text-sm text-gray-500">/måned</span>
                       </div>
                       
                       <p className="text-xs text-gray-600">
@@ -130,57 +134,60 @@ const CalculatorResults: React.FC<CalculatorResultsProps> = ({
                       </p>
                       
                       {savings > 0 && (
-                        <p className="text-sm text-green-600 font-medium flex items-center gap-1">
+                        <p className="text-xs sm:text-sm text-green-600 font-medium flex items-center gap-1">
                           <TrendingDown className="h-3 w-3" />
                           Spar {formatPrice(savings)}/måned
                         </p>
                       )}
                     </div>
                     
-                    {/* Features */}
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {provider.benefits?.includes('green') && (
-                        <Badge variant="outline" className="text-xs">
-                          <Leaf className="h-3 w-3 mr-1" />
-                          Grøn strøm
-                        </Badge>
-                      )}
-                      {provider.benefits?.includes('no-binding') && (
-                        <Badge variant="outline" className="text-xs">
-                          <Shield className="h-3 w-3 mr-1" />
-                          Ingen binding
-                        </Badge>
+                    {/* Button */}
+                    <div className="flex-shrink-0">
+                      {provider.signupLink ? (
+                        <TrackedLink
+                          href={provider.signupLink}
+                          partner={provider.providerName || 'unknown'}
+                          component="calculator_results"
+                          variant={provider.isVindstoedProduct ? 'featured' : 'standard'}
+                          consumption={annualConsumption}
+                          estimatedValue={provider.monthlyCost}
+                          className="inline-block"
+                        >
+                          <Button
+                            size="sm"
+                            className={`text-xs sm:text-sm px-3 sm:px-4 ${provider.isVindstoedProduct ? 'bg-brand-green hover:bg-brand-green/90' : ''}`}
+                          >
+                            Vælg
+                            <ArrowRight className="ml-1 h-3 w-3" />
+                          </Button>
+                        </TrackedLink>
+                      ) : (
+                        <Button
+                          size="sm"
+                          disabled
+                          className="bg-gray-300 text-gray-500 cursor-not-allowed text-xs sm:text-sm px-3 sm:px-4"
+                        >
+                          Ikke tilgængelig
+                        </Button>
                       )}
                     </div>
                   </div>
                   
-                  {provider.signupLink ? (
-                    <TrackedLink
-                      href={provider.signupLink}
-                      partner={provider.providerName || 'unknown'}
-                      component="calculator_results"
-                      variant={provider.isVindstoedProduct ? 'featured' : 'standard'}
-                      consumption={annualConsumption}
-                      estimatedValue={provider.monthlyCost}
-                      className="inline-block"
-                    >
-                      <Button
-                        size="sm"
-                        className={provider.isVindstoedProduct ? 'bg-brand-green hover:bg-brand-green/90' : ''}
-                      >
-                        Vælg
-                        <ArrowRight className="ml-1 h-3 w-3" />
-                      </Button>
-                    </TrackedLink>
-                  ) : (
-                    <Button
-                      size="sm"
-                      disabled
-                      className="bg-gray-300 text-gray-500 cursor-not-allowed"
-                    >
-                      Ikke tilgængelig
-                    </Button>
-                  )}
+                  {/* Features */}
+                  <div className="flex flex-wrap gap-1 sm:gap-2">
+                    {provider.benefits?.includes('green') && (
+                      <Badge variant="outline" className="text-xs">
+                        <Leaf className="h-3 w-3 mr-1" />
+                        Grøn strøm
+                      </Badge>
+                    )}
+                    {provider.benefits?.includes('no-binding') && (
+                      <Badge variant="outline" className="text-xs">
+                        <Shield className="h-3 w-3 mr-1" />
+                        Ingen binding
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 
                 {/* Price breakdown on first item */}

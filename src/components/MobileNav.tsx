@@ -25,7 +25,7 @@ const RichLinkCard: React.FC<{ item: any, resolveLink: (link: LinkType) => strin
       />
     )}
     <div>
-      <p className="font-semibold text-white">{item.title}</p>
+      <p className="font-display font-semibold text-white">{item.title}</p>
       {item.description && <p className="text-sm text-neutral-400 mt-0.5">{item.description}</p>}
     </div>
   </RouterLink>
@@ -34,7 +34,7 @@ const RichLinkCard: React.FC<{ item: any, resolveLink: (link: LinkType) => strin
 // This component renders an entire column as a collapsible accordion item
 const MobileNavAccordionGroup: React.FC<{ column: MegaMenuColumn, resolveLink: (link: LinkType) => string }> = ({ column, resolveLink }) => (
   <AccordionItem value={column._key} className="border-b-0">
-    <AccordionTrigger className="text-lg font-semibold py-3 hover:no-underline rounded-md px-3 focus:outline-none focus:ring-2 focus:ring-brand-green focus:ring-inset">
+    <AccordionTrigger className="text-lg font-display font-semibold py-3 hover:no-underline rounded-md px-3 focus:outline-none focus:ring-2 focus:ring-brand-green focus:ring-inset">
       {column.title}
     </AccordionTrigger>
     <AccordionContent className="pb-1 pl-3">
@@ -151,7 +151,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
                <div key={item._key} onClick={() => setIsOpen(false)}>
                  <RouterLink 
                    to={resolveLink(item)} 
-                   className="block text-lg font-semibold p-3 rounded-md hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-brand-green focus:ring-inset"
+                   className="block text-lg font-display font-semibold p-3 rounded-md hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-brand-green focus:ring-inset"
                    tabIndex={0}
                  >
                    {item.title}
@@ -166,7 +166,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
                   <div className="h-px bg-brand-green/20" />
                 </div>
                 <div className="px-3 pt-4 pb-2">
-                  <h3 className="text-base font-semibold text-neutral-400 uppercase tracking-wider">{megaMenu.title}</h3>
+                  <h3 className="text-base font-display font-semibold text-neutral-400 uppercase tracking-wider">{megaMenu.title}</h3>
                 </div>
                 <Accordion type="multiple" className="w-full" defaultValue={[megaMenu.content.find(col => col.title === 'Priser')?._key || '']}>
                   {megaMenu.content.map(column => (

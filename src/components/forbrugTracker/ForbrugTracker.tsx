@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
   Zap, 
   TrendingUp, 
+  TrendingDown,
   Calculator, 
   Shield,
   ChevronRight,

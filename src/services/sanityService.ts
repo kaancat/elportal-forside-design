@@ -451,7 +451,25 @@ export class SanityService {
             _key,
             value,
             label
-          }
+          },
+          image{
+            ...,
+            asset->{
+              _id,
+              url,
+              metadata {
+                dimensions {
+                  width,
+                  height
+                }
+              }
+            }
+          },
+          backgroundStyle,
+          textColor,
+          overlayOpacity,
+          padding,
+          alignment
         }
       }
     }`
@@ -700,7 +718,25 @@ export class SanityService {
             _key,
             value,
             label
-          }
+          },
+          image{
+            ...,
+            asset->{
+              _id,
+              url,
+              metadata {
+                dimensions {
+                  width,
+                  height
+                }
+              }
+            }
+          },
+          backgroundStyle,
+          textColor,
+          overlayOpacity,
+          padding,
+          alignment
         },
         _type == "realPriceComparisonTable" => {
           _key,

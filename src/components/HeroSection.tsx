@@ -4,6 +4,15 @@ import { Button } from '@/components/ui/button';
 import PriceCalculatorWidget from '@/components/PriceCalculatorWidget';
 import { HeroWithCalculator } from '@/types/sanity';
 import { PortableText } from '@portabletext/react';
+import OptimizedImage from '@/components/OptimizedImage';
+import { 
+  getBackgroundStyle, 
+  getTextColorClass, 
+  getPaddingClass, 
+  getAlignmentClass,
+  getOptimizedImageUrl,
+  isLightText
+} from '@/lib/backgroundStyles';
 
 interface HeroSectionProps {
   block?: HeroWithCalculator;
@@ -53,6 +62,27 @@ const HeroSection: React.FC<HeroSectionProps> = ({ block }) => {
     { value: "2 ud af 3", label: "Kan spare ved at skifte" }
   ];
 
+  // Background style configuration - defaults to solidDark to maintain existing appearance
+  const backgroundStyle = block?.backgroundStyle || 'solidDark';
+  const textColor = block?.textColor || 'auto';
+  const overlayOpacity = block?.overlayOpacity ?? 40;
+  const padding = block?.padding || 'large';
+  const alignment = block?.alignment || 'center';
+  const image = block?.image;
+
+  // Generate style classes and properties
+  const backgroundStyleProps = getBackgroundStyle({ backgroundStyle, image });
+  const textColorClass = getTextColorClass({ 
+    textColor, 
+    backgroundStyle, 
+    image, 
+    overlayOpacity 
+  });
+  const paddingClass = getPaddingClass(padding);
+  const alignmentClass = getAlignmentClass(alignment);
+  const optimizedImageUrl = image ? getOptimizedImageUrl(image) : null;
+  const isTextLight = isLightText(textColorClass);
+
   // Create a minimal block object for the calculator widget in hero section
   const calculatorBlock = {
     _type: 'priceCalculator' as const,
@@ -61,67 +91,113 @@ const HeroSection: React.FC<HeroSectionProps> = ({ block }) => {
   };
 
   return (
-    <section className="relative overflow-hidden bg-brand-dark">
-      {/* Background overlay */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-brand-dark"></div>
-      </div>
-      
-      <div className="container mx-auto px-4 relative z-10 py-16">
-        <div className="flex flex-col lg:flex-row items-center gap-8">
-          {/* Left column with hero content */}
-          <div className="lg:w-1/2 text-white">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-6">
-              {renderHeadlineWithHighlight(headline, block?.highlightWords)}
-            </h1>
-            {subheadline && (
-              <div className="text-xl mb-8">
-                {typeof subheadline === 'string' ? (
-                  <p>{renderHeadlineWithHighlight(subheadline, block?.highlightWords)}</p>
-                ) : (
-                  <div className="prose prose-invert max-w-none">
-                    <PortableText value={subheadline} />
-                  </div>
-                )}
-              </div>
-            )}
+    // The outer wrapper provides padding on desktop screens only
+    <div className="md:p-4">
+      {/* Main container with dynamic background style */}
+      <section 
+        className="relative md:rounded-2xl overflow-hidden" 
+        style={backgroundStyleProps}
+      >
+        
+        {/* Layer 1: Background Image (if provided) */}
+        {optimizedImageUrl && (
+          <div className="absolute inset-0">
+            <OptimizedImage
+              src={optimizedImageUrl}
+              alt={image?.alt || "Hero background"}
+              className="w-full h-full object-cover"
+              priority={true}
+              width={1920}
+              height={1080}
+            />
             
-            {/* Rich content section */}
-            {block?.content && (
-              <div className="text-lg mb-8 prose prose-invert max-w-none">
-                <PortableText value={block.content} />
-              </div>
-            )}
-            
-            {/* Statistics display */}
-            <div className="flex flex-col min-[480px]:flex-row min-[480px]:flex-wrap lg:flex-nowrap gap-4 min-[480px]:gap-6 lg:gap-8 mb-10">
-              {stats.map((stat, index) => (
-                <div key={index} className="text-left min-[480px]:text-center flex-shrink-0 min-[480px]:flex-1 min-w-0">
-                  <p className="text-2xl min-[480px]:text-3xl lg:text-4xl font-display font-bold text-brand-green">{stat.value}</p>
-                  <p className="text-sm min-[480px]:text-sm lg:text-base">{stat.label}</p>
-                </div>
-              ))}
-            </div>
-            
-            <div>
-              <Button size="lg" className="bg-brand-green hover:bg-opacity-90 text-white rounded-md px-8 py-6 text-lg font-medium">
-                Begynd <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-          
-          {/* Right column with calculator */}
-          <div className="lg:w-1/2">
-            <PriceCalculatorWidget 
-              block={calculatorBlock} 
-              variant="hero"
-              showLivePrice={showLivePrice}
-              showProviderComparison={showProviderComparison}
+            {/* Dark overlay for text readability - only if there's an image */}
+            <div 
+              className="absolute inset-0 bg-black"
+              style={{ opacity: overlayOpacity / 100 }}
             />
           </div>
+        )}
+        
+        {/* Layer 2: Content */}
+        <div 
+          className={`relative z-10 container mx-auto px-4 ${paddingClass} ${textColorClass}`}
+        >
+          <div className={`flex flex-col lg:flex-row items-center gap-8 ${alignmentClass}`}>
+            {/* Left column with hero content */}
+            <div className="lg:w-1/2">
+              <h1 className={`text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-6 ${
+                isTextLight ? 'drop-shadow-lg' : ''
+              }`}>
+                {renderHeadlineWithHighlight(headline, block?.highlightWords)}
+              </h1>
+              {subheadline && (
+                <div className={`text-xl mb-8 ${isTextLight ? 'opacity-95 drop-shadow' : 'opacity-80'}`}>
+                  {typeof subheadline === 'string' ? (
+                    <p>{renderHeadlineWithHighlight(subheadline, block?.highlightWords)}</p>
+                  ) : (
+                    <div className={`prose max-w-none ${isTextLight ? 'prose-invert' : ''}`}>
+                      <PortableText value={subheadline} />
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Rich content section */}
+              {block?.content && (
+                <div className={`text-lg mb-8 prose max-w-none ${
+                  isTextLight ? 'prose-invert opacity-90' : 'opacity-70'
+                }`}>
+                  <PortableText value={block.content} />
+                </div>
+              )}
+              
+              {/* Statistics display */}
+              <div className="flex flex-col min-[480px]:flex-row min-[480px]:flex-wrap lg:flex-nowrap gap-4 min-[480px]:gap-6 lg:gap-8 mb-10">
+                {stats.map((stat, index) => (
+                  <div key={index} className={`${
+                    alignment === 'center' 
+                      ? 'text-left min-[480px]:text-center' 
+                      : alignment === 'right' 
+                        ? 'text-right' 
+                        : 'text-left'
+                  } flex-shrink-0 min-[480px]:flex-1 min-w-0`}>
+                    <p className="text-2xl min-[480px]:text-3xl lg:text-4xl font-display font-bold text-brand-green">{stat.value}</p>
+                    <p className={`text-sm min-[480px]:text-sm lg:text-base ${
+                      isTextLight ? 'opacity-90' : 'opacity-70'
+                    }`}>{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+              
+              <div className={alignment === 'center' ? 'flex justify-center' : alignment === 'right' ? 'flex justify-end' : ''}>
+                <Button 
+                  size="lg" 
+                  className={`${
+                    isTextLight 
+                      ? 'bg-white text-gray-900 hover:bg-gray-100' 
+                      : 'bg-brand-green text-white hover:bg-brand-green-dark'
+                  } font-semibold px-8 py-6 text-lg rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl`}
+                >
+                  Begynd <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+          
+            
+            {/* Right column with calculator */}
+            <div className="lg:w-1/2">
+              <PriceCalculatorWidget 
+                block={calculatorBlock} 
+                variant="hero"
+                showLivePrice={showLivePrice}
+                showProviderComparison={showProviderComparison}
+              />
+            </div>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 };
 

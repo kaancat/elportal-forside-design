@@ -1,5 +1,4 @@
 import React from 'react';
-import { HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -43,7 +42,9 @@ export const FloatingConsumptionHelper: React.FC<FloatingConsumptionHelperProps>
           <CardContent className="p-4">
             <div className="text-center space-y-3">
               <div className="inline-flex items-center gap-2 text-sm font-medium text-gray-800">
-                <HelpCircle className="h-4 w-4 text-brand-green" />
+                <div className="h-4 w-4 rounded-full border border-brand-green flex items-center justify-center">
+                  <span className="text-xs font-bold text-brand-green">?</span>
+                </div>
                 Kender du ikke dit forbrug?
               </div>
               <p className="text-xs text-gray-600">
@@ -65,32 +66,14 @@ export const FloatingConsumptionHelper: React.FC<FloatingConsumptionHelperProps>
     );
   }
 
-  if (variant === 'neon') {
-    // Neon green version for provider list
-    return (
-      <Popover>
-        <PopoverTrigger asChild>
-          <button className="group relative inline-block ml-1 -mt-0.5">
-            {/* Neon green outline, no background */}
-            <div className="relative h-4 w-4 rounded-full border border-brand-green flex items-center justify-center hover:scale-110 transition-all duration-200 cursor-pointer">
-              <HelpCircle className="h-2.5 w-2.5 text-brand-green transition-colors" />
-            </div>
-          </button>
-        </PopoverTrigger>
-        
-        <PopoverContentComponent />
-      </Popover>
-    );
-  }
-
-  // Default floating version for inline positioning  
+  // Both neon and floating variants now use same neon green styling
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button className="group relative inline-block ml-1 -mt-0.5">
-          {/* Main button - transparent with dark green border */}
-          <div className="relative h-4 w-4 rounded-full border border-brand-dark flex items-center justify-center hover:scale-110 transition-all duration-200 cursor-pointer">
-            <HelpCircle className="h-2.5 w-2.5 text-brand-dark transition-colors" />
+          {/* Neon green outline, no background - consistent across variants */}
+          <div className="relative h-4 w-4 rounded-full border border-brand-green flex items-center justify-center hover:scale-110 transition-all duration-200 cursor-pointer">
+            <span className="text-xs font-bold text-brand-green">?</span>
           </div>
         </button>
       </PopoverTrigger>

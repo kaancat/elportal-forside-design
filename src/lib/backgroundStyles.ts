@@ -36,7 +36,8 @@ export const getBackgroundStyle = ({
   backgroundImageUrl
 }: Pick<BackgroundStyleProps, 'backgroundStyle' | 'image' | 'backgroundImageUrl'>) => {
   const hasBackgroundUrl = backgroundImageUrl && backgroundImageUrl.length > 0;
-  const hasValidSanityImage = image && image.asset && image.asset._ref;
+  // Check for both current structure (image.asset._ref) and legacy structure (image._ref)
+  const hasValidSanityImage = image && (image.asset?._ref || image._ref);
 
   switch (backgroundStyle) {
     case 'gradientGreenMist':
@@ -98,7 +99,8 @@ export const getTextColorClass = ({
   overlayOpacity = 40
 }: BackgroundStyleProps) => {
   const hasBackgroundUrl = backgroundImageUrl && backgroundImageUrl.length > 0;
-  const hasValidSanityImage = image && image.asset && image.asset._ref;
+  // Check for both current structure (image.asset._ref) and legacy structure (image._ref)
+  const hasValidSanityImage = image && (image.asset?._ref || image._ref);
 
   // Manual overrides from Sanity
   if (textColor === 'light') return 'text-white';
@@ -172,10 +174,22 @@ export const getAlignmentClass = (alignment: Alignment = 'center') => {
 
 /**
  * Get optimized image URL for Sanity images
+ * Handles both legacy structure (image._ref) and current structure (image.asset._ref)
  */
-export const getOptimizedImageUrl = (image: SanityImage, width = 1920, height = 1080, quality = 85) => {
-  if (!image?.asset?._ref) return null;
-  return urlFor(image).width(width).height(height).quality(quality).url();
+export const getOptimizedImageUrl = (image: any, width = 1920, height = 1080, quality = 85) => {
+  if (!image) return null;
+  
+  // Check for current structure: image.asset._ref
+  if (image?.asset?._ref) {
+    return urlFor(image).width(width).height(height).quality(quality).url();
+  }
+  
+  // Check for legacy structure: image._ref (direct _ref on image)
+  if (image?._ref) {
+    return urlFor(image).width(width).height(height).quality(quality).url();
+  }
+  
+  return null;
 };
 
 /**

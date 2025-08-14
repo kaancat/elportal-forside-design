@@ -1,5 +1,5 @@
 import React from 'react';
-import { HelpCircle, Zap, BarChart3, Calculator } from 'lucide-react';
+import { HelpCircle, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';

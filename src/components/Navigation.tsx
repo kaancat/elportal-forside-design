@@ -127,11 +127,11 @@ const Navigation = () => {
               onMouseEnter={() => item._type === 'megaMenu' && setOpenMenuKey(item._key)}
             >
               {item._type === 'link' ? (
-                <RouterLink to={resolveLink(item as LinkType, 'Navigation')} className="text-white hover:text-brand-green font-medium transition-colors">
+                <RouterLink to={resolveLink(item as LinkType, 'Navigation')} className="text-white hover:text-brand-green font-display font-medium transition-colors">
                   {item.title}
                 </RouterLink>
               ) : (
-                <button className="text-white hover:text-brand-green font-medium transition-colors flex items-center">
+                <button className="text-white hover:text-brand-green font-display font-medium transition-colors flex items-center">
                   {(item as MegaMenu).title}
                   <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </button>
@@ -142,7 +142,7 @@ const Navigation = () => {
 
         <div className="hidden md:flex items-center">
           {ctaButton && (
-            <Button asChild className="bg-yellow-400 hover:bg-yellow-500 text-brand-dark font-medium rounded-full px-6">
+            <Button asChild className="bg-yellow-400 hover:bg-yellow-500 text-brand-dark font-display font-medium rounded-full px-6">
               <RouterLink to={resolveLink(ctaButton, 'Navigation')}>{ctaButton.title}</RouterLink>
             </Button>
           )}
@@ -150,7 +150,7 @@ const Navigation = () => {
 
         <div className="md:hidden flex items-center space-x-2">
           {ctaButton && (
-            <Button asChild size="sm" className="bg-yellow-400 hover:bg-yellow-500 text-brand-dark font-medium rounded-full px-4">
+            <Button asChild size="sm" className="bg-yellow-400 hover:bg-yellow-500 text-brand-dark font-display font-medium rounded-full px-4">
               <RouterLink to={resolveLink(ctaButton, 'Navigation')}>{ctaButton.title}</RouterLink>
             </Button>
           )}

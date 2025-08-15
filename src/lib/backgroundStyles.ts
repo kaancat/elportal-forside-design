@@ -36,8 +36,13 @@ export const getBackgroundStyle = ({
   backgroundImageUrl
 }: Pick<BackgroundStyleProps, 'backgroundStyle' | 'image' | 'backgroundImageUrl'>) => {
   const hasBackgroundUrl = backgroundImageUrl && backgroundImageUrl.length > 0;
-  // Check for both current structure (image.asset._ref) and legacy structure (image._ref)
-  const hasValidSanityImage = image && (image.asset?._ref || image._ref);
+  // Check if image has a valid image (support multiple data structures)
+  const hasValidSanityImage = image && (
+    image.asset?._ref ||    // Reference structure: {asset: {_ref: "..."}}
+    image._ref ||           // Legacy structure: {_ref: "..."}
+    image.asset?._id ||     // Expanded structure: {asset: {_id: "...", url: "..."}}
+    image.asset?.url        // Direct URL structure: {asset: {url: "..."}}
+  );
 
   switch (backgroundStyle) {
     case 'gradientGreenMist':
@@ -99,8 +104,13 @@ export const getTextColorClass = ({
   overlayOpacity = 40
 }: BackgroundStyleProps) => {
   const hasBackgroundUrl = backgroundImageUrl && backgroundImageUrl.length > 0;
-  // Check for both current structure (image.asset._ref) and legacy structure (image._ref)
-  const hasValidSanityImage = image && (image.asset?._ref || image._ref);
+  // Check if image has a valid image (support multiple data structures)
+  const hasValidSanityImage = image && (
+    image.asset?._ref ||    // Reference structure: {asset: {_ref: "..."}}
+    image._ref ||           // Legacy structure: {_ref: "..."}
+    image.asset?._id ||     // Expanded structure: {asset: {_id: "...", url: "..."}}
+    image.asset?.url        // Direct URL structure: {asset: {url: "..."}}
+  );
 
   // Manual overrides from Sanity
   if (textColor === 'light') return 'text-white';
@@ -174,12 +184,19 @@ export const getAlignmentClass = (alignment: Alignment = 'center') => {
 
 /**
  * Get optimized image URL for Sanity images
- * Handles both legacy structure (image._ref) and current structure (image.asset._ref)
+ * Handles reference structures, legacy structures, and expanded asset data
  */
 export const getOptimizedImageUrl = (image: any, width = 1920, height = 1080, quality = 85) => {
   if (!image) return null;
   
-  // Check for current structure: image.asset._ref
+  // Check for expanded structure: image.asset.url (already expanded by GROQ)
+  if (image?.asset?.url) {
+    // If we have a direct URL from expanded GROQ query, we can use it directly
+    // but we should still process it through urlFor for optimization
+    return urlFor(image).width(width).height(height).quality(quality).url();
+  }
+  
+  // Check for reference structure: image.asset._ref
   if (image?.asset?._ref) {
     return urlFor(image).width(width).height(height).quality(quality).url();
   }

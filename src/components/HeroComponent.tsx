@@ -31,7 +31,8 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
   const hasBackgroundUrl = backgroundImageUrl && backgroundImageUrl.length > 0;
   
   // Check if heroImage has a valid _ref property (is a proper Sanity image)
-  const hasValidSanityImage = heroImage && heroImage._ref;
+  // Handle both current structure (heroImage.asset._ref) and legacy structure (heroImage._ref)
+  const hasValidSanityImage = heroImage && (heroImage.asset?._ref || heroImage._ref);
   
   // Define background styles - using inline styles for gradients to ensure they work
   const getBackgroundStyle = () => {

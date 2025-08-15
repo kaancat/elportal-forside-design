@@ -1,6 +1,4 @@
 import React from 'react';
-import { ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import PriceCalculatorWidget from '@/components/PriceCalculatorWidget';
 import { HeroWithCalculator } from '@/types/sanity';
 import { PortableText } from '@portabletext/react';
@@ -168,19 +166,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({ block }) => {
                     }`}>{stat.label}</p>
                   </div>
                 ))}
-              </div>
-              
-              <div className={alignment === 'center' ? 'flex justify-center' : alignment === 'right' ? 'flex justify-end' : ''}>
-                <Button 
-                  size="lg" 
-                  className={`${
-                    isTextLight 
-                      ? 'bg-white text-gray-900 hover:bg-gray-100' 
-                      : 'bg-brand-green text-white hover:bg-brand-green-dark'
-                  } font-semibold px-8 py-6 text-lg rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl`}
-                >
-                  Begynd <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
               </div>
             </div>
           

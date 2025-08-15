@@ -215,7 +215,12 @@ export function ConsumptionDashboard({
                           />
                         ))}
                       </Pie>
-                      <Tooltip content={<CustomTooltip />} />
+                      <Tooltip 
+                        content={<CustomTooltip />}
+                        labelFormatter={() => ''}
+                        formatter={(value: any, name: any) => [null, null]}
+                        isAnimationActive={false}
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -233,7 +238,12 @@ export function ConsumptionDashboard({
                           height={40}
                         />
                         <YAxis hide />
-                        <Tooltip content={<CustomTooltip />} />
+                        <Tooltip 
+                          content={<CustomTooltip />}
+                          labelFormatter={() => ''}
+                          formatter={(value: any, name: any) => [null, null]}
+                          isAnimationActive={false}
+                        />
                         <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                           {chartData.slice(0, 3).map((entry, index) => (
                             <Cell key={`bar-${index}`} fill={COLORS[index % COLORS.length]} />

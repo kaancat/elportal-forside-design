@@ -166,33 +166,23 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
     // The outer wrapper provides padding on desktop screens only
     <div className="md:p-4">
       {/* Main container with background style */}
-      <div className="relative md:rounded-2xl overflow-hidden" style={getBackgroundStyle()}>
+      <div className="relative md:rounded-2xl overflow-hidden" style={{...getBackgroundStyle(), ...minHeightStyle}}>
         
         {/* Layer 1: Background Image (if provided) */}
         {(hasValidSanityImage || hasBackgroundUrl) && (
-          <div className="absolute inset-0">
-            {hasBackgroundUrl ? (
-              // Direct URL image (e.g., from Unsplash)
-              <OptimizedImage
-                src={backgroundImageUrl}
-                alt={imageAlt || "Hero background"}
-                className="w-full h-full object-cover"
-                priority={true}
-                width={1920}
-                height={1080}
-              />
-            ) : hasValidSanityImage ? (
-              // Sanity image - only process if it has a valid _ref
-              <OptimizedImage
-                src={urlFor(heroImage).width(1920).height(1080).quality(85).url()}
-                alt={heroImage.alt || imageAlt || "Hero background"}
-                className="w-full h-full object-cover"
-                priority={true}
-                width={1920}
-                height={1080}
-              />
-            ) : null}
-            
+          <div 
+            className="absolute inset-0"
+            style={{
+              backgroundImage: hasBackgroundUrl 
+                ? `url(${backgroundImageUrl})`
+                : hasValidSanityImage 
+                ? `url(${urlFor(heroImage).width(1920).height(1080).quality(85).url()})`
+                : 'none',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat'
+            }}
+          >
             {/* Dark overlay for text readability - only if there's an image */}
             <div 
               className="absolute inset-0 bg-black"
@@ -204,7 +194,6 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
         {/* Layer 2: Content */}
         <div 
           className={`relative z-10 flex flex-col justify-center ${getPaddingClass()} px-4 sm:px-6 lg:px-8 ${getTextColorClass()}`}
-          style={minHeightStyle}
         >
           <div className="container mx-auto max-w-6xl">
             <div className={`flex flex-col ${getAlignmentClass()} space-y-6`}>

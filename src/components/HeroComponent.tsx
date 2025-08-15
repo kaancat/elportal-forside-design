@@ -194,6 +194,7 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
         {/* Layer 2: Content */}
         <div 
           className={`relative z-10 flex flex-col justify-center ${getPaddingClass()} px-4 sm:px-6 lg:px-8 ${getTextColorClass()}`}
+          style={minHeightStyle}
         >
           <div className="container mx-auto max-w-6xl">
             <div className={`flex flex-col ${getAlignmentClass()} space-y-6`}>

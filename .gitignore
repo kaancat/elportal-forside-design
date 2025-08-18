@@ -31,3 +31,4 @@ docs/specs/example-feature-specification.md
 
 .vercel
 .env*.local
+.env.local.backup*

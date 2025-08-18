@@ -51,20 +51,22 @@ npx @sanity/cli dataset import backups/pre-migration/sanity-backup-*.tar.gz prod
 ## 📋 Table of Contents
 
 1. Executive Summary
-2. Architecture (Current → Target)
-3. Sanity Integration Map
-4. SEO Migration
-5. Routing & Data Fetching
-6. Component Compatibility
-7. API Layer Migration
-8. Revalidation & Caching
-9. Performance & Accessibility
-10. Security & Environment
-11. Vercel & Deployment
-12. Testing Strategy
-13. Risks & Mitigations
-14. Rollback Plan
-15. Implementation Checklist
+2. Authoritative Step‑By‑Step Migration Plan
+3. Edge Cases & Guardrails (Authoritative)
+4. Architecture (Current → Target)
+5. Sanity Integration Map
+6. SEO Migration
+7. Routing & Data Fetching
+8. Component Compatibility
+9. API Layer Migration
+10. Revalidation & Caching
+11. Performance & Accessibility
+12. Security & Environment
+13. Vercel & Deployment
+14. Testing Strategy
+15. Risks & Mitigations
+16. Rollback Plan
+17. Implementation Checklist
 
 ---
 
@@ -77,6 +79,74 @@ Key Points
 - API: KV caching, dedupe, retries unchanged; wrap with NextResponse.
 - Sanity: Pages use `contentBlocks`, `seoMetaTitle`, `seoMetaDescription`, `seoKeywords`, optional `ogImage`, `noIndex`, homepage via `isHomepage`.
 - SEO: Use `generateMetadata`, canonical via `metadataBase`, structured data at SSR.
+
+---
+
+## ✅ Authoritative Step‑By‑Step Migration Plan
+
+This plan is derived from all detailed sections below. Each phase lists concrete deliverables and a verification gate before proceeding.
+
+Phase 0 — Safety Preflight (Day 0)
+- Deliverables: Backup tags (FE/BE), Sanity dataset export (+assets), env backups, Vercel alias setup (blue/green), health monitoring scripts installed.
+- Verify: Run emergency rollback script dry-run; confirm SPA backup alias resolves; validate Sanity export integrity.
+
+Phase 1 — Foundation & Config (Day 1)
+- Deliverables: `app/` scaffold (`layout.tsx`, `page.tsx`, `[slug]/page.tsx`, error/not-found), `next.config.js` with `images.remotePatterns`, `next/font` configured, env mapping (`VITE_*` → `NEXT_PUBLIC_*`), `SITE_URL` + `metadataBase`.
+- Verify: Dev server boots; images render from Sanity/Unsplash; fonts load without CLS.
+
+Phase 2 — Sanity SSR Baseline (Day 1–2)
+- Deliverables: Server GROQ queries for homepage (`isHomepage`), slug pages, and `siteSettings`; tag queries (`page`, `siteSettings`, `provider`); render Navigation/Footer and static content blocks server‑side.
+- Verify: With JS disabled, homepage and a slug page show headings/nav/footer/server content.
+
+Phase 3 — SEO & Metadata (Day 2)
+- Deliverables: `generateMetadata` for homepage/slug routes mapping SEO fields; JSON‑LD (Organization, Breadcrumbs, FAQ/Article as applicable); `app/robots.ts`, `app/sitemap.ts` excluding `noIndex`; canonical normalization via `metadataBase`.
+- Verify: View page source to confirm title/description/OG/Twitter/canonical/JSON‑LD; robots and sitemap endpoints respond correctly.
+
+Phase 4 — API Routes Port (Day 2–3)
+- Deliverables: Port all `/api/*` to `app/api/**/route.ts` with `NextResponse.json`, preserve KV/in‑memory cache/dedupe/headers; set `maxDuration`; ensure Node runtime where KV/Node APIs used.
+- Verify: Parity tests for representative endpoints (prices, forecast, CO2, monthly/declaration, consumption, eloverblik, tracking/admin/auth, sanity create/update); headers show `s-maxage`; KV markers present.
+
+Phase 5 — Client‑Only Components (Day 3)
+- Deliverables: Mark Recharts/interactive components `'use client'` or `dynamic(...,{ ssr:false })`; keep SSR shells/text for SEO; maintain skeletons.
+- Verify: No hydration errors; charts load after interaction/idle; SSR HTML still indexable.
+
+Phase 6 — Revalidation & Webhooks (Day 3)
+- Deliverables: `/api/revalidate` with HMAC validation; call `revalidateTag`/`revalidatePath` for `page`, `siteSettings`, `provider`; update Studio webhooks.
+- Verify: Editing a page/settings/provider in Studio revalidates the correct route and tags.
+
+Phase 7 — Analytics & Consent (Day 3–4)
+- Deliverables: Move Cookiebot, GA4, FB Pixel to `app/layout.tsx` via `next/script` honoring consent; re‑init on consent change if needed.
+- Verify: Tags fire only after consent; no layout shift from script injections.
+
+Phase 8 — Performance Pass (Day 4)
+- Deliverables: Dynamic imports for heavy modules, confirm `next/font` usage, image formats (AVIF/WebP), maintain loading skeletons.
+- Verify: Lighthouse: LCP < 2.5s, CLS < 0.1, INP < 200ms on key pages (staging).
+
+Phase 9 — Tests & Quality Gates (Day 4–5)
+- Deliverables: Playwright SSR checks (HTML + metadata), API tests for headers/caching, E2E basic nav, optional vitals harness.
+- Verify: Test suite passes locally and on CI; staging smoke checks green.
+
+Phase 10 — Deploy & Monitor (Day 5)
+- Deliverables: Deploy to staging alias; run health monitoring; if green, flip production alias; keep SPA fallback alias hot.
+- Verify: Post‑deploy checks green (SSR, metadata, APIs, vitals); rollback runbook validated.
+
+See also: Risks & Mitigations, Rollback Plan, Revalidation & Caching, API Layer Migration, Testing Strategy below.
+
+---
+
+## 🧭 Edge Cases & Guardrails (Authoritative)
+
+- Charts SSR: All Recharts visualizations are client‑only or `dynamic({ ssr:false })`; keep SSR shells for indexability.
+- Homepage uniqueness: If multiple `isHomepage`, log warning, select first; optional Studio validation to block >1.
+- Canonical/trailing slash: Normalize via `metadataBase`; add redirects to avoid duplicates.
+- Image domains: `images.remotePatterns` must include `cdn.sanity.io` and `images.unsplash.com` before prod.
+- KV/runtime: Use Node runtime for routes touching KV or Node APIs; avoid Edge unless verified compatible.
+- Webhooks: Validate HMAC; revalidate by tag + path; include retry/error logging.
+- Auth/Eloverblik: Keep secrets server‑only; confirm CORS/CSRF; never expose tokens to client/RSC.
+- Rate limits: Preserve retry backoff, dedupe queues, and `s-maxage` headers for API stability.
+- 404 behavior: Use `notFound()` on missing slugs to avoid empty SSR pages.
+- Hardcoded domains: Remove; use `SITE_URL` + `metadataBase` for canonical and OG.
+- Sitemap: Exclude `noIndex`; assign sensible priorities; ensure updatedAt mapping.
 
 ---
 
@@ -793,7 +863,7 @@ const Navigation = () => {
 
 ---
 
-## 📱 Service Worker & PWA Migration
+## Appendix: 📱 Service Worker & PWA Migration
 
 ### Current Service Worker Analysis
 DinElportal uses a custom **icon cache service worker** (`public/icon-cache-sw.js`) with specific patterns:
@@ -946,7 +1016,7 @@ export function setupIconCache() {
 
 ---
 
-## ⚡ Performance Systems Migration
+## Appendix: ⚡ Performance Systems Migration
 
 ### Web Vitals Monitoring Migration
 DinElportal has sophisticated performance monitoring (`webVitals.ts`, `inpOptimization.ts`) that needs Next.js integration.
@@ -1375,7 +1445,7 @@ function migrateEnvironmentVariables(filePath) {
 
 ---
 
-## 🧪 Testing Strategy Implementation
+## Appendix: 🧪 Testing Strategy Implementation
 
 ### Current State: No Tests
 Analysis shows **no existing test files** in the codebase, making this migration an opportunity to implement comprehensive testing.
@@ -1580,7 +1650,7 @@ test.describe('Web Vitals Performance', () => {
 
 ---
 
-## 🎨 Metadata & SEO Migration Deep Dive
+## Appendix: 🎨 Metadata & SEO Migration Deep Dive
 
 ### Current SEO System Analysis
 DinElportal has sophisticated SEO management (`MetaTags.tsx`, `CanonicalUrl.tsx`) that needs complete migration to Next.js Metadata API.
@@ -1862,7 +1932,7 @@ export default async function sitemap(): MetadataRoute.Sitemap {
 
 ---
 
-## 🔨 Build Optimization Migration
+## Appendix: 🔨 Build Optimization Migration
 
 ### Current Vite Build Analysis
 DinElportal uses sophisticated Vite chunking strategies that need Next.js equivalents:
@@ -2045,7 +2115,7 @@ body {
 
 ---
 
-## ⚙️ Development Workflow Integration
+## Appendix: ⚙️ Development Workflow Integration
 
 ### Preserving Development Tools
 DinElportal has sophisticated development tools that must be preserved:
@@ -2202,7 +2272,7 @@ This comprehensive enhancement to the migration guide provides detailed, actiona
 
 ---
 
-## 🎯 Official Next.js Vite Migration Patterns
+## Appendix: 🎯 Official Next.js Vite Migration Patterns
 
 Based on the official Next.js documentation at `/docs/app/guides/migrating/from-vite`, here are additional migration patterns specific to Vite applications:
 

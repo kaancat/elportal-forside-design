@@ -6,15 +6,22 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const nextConfig = {
-  // Start with SPA mode for minimal initial changes
-  output: 'export',
+  // Using standard build (not static export) for SPA with client-side routing
+  // output: 'export', // Removed for client component compatibility
   
-  // Keep dist directory for compatibility
-  distDir: './dist',
+  // Use default Next.js build directory to avoid conflict with Vite
+  // distDir: '.next', // Using default
+  
+  // Phase 2: Use only App Router, exclude Pages Router files
+  // This prevents Next.js from trying to build React Router pages
+  pageExtensions: ['page.tsx', 'page.ts', 'page.jsx', 'page.js', 'api.ts', 'api.js'],
+  
+  // Transpile problematic packages
+  transpilePackages: ['react-denmark-map'],
   
   // Image configuration for Sanity and Unsplash
   images: {
-    unoptimized: true, // Required for static export mode
+    // unoptimized: true, // Only needed for static export mode
     remotePatterns: [
       {
         protocol: 'https',
@@ -53,62 +60,17 @@ const nextConfig = {
       '@': path.resolve(__dirname, './src'),
     };
     
-    // Add custom webpack optimizations if needed
-    if (!dev && !isServer) {
-      // Production client-side optimizations
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            default: false,
-            vendors: false,
-            // Custom chunk groups matching Vite config
-            framework: {
-              name: 'framework',
-              chunks: 'all',
-              test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
-              priority: 40,
-              enforce: true,
-            },
-            lib: {
-              test(module) {
-                return module.size() > 160000 &&
-                  /node_modules[/\\]/.test(module.identifier());
-              },
-              name(module) {
-                const hash = require('crypto')
-                  .createHash('sha1')
-                  .update(module.identifier())
-                  .digest('hex')
-                  .substring(0, 8);
-                return `lib-${hash}`;
-              },
-              priority: 30,
-              minChunks: 1,
-              reuseExistingChunk: true,
-            },
-            commons: {
-              name: 'commons',
-              minChunks: 2,
-              priority: 20,
-            },
-            shared: {
-              name(module, chunks) {
-                return require('crypto')
-                  .createHash('sha1')
-                  .update(chunks.reduce((acc, chunk) => acc + chunk.name, ''))
-                  .digest('hex')
-                  .substring(0, 8);
-              },
-              priority: 10,
-              minChunks: 2,
-              reuseExistingChunk: true,
-            },
-          },
-        },
+    // Handle react-denmark-map ES module issue
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
       };
     }
+    
+    // Let Next.js handle optimizations for Phase 1
+    // Custom optimizations can be added in Phase 2 if needed
     
     return config;
   },
@@ -131,28 +93,6 @@ const nextConfig = {
     ],
   },
   
-  // Headers for security and performance
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'X-DNS-Prefetch-Control',
-            value: 'on'
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN'
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff'
-          },
-        ],
-      },
-    ];
-  },
   
   // Environment variable validation
   env: {
@@ -161,9 +101,4 @@ const nextConfig = {
   },
 };
 
-// Bundle analyzer configuration
-const withBundleAnalyzer = process.env.ANALYZE === 'true'
-  ? require('@next/bundle-analyzer')({ enabled: true })
-  : (config) => config;
-
-export default withBundleAnalyzer(nextConfig);
+export default nextConfig;

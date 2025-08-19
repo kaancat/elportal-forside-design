@@ -31,8 +31,8 @@ interface TrackingConfig {
  */
 function getCompiledScript(): string | null {
   try {
-    // Use the built universal.js script
-    const scriptName = 'universal.js';
+    // Use the universal-simple.js script (the actual file that exists)
+    const scriptName = 'universal-simple.js';
     // Try multiple paths for Vercel compatibility
     const possiblePaths = [
       path.join(process.cwd(), 'public', 'tracking', scriptName),

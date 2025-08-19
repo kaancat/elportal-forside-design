@@ -11,11 +11,20 @@ import { z } from 'zod'
 export const regionSchema = z.enum(['DK1', 'DK2', 'Danmark']).describe('Price area or region')
 
 /**
- * Date format validation (YYYY-MM-DD)
+ * Date format validation (YYYY-MM-DD) with calendar validation
  */
 export const dateSchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format')
+  .refine(
+    (date) => {
+      if (!date) return true // Optional dates are allowed
+      const d = new Date(date + 'T00:00:00Z')
+      // Check if date is valid and matches the input
+      return !isNaN(d.getTime()) && d.toISOString().startsWith(date)
+    },
+    'Invalid calendar date'
+  )
   .optional()
   .describe('Date in YYYY-MM-DD format')
 
@@ -92,7 +101,17 @@ export const consumptionMapSchema = z.object({
 export const energyForecastSchema = z.object({
   region: regionSchema.optional().default('Danmark'),
   type: z.enum(['wind', 'solar', 'all']).optional().default('all'),
-  hours: z.string().regex(/^\d+$/).optional().default('24'),
+  hours: z.string()
+    .regex(/^\d+$/)
+    .refine(
+      (val) => {
+        const num = parseInt(val, 10)
+        return num > 0 && num <= 168 // Max 1 week
+      },
+      'Hours must be between 1 and 168'
+    )
+    .optional()
+    .default('24'),
 })
 
 /**

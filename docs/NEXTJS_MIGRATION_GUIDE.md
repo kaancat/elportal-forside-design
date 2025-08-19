@@ -102,6 +102,32 @@ Phase 3 — SEO & Metadata (Day 2)
 - Deliverables: `generateMetadata` for homepage/slug routes mapping SEO fields; JSON‑LD (Organization, Breadcrumbs, FAQ/Article as applicable); `app/robots.ts`, `app/sitemap.ts` excluding `noIndex`; canonical normalization via `metadataBase`.
 - Verify: View page source to confirm title/description/OG/Twitter/canonical/JSON‑LD; robots and sitemap endpoints respond correctly.
 
+https://nextjs.org/learn/seo - Context7 
+
+In summary, important key points include:
+
+Meta tags
+
+JSON-LD Schema
+
+Sitemap
+
+robots.txt
+
+Link tags
+
+Script optimization
+
+Image optimization
+
+Read more here: Next.js SEO: The Complete Checklist to Boost Your Site Ranking
+
+If you find anything that should be added, please leave a comment below.
+
+Edit: Added implementation guide for App Router.
+https://nextjs.org/docs/messages/no-script-tags-in-head-component
+https://nextjs.org/docs/app/building-your-application/optimizing/metadata
+
 Phase 4 — API Routes Port (Day 2–3)
 - Deliverables: Port all `/api/*` to `app/api/**/route.ts` with `NextResponse.json`, preserve KV/in‑memory cache/dedupe/headers; set `maxDuration`; ensure Node runtime where KV/Node APIs used.
 - Verify: Parity tests for representative endpoints (prices, forecast, CO2, monthly/declaration, consumption, eloverblik, tracking/admin/auth, sanity create/update); headers show `s-maxage`; KV markers present.
@@ -1368,12 +1394,12 @@ VITE_FB_PIXEL_ID=XXXXXXXXXXXXXXXXX             → NEXT_PUBLIC_FB_PIXEL_ID=XXXXX
 VITE_ANALYTICS_ENDPOINT=https://...            → NEXT_PUBLIC_ANALYTICS_ENDPOINT=https://...
 
 # Server-only variables (keep as-is)
-SANITY_API_TOKEN=sk_xxx                        → SANITY_API_TOKEN=sk_xxx (unchanged)
-SANITY_WEBHOOK_SECRET=xxx                      → SANITY_WEBHOOK_SECRET=xxx (unchanged)
-SMITHERY_API_KEY=xxx                           → SMITHERY_API_KEY=xxx (unchanged)
-ELOVERBLIK_TOKEN=xxx                           → ELOVERBLIK_TOKEN=xxx (unchanged)
-KV_REST_API_URL=xxx                           → KV_REST_API_URL=xxx (unchanged)
-KV_REST_API_TOKEN=xxx                         → KV_REST_API_TOKEN=xxx (unchanged)
+SANITY_API_TOKEN=[keep existing]              → SANITY_API_TOKEN=[keep existing] (unchanged)
+SANITY_WEBHOOK_SECRET=[keep existing]         → SANITY_WEBHOOK_SECRET=[keep existing] (unchanged)
+SMITHERY_API_KEY=[keep existing]              → SMITHERY_API_KEY=[keep existing] (unchanged)
+ELOVERBLIK_TOKEN=[keep existing]              → ELOVERBLIK_TOKEN=[keep existing] (unchanged)
+KV_REST_API_URL=[keep existing]               → KV_REST_API_URL=[keep existing] (unchanged)
+KV_REST_API_TOKEN=[keep existing]             → KV_REST_API_TOKEN=[keep existing] (unchanged)
 
 # New Next.js specific variables
                                                → SITE_URL=https://elportal.dk
@@ -2494,7 +2520,7 @@ NEXT_PUBLIC_SANITY_DATASET=production
 NEXT_PUBLIC_API_URL=https://api.dinelportal.dk
 
 # Server-only variables (no prefix needed)
-SANITY_API_TOKEN=sk_xxx
+SANITY_API_TOKEN=[token]
 DATABASE_URL=postgres://...
 ```
 
@@ -2729,8 +2755,8 @@ NEXT_PUBLIC_SANITY_DATASET=production
 NEXT_PUBLIC_SANITY_API_VERSION=2025-01-01
 
 # Server-side only (for mutations/webhooks)
-SANITY_API_TOKEN=sk_xxx_your_token_here
-SANITY_WEBHOOK_SECRET=your_webhook_secret_here
+SANITY_API_TOKEN=[your_token_here]
+SANITY_WEBHOOK_SECRET=[your_webhook_secret_here]
 ```
 
 **Backend (sanityelpriscms/.env)**
@@ -2740,7 +2766,7 @@ SANITY_STUDIO_PROJECT_ID=yxesi03x
 SANITY_STUDIO_DATASET=production
 
 # For API operations
-SANITY_API_TOKEN=sk_xxx_your_token_here
+SANITY_API_TOKEN=[your_token_here]
 ```
 
 ##### 2. Sanity Client Configuration Migration

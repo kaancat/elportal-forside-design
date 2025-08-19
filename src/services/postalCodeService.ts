@@ -64,17 +64,15 @@ export class PostalCodeService {
       return {
         code: '999',
         name: 'Unknown Grid Provider',
+        gln: '0000000000000',
         networkTariff: 0.30, // Average tariff
-        region: municipality.region
-      };
+        chargeCode: 'DT_C_01',
+        region: municipality.region,
+        municipalities: [municipality.name]
+      } as GridProvider;
     }
 
-    return {
-      code: provider.code,
-      name: provider.name,
-      networkTariff: provider.networkTariff,
-      region: provider.region
-    };
+    return provider;
   }
 
   /**

@@ -21,7 +21,7 @@ const fadeUpVariant = {
     y: 0,
     transition: {
       duration: 0.5,
-      ease: "easeOut",
+      ease: "easeOut" as const,
       delay: 0.05
     }
   }
@@ -41,13 +41,13 @@ const containerVariant = {
 // Subtle item fade-and-lift
 const itemVariant = {
   hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' as const } },
 }
 
 // Image: very soft slide + tiny scale ease-in
 const imageVariant = {
   hidden: { opacity: 0, y: 12, scale: 0.99 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: 'easeOut' } },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: 'easeOut' as const } },
 }
 
 const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
@@ -69,25 +69,25 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   // Define custom components for Portable Text
   const customComponents = {
     block: {
-      h1: ({ children }: { children: React.ReactNode }) => (
+      h1: ({ children }: { children?: React.ReactNode }) => (
         <h1 className={cn(
           "text-3xl md:text-4xl font-bold mb-6 leading-tight",
           themeColors.heading
         )}>{children}</h1>
       ),
-      h2: ({ children }: { children: React.ReactNode }) => (
+      h2: ({ children }: { children?: React.ReactNode }) => (
         <h2 className={cn(
           "text-2xl md:text-3xl font-bold mb-4 leading-tight",
           themeColors.heading
         )}>{children}</h2>
       ),
-      h3: ({ children }: { children: React.ReactNode }) => (
+      h3: ({ children }: { children?: React.ReactNode }) => (
         <h3 className={cn(
           "text-xl md:text-2xl font-bold mb-3 leading-tight",
           themeColors.heading
         )}>{children}</h3>
       ),
-      blockquote: ({ children }: { children: React.ReactNode }) => (
+      blockquote: ({ children }: { children?: React.ReactNode }) => (
         <blockquote className={cn(
           "relative border-l-4 border-brand-green pl-6 py-2 italic mb-6 rounded-r-lg",
           isDarkTheme() 
@@ -97,7 +97,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
           {children}
         </blockquote>
       ),
-      normal: ({ children }: { children: React.ReactNode }) => (
+      normal: ({ children }: { children?: React.ReactNode }) => (
         <p className={cn(
           "mb-6 leading-relaxed text-lg",
           themeColors.body
@@ -105,14 +105,14 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
       ),
     },
     marks: {
-      strong: ({ children }: { children: React.ReactNode }) => (
+      strong: ({ children }: { children?: React.ReactNode }) => (
         <strong className={cn(
           "font-semibold",
           themeColors.strong
         )}>{children}</strong>
       ),
-      em: ({ children }: { children: React.ReactNode }) => <em className="italic">{children}</em>,
-      link: ({ value, children }: { value?: { href: string }, children: React.ReactNode }) => (
+      em: ({ children }: { children?: React.ReactNode }) => <em className="italic">{children}</em>,
+      link: ({ value, children }: { value?: { href: string }, children?: React.ReactNode }) => (
         <a 
           href={value?.href} 
           className={cn("underline transition-colors duration-200", themeColors.link)}

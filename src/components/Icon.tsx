@@ -59,7 +59,8 @@ export const Icon: React.FC<IconProps> = ({
   if (process.env.NODE_ENV === 'development') {
     if (icon.metadata) {
       // Check for common structural issues
-      if (!icon.metadata.size && (icon.metadata.width || icon.metadata.height)) {
+      const meta = icon.metadata as any;
+      if (!meta.size && (meta.width || meta.height)) {
         console.warn(
           '[Icon Component] Malformed icon structure detected:', 
           icon.metadata.iconName || 'unknown',

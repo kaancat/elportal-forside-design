@@ -159,7 +159,7 @@ const Navigation = () => {
             resolveLink={(link: LinkType) => resolveLink(link, 'Navigation')}
             logoSrc={settings.logo?.asset?._ref ? 
               `https://cdn.sanity.io/images/yxesi03x/production/${settings.logo.asset._ref.replace('image-', '').replace('-png', '.png').replace('-jpg', '.jpg').replace('-webp', '.webp')}` :
-              null
+              undefined
             }
             logoAlt={settings.title || FALLBACK_ALT}
           />

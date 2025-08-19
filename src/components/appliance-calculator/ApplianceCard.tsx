@@ -33,7 +33,7 @@ export function ApplianceCard({
   onUpdateWatts,
   onRemove,
 }: ApplianceCardProps) {
-  const Icon = appliance.icon ? Icons[appliance.icon as keyof typeof Icons] : Zap
+  const Icon = (appliance.icon && Icons[appliance.icon as keyof typeof Icons] as any) || Zap
   const hasVariableWattage = appliance.powerRangeMin && appliance.powerRangeMax
   const currentWatts = appliance.customWatts || appliance.powerWatts
 

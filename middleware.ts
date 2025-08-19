@@ -2,11 +2,14 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 /**
- * Phase 2 Migration Middleware
+ * Phase 2 & 3 Migration Middleware
  * 
  * This middleware controls which routes are handled by Next.js SSR/ISR
  * versus the legacy React Router SPA. As we migrate pages, we add them
- * to the nextjsRoutes array.
+ * to the appropriate arrays.
+ * 
+ * Phase 2: Homepage SSR
+ * Phase 3: Dynamic pages with route isolation
  */
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
@@ -16,13 +19,19 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
   
+  // Never rewrite internal SSR routes
+  if (pathname.startsWith('/__ssr/')) {
+    return NextResponse.next()
+  }
+  
   // Only process GET and HEAD requests
   if (!['GET', 'HEAD'].includes(request.method)) {
     return NextResponse.next()
   }
   
-  // Feature flag for gradual rollout
+  // Feature flags for gradual rollout
   const phase2Enabled = process.env.NEXT_PUBLIC_PHASE2_SSR === 'true'
+  const phase3Enabled = process.env.PHASE3_DYNAMIC_ENABLED === 'true' // Server-only flag per Codex
   
   // Routes that have been migrated to Next.js SSR/ISR
   // Start with homepage, add more routes as we migrate them
@@ -58,11 +67,45 @@ export function middleware(request: NextRequest) {
     pathname === route || pathname.startsWith(`${route}/`)
   )
   
+  // Phase 3: Dynamic pages with route isolation
+  if (phase3Enabled && !isSpaRoute && !isMigratedRoute) {
+    const dynamicPages = [
+      '/elpriser',
+      '/sammenlign',
+      '/groen-energi',
+      '/vindstod',
+      '/spar-penge',
+    ]
+    
+    const isDynamicPage = dynamicPages.some(page => 
+      pathname === page || pathname.startsWith(`${page}/`)
+    )
+    
+    if (isDynamicPage) {
+      // Rewrite to isolated SSR route (never expose __ssr in canonicals)
+      const url = request.nextUrl.clone()
+      url.pathname = `/__ssr${pathname}`
+      
+      // Add X-Robots-Tag for staging per Codex
+      if (process.env.SITE_URL !== 'https://dinelportal.dk') {
+        const response = NextResponse.rewrite(url)
+        response.headers.set('X-Robots-Tag', 'noindex, nofollow')
+        return response
+      }
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[Middleware] Phase 3 SSR route: ${pathname} -> /__ssr${pathname}`)
+      }
+      
+      return NextResponse.rewrite(url)
+    }
+  }
+  
   if (isMigratedRoute) {
     // Let Next.js handle this route with SSR/ISR
     // Debug logging (remove in production)
     if (process.env.NODE_ENV === 'development') {
-      console.log(`[Middleware] SSR route: ${pathname}`)
+      console.log(`[Middleware] Phase 2 SSR route: ${pathname}`)
     }
     return NextResponse.next()
   }

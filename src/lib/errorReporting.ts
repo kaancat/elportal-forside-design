@@ -52,7 +52,7 @@ class ErrorReportingService {
         ...context,
       },
       errorInfo: errorInfo ? {
-        componentStack: errorInfo.componentStack,
+        componentStack: errorInfo.componentStack || undefined,
       } : undefined,
       severity,
       environment: process.env.NODE_ENV === 'production' ? 'production' : 'development',

@@ -336,7 +336,8 @@ export const gridProviders = {
 // Helper function to get grid provider by municipality
 export function getGridProviderByMunicipality(municipality: string): typeof gridProviders[keyof typeof gridProviders] | null {
   for (const provider of Object.values(gridProviders)) {
-    if (provider.municipalities.includes(municipality)) {
+    const municipalities = provider.municipalities as string[] | undefined;
+    if (municipalities && municipalities.includes(municipality)) {
       return provider;
     }
   }

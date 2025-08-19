@@ -165,7 +165,7 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
       }
       
       // Apply regional pricing if available
-      if (provider.regionalPricing?.length > 0) {
+      if (provider.regionalPricing && provider.regionalPricing.length > 0) {
         const regionalPrice = provider.regionalPricing.find((rp: any) => rp.region === region)
         if (regionalPrice) {
           if (regionalPrice.spotPriceMarkup !== undefined) {
@@ -212,7 +212,7 @@ export function TrueCostCalculator({ consumptionData, processedData, customerDat
         provider: provider.providerName || provider.productName,
         slug: provider.id,
         logo: provider.logoUrl,
-        isGreen: provider.benefits?.includes('100% grøn strøm') || provider.isGreenEnergy,
+        isGreen: provider.benefits?.some((b: any) => b.text?.includes('grøn')) || provider.isGreenEnergy,
         isVindstod: provider.isVindstoedProduct,
         spotPriceFee: spotPriceMarkup / 100, // Convert øre to kr for display
         monthlyFee: monthlySubscription,

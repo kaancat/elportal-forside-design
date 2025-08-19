@@ -175,13 +175,13 @@ const CalculatorResults: React.FC<CalculatorResultsProps> = ({
                   
                   {/* Features */}
                   <div className="flex flex-wrap gap-1 sm:gap-2">
-                    {provider.benefits?.includes('green') && (
+                    {provider.benefits?.some(b => b.text.toLowerCase().includes('grøn') && b.included) && (
                       <Badge variant="outline" className="text-xs">
                         <Leaf className="h-3 w-3 mr-1" />
                         Grøn strøm
                       </Badge>
                     )}
-                    {provider.benefits?.includes('no-binding') && (
+                    {provider.benefits?.some(b => b.text.toLowerCase().includes('binding') && !b.included) && (
                       <Badge variant="outline" className="text-xs">
                         <Shield className="h-3 w-3 mr-1" />
                         Ingen binding

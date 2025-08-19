@@ -154,9 +154,7 @@ export function ApplianceSelector({
                     {categoryAppliances
                       .sort((a, b) => (b.popularityScore || 5) - (a.popularityScore || 5))
                       .map((appliance) => {
-                        const Icon = appliance.icon
-                          ? Icons[appliance.icon as keyof typeof Icons]
-                          : Zap
+                        const Icon = (appliance.icon && Icons[appliance.icon as keyof typeof Icons] as any) || Zap
 
                         return (
                           <CommandItem

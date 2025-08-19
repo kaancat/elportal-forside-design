@@ -297,7 +297,8 @@ export async function getPageBySlug(slug: string) {
 
 export async function getAllPageSlugs() {
   const query = `*[_type == "page" && !isHomepage && !noIndex] {
-    "slug": slug.current
+    "slug": slug.current,
+    _updatedAt
   }`
   
   try {
@@ -312,7 +313,11 @@ export async function getAllPageSlugs() {
       }
     )
     
-    return pages.map((p: { slug: string }) => p.slug).filter(Boolean)
+    // Return both slug and _updatedAt for sitemap generation
+    return pages.map((p: { slug: string; _updatedAt: string }) => ({
+      slug: p.slug,
+      lastModified: p._updatedAt
+    })).filter(p => p.slug)
   } catch (error) {
     console.error('[Server] Failed to fetch page slugs:', error)
     return []

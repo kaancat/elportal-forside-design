@@ -12,9 +12,9 @@ const nextConfig = {
   // Use default Next.js build directory to avoid conflict with Vite
   // distDir: '.next', // Using default
   
-  // Phase 2: Use only App Router, exclude Pages Router files
-  // This prevents Next.js from trying to build React Router pages
-  pageExtensions: ['page.tsx', 'page.ts', 'page.jsx', 'page.js', 'api.ts', 'api.js'],
+  // Phase 2: Use only App Router
+  // Removed pageExtensions restriction to allow robots.ts and sitemap.ts
+  // pageExtensions: ['page.tsx', 'page.ts', 'page.jsx', 'page.js', 'api.ts', 'api.js'],
   
   // Transpile problematic packages
   transpilePackages: ['react-denmark-map'],

@@ -190,7 +190,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   const yAxisTicks = useMemo(() => {
     if (!stats) return [];
     const tickCount = 5;
-    const ticks = [];
+    const ticks: number[] = [];
     for (let i = 0; i < tickCount; i++) {
       const price = (maxPrice / (tickCount - 1)) * i;
       ticks.push(price);

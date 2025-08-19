@@ -1,9 +1,6 @@
-export interface GridProvider {
-  code: string;
-  name: string;
-  networkTariff: number; // kr/kWh
-  region: 'DK1' | 'DK2';
-}
+import type { GridProvider } from '@/data/gridProviders';
+
+export type { GridProvider };
 
 export interface Municipality {
   name: string;

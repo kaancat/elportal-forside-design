@@ -17,9 +17,9 @@ import { ReadingProgressProvider } from "@/contexts/ReadingProgressContext";
 const Index = lazy(() => import("./pages/Index"));
 const GenericPage = lazy(() => import("./pages/GenericPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const EnergyTips = lazy(() => import("./pages/EnergyTips").then(m => ({ default: m.EnergyTips })));
+const EnergyTips = lazy(() => import("./pages/EnergyTips"));
 const IconTest = lazy(() => import("./pages/IconTest"));
-const TestEloverblik = lazy(() => import("./pages/TestEloverblik").then(m => ({ default: m.TestEloverblik })));
+const TestEloverblik = lazy(() => import("./pages/TestEloverblik"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 

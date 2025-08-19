@@ -1,5 +1,5 @@
 /**
- * Next.js App Router API Route for electricity prices
+ * Next.js App Router API Route for electricity spot prices
  * Migrated from Vercel Functions format to Next.js route handlers
  * 
  * Features preserved:
@@ -8,59 +8,74 @@
  * - Request deduplication
  * - Retry logic with exponential backoff
  * - Rate limit handling (40 req/10s)
+ * - Fee calculations with VAT
+ * - Multiple date range support
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { kv } from '@vercel/kv'
+import {
+  queuedFetch,
+  readKvJson,
+  setKvJsonWithFallback,
+  cacheHeaders,
+  retryWithBackoff,
+  parseDate,
+  getCacheStatus,
+  createLRUCache
+} from '@/server/api-helpers'
+import { electricityPricesSchema, safeValidateParams } from '@/server/api-validators'
 
 // Configure runtime and max duration
 export const runtime = 'nodejs' // Required for KV access
 export const maxDuration = 10 // Match vercel.json configuration
+export const dynamic = 'force-dynamic' // Real-time price data
 
 // In-memory cache for electricity prices
 // WHAT: Cache price data to reduce API calls to EnergiDataService
 // WHY: 40 req/10s rate limit shared across all users and endpoints
-const priceCache = new Map<string, { data: any; timestamp: number }>()
-const PRICE_CACHE_TTL = 5 * 60 * 1000 // 5 minutes - prices don't change frequently
+// Using LRU cache to prevent memory leaks with automatic pruning
+const priceCache = createLRUCache<any>(5 * 60 * 1000, 100) // 5 min TTL, max 100 entries
 
-// Request deduplication queue
-// WHAT: Prevents duplicate simultaneous requests for the same data
-// WHY: Multiple components may request same price data simultaneously
-const requestQueue = new Map<string, Promise<any>>()
-
-async function queuedFetch(key: string, fetcher: () => Promise<any>): Promise<any> {
-  // If request already in flight, return the same promise
-  if (requestQueue.has(key)) {
-    console.log(`[ElectricityPrices] Request already in flight for ${key}, waiting...`)
-    return requestQueue.get(key)
-  }
-  
-  // Create new request
-  const promise = fetcher().finally(() => {
-    // Clean up after 100ms to handle rapid retries
-    setTimeout(() => requestQueue.delete(key), 100)
-  })
-  
-  requestQueue.set(key, promise)
-  return promise
-}
+// Fee constants (Danish electricity fees in kr/kWh)
+const SYSTEM_FEE_KWH = 0.19
+const ELECTRICITY_TAX_KWH = 0.90
+const VAT_RATE = 1.25
 
 /**
  * GET /api/electricity-prices
  * 
+ * Fetch electricity spot prices from EnergiDataService
+ * Returns prices with fees and VAT calculated
+ * 
  * Query Parameters:
- * @param {string} [region | area] - The price area ('DK1' or 'DK2'). Defaults to 'DK2'.
- * @param {string} [date] - The date for which to fetch electricity prices. Format: YYYY-MM-DD.
- * @param {string} [endDate] - Optional end date for ranges
+ * @param region | area - Price area ('DK1' or 'DK2'). Defaults to 'DK2'
+ * @param date - Start date for prices. Format: YYYY-MM-DD
+ * @param endDate - Optional end date for date ranges. Format: YYYY-MM-DD
  */
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams
+    const { searchParams } = request.nextUrl
 
-    // --- Date Logic ---
-    const dateParam = searchParams.get('date') // Expects YYYY-MM-DD
-    const endDateParam = searchParams.get('endDate') // Optional end date for ranges
-    const baseDate = dateParam ? new Date(dateParam + 'T00:00:00Z') : new Date()
+    // Validate parameters with zod schema
+    const paramsObj = Object.fromEntries(searchParams.entries())
+    const validation = safeValidateParams(electricityPricesSchema, paramsObj)
+    
+    if (!validation.success) {
+      return NextResponse.json(
+        { 
+          error: 'Invalid parameters', 
+          details: validation.error.errors 
+        },
+        { status: 400 }
+      )
+    }
+
+    // Use validated parameters (area is alternative to region)
+    const { region, area, date: dateParam, endDate: endDateParam } = validation.data
+    const priceArea = area || region // Support both parameter names
+    
+    // Date logic - timezone-aware using Danish time
+    const baseDate = parseDate(dateParam)
     const startDate = baseDate.toISOString().split('T')[0]
     
     // If endDate is provided, use it; otherwise default to tomorrow for backward compatibility
@@ -74,120 +89,111 @@ export async function GET(request: NextRequest) {
       tomorrow.setUTCDate(baseDate.getUTCDate() + 1)
       endDate = tomorrow.toISOString().split('T')[0]
     }
-
-    // --- Fee & Region Logic ---
-    const systemFeeKWh = 0.19
-    const elafgiftKWh = 0.90
-    const vatRate = 1.25
-    const region = searchParams.get('region') || searchParams.get('area') || 'DK2'
-    const area = region === 'DK1' ? 'DK1' : 'DK2'
     
     // Check KV cache first (distributed across instances)
-    const cacheKey = `prices:${area}:${startDate}:${endDate}`
+    const cacheKey = `prices:${priceArea}:${startDate}:${endDate}`
     
-    try {
-      const kvCached = await kv.get(cacheKey)
-      if (kvCached) {
-        console.log(`[ElectricityPrices] Returning KV cached prices for ${cacheKey}`)
-        return NextResponse.json(kvCached, { 
-          status: 200, 
-          headers: { 
-            'Cache-Control': 's-maxage=300', // 5 min edge cache
-            'X-Cache': 'HIT-KV'
-          } 
-        })
-      }
-    } catch (e) {
-      console.log('[ElectricityPrices] KV cache read failed:', e)
+    const kvCached = await readKvJson(cacheKey)
+    if (kvCached) {
+      console.log(`[Prices] Returning KV cached prices for ${cacheKey}`)
+      return NextResponse.json(kvCached, { 
+        headers: { 
+          ...cacheHeaders({ sMaxage: 300, swr: 600 }),
+          'X-Cache': 'HIT-KV'
+        } 
+      })
     }
     
     // Check in-memory cache as fallback
-    const memCacheKey = `${area}_${startDate}_${endDate}`
+    const memCacheKey = `${priceArea}_${startDate}_${endDate}`
     const cached = priceCache.get(memCacheKey)
-    if (cached && Date.now() - cached.timestamp < PRICE_CACHE_TTL) {
-      console.log(`[ElectricityPrices] Returning in-memory cached prices for ${memCacheKey}`)
-      return NextResponse.json(cached.data, { 
-        status: 200, 
+    if (cached) {
+      console.log(`[Prices] Returning in-memory cached prices for ${memCacheKey}`)
+      return NextResponse.json(cached, { 
         headers: { 
-          'Cache-Control': 's-maxage=300', // 5 min edge cache
+          ...cacheHeaders({ sMaxage: 300, swr: 600 }),
           'X-Cache': 'HIT-MEMORY'
         } 
       })
     }
     
-    const apiUrl = `https://api.energidataservice.dk/dataset/Elspotprices?start=${startDate}&end=${endDate}&filter={"PriceArea":["${area}"]}&sort=HourUTC ASC`
+    const apiUrl = `https://api.energidataservice.dk/dataset/Elspotprices?start=${startDate}&end=${endDate}&filter={"PriceArea":["${priceArea}"]}&sort=HourUTC ASC`
 
     // Use queued fetch to prevent duplicate requests
     const result = await queuedFetch(memCacheKey, async () => {
-      console.log(`[ElectricityPrices] Fetching from EnergiDataService for ${cacheKey}`)
+      console.log(`[Prices] Fetching prices from EnergiDataService for ${cacheKey}`)
       
-      // Retry logic for rate limiting (40 req/10s limit)
-      const maxAttempts = 3
-      const baseDelayMs = 1000
-      let lastError: any = null
-      
-      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        try {
-          const externalResponse = await fetch(apiUrl)
+      // Use retry helper with exponential backoff
+      return await retryWithBackoff(async () => {
+        const externalResponse = await fetch(apiUrl)
 
-          if (!externalResponse.ok) {
-            if (externalResponse.status === 404 || externalResponse.status === 400) {
-              return { records: [] }
-            }
-            
-            // Retry on rate limit or server errors
-            if ((externalResponse.status === 429 || externalResponse.status === 503) && attempt < maxAttempts) {
-              const delay = baseDelayMs * Math.pow(2, attempt - 1) // 1s, 2s
-              console.warn(`[ElectricityPrices] EnergiDataService returned ${externalResponse.status}, retrying in ${delay}ms (attempt ${attempt}/${maxAttempts})`)
-              await new Promise(r => setTimeout(r, delay))
-              continue
-            }
-            
-            throw new Error(`Failed to fetch data from EnergiDataService: ${externalResponse.status}`)
+        if (!externalResponse.ok) {
+          // Don't retry client errors (except 429)
+          if (externalResponse.status === 404 || externalResponse.status === 400) {
+            return { records: [] }
           }
-
-          const result = await externalResponse.json()
           
-          const processedRecords = result.records.map((record: any) => {
-            const spotPriceMWh = record.SpotPriceDKK ?? 0
-            const spotPriceKWh = spotPriceMWh / 1000
-            const basePriceKWh = spotPriceKWh + systemFeeKWh + elafgiftKWh
-            const totalPriceKWh = basePriceKWh * vatRate
-            return { ...record, SpotPriceKWh: spotPriceKWh, TotalPriceKWh: totalPriceKWh }
-          })
-
-          return { ...result, records: processedRecords }
-        } catch (error) {
-          lastError = error
-          if (attempt === maxAttempts) throw error
+          // Throw to trigger retry on rate limit or server errors
+          if (externalResponse.status === 429 || externalResponse.status === 503) {
+            console.warn(`[Prices] EnergiDataService returned ${externalResponse.status}`)
+            throw new Error(`API returned ${externalResponse.status}`)
+          }
+          
+          throw new Error(`Failed to fetch price data: ${externalResponse.status}`)
         }
-      }
-      
-      throw lastError || new Error('Failed to fetch electricity prices')
+
+        const data = await externalResponse.json()
+        
+        // Process records to add calculated prices with fees and VAT
+        const processedRecords = data.records.map((record: any) => {
+          const spotPriceMWh = record.SpotPriceDKK ?? 0
+          const spotPriceKWh = spotPriceMWh / 1000
+          const basePriceKWh = spotPriceKWh + SYSTEM_FEE_KWH + ELECTRICITY_TAX_KWH
+          const totalPriceKWh = basePriceKWh * VAT_RATE
+          
+          return { 
+            ...record, 
+            SpotPriceKWh: spotPriceKWh, 
+            TotalPriceKWh: totalPriceKWh 
+          }
+        })
+
+        return { ...data, records: processedRecords }
+      }, 3, 1000) // 3 attempts, 1s initial delay
     })
     
     // Cache the successful response in both memory and KV
-    priceCache.set(memCacheKey, { data: result, timestamp: Date.now() })
+    priceCache.set(memCacheKey, result)
     
-    try {
-      // Store in KV with 5 minute expiry for price data
-      await kv.set(cacheKey, result, { ex: 300 })
-      console.log('[ElectricityPrices] Price data cached in KV')
-    } catch (e) {
-      console.log('[ElectricityPrices] Failed to cache prices in KV:', e)
-    }
+    // Store in KV with both specific key and fallback "latest" key
+    const fallbackKey = `prices:${priceArea}`
+    await setKvJsonWithFallback(cacheKey, fallbackKey, result, 300, 3600) // 5 min specific, 1 hour fallback
     
     return NextResponse.json(result, { 
-      status: 200, 
       headers: { 
-        'Cache-Control': 's-maxage=300', // 5 min edge cache
+        ...cacheHeaders({ sMaxage: 300, swr: 600 }),
         'X-Cache': 'MISS'
       } 
     })
 
   } catch (error: any) {
-    // Handle unexpected internal errors
-    console.error('[ElectricityPrices] An unexpected error occurred:', error)
+    console.error('[Prices] Unexpected error in prices API route:', error)
+    
+    // Try to return cached data on error
+    const region = request.nextUrl.searchParams.get('region') || 
+                   request.nextUrl.searchParams.get('area') || 'DK2'
+    const fallbackKey = `prices:${region}` // This now exists thanks to setKvJsonWithFallback
+    const fallback = await readKvJson(fallbackKey)
+    
+    if (fallback) {
+      return NextResponse.json(fallback, {
+        headers: {
+          ...cacheHeaders({ sMaxage: 60 }),
+          'X-Cache': 'HIT-STALE'
+        }
+      })
+    }
+    
     return NextResponse.json(
       { error: 'Internal Server Error' }, 
       { status: 500 }

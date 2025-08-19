@@ -1,5 +1,5 @@
 /* Import icon fixes - must come before tailwind directives */
-@import './styles/icon-fixes.css';
+@import '../src/styles/icon-fixes.css';
 
 /* Variable Font Definitions */
 @font-face {

@@ -67,8 +67,8 @@ export default async function handler(
           if (p.dec) patch.dec(p.dec)
           if (p.insert) {
             const { after, before, items } = p.insert
-            if (after) patch.insertAfter(after, items)
-            else if (before) patch.insertBefore(before, items)
+            if (after) (patch as any).insertAfter(after, items)
+            else if (before) (patch as any).insertBefore(before, items)
           }
         })
         return patch

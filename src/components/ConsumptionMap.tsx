@@ -195,12 +195,12 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
   }, [data]);
 
   // Handle municipality click
-  const handleMunicipalityClick = useCallback((municipalityName: string) => {
+  const handleMunicipalityClick = useCallback((municipality: MunicipalityType) => {
     if (!enableInteraction) return;
-    // municipalityName here is actually the lowercase Danish name from react-denmark-map
-    let mapping = getMunicipalityByAsciiName(municipalityName);
+    // municipality.name is actually the lowercase Danish name from react-denmark-map
+    let mapping = getMunicipalityByAsciiName(municipality.name);
     if (!mapping) {
-      mapping = getMunicipalityByDanishName(municipalityName);
+      mapping = getMunicipalityByDanishName(municipality.name);
     }
     if (mapping) {
       setSelectedMunicipality(mapping.code === selectedMunicipality ? null : mapping.code);
@@ -301,7 +301,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
         value = consumption.totalConsumption;
     }
     
-    const color = colorScale(value);
+    const color = String(colorScale(value));
     const isSelected = mapping.code === selectedMunicipality;
     
     
@@ -378,7 +378,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
             const maxValue = Math.max(...data.map(m => getConsumptionForSort(m)));
             const percentage = (consumptionValue / maxValue) * 100;
             const isSelected = municipality.municipalityCode === selectedMunicipality;
-            const fillColor = colorScale ? colorScale(consumptionValue) : '#3b82f6';
+            const fillColor = colorScale ? String(colorScale(consumptionValue)) : '#3b82f6';
             
             return (
               <div 
@@ -504,7 +504,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
             </div>
             
             <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full sm:w-auto">
-            <Select value={selectedView} onValueChange={setSelectedView}>
+            <Select value={selectedView} onValueChange={(value) => setSelectedView(value as "month" | "24h" | "7d" | "30d")}>
               <SelectTrigger className="w-full sm:w-40">
                 <SelectValue />
               </SelectTrigger>
@@ -516,7 +516,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
               </SelectContent>
             </Select>
 
-            <Select value={selectedConsumerType} onValueChange={setSelectedConsumerType}>
+            <Select value={selectedConsumerType} onValueChange={(value) => setSelectedConsumerType(value as "all" | "private" | "industry" | "both")}>
               <SelectTrigger className="w-full sm:w-40">
                 <SelectValue />
               </SelectTrigger>

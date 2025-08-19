@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Calendar, Zap, TrendingUp, Activity, Building2, User } from 'lucide-react'
 
-export function TestEloverblik() {
+function TestEloverblik() {
   const [isConnected, setIsConnected] = useState(false)
   const [refreshToken, setRefreshToken] = useState('')
   const [meteringPoints, setMeteringPoints] = useState<any[]>([])
@@ -273,3 +273,4 @@ export function TestEloverblik() {
     </div>
   )
 }
+export default TestEloverblik;

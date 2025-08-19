@@ -13,16 +13,31 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useScrollAnimation, staggerContainer } from '@/hooks/useScrollAnimation'
 
+// Type for CMS energy tip
+interface CMSEnergyTip {
+  _id: string
+  title: string
+  slug?: { current: string }
+  category: string
+  shortDescription: string
+  savingsPotential?: 'low' | 'medium' | 'high'
+  difficulty?: 'easy' | 'medium' | 'hard'
+  icon?: string
+  estimatedSavings?: string
+  implementationTime?: string
+  priority?: number
+}
+
 // Fallback tips for when no CMS data is available
-const FALLBACK_TIPS = [
+const FALLBACK_TIPS: CMSEnergyTip[] = [
   {
     _id: 'fallback-1',
     title: 'Udskift til LED-pærer',
     slug: { current: 'udskift-til-led-paerer' },
     category: 'lighting',
     shortDescription: 'LED-pærer bruger op til 85% mindre strøm end traditionelle glødepærer.',
-    savingsPotential: 'high',
-    difficulty: 'easy',
+    savingsPotential: 'high' as const,
+    difficulty: 'easy' as const,
     icon: 'Lightbulb'
   },
   {
@@ -31,8 +46,8 @@ const FALLBACK_TIPS = [
     slug: { current: 'installer-smart-termostat' },
     category: 'smart_tech',
     shortDescription: 'En smart termostat kan reducere dit varmeforbrug med op til 20%.',
-    savingsPotential: 'high',
-    difficulty: 'medium',
+    savingsPotential: 'high' as const,
+    difficulty: 'medium' as const,
     icon: 'Thermometer'
   },
   {
@@ -41,8 +56,8 @@ const FALLBACK_TIPS = [
     slug: { current: 'sluk-standby-apparater' },
     category: 'daily_habits',
     shortDescription: 'Standby-forbrug kan udgøre op til 10% af din elregning.',
-    savingsPotential: 'medium',
-    difficulty: 'easy',
+    savingsPotential: 'medium' as const,
+    difficulty: 'easy' as const,
     icon: 'Power'
   }
 ]
@@ -67,21 +82,6 @@ const difficultyLabels = {
   easy: 'Let',
   medium: 'Middel',
   hard: 'Svær',
-}
-
-// Type for CMS energy tip
-interface CMSEnergyTip {
-  _id: string
-  title: string
-  slug?: { current: string }
-  category: string
-  shortDescription: string
-  savingsPotential?: 'low' | 'medium' | 'high'
-  difficulty?: 'easy' | 'medium' | 'hard'
-  icon?: string
-  estimatedSavings?: string
-  implementationTime?: string
-  priority?: number
 }
 
 interface EnergyTipsSectionProps {
@@ -182,8 +182,8 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
   }, [allTipsData, categoriesToShow, selectedCategory, block.maxTipsPerCategory])
 
   const renderTipCard = (tip: CMSEnergyTip, index: number) => {
-    const Icon = tip.icon && Icons[tip.icon as keyof typeof Icons] 
-      ? Icons[tip.icon as keyof typeof Icons] 
+    const IconComponent = tip.icon && Icons[tip.icon as keyof typeof Icons] 
+      ? (Icons[tip.icon as keyof typeof Icons] as any)
       : Lightbulb
     
     return (
@@ -201,7 +201,7 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
         <Card className="p-6 h-full hover:shadow-lg transition-shadow duration-300">
           <div className="flex items-start justify-between mb-4">
             <div className="p-3 bg-brand-green/10 rounded-lg">
-              <Icon className="h-6 w-6 text-brand-green" />
+              <IconComponent className="h-6 w-6 text-brand-green" />
             </div>
             <div className="flex gap-2">
               {block.showSavingsPotential !== false && tip.savingsPotential && (
@@ -298,7 +298,7 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
                   return (
                     <button
                       key={categoryKey}
-                      onClick={() => setSelectedCategory(categoryKey)}
+                      onClick={() => setSelectedCategory(categoryKey as typeof selectedCategory)}
                       className={`flex items-center justify-center gap-2 px-3 py-2 rounded-md transition-colors ${
                         selectedCategory === categoryKey 
                           ? 'bg-white shadow-sm text-gray-900' 

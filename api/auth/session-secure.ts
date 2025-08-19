@@ -243,7 +243,7 @@ async function handleInit(req: VercelRequest, res: VercelResponse) {
     
     // Check maximum sessions per IP
     const ipSessions = await kv.get<string[]>(`ip:${clientIP}:sessions`) || []
-    const activeSessions = []
+    const activeSessions: string[] = []
     
     // Validate existing sessions
     for (const sid of ipSessions) {

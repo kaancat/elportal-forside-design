@@ -434,7 +434,16 @@ async function handleThirdPartyAuthorizations(req: VercelRequest, res: VercelRes
     })
     
     // For each authorization, fetch metering point IDs
-    const authorizationsWithMeteringPoints = []
+    const authorizationsWithMeteringPoints: Array<{
+      authorizationId: string;
+      customerId: string;
+      customerKey: string;
+      customerName: string;
+      customerCVR: string;
+      validFrom: string;
+      validTo: string;
+      meteringPointIds: string[];
+    }> = []
     
     if (authData.result && Array.isArray(authData.result)) {
       for (const auth of authData.result) {
@@ -1010,7 +1019,7 @@ async function handleThirdPartyMeteringPointDetails(req: VercelRequest, res: Ver
       })
       
       // Build address parts array to avoid empty commas
-      const addressParts = []
+      const addressParts: string[] = []
       
       // Street and building
       const streetPart = [streetName, buildingNumber]
@@ -1019,7 +1028,7 @@ async function handleThirdPartyMeteringPointDetails(req: VercelRequest, res: Ver
       if (streetPart) addressParts.push(streetPart)
       
       // Floor and room (format as "2. sal" or "st. tv" etc.)
-      const floorRoom = []
+      const floorRoom: string[] = []
       if (floorId && floorId.trim()) {
         floorRoom.push(floorId.trim())
       }

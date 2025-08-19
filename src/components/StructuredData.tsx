@@ -41,7 +41,7 @@ const StructuredData: React.FC<StructuredDataProps> = ({
   const baseUrl = 'https://elportal.dk'; // Update with actual domain
 
   useEffect(() => {
-    const schemas = [];
+    const schemas: object[] = [];
 
     // Organization schema (on all pages)
     const organizationSchema = generateOrganizationSchema({

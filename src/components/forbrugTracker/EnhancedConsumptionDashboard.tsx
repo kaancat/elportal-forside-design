@@ -176,7 +176,7 @@ export function EnhancedConsumptionDashboard({ customerData, onRefresh }: Enhanc
       
       setConsumptionData({
         ...processedData,
-        comparisonData: comparisonData,
+        comparisonData: comparisonData || undefined,
         isLoading: false
       })
     } catch (error) {

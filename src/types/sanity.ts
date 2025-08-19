@@ -28,6 +28,7 @@ export interface MarkDef {
 
 export interface BlockContent {
   _type: 'block'
+  _key?: string
   children: Array<{
     _type: 'span'
     text: string

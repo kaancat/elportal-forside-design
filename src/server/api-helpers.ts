@@ -123,7 +123,7 @@ export function cacheHeaders(options: {
 }
 
 /**
- * Retry function with exponential backoff
+ * Retry function with exponential backoff and jitter
  * @param fn - Async function to retry
  * @param maxAttempts - Maximum number of attempts (default: 3)
  * @param initialDelay - Initial delay in ms (default: 1000)
@@ -149,7 +149,8 @@ export async function retryWithBackoff<T>(
       
       // Check if we should retry
       if (attempt < maxAttempts) {
-        const delay = initialDelay * Math.pow(2, attempt - 1)
+        const baseDelay = initialDelay * Math.pow(2, attempt - 1)
+        const delay = addJitter(baseDelay) // Add jitter to prevent thundering herd
         console.log(`[Retry] Attempt ${attempt} failed, retrying in ${delay}ms...`)
         await new Promise(resolve => setTimeout(resolve, delay))
       }
@@ -310,4 +311,210 @@ export class LRUCache<T> {
  */
 export function createLRUCache<T>(ttl: number, maxSize: number = 100): LRUCache<T> {
   return new LRUCache<T>(ttl, maxSize)
+}
+
+/**
+ * Fetch with timeout using AbortController
+ * Prevents long-hanging requests from exhausting maxDuration
+ * @param url - URL to fetch
+ * @param options - Fetch options including timeout
+ * @returns Response or throws on timeout
+ */
+export async function fetchWithTimeout(
+  url: string,
+  options: RequestInit & { timeout?: number } = {}
+): Promise<Response> {
+  const { timeout = 8000, ...fetchOptions } = options // Default 8s timeout
+  
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeout)
+  
+  try {
+    const response = await fetch(url, {
+      ...fetchOptions,
+      signal: controller.signal
+    })
+    clearTimeout(timeoutId)
+    return response
+  } catch (error: any) {
+    clearTimeout(timeoutId)
+    if (error.name === 'AbortError') {
+      throw new Error(`Request timeout after ${timeout}ms`)
+    }
+    throw error
+  }
+}
+
+/**
+ * Distributed lock using KV with NX (not exists) pattern
+ * Ensures only one instance can execute critical section at a time
+ * @param key - Lock key
+ * @param ttl - Lock TTL in seconds
+ * @param fn - Function to execute under lock
+ * @returns Result of function or throws if lock cannot be acquired
+ */
+export async function withLock<T>(
+  key: string,
+  ttl: number,
+  fn: () => Promise<T>
+): Promise<T> {
+  const lockKey = `lock:${key}`
+  const lockValue = `${Date.now()}_${Math.random()}`
+  
+  try {
+    // Try to acquire lock with NX (only set if not exists)
+    const acquired = await kv.set(lockKey, lockValue, {
+      ex: ttl,
+      nx: true
+    })
+    
+    if (acquired !== 'OK') {
+      throw new Error(`Failed to acquire lock for ${key}`)
+    }
+    
+    // Execute function under lock
+    const result = await fn()
+    
+    // Release lock only if we own it
+    const currentValue = await kv.get(lockKey)
+    if (currentValue === lockValue) {
+      await kv.del(lockKey)
+    }
+    
+    return result
+  } catch (error) {
+    // If KV is not available, execute without lock
+    if (error instanceof Error && error.message.includes('Missing required environment variables')) {
+      console.warn(`[Lock] KV not available, executing ${key} without lock`)
+      return await fn()
+    }
+    throw error
+  }
+}
+
+/**
+ * Generate CORS headers based on request origin
+ * @param origin - Request origin header
+ * @param options - CORS configuration options
+ * @returns Headers object for CORS
+ */
+export function corsHeaders(
+  origin: string | null,
+  options: {
+    allowedOrigins?: string[]
+    allowCredentials?: boolean
+    allowedMethods?: string[]
+    allowedHeaders?: string[]
+    exposedHeaders?: string[]
+  } = {}
+): Record<string, string> {
+  const {
+    allowedOrigins = ['*'],
+    allowCredentials = false,
+    allowedMethods = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders = ['Content-Type', 'Authorization'],
+    exposedHeaders = ['X-Cache', 'X-Request-Id']
+  } = options
+  
+  const headers: Record<string, string> = {
+    'Access-Control-Allow-Methods': allowedMethods.join(', '),
+    'Access-Control-Allow-Headers': allowedHeaders.join(', '),
+    'Access-Control-Expose-Headers': exposedHeaders.join(', '),
+    'Vary': 'Origin'
+  }
+  
+  // Handle origin matching
+  if (allowedOrigins.includes('*') && !allowCredentials) {
+    headers['Access-Control-Allow-Origin'] = '*'
+  } else if (origin) {
+    // Check if origin is allowed
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (allowed === '*') return true
+      if (allowed === origin) return true
+      // Support wildcard subdomains (e.g., *.dinelportal.dk)
+      if (allowed.startsWith('*.')) {
+        const domain = allowed.slice(2)
+        return origin.endsWith(domain)
+      }
+      return false
+    })
+    
+    if (isAllowed) {
+      headers['Access-Control-Allow-Origin'] = origin
+      if (allowCredentials) {
+        headers['Access-Control-Allow-Credentials'] = 'true'
+      }
+    }
+  }
+  
+  return headers
+}
+
+/**
+ * Handle OPTIONS preflight requests
+ * @param origin - Request origin header
+ * @param options - CORS configuration options
+ * @returns NextResponse for OPTIONS request
+ */
+export function handleOptions(
+  origin: string | null,
+  options: Parameters<typeof corsHeaders>[1] = {}
+): Response {
+  return new Response(null, {
+    status: 200,
+    headers: corsHeaders(origin, options)
+  })
+}
+
+/**
+ * Add jitter to retry delay to prevent thundering herd
+ * @param baseDelay - Base delay in milliseconds
+ * @param jitterFactor - Jitter factor (0-1, default 0.2 for ±20%)
+ * @returns Delay with jitter applied
+ */
+export function addJitter(baseDelay: number, jitterFactor: number = 0.2): number {
+  const jitter = baseDelay * jitterFactor * (Math.random() * 2 - 1) // ±jitterFactor
+  return Math.max(0, Math.round(baseDelay + jitter))
+}
+
+/**
+ * CORS helper for public APIs (no credentials)
+ * Allows all origins and doesn't require credentials
+ * @returns Headers for public CORS
+ */
+export function corsPublic(): Record<string, string> {
+  return corsHeaders(null, {
+    allowedOrigins: ['*'],
+    allowCredentials: false,
+    exposedHeaders: ['X-Cache', 'X-Request-Id', 'X-RateLimit-Remaining']
+  })
+}
+
+/**
+ * CORS helper for private APIs (with credentials)
+ * Echoes the origin if allowed and supports credentials
+ * @param origin - Request origin header
+ * @returns Headers for private CORS
+ */
+export function corsPrivate(origin: string | null): Record<string, string> {
+  // Define allowed origins for private APIs
+  const allowedOrigins = [
+    'https://dinelportal.dk',
+    'https://www.dinelportal.dk',
+    '*.dinelportal.dk'
+  ]
+  
+  // In development, also allow localhost
+  if (process.env.NODE_ENV === 'development') {
+    allowedOrigins.push('http://localhost:3000')
+    allowedOrigins.push('http://localhost:3001')
+  }
+  
+  return corsHeaders(origin, {
+    allowedOrigins,
+    allowCredentials: true,
+    allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
+    exposedHeaders: ['X-Cache', 'X-Request-Id', 'X-RateLimit-Remaining', 'X-Session-Id']
+  })
 }

@@ -189,14 +189,34 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(fallback, {
         headers: {
           ...cacheHeaders({ sMaxage: 60 }),
-          'X-Cache': 'HIT-STALE'
+          'X-Cache': 'HIT-STALE',
+          'Warning': '110 - "Response is stale"'
         }
       })
     }
     
-    return NextResponse.json(
-      { error: 'Internal Server Error' }, 
-      { status: 500 }
-    )
+    // Return safe empty response instead of 500
+    console.log('[Prices] No fallback available, returning safe empty response')
+    const emptyResponse = {
+      data: [],
+      metadata: {
+        region,
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: new Date().toISOString().split('T')[0],
+        currency: 'DKK',
+        priceArea: region,
+        includeFees: true,
+        lastUpdated: new Date().toISOString(),
+        status: 'degraded',
+        message: 'Price data temporarily unavailable'
+      }
+    }
+    
+    return NextResponse.json(emptyResponse, {
+      headers: {
+        ...cacheHeaders({ sMaxage: 60, swr: 300 }),
+        'X-Cache': 'MISS-FALLBACK'
+      }
+    })
   }
 }

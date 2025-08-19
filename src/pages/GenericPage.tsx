@@ -176,7 +176,7 @@ const GenericPage = () => {
     <>
       <StructuredData
         pageTitle={pageData.seoMetaTitle || pageData.title}
-        pageDescription={pageData.seoMetaDescription || pageData.description}
+        pageDescription={pageData.seoMetaDescription || pageData.title}
         pageType={pageType}
         faqItems={faqItems}
         breadcrumbs={[

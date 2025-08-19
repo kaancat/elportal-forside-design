@@ -231,12 +231,12 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
     // Find current time position (if within data range)
     const now = new Date();
     let currentTimeIndex = -1;
-    let currentTimeData = null;
+    let currentTimeData: ProductionRecord | null = null;
     
     // For 24h view, find the closest hour
     if (selectedView === '24h') {
       data.forEach((record, index) => {
-        const recordTime = new Date(record.timestamp);
+        const recordTime = new Date(record.HourDK);
         if (recordTime.getHours() === now.getHours() && 
             recordTime.getDate() === now.getDate()) {
           currentTimeIndex = index;
@@ -250,8 +250,8 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
       currentRenewable: latest.renewableShare,
       avgCO2,
       avgRenewable,
-      latestDate: latest.time || '...',
-      greenestTime: greenestTime.time,
+      latestDate: latest.HourDK || '...',
+      greenestTime: greenestTime.HourDK,
       greenestCO2: greenestTime.averageCO2,
       greenestIndex,
       currentTimeIndex,
@@ -596,7 +596,7 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                     <Tooltip content={<ProductionTooltip />} />
                     
                     {/* Current time marker overlay */}
-                    {selectedView === '24h' && currentStats.currentTimeIndex !== -1 && (
+                    {selectedView === '24h' && currentStats && currentStats.currentTimeIndex !== -1 && (
                       <Line
                         type="monotone"
                         dataKey="totalProduction"
@@ -624,7 +624,7 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                               </g>
                             );
                           }
-                          return null;
+                          return <g />;
                         }}
                       />
                     )}
@@ -750,7 +750,7 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                         const { cx, cy, index, payload } = props;
                         
                         // Greenest point marker
-                        if (index === currentStats.greenestIndex) {
+                        if (currentStats && index === currentStats.greenestIndex) {
                           return (
                             <g>
                               {/* Glow effect */}
@@ -763,7 +763,7 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                         }
                         
                         // Current time marker (only for 24h view)
-                        if (selectedView === '24h' && index === currentStats.currentTimeIndex) {
+                        if (selectedView === '24h' && currentStats && index === currentStats.currentTimeIndex) {
                           return (
                             <g>
                               {/* Animated pulse effect */}
@@ -783,7 +783,7 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                           );
                         }
                         
-                        return null;
+                        return <g />;
                       }}
                     />
                   </LineChart>

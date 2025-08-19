@@ -40,29 +40,31 @@ export function useNetworkTariff(
     useFallback = true,
   } = options;
 
-  const queryKey = ['network-tariff', gridProvider?.gln];
+  const gln = gridProvider && 'gln' in gridProvider ? gridProvider.gln : undefined;
+  const queryKey = ['network-tariff', gln];
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey,
     queryFn: async () => {
-      if (!gridProvider?.gln) {
+      if (!gln) {
         throw new Error('No grid provider GLN');
       }
 
       // Try to fetch from API
+      const chargeCode = gridProvider && 'chargeCode' in gridProvider ? gridProvider.chargeCode : undefined;
       const tariff = await datahubPricelistService.getCurrentTariff(
-        gridProvider.gln,
-        gridProvider.chargeCode
+        gln,
+        chargeCode
       );
 
       // If API fails and fallback is enabled, use static data
       if (!tariff && useFallback) {
-        const fallbackRate = FALLBACK_TARIFFS[gridProvider.gln] || gridProvider.networkTariff;
+        const fallbackRate = (gln ? FALLBACK_TARIFFS[gln] : undefined) || gridProvider?.networkTariff || 0.2;
         
         // Create a synthetic tariff data object
         const syntheticTariff: TariffData = {
-          gln: gridProvider.gln,
-          provider: gridProvider.name,
+          gln: gln || '',
+          provider: gridProvider?.name || 'Unknown',
           validFrom: new Date(),
           validTo: null,
           hourlyRates: new Array(24).fill(fallbackRate),

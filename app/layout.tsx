@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import Script from 'next/script'
+import { SITE_URL, SITE_NAME } from '@/lib/url-helpers'
 import './globals.css'
 
 export const viewport: Viewport = {
@@ -9,16 +10,17 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.SITE_URL || 'https://elportal.dk'),
+  metadataBase: new URL(SITE_URL),
+  applicationName: SITE_NAME,
   title: {
-    default: 'Sammenlign Elpriser - Find Billigste Elaftale | DinElportal',
-    template: '%s | DinElportal',
+    default: 'Sammenlign Elpriser - Find Billigste Elaftale | DinElPortal',
+    template: '%s | DinElPortal',
   },
   description: 'Spar penge på din elregning! Sammenlign aktuelle elpriser og find den bedste elaftale for dig. Gratis sammenligning af danske eludbydere.',
   keywords: 'elpriser, sammenlign el, billig el, elselskaber, elaftale, vindstød, grøn energi, spotpris, elmarked, strømpriser',
-  authors: [{ name: 'DinElportal' }],
-  creator: 'DinElportal',
-  publisher: 'DinElportal',
+  authors: [{ name: SITE_NAME }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
   robots: {
     index: true,
     follow: true,
@@ -35,30 +37,29 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'da_DK',
-    url: 'https://elportal.dk/',
-    siteName: 'DinElportal - Din Elportal',
-    title: 'Sammenlign Elpriser - Find Billigste Elaftale | DinElportal',
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: 'Sammenlign Elpriser - Find Billigste Elaftale | DinElPortal',
     description: 'Spar penge på din elregning! Sammenlign aktuelle elpriser og find den bedste elaftale for dig. Gratis sammenligning af danske eludbydere.',
     images: [
       {
-        url: 'https://elportal.dk/opengraph-elportal.jpg',
+        url: `${SITE_URL}/dinelportal-logo.png`,
         width: 1200,
         height: 630,
-        alt: 'DinElportal - Sammenlign elpriser og find den bedste elaftale',
+        alt: 'DinElPortal - Sammenlign elpriser og find den bedste elaftale',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    site: '@elportal',
-    creator: '@elportal',
-    title: 'Sammenlign Elpriser - Find Billigste Elaftale',
+    site: '@dinelportal',
+    creator: '@dinelportal',
+    title: 'Sammenlign Elpriser - Find Billigste Elaftale | DinElPortal',
     description: 'Spar penge på din elregning! Sammenlign aktuelle elpriser og find den bedste elaftale for dig.',
-    images: ['https://elportal.dk/opengraph-elportal.jpg'],
+    images: [`${SITE_URL}/dinelportal-logo.png`],
   },
-  applicationName: 'DinElportal',
   alternates: {
-    canonical: 'https://elportal.dk/',
+    canonical: SITE_URL,
   },
 }
 
@@ -67,9 +68,38 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  // Organization JSON-LD (once in root layout per Codex)
+  const jsonLdOrganization = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    '@id': `${SITE_URL}/#organization`,
+    name: SITE_NAME,
+    url: SITE_URL,
+    logo: {
+      '@type': 'ImageObject',
+      url: `${SITE_URL}/dinelportal-logo.png`,
+      width: 600,
+      height: 60,
+    },
+    description: 'Danmarks uafhængige elportal for sammenligning af elpriser',
+    sameAs: [
+      'https://www.facebook.com/dinelportal',
+      'https://twitter.com/dinelportal',
+    ],
+    address: {
+      '@type': 'PostalAddress',
+      addressCountry: 'DK',
+    },
+  }
+
   return (
     <html lang="da">
       <head>
+        {/* Organization schema in head, once only */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdOrganization) }}
+        />
         {/* Preconnect to external domains for faster resource loading */}
         <link rel="preconnect" href="https://cdn.sanity.io" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />

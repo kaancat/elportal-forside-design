@@ -18,6 +18,8 @@ interface PriceCalculatorWidgetProps {
     title?: string;
   };
   variant?: 'standalone' | 'hero'; // Add variant prop for different use cases
+  showLivePrice?: boolean;
+  showProviderComparison?: boolean;
 }
 
 // --- TYPES & PRESETS ---

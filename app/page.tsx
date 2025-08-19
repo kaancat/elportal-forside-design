@@ -7,91 +7,90 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import dynamic from 'next/dynamic'
+import { unstable_cache } from 'next/cache'
 import { getHomePage } from '@/server/sanity'
+import { urlFor } from '@/server/sanity'
+import { SITE_URL, SITE_NAME, canonicalUrl } from '@/lib/url-helpers'
 import ServerContentBlocks from './(marketing)/ServerContentBlocks'
 import ClientContentBlocks from './(marketing)/ClientContentBlocks'
 import ClientRouterWrapper from './ClientRouterWrapper'
 
 // Client components for navigation and footer
 const ClientNavigation = dynamic(
-  () => import('@/components/Navigation'),
-  { ssr: false }
+  () => import('@/components/Navigation')
 )
 
 const ClientFooter = dynamic(
-  () => import('@/components/Footer'),
-  { ssr: false }
+  () => import('@/components/Footer')
 )
 
 const ClientReadingProgress = dynamic(
-  () => import('@/components/ReadingProgress'),
-  { ssr: false }
+  () => import('@/components/ReadingProgress')
 )
 
 // SPA App component for backward compatibility
 const SPAApp = dynamic(() => import('@/App'), { 
-  ssr: false,
   loading: () => (
     <div className="flex min-h-screen items-center justify-center">
       <div className="animate-pulse text-center">
-        <div className="mb-4 text-2xl font-bold text-green-600">DinElportal</div>
+        <div className="mb-4 text-2xl font-bold text-green-600">DinElPortal</div>
         <div className="text-gray-600">Indlæser...</div>
       </div>
     </div>
   )
 })
 
+// Use unstable_cache for better revalidation per Codex recommendation
+const getCachedHomePage = unstable_cache(
+  async () => getHomePage(),
+  ['homepage'],
+  {
+    revalidate: 300, // 5 minutes
+    tags: ['page', 'homepage'],
+  }
+)
+
 // Generate metadata for SEO (only used in SSR mode)
 export async function generateMetadata(): Promise<Metadata> {
   // Only generate metadata if SSR is enabled
   if (process.env.NEXT_PUBLIC_PHASE2_SSR !== 'true') {
     return {
-      title: 'DinElportal - Sammenlign elpriser og spar penge',
+      title: 'DinElPortal - Sammenlign elpriser og spar penge',
       description: 'Danmarks uafhængige elportal. Sammenlign elpriser, find den bedste eludbyder og spar op til 2.500 kr om året på din elregning.',
     }
   }
 
-  const page = await getHomePage()
-  
-  if (!page) {
-    return {
-      title: 'DinElportal - Sammenlign elpriser og spar penge',
-      description: 'Danmarks uafhængige elportal. Sammenlign elpriser, find den bedste eludbyder og spar op til 2.500 kr om året på din elregning.',
-    }
-  }
-
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://elportal.dk'
+  const page = await getCachedHomePage()
+  const canonical = canonicalUrl('/')
   
   return {
-    title: page.seoMetaTitle || page.title || 'DinElportal - Sammenlign elpriser',
-    description: page.seoMetaDescription || 'Sammenlign elpriser og find den bedste eludbyder. Spar op til 2.500 kr om året.',
-    keywords: page.seoKeywords || 'elpriser, strømpriser, eludbyder, sammenlign el, spar penge',
-    robots: page.noIndex ? 'noindex, nofollow' : 'index, follow',
+    title: page?.seoMetaTitle || 'Sammenlign Elpriser - Find Billigste Elaftale | DinElPortal',
+    description: page?.seoMetaDescription || 'Spar penge på din elregning! Sammenlign aktuelle elpriser og find den bedste elaftale for dig. Gratis sammenligning af danske eludbydere.',
+    keywords: page?.seoKeywords,
+    alternates: { canonical }, // Per-route canonical as Codex suggested
     openGraph: {
-      title: page.seoMetaTitle || page.title,
-      description: page.seoMetaDescription,
-      url: baseUrl,
-      siteName: 'DinElportal',
-      images: page.ogImage ? [
-        {
-          url: page.ogImage.asset?.url || '',
-          width: 1200,
-          height: 630,
-          alt: page.ogImage.alt || page.title,
-        }
-      ] : [],
-      locale: 'da_DK',
+      title: page?.seoMetaTitle || 'Sammenlign Elpriser | DinElPortal',
+      description: page?.seoMetaDescription,
+      url: canonical,
       type: 'website',
+      locale: 'da_DK',
+      siteName: SITE_NAME,
+      images: page?.ogImage ? [{
+        url: urlFor(page.ogImage).url(),
+        width: 1200,
+        height: 630,
+        alt: `${SITE_NAME} - Sammenlign elpriser og find den bedste elaftale`,
+      }] : undefined,
     },
     twitter: {
       card: 'summary_large_image',
-      title: page.seoMetaTitle || page.title,
-      description: page.seoMetaDescription,
-      images: page.ogImage?.asset?.url ? [page.ogImage.asset.url] : [],
+      site: '@dinelportal',
+      creator: '@dinelportal',
+      title: page?.seoMetaTitle || 'Sammenlign Elpriser | DinElPortal',
+      description: page?.seoMetaDescription,
+      images: page?.ogImage ? [urlFor(page.ogImage).url()] : undefined,
     },
-    alternates: {
-      canonical: baseUrl,
-    },
+    robots: page?.noIndex ? { index: false, follow: false } : undefined,
   }
 }
 
@@ -109,7 +108,26 @@ export default async function HomePage() {
 
   // Phase 2: SSR Homepage
   // Fetch homepage data server-side
-  const page = await getHomePage()
+  const page = await getCachedHomePage()
+
+  // Generate WebSite JSON-LD (Organization already in layout)
+  const jsonLdWebSite = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': `${SITE_URL}/#website`,
+    url: SITE_URL,
+    name: SITE_NAME,
+    description: 'Sammenlign elpriser og find den bedste elaftale',
+    publisher: { '@id': `${SITE_URL}/#organization` },
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${SITE_URL}/sammenlign?q={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  }
 
   if (!page) {
     // If no homepage found, show 404
@@ -129,8 +147,13 @@ export default async function HomePage() {
   ) || []
 
   return (
-    <ClientRouterWrapper>
-      <div className="min-h-screen bg-white">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebSite) }}
+      />
+      <ClientRouterWrapper>
+        <div className="min-h-screen bg-white">
         {/* Navigation - will be client component for interactivity */}
         <ClientNavigation />
         
@@ -152,7 +175,8 @@ export default async function HomePage() {
         
         {/* Footer - will be client component for interactivity */}
         <ClientFooter />
-      </div>
-    </ClientRouterWrapper>
+        </div>
+      </ClientRouterWrapper>
+    </>
   )
 }

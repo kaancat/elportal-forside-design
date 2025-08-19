@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import * as Icons from 'lucide-react'
 import { 
   Lightbulb, 
   Home, 
@@ -221,7 +222,7 @@ const difficultyLabels = {
   hard: 'Svær',
 }
 
-export function EnergyTips() {
+function EnergyTips() {
   const navigate = useNavigate()
   const [selectedCategory, setSelectedCategory] = useState('all')
 
@@ -334,7 +335,9 @@ export function EnergyTips() {
             <TabsContent value={selectedCategory} className="mt-8">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredTips.map((tip, index) => {
-                  const Icon = tip.icon ? Icons[tip.icon as keyof typeof Icons] : Lightbulb
+                  const IconComponent = tip.icon && Icons[tip.icon as keyof typeof Icons] 
+                    ? (Icons[tip.icon as keyof typeof Icons] as any)
+                    : Lightbulb
                   
                   return (
                     <motion.div
@@ -345,7 +348,7 @@ export function EnergyTips() {
                       <Card className="p-6 h-full hover:shadow-lg transition-shadow duration-300">
                         <div className="flex items-start justify-between mb-4">
                           <div className="p-3 bg-brand-green/10 rounded-lg">
-                            <Icon className="h-6 w-6 text-brand-green" />
+                            <IconComponent className="h-6 w-6 text-brand-green" />
                           </div>
                           <div className="flex gap-2">
                             {tip.savingsPotential && (
@@ -411,3 +414,4 @@ export function EnergyTips() {
     </div>
   )
 }
+export default EnergyTips;

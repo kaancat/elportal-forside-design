@@ -310,10 +310,10 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
                         dataKey="hour" 
                         tick={{ 
                           fontSize: 10, 
-                          fill: '#6b7280',
-                          angle: -45,
-                          textAnchor: 'end'
+                          fill: '#6b7280'
                         }}
+                        angle={-45}
+                        textAnchor="end"
                         interval={3}
                         height={40}
                       />

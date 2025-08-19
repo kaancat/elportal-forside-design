@@ -40,7 +40,7 @@ function getCompiledScript(): string | null {
       path.join('/var/task', 'public', 'tracking', scriptName)
     ];
     
-    let scriptPath = null;
+    let scriptPath: string | null = null;
     for (const testPath of possiblePaths) {
       if (fs.existsSync(testPath)) {
         scriptPath = testPath;

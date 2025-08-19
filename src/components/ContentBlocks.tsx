@@ -1,6 +1,6 @@
 import React from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { PageSection, FAQItem, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, CO2EmissionsChart, DeclarationProduction, DeclarationGridmix, ConsumptionMap, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
+import { PageSection, FAQItem, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, CO2EmissionsChart, DeclarationProduction, DeclarationGridmix as DeclarationGridmixType, ConsumptionMap, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
 import PageSectionComponent from './PageSectionComponent'
 import FAQItemComponent from './FAQItemComponent'
 import VideoSectionComponent from './VideoSectionComponent'
@@ -28,7 +28,7 @@ import RegionalComparison from './RegionalComparison'
 import PricingComparison from './PricingComparison'
 import DailyPriceTimeline from './DailyPriceTimeline'
 import InfoCardsSection from './InfoCardsSection'
-import { ForbrugTracker } from './forbrugTracker/ForbrugTracker'
+// import { ForbrugTracker } from './forbrugTracker/ForbrugTracker' // TODO: Add to ContentBlock type
 import ErrorBoundary from './ErrorBoundary'
 import { ContentErrorFallback, ChartErrorFallback, CalculatorErrorFallback } from './ErrorFallbacks'
 import { reportError } from '@/lib/errorReporting'
@@ -157,7 +157,7 @@ const renderContentBlock = (block: ContentBlock) => {
       return <DeclarationProductionChart block={block as DeclarationProduction} />;
     
     case 'declarationGridmix':
-      return <DeclarationGridmix block={block as DeclarationGridmix} />;
+      return <DeclarationGridmix block={block as DeclarationGridmixType} />;
     
     case 'priceCalculator':
       return <PriceCalculatorWidget block={block as PriceCalculator} />;
@@ -207,8 +207,9 @@ const renderContentBlock = (block: ContentBlock) => {
     case 'infoCardsSection':
       return <InfoCardsSection block={block} />;
     
-    case 'forbrugTracker':
-      return <ForbrugTracker {...(block as any)} />;
+    // TODO: Add forbrugTracker to ContentBlock type union in sanity.ts
+    // case 'forbrugTracker':
+    //   return <ForbrugTracker {...(block as any)} />;
     
     default:
       // Handle unknown block types

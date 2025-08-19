@@ -50,7 +50,7 @@ interface ImprovedConsumptionDashboardProps {
   }) => void
 }
 
-type DateRange = 'yesterday' | '7d' | '30d' | '3m' | '12m' | '1y' | '5y'
+type DateRange = 'today' | 'yesterday' | '7d' | '30d' | '3m' | '12m' | '1y' | '5y' | 'custom'
 
 interface ConsumptionData {
   data: any[]
@@ -189,7 +189,7 @@ export function ImprovedConsumptionDashboard({ customerData, onRefresh, onConsum
       })
       
       // Fetch comparison data if enabled
-      let comparisonData = null
+      let comparisonData: any = null
       if (showComparison) {
         const lastYearFrom = adjustDateByYear(dateFrom, -1)
         const lastYearTo = adjustDateByYear(dateTo, -1)

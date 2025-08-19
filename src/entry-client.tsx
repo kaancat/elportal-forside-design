@@ -5,7 +5,8 @@ import './index.css';
 
 const container = document.getElementById('root');
 if (container) {
-  if (import.meta.env.SSR) {
+  const isSSR = typeof window !== 'undefined' && window.__NEXT_DATA__;
+  if (isSSR) {
     // During SSR, hydrate the existing HTML
     ReactDOM.hydrateRoot(container, <App />);
   } else {

@@ -1,6 +1,6 @@
 // Register icon cache service worker
 export function registerIconCacheServiceWorker() {
-  if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
     window.addEventListener('load', () => {
       navigator.serviceWorker
         .register('/icon-cache-sw.js', { scope: '/' })

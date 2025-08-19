@@ -87,22 +87,12 @@ export class GridProviderService {
       
       // Direct match
       if (providerName === cleanName) {
-        return {
-          code: provider.code,
-          name: provider.name,
-          networkTariff: provider.networkTariff,
-          region: provider.region
-        };
+        return provider;
       }
       
       // Partial match (e.g., "N1" in "N1 A/S - 131")
       if (providerName.includes(cleanName.split(' ')[0]) || cleanName.includes(providerName.split(' ')[0])) {
-        return {
-          code: provider.code,
-          name: provider.name,
-          networkTariff: provider.networkTariff,
-          region: provider.region
-        };
+        return provider;
       }
     }
 
@@ -113,9 +103,12 @@ export class GridProviderService {
     return {
       code: '999',
       name: netCompanyName,
+      gln: '0000000000000', // Generic GLN
       networkTariff: 0.30, // Average tariff
-      region
-    };
+      chargeCode: 'DT_C_01', // Generic charge code
+      region,
+      municipalities: [municipality]
+    } as GridProvider;
   }
 
   /**
@@ -157,7 +150,7 @@ export class GridProviderService {
     const cacheKey = `grid-providers-all-${municipality}`;
     
     // Check cache
-    const cached = this.getFromCache(cacheKey);
+    const cached = this.getFromCache<GridProvider[]>(cacheKey);
     if (cached) {
       return cached;
     }
@@ -204,13 +197,8 @@ export class GridProviderService {
       // Fallback to static data
       const fallbackProviders: GridProvider[] = [];
       for (const provider of Object.values(gridProviders)) {
-        if (provider.municipalities.includes(municipality)) {
-          fallbackProviders.push({
-            code: provider.code,
-            name: provider.name,
-            networkTariff: provider.networkTariff,
-            region: provider.region
-          });
+        if (provider.municipalities.some(m => m.toLowerCase() === municipality.toLowerCase())) {
+          fallbackProviders.push(provider);
         }
       }
       

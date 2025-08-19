@@ -147,7 +147,6 @@ const RegionalComparison: React.FC<RegionalComparisonProps> = ({ block }) => {
                   customizeAreas={customizeMunicipalities}
                   showTooltip={false}
                   zoomable={false}
-                  draggable={false}
                   className="w-full h-[400px]"
                   style={{ cursor: 'default' }}
                 />

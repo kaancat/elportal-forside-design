@@ -59,7 +59,12 @@ async function getDashboardMetrics() {
     
     // Get all click keys
     const clickKeys = await kv.keys('click:dep_*');
-    const recentClicks = [];
+    const recentClicks: Array<{
+      clickId: string;
+      partner: string;
+      timestamp: string;
+      source: string;
+    }> = [];
     
     // Process clicks in batches to avoid timeout
     for (const key of clickKeys.slice(-100)) {
@@ -80,7 +85,12 @@ async function getDashboardMetrics() {
     
     // Get conversion keys
     const conversionKeys = await kv.keys('conversion:*');
-    const recentConversions = [];
+    const recentConversions: Array<{
+      clickId: string;
+      partner: string;
+      value: number;
+      timestamp: string;
+    }> = [];
     
     for (const key of conversionKeys.slice(-50)) {
       try {
@@ -145,8 +155,8 @@ async function getDashboardMetrics() {
       },
       partners,
       recent: {
-        clicks: recentClicks.sort((a, b) => b.timestamp - a.timestamp).slice(0, 50),
-        conversions: recentConversions.sort((a, b) => b.timestamp - a.timestamp).slice(0, 20)
+        clicks: recentClicks.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 50),
+        conversions: recentConversions.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 20)
       }
     };
   } catch (error) {

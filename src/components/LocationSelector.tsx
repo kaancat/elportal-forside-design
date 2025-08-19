@@ -15,7 +15,8 @@ import { PostalCodeService } from '@/services/postalCodeService';
 import { DawaAutocompleteService, DawaAutocompleteResult } from '@/services/dawaAutocompleteService';
 import { AddressAutocomplete } from './AddressAutocomplete';
 import { useNetworkTariff } from '@/hooks/useNetworkTariff';
-import type { LocationData, GridProvider } from '@/types/location';
+import type { LocationData } from '@/types/location';
+import type { GridProvider } from '@/data/gridProviders';
 
 interface LocationSelectorProps {
   onLocationChange: (location: LocationData) => void;

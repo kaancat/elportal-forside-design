@@ -104,22 +104,28 @@ export function useOptimizedHandler<T extends (...args: any[]) => any>(
  * Prevents blocking the main thread during interactions
  */
 export function scheduleIdleWork(callback: () => void, timeout?: number): number {
-  if ('requestIdleCallback' in window) {
-    return (window as any).requestIdleCallback(callback, { timeout });
-  } else {
-    // Fallback for browsers without requestIdleCallback
-    return window.setTimeout(callback, 1) as unknown as number;
+  if (typeof window !== 'undefined') {
+    if ('requestIdleCallback' in window) {
+      return (window as any).requestIdleCallback(callback, { timeout });
+    } else {
+      // Fallback for browsers without requestIdleCallback
+      return (window as typeof globalThis).setTimeout(callback, 1) as unknown as number;
+    }
   }
+  // Server-side fallback
+  return 0;
 }
 
 /**
  * Cancels scheduled idle work
  */
 export function cancelIdleWork(id: number): void {
-  if ('cancelIdleCallback' in window) {
-    (window as any).cancelIdleCallback(id);
-  } else {
-    window.clearTimeout(id);
+  if (typeof window !== 'undefined') {
+    if ('cancelIdleCallback' in window) {
+      (window as any).cancelIdleCallback(id);
+    } else {
+      (window as typeof globalThis).clearTimeout(id);
+    }
   }
 }
 

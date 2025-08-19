@@ -602,7 +602,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
               provider={selectedProvider1}
               details={details1}
               isFirst={true}
-              isCheaper={isCheaper1}
+              isCheaper={!!isCheaper1}
               onSelectProvider={handleSelect1}
             />
           )}
@@ -618,7 +618,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
               provider={selectedProvider2}
               details={details2}
               isFirst={false}
-              isCheaper={isCheaper2}
+              isCheaper={!!isCheaper2}
               onSelectProvider={handleSelect2}
             />
           )}
@@ -648,7 +648,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
                   provider={selectedProvider1}
                   details={details1}
                   isFirst={true}
-                  isCheaper={isCheaper1}
+                  isCheaper={!!isCheaper1}
                   onSelectProvider={handleSelect1}
                 />
               )}
@@ -657,7 +657,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
                   provider={selectedProvider2}
                   details={details2}
                   isFirst={false}
-                  isCheaper={isCheaper2}
+                  isCheaper={!!isCheaper2}
                   onSelectProvider={handleSelect2}
                 />
               )}

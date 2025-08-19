@@ -225,7 +225,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
   });
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<'Danmark' | 'DK1' | 'DK2'>('Danmark');
-  const [selectedView, setSelectedView] = useState<'7d' | '30d'>(view === '24h' ? '7d' : view);
+  const [selectedView, setSelectedView] = useState<'7d' | '30d'>(view || '7d');
   const [hoveredSegment, setHoveredSegment] = useState<string | null>(null);
 
   useEffect(() => {
@@ -411,7 +411,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
             const categoryName = catConfig.name;
             groupedData[categoryName].total += value.percentage;
             groupedData[categoryName].details.push({
-              origin: countryMapping[origin] || origin,
+              origin: origin ? (countryMapping[origin] || origin) : 'Ukendt',
               percentage: value.percentage,
               isImport
             });
@@ -424,7 +424,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
         if (!categoryFound) {
           groupedData['Andet'].total += value.percentage;
           groupedData['Andet'].details.push({
-            origin: countryMapping[origin] || origin,
+            origin: origin ? (countryMapping[origin] || origin) : 'Ukendt',
             percentage: value.percentage,
             isImport
           });
@@ -715,7 +715,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                       />
                       <YAxis type="category" hide={true} />
                       <Tooltip 
-                        content={<CustomTooltip groupedData={groupedData} hoveredSegment={hoveredSegment} />} 
+                        content={(props: any) => <CustomTooltip {...props} groupedData={groupedData} hoveredSegment={hoveredSegment} />} 
                         cursor={{ fill: 'rgba(0,0,0,0.05)' }}
                         wrapperStyle={{ outline: 'none' }}
                         isAnimationActive={false}

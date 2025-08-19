@@ -83,7 +83,7 @@ export function useConsumptionData({
     queryFn: fetchConsumptionData,
     enabled,
     staleTime: getStaleTime(),
-    cacheTime: 5 * 60 * 1000, // 5 minutes cache time
+    gcTime: 5 * 60 * 1000, // 5 minutes garbage collection time
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     retry: 2,

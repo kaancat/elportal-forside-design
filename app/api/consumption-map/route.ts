@@ -236,10 +236,33 @@ export async function GET(request: NextRequest) {
       })
     }
     
-    return NextResponse.json(
-      { error: 'Internal Server Error' }, 
-      { status: 500 }
+    // Return safe empty response instead of 500 to prevent UI failures
+    console.log('[ConsumptionMap] No fallback available, returning safe empty response')
+    const aggregation = request.nextUrl.searchParams.get('aggregation') || 'hourly'
+    const view = request.nextUrl.searchParams.get('view') || '24h'
+    const municipality = request.nextUrl.searchParams.get('municipality')
+    
+    // Calculate approximate date range for metadata
+    const endDate = new Date()
+    endDate.setDate(endDate.getDate() - 14) // Account for typical data delay
+    const startDate = new Date(endDate)
+    startDate.setHours(startDate.getHours() - 24) // Default 24h view
+    
+    const emptyResponse = createEmptyResponse(
+      consumerType,
+      aggregation === 'latest' ? 'hourly' : aggregation,
+      view,
+      startDate.toISOString().substring(0, 16),
+      endDate.toISOString().substring(0, 16),
+      municipality
     )
+    
+    return NextResponse.json(emptyResponse, {
+      headers: {
+        ...cacheHeaders({ sMaxage: 60, swr: 300 }), // Short cache, allow retries
+        'X-Cache': 'MISS-FALLBACK'
+      }
+    })
   }
 }
 

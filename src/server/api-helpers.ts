@@ -514,7 +514,7 @@ export function corsPrivate(origin: string | null): Record<string, string> {
     allowedOrigins,
     allowCredentials: true,
     allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-CSRF-Value'],
     exposedHeaders: ['X-Cache', 'X-Request-Id', 'X-RateLimit-Remaining', 'X-Session-Id']
   })
 }

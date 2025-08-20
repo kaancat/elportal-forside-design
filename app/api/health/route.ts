@@ -141,33 +141,49 @@ export async function GET(request: NextRequest) {
   // API route migration status
   metrics.checks.migration = {
     phase: 'Phase 4 - API Routes Migration',
-    completed: 7, // Updated count of migrated routes
-    pending: 21, // Remaining routes to migrate
-    progress: '25%',
+    completed: 28, // All routes migrated!
+    pending: 0, // No routes remaining
+    progress: '100%',
     routes: {
       migrated: [
+        // Data APIs (11)
         'electricity-prices',
         'co2-emissions',
         'consumption-map',
-        'revalidate',
         'energy-forecast',
         'monthly-production',
-        'health'
-      ],
-      inProgress: [],
-      pending: [
         'declaration-gridmix',
         'declaration-production',
         'pricelists',
         'private-industry-consumption',
-        'tracking/*',
-        'auth/*',
-        'admin/*',
-        'sanity/*',
-        'eloverblik'
-      ]
+        'revalidate',
+        'health',
+        // Auth APIs (5)
+        'auth/session',
+        'auth/authorize',
+        'auth/callback',
+        'auth/session-secure',
+        'eloverblik',
+        // Admin APIs (3)
+        'admin/auth',
+        'admin/dashboard',
+        'admin/debug',
+        // Tracking APIs (6)
+        'tracking/pixel',
+        'tracking/universal.js',
+        'tracking/log',
+        'tracking/verify',
+        'tracking/config/[partnerId]',
+        'tracking/create-test-partner',
+        // Sanity APIs (3)
+        'sanity/create-page',
+        'sanity/update-content',
+        'sanity/validate-content'
+      ],
+      inProgress: [],
+      pending: []
     },
-    message: 'Next.js migration progress'
+    message: 'Phase 4 API Routes Migration COMPLETE!'
   }
   
   // Determine overall health

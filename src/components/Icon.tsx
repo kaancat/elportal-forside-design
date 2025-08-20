@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { HelpCircle } from 'lucide-react';
 import { IconManager } from '@/types/sanity';
 
@@ -98,13 +99,13 @@ export const Icon: React.FC<IconProps> = ({
   // Priority 2: Metadata URL (works for both VP1 and VP2)
   if (icon.metadata?.url) {
     return (
-      <img
+      <Image
         src={icon.metadata.url}
         alt={icon.metadata.iconName || 'Icon'}
+        width={size || 24}
+        height={size || 24}
         className={className}
         style={{ 
-          width: `${size}px`, 
-          height: `${size}px`, 
           objectFit: 'contain'
         }}
         onError={(e) => {
@@ -138,13 +139,13 @@ export const Icon: React.FC<IconProps> = ({
     const generatedUrl = `https://api.iconify.design/${icon.icon}.svg?color=${encodeURIComponent(defaultColor)}`;
     
     return (
-      <img
+      <Image
         src={generatedUrl}
         alt={icon.icon || 'Icon'}
+        width={size || 24}
+        height={size || 24}
         className={className}
         style={{ 
-          width: `${size}px`, 
-          height: `${size}px`, 
           objectFit: 'contain'
         }}
         onError={(e) => {

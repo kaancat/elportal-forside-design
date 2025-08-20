@@ -19,9 +19,11 @@ const nextConfig = {
   // Transpile problematic packages
   transpilePackages: ['react-denmark-map'],
   
-  // Image configuration for Sanity and Unsplash
+  // Image configuration for Sanity and Unsplash (Phase 8 optimization)
   images: {
-    // unoptimized: true, // Only needed for static export mode
+    // Enable modern image formats for optimal performance (Codex-recommended)
+    formats: ['image/avif', 'image/webp'],
+    // Configure remote patterns for Sanity and Unsplash
     remotePatterns: [
       {
         protocol: 'https',
@@ -31,6 +33,11 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.iconify.design',
         pathname: '/**',
       },
     ],

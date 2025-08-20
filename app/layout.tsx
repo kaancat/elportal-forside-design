@@ -1,7 +1,16 @@
 import type { Metadata, Viewport } from 'next'
 import Script from 'next/script'
+import { Inter } from 'next/font/google'
 import { SITE_URL, SITE_NAME } from '@/lib/url-helpers'
 import './globals.css'
+
+// Configure Inter font with optimal settings (Codex-recommended)
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+  preload: true,
+})
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -93,7 +102,7 @@ export default function RootLayout({
   }
 
   return (
-    <html lang="da">
+    <html lang="da" className={inter.variable}>
       <head>
         {/* Organization schema in head, once only */}
         <script
@@ -105,22 +114,6 @@ export default function RootLayout({
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://cdn.sanity.io" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
-        
-        {/* Preload critical fonts */}
-        <link 
-          rel="preload" 
-          href="/fonts/Inter-VariableFont_opsz,wght.ttf" 
-          as="font" 
-          type="font/ttf" 
-          crossOrigin="anonymous" 
-        />
-        <link 
-          rel="preload" 
-          href="/fonts/Geist-VariableFont_wght.ttf" 
-          as="font" 
-          type="font/ttf" 
-          crossOrigin="anonymous" 
-        />
       </head>
       <body suppressHydrationWarning>
         <div id="root">{children}</div>

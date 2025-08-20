@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react';
+import Image from 'next/image';
 import { Link } from 'react-router-dom';
 import { useFooterData } from '@/hooks/useFooterData';
 import { resolveLink } from '@/utils/linkResolver';
@@ -64,27 +65,25 @@ const Footer = () => {
           <div className="flex flex-col md:flex-row justify-between">
             <div className="mb-8 md:mb-0">
               {footer.footerLogo ? (
-                <img 
+                <Image
                   src={footer.footerLogo.asset?._ref ? 
                     `https://cdn.sanity.io/images/yxesi03x/production/${footer.footerLogo.asset._ref.replace('image-', '').replace('-png', '.png').replace('-jpg', '.jpg')}` :
                     FALLBACK_LOGO
                   }
-                  alt={FALLBACK_ALT} 
+                  alt={FALLBACK_ALT}
+                  width={200}
+                  height={40}
                   className="h-10 mb-4"
-                  onError={(e) => {
-                    console.error('Footer logo failed to load');
-                    e.currentTarget.style.display = 'none';
-                  }}
+                  sizes="200px"
                 />
               ) : (
-                <img 
-                  src={FALLBACK_LOGO} 
-                  alt={FALLBACK_ALT} 
+                <Image
+                  src={FALLBACK_LOGO}
+                  alt={FALLBACK_ALT}
+                  width={200}
+                  height={40}
                   className="h-10 mb-4"
-                  onError={(e) => {
-                    console.error('Footer fallback logo failed to load');
-                    e.currentTarget.style.display = 'none';
-                  }}
+                  sizes="200px"
                 />
               )}
               <p className="max-w-xs text-gray-300 text-sm">
@@ -146,14 +145,13 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between">
           <div className="mb-8 md:mb-0">
-            <img 
-              src={FALLBACK_LOGO} 
-              alt={FALLBACK_ALT} 
+            <Image
+              src={FALLBACK_LOGO}
+              alt={FALLBACK_ALT}
+              width={200}
+              height={40}
               className="h-10 mb-4"
-              onError={(e) => {
-                console.error('Footer skeleton logo failed to load');
-                e.currentTarget.style.display = 'none';
-              }}
+              sizes="200px"
             />
             <p className="max-w-xs text-gray-300 text-sm">
               DinElportal.dk er Danmarks sammenligningstjeneste for elpriser.

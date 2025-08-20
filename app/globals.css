@@ -1,29 +1,9 @@
 /* Import icon fixes - must come before tailwind directives */
 @import '../src/styles/icon-fixes.css';
 
-/* Variable Font Definitions */
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 100 900; /* Variable font weight range */
-  font-display: swap;
-  src: url('/fonts/Inter-VariableFont_opsz,wght.ttf') format('truetype-variations');
-}
-
-@font-face {
-  font-family: 'Inter';
-  font-style: italic;
-  font-weight: 100 900; /* Variable font weight range */
-  font-display: swap;
-  src: url('/fonts/Inter-Italic-VariableFont_opsz,wght.ttf') format('truetype-variations');
-}
-
-@font-face {
-  font-family: 'Geist';
-  font-style: normal;
-  font-weight: 100 900; /* Variable font weight range */
-  font-display: swap;
-  src: url('/fonts/Geist-VariableFont_wght.ttf') format('truetype-variations');
+/* next/font CSS Variables (replaces manual @font-face definitions) */
+:root {
+  --font-inter: var(--font-inter);
 }
 
 @tailwind base;
@@ -124,7 +104,9 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground;
+    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: 'rlig' 1, 'calt' 1; /* Enable ligatures and contextual alternates */
   }
   
   /* Optimize animations for mobile devices */

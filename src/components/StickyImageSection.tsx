@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useRef, useEffect, useState } from 'react'
 import { motion, useScroll, useTransform, useMotionValue } from 'framer-motion'
 import { urlFor } from '@/lib/sanity'

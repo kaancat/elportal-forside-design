@@ -86,7 +86,7 @@ async function verifySession(token: string): Promise<{ sessionId: string } | nul
 
 // Get session from request cookies
 async function getSessionFromRequest(request: NextRequest): Promise<{ sessionId: string } | null> {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value
   
   if (!token) {
@@ -732,7 +732,7 @@ async function handleThirdPartyConsumption(request: NextRequest, body: any): Pro
           const meteringData = await meteringResponse.json()
           finalMeteringPointIds = meteringData.result || []
           
-          if (cacheKey && finalMeteringPointIds.length > 0) {
+          if (cacheKey && finalMeteringPointIds && finalMeteringPointIds.length > 0) {
             meteringPointCache.set(cacheKey, { ids: finalMeteringPointIds })
           }
         }

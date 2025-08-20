@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
 
     // Use validated parameters
     const { region, date, aggregation } = validation.data
-    const baseDate = parseDate(date)
+    const baseDate = parseDate(date ?? null)
     const { start: startDate, end: endDate } = getDateRange(baseDate)
 
     // Check KV cache first (distributed across instances)

@@ -1,3 +1,5 @@
+'use client'
+
 // src/components/MobileNav.tsx
 import React, { useEffect } from 'react';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';

@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect, useRef } from 'react';
 import { FALLBACK_LOGO, FALLBACK_ALT } from '@/constants/branding';
 import { cn } from '@/lib/utils';

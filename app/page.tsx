@@ -14,19 +14,7 @@ import { SITE_URL, SITE_NAME, canonicalUrl } from '@/lib/url-helpers'
 import ServerContentBlocks from './(marketing)/ServerContentBlocks'
 import ClientContentBlocks from './(marketing)/ClientContentBlocks'
 import ClientRouterWrapper from './ClientRouterWrapper'
-
-// Client components for navigation and footer
-const ClientNavigation = dynamic(
-  () => import('@/components/Navigation')
-)
-
-const ClientFooter = dynamic(
-  () => import('@/components/Footer')
-)
-
-const ClientReadingProgress = dynamic(
-  () => import('@/components/ReadingProgress')
-)
+import ClientLayout from './(marketing)/ClientLayout'
 
 // SPA App component for backward compatibility
 const SPAApp = dynamic(() => import('@/App'), { 
@@ -135,8 +123,8 @@ export default async function HomePage() {
   }
 
   // Separate content blocks into server and client components
-  const serverBlocks = ['hero', 'heroWithCalculator', 'pageSection', 'valueProposition', 'faqGroup', 'callToActionSection', 'energyTipsSection', 'infoCards']
-  const clientBlocks = ['livePriceGraph', 'co2EmissionsDisplay', 'monthlyProductionChart', 'renewableEnergyForecast', 'priceCalculatorWidget', 'providerList', 'consumptionMap', 'dailyPriceTimeline', 'applianceCalculator', 'forbrugTracker']
+  const serverBlocks = ['hero', 'heroWithCalculator', 'pageSection', 'valueProposition', 'faqGroup', 'callToActionSection', 'infoCards']
+  const clientBlocks = ['livePriceGraph', 'co2EmissionsDisplay', 'monthlyProductionChart', 'renewableEnergyForecast', 'priceCalculatorWidget', 'providerList', 'consumptionMap', 'dailyPriceTimeline', 'applianceCalculator', 'forbrugTracker', 'declarationProduction', 'declarationGridmix', 'regionalComparison', 'energyTipsSection', 'videoSection', 'realPriceComparisonTable', 'locationSelector']
 
   const serverContentBlocks = page.contentBlocks?.filter((block: any) => 
     serverBlocks.includes(block._type)
@@ -154,27 +142,20 @@ export default async function HomePage() {
       />
       <ClientRouterWrapper>
         <div className="min-h-screen bg-white">
-        {/* Navigation - will be client component for interactivity */}
-        <ClientNavigation />
-        
-        {/* Reading Progress - conditionally rendered */}
-        {page.showReadingProgress && <ClientReadingProgress />}
-        
-        <main>
-          {/* Server-rendered content for SEO */}
-          <ServerContentBlocks 
-            blocks={serverContentBlocks}
-            showReadingProgress={page.showReadingProgress}
-          />
-          
-          {/* Client-rendered interactive components */}
-          <ClientContentBlocks 
-            blocks={clientContentBlocks}
-          />
-        </main>
-        
-        {/* Footer - will be client component for interactivity */}
-        <ClientFooter />
+          <ClientLayout showReadingProgress={page.showReadingProgress}>
+            <main>
+              {/* Server-rendered content for SEO */}
+              <ServerContentBlocks 
+                blocks={serverContentBlocks}
+                showReadingProgress={page.showReadingProgress}
+              />
+              
+              {/* Client-rendered interactive components */}
+              <ClientContentBlocks 
+                blocks={clientContentBlocks}
+              />
+            </main>
+          </ClientLayout>
         </div>
       </ClientRouterWrapper>
     </>

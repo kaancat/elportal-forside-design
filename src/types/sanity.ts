@@ -271,6 +271,14 @@ export interface ChargingBoxShowcaseBlock {
   headerAlignment?: 'left' | 'center' | 'right'
 }
 
+export interface LocationSelectorBlock {
+  _type: 'locationSelector';
+  _key: string;
+  label?: string;
+  placeholder?: string;
+  headerAlignment?: 'left' | 'center' | 'right';
+}
+
 export interface RegionalComparisonBlock {
   _type: 'regionalComparison';
   _key: string;
@@ -463,6 +471,7 @@ export type ContentBlock =
   | EnergyTipsSection
   | ChargingBoxShowcaseBlock
   | RegionalComparisonBlock
+  | LocationSelectorBlock
   | PricingComparisonBlock
   | DailyPriceTimelineBlock
   | InfoCardsSectionBlock

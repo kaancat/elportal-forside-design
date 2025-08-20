@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useEffect } from 'react';
 import { Icon, hasValidIcon, preloadIcons } from './Icon';
 import { FeatureListBlock } from '@/types/sanity';

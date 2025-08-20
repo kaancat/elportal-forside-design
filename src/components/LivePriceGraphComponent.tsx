@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Settings2, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Switch } from "@/components/ui/switch";
@@ -6,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { toISOStringDK } from '@/utils/date-formatter';
 
 interface PriceData {
   HourDK: string;
@@ -22,7 +25,8 @@ interface LivePriceGraphProps {
   };
 }
 
-const formatDate = (date: Date) => date.toISOString().split('T')[0];
+// Use centralized date formatter to prevent hydration issues
+const formatDate = (date: Date) => toISOStringDK(date).split('T')[0];
 
 const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   const [data, setData] = useState<PriceData[]>([]);

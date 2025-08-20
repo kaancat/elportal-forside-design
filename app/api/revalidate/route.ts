@@ -1,6 +1,10 @@
+import { NextRequest, NextResponse } from 'next/server';
 import { isValidSignature } from '@sanity/webhook';
 import { revalidateTag, revalidatePath } from 'next/cache';
 
+// Runtime configuration
+export const runtime = 'nodejs'; // Required for Sanity webhook processing
+export const maxDuration = 10; // Standard timeout for webhook processing
 export const dynamic = 'force-dynamic';
 
 // Type for the webhook payload
@@ -16,11 +20,11 @@ interface WebhookPayload {
 // Get the secret from environment variables
 const WEBHOOK_SECRET = process.env.SANITY_WEBHOOK_SECRET;
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   // Check if webhook secret is configured
   if (!WEBHOOK_SECRET) {
     console.error('[Revalidation] Missing SANITY_WEBHOOK_SECRET environment variable');
-    return Response.json(
+    return NextResponse.json(
       { error: 'Webhook secret not configured' },
       { status: 500 }
     );
@@ -32,7 +36,7 @@ export async function POST(request: Request) {
     
     if (!signature) {
       console.error('[Revalidation] Missing webhook signature');
-      return Response.json(
+      return NextResponse.json(
         { error: 'Missing signature' },
         { status: 401 }
       );
@@ -50,7 +54,7 @@ export async function POST(request: Request) {
 
     if (!isValid) {
       console.error('[Revalidation] Invalid webhook signature');
-      return Response.json(
+      return NextResponse.json(
         { error: 'Invalid signature' },
         { status: 401 }
       );
@@ -62,7 +66,7 @@ export async function POST(request: Request) {
       payload = JSON.parse(body);
     } catch (parseError) {
       console.error('[Revalidation] Failed to parse webhook body:', parseError);
-      return Response.json(
+      return NextResponse.json(
         { error: 'Invalid request body' },
         { status: 400 }
       );
@@ -151,7 +155,7 @@ export async function POST(request: Request) {
       // Continue even if revalidation fails - don't fail the webhook
     }
     
-    return Response.json({
+    return NextResponse.json({
       success: true,
       revalidated: true,
       documentId: payload._id,
@@ -174,7 +178,7 @@ export async function POST(request: Request) {
 
   } catch (error) {
     console.error('[Revalidation] Webhook processing error:', error);
-    return Response.json(
+    return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );
@@ -182,8 +186,8 @@ export async function POST(request: Request) {
 }
 
 // Handle other HTTP methods
-export async function GET() {
-  return Response.json(
+export async function GET(request: NextRequest) {
+  return NextResponse.json(
     { error: 'Method not allowed' },
     { status: 405 }
   );

@@ -23,7 +23,8 @@
     "mcp:analyze": "tsx scripts/mcp-browserbase.ts analyze",
     "navigation:health": "tsx scripts/check-navigation-health.ts",
     "generate:sitemap": "tsx scripts/generate-sitemap.ts",
-    "test:middleware": "tsx scripts/test-middleware.ts"
+    "test:middleware": "tsx scripts/test-middleware.ts",
+    "test:api-parity": "tsx scripts/test-api-parity.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

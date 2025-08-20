@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "npmConfig": {
+    "force": true
+  },
   "scripts": {
     "dev": "next dev",
     "dev:vite": "vite",

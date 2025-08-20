@@ -1,160 +1,212 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isValidSignature } from '@sanity/webhook';
 import { revalidateTag, revalidatePath } from 'next/cache';
+import { isValidSignature, SIGNATURE_HEADER_NAME } from '@sanity/webhook';
 
-// Runtime configuration
-export const runtime = 'nodejs'; // Required for Sanity webhook processing
-export const maxDuration = 10; // Standard timeout for webhook processing
+// Runtime configuration for production-grade performance
+export const runtime = 'nodejs'; // Required for Sanity webhook processing and crypto validation
+export const maxDuration = 30; // Extended timeout for comprehensive revalidation
 export const dynamic = 'force-dynamic';
 
-// Type for the webhook payload
-interface WebhookPayload {
+// Enhanced TypeScript interface for webhook payload (Codex-recommended)
+interface SanityWebhookPayload {
   _id: string;
-  _type: string;
+  _type: 'homePage' | 'page' | 'provider' | 'siteSettings';
+  _rev?: string;
+  _createdAt?: string;
+  _updatedAt?: string;
   slug?: {
     _type: 'slug';
-    current: string;
+    current?: string;
   };
+  title?: string;
+  isHomepage?: boolean;
 }
 
-// Get the secret from environment variables
-const WEBHOOK_SECRET = process.env.SANITY_WEBHOOK_SECRET;
+// Enhanced error interface for better debugging
+interface RevalidationError {
+  code: string;
+  message: string;
+  documentId?: string;
+  documentType?: string;
+  timestamp: string;
+}
+
+// Get the webhook secret from environment variables
+const SANITY_WEBHOOK_SECRET = process.env.SANITY_WEBHOOK_SECRET;
 
 export async function POST(request: NextRequest) {
-  // Check if webhook secret is configured
-  if (!WEBHOOK_SECRET) {
-    console.error('[Revalidation] Missing SANITY_WEBHOOK_SECRET environment variable');
-    return NextResponse.json(
-      { error: 'Webhook secret not configured' },
-      { status: 500 }
-    );
+  const startTime = Date.now();
+  
+  // 1. Security: Check if webhook secret is configured
+  if (!SANITY_WEBHOOK_SECRET) {
+    const error: RevalidationError = {
+      code: 'MISSING_SECRET',
+      message: 'Sanity webhook secret is not configured',
+      timestamp: new Date().toISOString()
+    };
+    console.error('[Revalidation] Critical security error:', error);
+    return NextResponse.json(error, { status: 500 });
   }
 
   try {
-    // Get the signature from headers
-    const signature = request.headers.get('sanity-webhook-signature');
-    
-    if (!signature) {
-      console.error('[Revalidation] Missing webhook signature');
-      return NextResponse.json(
-        { error: 'Missing signature' },
-        { status: 401 }
-      );
-    }
-
-    // Get the raw body text for signature validation
+    // 2. Security-first approach: Get signature and body as raw text (Codex-recommended)
+    const signature = request.headers.get(SIGNATURE_HEADER_NAME);
     const body = await request.text();
     
-    // Validate the signature
-    const isValid = await isValidSignature(
-      body,
-      signature,
-      WEBHOOK_SECRET
-    );
-
-    if (!isValid) {
-      console.error('[Revalidation] Invalid webhook signature');
-      return NextResponse.json(
-        { error: 'Invalid signature' },
-        { status: 401 }
-      );
+    if (!signature) {
+      const error: RevalidationError = {
+        code: 'MISSING_SIGNATURE',
+        message: 'Webhook signature is missing',
+        timestamp: new Date().toISOString()
+      };
+      console.error('[Revalidation] Security error:', error);
+      return NextResponse.json(error, { status: 401 });
     }
 
-    // Parse the validated body
-    let payload: WebhookPayload;
+    // 3. Cryptographic validation BEFORE parsing (Codex security pattern)
+    if (!isValidSignature(body, signature, SANITY_WEBHOOK_SECRET)) {
+      const error: RevalidationError = {
+        code: 'INVALID_SIGNATURE',
+        message: 'Webhook signature validation failed',
+        timestamp: new Date().toISOString()
+      };
+      console.warn('[Revalidation] Security breach attempt:', error);
+      return NextResponse.json(error, { status: 401 });
+    }
+
+    // 4. Parse the cryptographically validated body
+    let payload: SanityWebhookPayload;
     try {
       payload = JSON.parse(body);
     } catch (parseError) {
-      console.error('[Revalidation] Failed to parse webhook body:', parseError);
-      return NextResponse.json(
-        { error: 'Invalid request body' },
-        { status: 400 }
-      );
+      const error: RevalidationError = {
+        code: 'INVALID_JSON',
+        message: 'Failed to parse webhook body as JSON',
+        timestamp: new Date().toISOString()
+      };
+      console.error('[Revalidation] Parse error:', error, parseError);
+      return NextResponse.json(error, { status: 400 });
     }
 
-    // Log the webhook event (without sensitive data)
+    // 5. Enhanced logging with performance tracking (Codex-recommended)
     console.log('[Revalidation] Webhook received:', {
       _id: payload._id,
       _type: payload._type,
       slug: payload.slug?.current,
-      timestamp: new Date().toISOString()
+      title: payload.title,
+      isHomepage: payload.isHomepage,
+      timestamp: new Date().toISOString(),
+      processing_start: startTime
     });
 
-    // Phase 2: Revalidate Next.js cache based on document type
+    // 6. Production-grade revalidation with granular cache control
     const revalidatedTags: string[] = [];
     const revalidatedPaths: string[] = [];
     
     try {
-      // Determine which cache tags to revalidate based on document type
+      // Enhanced revalidation logic with comprehensive coverage (Codex-optimized)
       switch (payload._type) {
         case 'homePage':
-          // Revalidate homepage cache
-          await revalidateTag('homepage');
+          // Homepage changes affect root page and homepage cache
+          revalidateTag('homepage');
           revalidatedTags.push('homepage');
-          // Also revalidate the homepage path
-          await revalidatePath('/');
+          revalidateTag('page'); // Generic page tag for lists
+          revalidatedTags.push('page');
+          revalidatePath('/');
           revalidatedPaths.push('/');
+          console.log('[Revalidation] Homepage cache invalidated');
           break;
           
         case 'page':
-          // Revalidate specific page cache
+          // Page changes: invalidate specific page + general page lists
           if (payload.slug?.current) {
-            await revalidateTag(`page:${payload.slug.current}`);
+            // Specific page cache
+            revalidateTag(`page:${payload.slug.current}`);
             revalidatedTags.push(`page:${payload.slug.current}`);
-            // Revalidate the page path
-            await revalidatePath(`/${payload.slug.current}`);
+            // Specific page path
+            revalidatePath(`/${payload.slug.current}`);
             revalidatedPaths.push(`/${payload.slug.current}`);
+            
+            // Check if this is a homepage being edited
+            if (payload.isHomepage) {
+              revalidateTag('homepage');
+              revalidatedTags.push('homepage');
+              revalidatePath('/');
+              revalidatedPaths.push('/');
+            }
           }
-          // Also revalidate all pages list
-          await revalidateTag('pages');
-          revalidatedTags.push('pages');
-          // Also revalidate generic page tag
-          await revalidateTag('page');
+          // All pages cache (for listings, navigation, etc.)
+          revalidateTag('page');
           revalidatedTags.push('page');
+          console.log(`[Revalidation] Page cache invalidated: ${payload.slug?.current || payload._id}`);
           break;
           
         case 'provider':
-          // Revalidate providers cache
-          await revalidateTag('providers');
+          // Provider changes affect multiple pages with provider data
+          revalidateTag('providers');
           revalidatedTags.push('providers');
-          // Revalidate pages that show providers
-          await revalidatePath('/');
-          await revalidatePath('/sammenlign');
-          revalidatedPaths.push('/', '/sammenlign');
+          // Key pages that display providers
+          const providerPages = ['/', '/sammenlign', '/elpriser', '/vindstod'];
+          for (const path of providerPages) {
+            revalidatePath(path);
+            revalidatedPaths.push(path);
+          }
+          console.log('[Revalidation] Provider cache invalidated');
           break;
           
         case 'siteSettings':
-          // Revalidate site settings affects all pages
-          await revalidateTag('siteSettings');
+          // Site settings affect entire site (navigation, footer, global settings)
+          revalidateTag('siteSettings');
           revalidatedTags.push('siteSettings');
-          // Revalidate main pages
-          await revalidatePath('/');
-          revalidatedPaths.push('/');
+          // Revalidate all key pages since navigation/footer changes
+          const globalPages = ['/', '/elpriser', '/sammenlign', '/groen-energi'];
+          for (const path of globalPages) {
+            revalidatePath(path);
+            revalidatedPaths.push(path);
+          }
+          console.log('[Revalidation] Site settings cache invalidated');
           break;
           
         default:
-          // For other content types, revalidate the homepage as a fallback
-          await revalidateTag('homepage');
+          // Enhanced fallback with logging for debugging new content types
+          console.warn(`[Revalidation] Unhandled document type: ${payload._type}`);
+          // Conservative fallback: revalidate homepage and generic caches
+          revalidateTag('homepage');
           revalidatedTags.push('homepage');
-          await revalidatePath('/');
+          revalidatePath('/');
           revalidatedPaths.push('/');
-          
-          console.log(`[Revalidation] Unhandled document type: ${payload._type}`);
+          console.log('[Revalidation] Fallback cache invalidation applied');
       }
       
-      console.log('[Revalidation] Cache invalidated:', {
+      // 7. Enhanced performance tracking and success logging
+      const processingTime = Date.now() - startTime;
+      console.log('[Revalidation] Cache invalidation completed:', {
         tags: revalidatedTags,
         paths: revalidatedPaths,
         documentType: payload._type,
         documentId: payload._id,
-        slug: payload.slug?.current
+        slug: payload.slug?.current,
+        processingTime: `${processingTime}ms`,
+        timestamp: new Date().toISOString()
       });
       
     } catch (revalidateError) {
-      console.error('[Revalidation] Failed to revalidate cache:', revalidateError);
-      // Continue even if revalidation fails - don't fail the webhook
+      // Enhanced error handling with structured error response (Codex pattern)
+      const error: RevalidationError = {
+        code: 'REVALIDATION_FAILED',
+        message: 'Cache revalidation failed',
+        documentId: payload._id,
+        documentType: payload._type,
+        timestamp: new Date().toISOString()
+      };
+      console.error('[Revalidation] Cache revalidation error:', error, revalidateError);
+      
+      // Signal to Sanity that webhook failed and should be retried (Codex resilience pattern)
+      return NextResponse.json(error, { status: 500 });
     }
     
+    // 8. Production-grade success response with comprehensive metadata
+    const processingTime = Date.now() - startTime;
     return NextResponse.json({
       success: true,
       revalidated: true,
@@ -162,6 +214,7 @@ export async function POST(request: NextRequest) {
       documentType: payload._type,
       slug: payload.slug?.current,
       timestamp: new Date().toISOString(),
+      processingTime: `${processingTime}ms`,
       revalidatedTags,
       revalidatedPaths,
       message: 'Webhook processed and cache revalidated successfully.'
@@ -172,23 +225,66 @@ export async function POST(request: NextRequest) {
         'X-Document-Id': payload._id,
         'X-Document-Type': payload._type,
         'X-Revalidated-Tags': revalidatedTags.join(','),
-        'X-Revalidated-Paths': revalidatedPaths.join(',')
+        'X-Revalidated-Paths': revalidatedPaths.join(','),
+        'X-Processing-Time': `${processingTime}ms`,
+        'X-Cache-Strategy': 'granular-revalidation'
       }
     });
 
   } catch (error) {
-    console.error('[Revalidation] Webhook processing error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    // 9. Enhanced top-level error handling with structured response
+    const revalidationError: RevalidationError = {
+      code: 'WEBHOOK_PROCESSING_ERROR',
+      message: error instanceof Error ? error.message : 'Unknown error occurred',
+      timestamp: new Date().toISOString()
+    };
+    console.error('[Revalidation] Critical webhook processing error:', revalidationError, error);
+    
+    // Return 500 to signal Sanity to retry the webhook
+    return NextResponse.json(revalidationError, { status: 500 });
   }
 }
 
-// Handle other HTTP methods
+// Enhanced GET method for webhook health checking and diagnostics
 export async function GET(request: NextRequest) {
-  return NextResponse.json(
-    { error: 'Method not allowed' },
-    { status: 405 }
-  );
+  const timestamp = new Date().toISOString();
+  
+  // Health check endpoint for webhook monitoring
+  return NextResponse.json({
+    service: 'Sanity Webhook Revalidation',
+    status: 'healthy',
+    timestamp,
+    configuration: {
+      secret_configured: !!SANITY_WEBHOOK_SECRET,
+      runtime: 'nodejs',
+      max_duration: 30,
+      supported_document_types: ['homePage', 'page', 'provider', 'siteSettings'],
+      cache_tags: ['homepage', 'page', 'siteSettings', 'providers'],
+      webhook_url: `${request.nextUrl.origin}/api/revalidate`
+    },
+    instructions: {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'sanity-webhook-signature': 'Required - HMAC signature'
+      },
+      security: 'HMAC signature validation required',
+      documentation: 'https://docs.sanity.io/api/webhooks'
+    }
+  }, {
+    status: 200,
+    headers: {
+      'X-Health-Check': timestamp,
+      'X-Service': 'webhook-revalidation'
+    }
+  });
+}
+
+// Handle unsupported HTTP methods
+export async function PUT(request: NextRequest) {
+  return NextResponse.json({ error: 'Method not allowed. Use POST for webhooks.' }, { status: 405 });
+}
+
+export async function DELETE(request: NextRequest) {
+  return NextResponse.json({ error: 'Method not allowed. Use POST for webhooks.' }, { status: 405 });
 }

@@ -1,10 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-// Temporary fix for react-denmark-map export issue
-// import { Municipalities, MunicipalityType } from 'react-denmark-map';
-const Municipalities = null; // Placeholder to fix build
-type MunicipalityType = any; // Placeholder type
+import { Municipalities, MunicipalityType } from 'react-denmark-map';
 import { scaleSequential } from 'd3-scale';
 import { interpolateGreens, interpolateBlues, interpolateReds } from 'd3-scale-chromatic';
 import { MapPin, Activity, Zap, Building2, Home, Info, Filter, RotateCcw, Download, Calendar } from 'lucide-react';

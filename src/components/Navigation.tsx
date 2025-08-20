@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { Link as LinkType, MegaMenu } from '@/types/sanity';

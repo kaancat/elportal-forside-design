@@ -103,7 +103,7 @@ async function getEventStats(partnerId: string): Promise<{
     
     // Get daily metrics
     const todayMetrics = await kv.hgetall(`metrics:daily:${today}:${partnerId}`)
-    const todayCount = (todayMetrics?.page_views || 0) + (todayMetrics?.conversions || 0)
+    const todayCount = Number(todayMetrics?.page_views || 0) + Number(todayMetrics?.conversions || 0)
     
     // Get week metrics (simplified - just check keys)
     let weekCount = todayCount
@@ -111,7 +111,7 @@ async function getEventStats(partnerId: string): Promise<{
       const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
       const dayMetrics = await kv.hgetall(`metrics:daily:${date}:${partnerId}`)
       if (dayMetrics) {
-        weekCount += (dayMetrics.page_views || 0) + (dayMetrics.conversions || 0)
+        weekCount += Number(dayMetrics.page_views || 0) + Number(dayMetrics.conversions || 0)
       }
     }
     

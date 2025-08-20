@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 import { ApplianceCalculator } from './appliance-calculator/ApplianceCalculator'
 import { Appliance } from '@/types/appliance'

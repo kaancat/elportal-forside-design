@@ -172,7 +172,7 @@ export async function GET(request: NextRequest) {
     // If no records, return empty data with proper structure (but still cache it)
     if (records.length === 0) {
       console.log('[ConsumptionMap] No records found for date range:', { start: apiStart, end: apiEnd })
-      const emptyResponse = createEmptyResponse(consumerType, aggregation, view, apiStart, apiEnd, municipality)
+      const emptyResponse = createEmptyResponse(consumerType, aggregation, view, apiStart, apiEnd, municipality || null)
       
       // Cache empty response with shorter TTL
       consumptionMapCache.set(memCacheKey, emptyResponse)

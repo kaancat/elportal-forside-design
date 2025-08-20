@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { action } = body
     
-    let result = { message: 'No action performed' }
+    let result: any = { message: 'No action performed' }
     
     switch (action) {
       case 'clear_admin_logs':

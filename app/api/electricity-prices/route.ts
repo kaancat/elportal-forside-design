@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
     const priceArea = area || region // Support both parameter names
     
     // Date logic - timezone-aware using Danish time
-    const baseDate = parseDate(dateParam)
+    const baseDate = parseDate(dateParam || new Date().toISOString().split('T')[0])
     const startDate = baseDate.toISOString().split('T')[0]
     
     // If endDate is provided, use it; otherwise default to tomorrow for backward compatibility

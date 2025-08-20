@@ -3,15 +3,21 @@
 /**
  * Client-side content blocks for interactivity
  * These components are rendered on the client for dynamic features
+ * Updated to use SSR shells for Priority 1 components
  */
 
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 
+// Import SSR shells for Priority 1 components
+import { LivePriceGraphShell } from '@/components/charts/shells/LivePriceGraphShell'
+import { PriceCalculatorShell } from '@/components/calculators/shells/PriceCalculatorShell'
+import { ProviderListShell } from '@/components/providers/shells/ProviderListShell'
+
 // Dynamically import interactive components
 const LivePriceGraphComponent = dynamic(() => import('@/components/LivePriceGraphComponent'), {
   ssr: false,
-  loading: () => <LoadingPlaceholder height="400px" />,
+  loading: () => null, // Shell will handle loading state
 })
 
 const CO2EmissionsChart = dynamic(() => import('@/components/CO2EmissionsChart'), {
@@ -31,12 +37,12 @@ const RenewableEnergyForecast = dynamic(() => import('@/components/RenewableEner
 
 const PriceCalculatorWidget = dynamic(() => import('@/components/PriceCalculatorWidget'), {
   ssr: false,
-  loading: () => <LoadingPlaceholder height="500px" />,
+  loading: () => null, // Shell will handle loading state
 })
 
-const ProviderList = dynamic(() => import('@/components/ProviderList'), {
+const ProviderList = dynamic(() => import('@/components/ProviderList').then(mod => ({ default: mod.ProviderList })), {
   ssr: false,
-  loading: () => <LoadingPlaceholder height="600px" />,
+  loading: () => null, // Shell will handle loading state
 })
 
 const ConsumptionMap = dynamic(() => import('@/components/ConsumptionMap'), {
@@ -65,6 +71,22 @@ const ForbrugTracker = dynamic(
   }
 )
 
+const DeclarationProductionChart = dynamic(
+  () => import('@/components/DeclarationProductionChart'),
+  {
+    ssr: false,
+    loading: () => <LoadingPlaceholder height="400px" />,
+  }
+)
+
+const DeclarationGridmix = dynamic(
+  () => import('@/components/DeclarationGridmix'),
+  {
+    ssr: false,
+    loading: () => <LoadingPlaceholder height="400px" />,
+  }
+)
+
 interface ClientContentBlocksProps {
   blocks: any[]
 }
@@ -76,7 +98,17 @@ export default function ClientContentBlocks({ blocks }: ClientContentBlocksProps
         switch (block._type) {
           case 'livePriceGraph':
             return (
-              <Suspense key={block._key} fallback={<LoadingPlaceholder height="400px" />}>
+              <Suspense 
+                key={block._key} 
+                fallback={
+                  <LivePriceGraphShell
+                    title={block.title}
+                    subtitle={block.subtitle}
+                    region={block.apiRegion}
+                    headerAlignment={block.headerAlignment}
+                  />
+                }
+              >
                 <LivePriceGraphComponent block={block} />
               </Suspense>
             )
@@ -98,9 +130,17 @@ export default function ClientContentBlocks({ blocks }: ClientContentBlocksProps
                 <RenewableEnergyForecast block={block} />
               </Suspense>
             )
-          case 'priceCalculatorWidget':
+          case 'priceCalculator':
             return (
-              <Suspense key={block._key} fallback={<LoadingPlaceholder height="500px" />}>
+              <Suspense 
+                key={block._key} 
+                fallback={
+                  <PriceCalculatorShell
+                    title={block.title}
+                    variant={block.variant || 'standalone'}
+                  />
+                }
+              >
                 <PriceCalculatorWidget 
                   block={block}
                   variant={block.variant || 'standalone'}
@@ -109,7 +149,14 @@ export default function ClientContentBlocks({ blocks }: ClientContentBlocksProps
             )
           case 'providerList':
             return (
-              <Suspense key={block._key} fallback={<LoadingPlaceholder height="600px" />}>
+              <Suspense 
+                key={block._key} 
+                fallback={
+                  <ProviderListShell
+                    block={block}
+                  />
+                }
+              >
                 <ProviderList block={block} />
               </Suspense>
             )
@@ -142,6 +189,18 @@ export default function ClientContentBlocks({ blocks }: ClientContentBlocksProps
                   showBenefits={block.showBenefits}
                   headerAlignment={block.headerAlignment}
                 />
+              </Suspense>
+            )
+          case 'declarationProduction':
+            return (
+              <Suspense key={block._key} fallback={<LoadingPlaceholder height="400px" />}>
+                <DeclarationProductionChart block={block} />
+              </Suspense>
+            )
+          case 'declarationGridmix':
+            return (
+              <Suspense key={block._key} fallback={<LoadingPlaceholder height="400px" />}>
+                <DeclarationGridmix block={block} />
               </Suspense>
             )
           default:

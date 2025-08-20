@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { MapPin, Info, Loader2, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';

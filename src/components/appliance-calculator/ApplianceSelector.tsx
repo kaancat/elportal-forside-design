@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState } from 'react'
 import { Plus, Search, Zap } from 'lucide-react'
 import * as Icons from 'lucide-react'

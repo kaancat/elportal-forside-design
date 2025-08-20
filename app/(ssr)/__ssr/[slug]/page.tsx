@@ -162,8 +162,8 @@ export default async function DynamicPage({ params }: { params: { slug: string }
   }
   
   // Separate content blocks into server and client components
-  const serverBlocks = ['hero', 'heroWithCalculator', 'pageSection', 'valueProposition', 'faqGroup', 'callToActionSection', 'energyTipsSection', 'infoCards']
-  const clientBlocks = ['livePriceGraph', 'co2EmissionsDisplay', 'monthlyProductionChart', 'renewableEnergyForecast', 'priceCalculatorWidget', 'providerList', 'consumptionMap', 'dailyPriceTimeline', 'applianceCalculator', 'forbrugTracker']
+  const serverBlocks = ['hero', 'heroWithCalculator', 'pageSection', 'valueProposition', 'faqGroup', 'callToActionSection', 'infoCards']
+  const clientBlocks = ['livePriceGraph', 'co2EmissionsDisplay', 'monthlyProductionChart', 'renewableEnergyForecast', 'priceCalculatorWidget', 'providerList', 'consumptionMap', 'dailyPriceTimeline', 'applianceCalculator', 'forbrugTracker', 'declarationProduction', 'declarationGridmix', 'regionalComparison', 'energyTipsSection', 'videoSection', 'realPriceComparisonTable', 'locationSelector']
   
   const serverContentBlocks = page.contentBlocks?.filter((block: any) => 
     serverBlocks.includes(block._type)

@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useReducer, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles } from 'lucide-react'

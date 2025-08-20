@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Activity, Wind, Sun, Flame, Leaf, TrendingDown, Calendar, Info } from 'lucide-react';

@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react';
 import Image from 'next/image';
 import { HelpCircle } from 'lucide-react';
@@ -166,19 +168,25 @@ export const hasValidIcon = (iconData: any): iconData is IconManager => {
 };
 
 export const preloadIcons = (icons: Array<IconManager | undefined>) => {
+  // Only preload icons on the client side
+  if (typeof window === 'undefined') return;
+  
   icons.forEach(icon => {
     if (icon?.metadata?.url) {
-      const img = new Image();
+      const img = new (window as any).Image();
       img.src = icon.metadata.url;
     } else if (icon?.icon) {
       // Preload legacy icon URLs
-      const img = new Image();
+      const img = new (window as any).Image();
       img.src = `https://api.iconify.design/${icon.icon}.svg`;
     }
   });
 };
 
 export const preloadIcon = (url: string) => {
-  const img = new Image();
+  // Only preload icons on the client side
+  if (typeof window === 'undefined') return;
+  
+  const img = new (window as any).Image();
   img.src = url;
 };

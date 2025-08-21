@@ -1,7 +1,30 @@
 'use client'
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Municipalities, MunicipalityType } from 'react-denmark-map';
+// Default import approach to handle malformed package exports
+import * as DenmarkMap from 'react-denmark-map/dist/esm/index.js';
+
+// React 19-safe typed wrapper for Municipalities
+interface MunicipalityProps {
+  customTooltip?: React.ComponentType<any>;
+  customizeAreas?: (municipality: any) => any;
+  onClick?: (municipality: any) => void;
+  showTooltip?: boolean;
+  zoomable?: boolean;
+  className?: string;
+  [key: string]: any;
+}
+
+const MunicipalitiesRaw = (DenmarkMap as any)?.Municipalities;
+const Municipalities: React.FC<MunicipalityProps> = (props) => {
+  if (!MunicipalitiesRaw) {
+    console.warn('Municipalities component not found in react-denmark-map');
+    return <div className={props.className}>Map component not available</div>;
+  }
+  return React.createElement(MunicipalitiesRaw, props);
+};
+
+type MunicipalityType = any; // Fallback type for denmark-map data structures
 import { scaleSequential } from 'd3-scale';
 import { interpolateGreens, interpolateBlues, interpolateReds } from 'd3-scale-chromatic';
 import { MapPin, Activity, Zap, Building2, Home, Info, Filter, RotateCcw, Download, Calendar } from 'lucide-react';

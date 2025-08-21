@@ -16,17 +16,17 @@ import ClientContentBlocks from './(marketing)/ClientContentBlocks'
 import ClientRouterWrapper from './ClientRouterWrapper'
 import ClientLayout from './(marketing)/ClientLayout'
 
-// SPA App component for backward compatibility
-const SPAApp = dynamic(() => import('@/App'), { 
-  loading: () => (
+// SPA App component removed - using App Router only
+const SPAApp = () => {
+  return (
     <div className="flex min-h-screen items-center justify-center">
-      <div className="animate-pulse text-center">
+      <div className="text-center">
         <div className="mb-4 text-2xl font-bold text-green-600">DinElPortal</div>
-        <div className="text-gray-600">Indlæser...</div>
+        <div className="text-gray-600">App Router aktiveret</div>
       </div>
     </div>
-  )
-})
+  );
+}
 
 // Use unstable_cache for better revalidation per Codex recommendation
 const getCachedHomePage = unstable_cache(

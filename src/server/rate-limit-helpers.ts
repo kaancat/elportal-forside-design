@@ -230,14 +230,15 @@ export async function checkSlidingWindowRateLimit(
   
   try {
     // Get all timestamps in current window
-    const timestamps = await kv.zrangebyscore(
+    const timestamps = await kv.zrange(
       key,
       windowStart,
-      now
+      now,
+      { byScore: true }
     )
     
     // Remove old entries
-    await kv.zremrangebyscore(key, '-inf', windowStart)
+    await kv.zremrangebyscore(key, 0, windowStart)
     
     if (timestamps.length >= limit) {
       const oldestTimestamp = timestamps[0] as number

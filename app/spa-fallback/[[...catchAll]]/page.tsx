@@ -7,19 +7,22 @@
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 
-// Dynamically import the existing App component with no SSR
-// This ensures all existing React Router functionality works as-is
-const App = dynamic(() => import('@/App'), { 
-  ssr: false,
-  loading: () => (
+// SPA App component removed - redirecting to App Router
+// This fallback now redirects to the main homepage
+const App = () => {
+  // Redirect to App Router homepage
+  if (typeof window !== 'undefined') {
+    window.location.href = '/';
+  }
+  return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="animate-pulse text-center">
         <div className="mb-4 text-2xl font-bold text-green-600">DinElportal</div>
-        <div className="text-gray-600">Indlæser...</div>
+        <div className="text-gray-600">Omdirigerer...</div>
       </div>
     </div>
-  )
-})
+  );
+}
 
 // SPA Fallback page component
 export default function SPAFallbackPage({

@@ -7,18 +7,17 @@
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 
-// SPA App component removed - redirecting to App Router
-// This fallback now redirects to the main homepage
+// SPA fallback disabled - return 404 for unmigrated routes
 const App = () => {
-  // Redirect to App Router homepage
-  if (typeof window !== 'undefined') {
-    window.location.href = '/';
-  }
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <div className="animate-pulse text-center">
-        <div className="mb-4 text-2xl font-bold text-green-600">DinElportal</div>
-        <div className="text-gray-600">Omdirigerer...</div>
+      <div className="text-center">
+        <div className="mb-4 text-4xl font-bold text-green-600">404</div>
+        <div className="mb-4 text-xl text-gray-800">Siden blev ikke fundet</div>
+        <div className="text-gray-600 mb-4">Denne rute er ikke migreret til App Router</div>
+        <a href="/" className="text-green-600 hover:text-green-700 underline">
+          Tilbage til forsiden
+        </a>
       </div>
     </div>
   );

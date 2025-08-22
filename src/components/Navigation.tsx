@@ -14,6 +14,10 @@ import { useSiteSettings } from '@/hooks/useSiteSettings';
 import type { SiteSettings } from '@/types/sanity';
 import { FALLBACK_LOGO, FALLBACK_ALT } from '@/constants/branding';
 
+function isLinkEntry(link: LinkType | MegaMenu): link is LinkType {
+  return !!link && (link as any)._type === 'link';
+}
+
 interface NavigationProps {
   initialSettings?: SiteSettings | null;
 }
@@ -102,19 +106,19 @@ const Navigation = ({ initialSettings }: NavigationProps) => {
   if (process.env.NODE_ENV === 'development' && debugVerbose) console.log('[Navigation] BEFORE filtering - headerLinks:', settings.headerLinks?.map(link => ({
     title: link.title,
     _type: link._type,
-    isButton: link.isButton,
-    linkType: link.linkType
+    isButton: isLinkEntry(link) ? link.isButton : undefined,
+    linkType: isLinkEntry(link) ? link.linkType : undefined
   })));
 
-  const ctaButton = settings.headerLinks.find(link => link._type === 'link' && link.isButton) as LinkType | undefined;
+  const ctaButton = settings.headerLinks.find(link => isLinkEntry(link) && link.isButton) as LinkType | undefined;
   if (process.env.NODE_ENV === 'development' && debugVerbose) console.log('[Navigation] CTA Button found:', ctaButton?.title || 'None');
 
   const navItems = (settings?.headerLinks || []).filter(link => {
-    const shouldKeep = link && link._type && !(link._type === 'link' && link.isButton);
+    const shouldKeep = !!link && !!link._type && !(isLinkEntry(link) && link.isButton);
     if (process.env.NODE_ENV === 'development' && debugVerbose) console.log('[Navigation] Filter check:', {
       title: link?.title,
       _type: link?._type,
-      isButton: link?.isButton,
+      isButton: isLinkEntry(link) ? link.isButton : undefined,
       shouldKeep
     });
     return shouldKeep;
@@ -130,7 +134,7 @@ const Navigation = ({ initialSettings }: NavigationProps) => {
     console.warn('[Navigation] No nav items after filtering - CRITICAL ISSUE:', {
       originalLength: settings?.headerLinks?.length,
       headerLinks: settings?.headerLinks,
-      allAreButtons: settings?.headerLinks?.every(link => link._type === 'link' && link.isButton)
+      allAreButtons: settings?.headerLinks?.every(link => isLinkEntry(link) && link.isButton)
     });
   }
   

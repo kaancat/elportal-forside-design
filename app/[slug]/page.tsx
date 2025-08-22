@@ -1,53 +1,37 @@
 /**
- * Dynamic Page Route with SSR/ISR
- * Isolated under __ssr to prevent routing conflicts
- * Handles all CMS-managed pages with proper SEO metadata
+ * Root-level Dynamic Page Route for App Router
+ * Handles direct navigation to content pages like /elpriser, /sammenlign, etc.
+ * Uses the same logic as the nested __ssr route but at root level
  */
 
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import dynamic from 'next/dynamic'
 import { unstable_cache } from 'next/cache'
 import { getPageBySlug } from '@/server/sanity'
-import { urlFor } from '@/server/sanity'
-import { SITE_URL, SITE_NAME, canonicalUrl, isProduction, getRobotsDirective } from '@/lib/url-helpers'
-import ServerContentBlocks from '../../../(marketing)/ServerContentBlocks'
-import ClientContentBlocks from '../../../(marketing)/ClientContentBlocks'
-import ClientRouterWrapper from '../../../ClientRouterWrapper'
+import { urlFor, getSiteSettings } from '@/server/sanity'
+import { SITE_URL, SITE_NAME, canonicalUrl, getRobotsDirective } from '@/lib/url-helpers'
+import UnifiedContentBlocks from '@/components/UnifiedContentBlocks'
+import ClientLayout from '../(marketing)/ClientLayout'
 
-// Use unstable_cache for better revalidation per Codex recommendation
-const getCachedPageBySlug = unstable_cache(
-  async (slug: string) => getPageBySlug(slug),
-  ['page-by-slug'],
-  {
-    revalidate: 3600, // 1 hour
-    tags: ['page'],
-  }
-)
-
-// Client components
-const ClientNavigation = dynamic(
-  () => import('@/components/Navigation')
-)
-
-const ClientFooter = dynamic(
-  () => import('@/components/Footer')
-)
-
-const ClientReadingProgress = dynamic(
-  () => import('@/components/ReadingProgress')
-)
+// Use per-slug cache key by creating the cached function at call-site
+const getCachedPageBySlug = async (slug: string) =>
+  await unstable_cache(
+    async () => getPageBySlug(slug),
+    ['page-by-slug', slug],
+    {
+      revalidate: 3600, // 1 hour
+      tags: ['page'],
+    }
+  )()
 
 // Generate metadata for dynamic pages
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const { slug } = params
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
   const page = await getCachedPageBySlug(slug)
   
   if (!page) return {}
   
   const canonical = canonicalUrl(`/${slug}`)
-  
-  // Staging safety check per Codex
   const robotsDirective = getRobotsDirective(page.noIndex)
   
   return {
@@ -83,7 +67,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 }
 
-// Pre-render high-value pages per Codex recommendation
+// Pre-generate high-traffic pages
 export async function generateStaticParams() {
   return [
     { slug: 'elpriser' },
@@ -97,15 +81,13 @@ export async function generateStaticParams() {
 // Revalidate every hour for dynamic pages
 export const revalidate = 3600
 
-export default async function DynamicPage({ params }: { params: { slug: string } }) {
-  const { slug } = params
+export default async function DynamicPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const [page, siteSettings] = await Promise.all([
+    getCachedPageBySlug(slug),
+    getSiteSettings(),
+  ])
   
-  // Use server-only flag per Codex security recommendation
-  if (process.env.PHASE3_DYNAMIC_ENABLED !== 'true') {
-    notFound()
-  }
-  
-  const page = await getCachedPageBySlug(slug)
   if (!page) notFound()
   
   // Generate Breadcrumb JSON-LD
@@ -128,7 +110,7 @@ export default async function DynamicPage({ params }: { params: { slug: string }
     ],
   }
   
-  // Check for FAQ content blocks - cap at 20 questions per Codex performance note
+  // Check for FAQ content blocks
   const faqBlocks = page.contentBlocks?.filter((b: any) => b._type === 'faqGroup')
   const faqItems = faqBlocks?.flatMap((b: any) => b.faqItems || []).slice(0, 20)
   const jsonLdFAQ = faqItems?.length ? {
@@ -161,21 +143,9 @@ export default async function DynamicPage({ params }: { params: { slug: string }
     },
   }
   
-  // Separate content blocks into server and client components
-  const serverBlocks = ['hero', 'heroWithCalculator', 'pageSection', 'valueProposition', 'faqGroup', 'callToActionSection', 'infoCards']
-  const clientBlocks = ['livePriceGraph', 'co2EmissionsDisplay', 'monthlyProductionChart', 'renewableEnergyForecast', 'priceCalculatorWidget', 'providerList', 'consumptionMap', 'dailyPriceTimeline', 'applianceCalculator', 'forbrugTracker', 'declarationProduction', 'declarationGridmix', 'regionalComparison', 'energyTipsSection', 'videoSection', 'realPriceComparisonTable', 'locationSelector']
-  
-  const serverContentBlocks = page.contentBlocks?.filter((block: any) => 
-    serverBlocks.includes(block._type)
-  ) || []
-  
-  const clientContentBlocks = page.contentBlocks?.filter((block: any) => 
-    clientBlocks.includes(block._type)
-  ) || []
-  
   return (
     <>
-      {/* JSON-LD in head per Codex recommendation */}
+      {/* JSON-LD in head */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdBreadcrumb) }}
@@ -191,28 +161,16 @@ export default async function DynamicPage({ params }: { params: { slug: string }
         />
       )}
       
-      <ClientRouterWrapper>
-        <div className="min-h-screen bg-white">
-          <ClientNavigation />
-          
-          {page.showReadingProgress && <ClientReadingProgress />}
-          
+      <div className="min-h-screen bg-white">
+        <ClientLayout showReadingProgress={page.showReadingProgress} initialSiteSettings={siteSettings ?? null}>
           <main>
-            {/* Server-rendered content for SEO */}
-            <ServerContentBlocks 
-              blocks={serverContentBlocks}
-              showReadingProgress={page.showReadingProgress}
-            />
-            
-            {/* Client-rendered interactive components */}
-            <ClientContentBlocks 
-              blocks={clientContentBlocks}
+            <UnifiedContentBlocks 
+              page={page}
+              enableBreadcrumbs={true}
             />
           </main>
-          
-          <ClientFooter />
-        </div>
-      </ClientRouterWrapper>
+        </ClientLayout>
+      </div>
     </>
   )
 }

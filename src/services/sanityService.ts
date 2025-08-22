@@ -64,61 +64,22 @@ export class SanityService {
 
   // Fetch site settings including navigation data
   static async getSiteSettings(): Promise<SiteSettings | null> {
-    const query = `*[_type == "siteSettings"][0] {
-      ...,
-      headerLinks[] {
-        ...,
-        _type == 'link' => {
-          ...,
-          internalLink->{ "slug": slug.current, _type }
-        },
-        _type == 'megaMenu' => {
-          ...,
-          content[] {
-            ...,
-            _type == 'megaMenuColumn' => {
-              ...,
-              items[] {
-                ...,
-                icon {
-                  ...,
-                  metadata {
-                    inlineSvg,
-                    iconName,
-                    url,
-                    color
-                  }
-                },
-                link {
-                  ...,
-                  internalLink->{ "slug": slug.current, _type }
-                }
-              }
-            }
-          }
-        }
-      },
-      footer {
-        ...,
-        footerLogo,
-        footerDescription,
-        copyrightText,
-        secondaryCopyrightText,
-        linkGroups[] {
-          ...,
-          links[] {
-            ...,
-            internalLink->{ "slug": slug.current, _type }
-          }
-        }
-      }
-    }`
-    
     try {
-      const settings = await client.fetch<SiteSettings>(query)
+      const response = await fetch('/api/site-settings', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      
+      if (!response.ok) {
+        throw new Error(`API response not ok: ${response.status}`)
+      }
+      
+      const settings = await response.json()
       return settings
     } catch (error) {
-      console.error('Error fetching site settings:', error)
+      console.error('Error fetching site settings from API:', error)
       return null
     }
   }
@@ -496,46 +457,14 @@ export class SanityService {
 
   // Fetch all providers - single query to avoid N+1 problem
   static async getAllProviders(): Promise<ProviderProductBlock[]> {
-    const query = `*[_type == "provider" && isActive != false]{
-      "id": _id,
-      providerName,
-      productName,
-      "logoUrl": logo.asset->url,
-      // Detailed pricing fields
-      spotPriceMarkup,
-      greenCertificateFee,
-      tradingCosts,
-      monthlySubscription,
-      signupFee,
-      yearlySubscription,
-      // Product features
-      isVindstoedProduct,
-      isVariablePrice,
-      bindingPeriod,
-      isGreenEnergy,
-      benefits,
-      signupLink,
-      // Metadata
-      lastPriceUpdate,
-      priceUpdateFrequency,
-      notes,
-      isActive,
-      // Legacy fields for backward compatibility
-      displayPrice_kWh,
-      displayMonthlyFee,
-      // Regional pricing
-      regionalPricing[] {
-        region,
-        spotPriceMarkup,
-        monthlySubscription
-      }
-    }`
-    
     try {
-      const providers = await client.fetch<ProviderProductBlock[]>(query)
-      return providers || []
+      // Always fetch via Next API to avoid browser CORS to Sanity
+      const res = await fetch('/api/providers', { cache: 'no-store' })
+      if (!res.ok) throw new Error(`API responded ${res.status}`)
+      const data = await res.json()
+      return Array.isArray(data?.providers) ? data.providers : []
     } catch (error) {
-      console.error('Error fetching providers:', error)
+      console.error('Error fetching providers via API:', error)
       return []
     }
   }

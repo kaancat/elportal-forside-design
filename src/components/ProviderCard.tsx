@@ -60,14 +60,26 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
           <div className="flex flex-col space-y-4">
             <div className="flex items-center space-x-6">
               <div className="flex-shrink-0 w-28 h-28 flex items-center justify-center p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
-                <img 
-                  src={product.supplierLogoURL || '/placeholder.svg'} 
-                  alt={`${product.supplierName || 'Ukendt'} logo`} 
-                  className="max-w-full max-h-full object-contain" 
-                  onError={(e) => {
-                    e.currentTarget.src = '/placeholder.svg';
-                  }}
-                />
+                {(() => {
+                  const raw = product.supplierLogoURL || '/placeholder.svg';
+                  const optimized = raw.includes('cdn.sanity.io/images/')
+                    ? `${raw}${raw.includes('?') ? '&' : '?'}w=200&auto=format&fit=max`
+                    : raw;
+                  return (
+                    <img
+                      src={optimized}
+                      alt={`${product.supplierName || 'Ukendt'} logo`}
+                      className="max-w-full max-h-full object-contain"
+                      width={112}
+                      height={112}
+                      loading="lazy"
+                      decoding="async"
+                      onError={(e) => {
+                        e.currentTarget.src = '/placeholder.svg';
+                      }}
+                    />
+                  );
+                })()}
               </div>
               
               <div>

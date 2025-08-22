@@ -255,8 +255,8 @@ export function reportUserActionError(
   );
 }
 
-// Development helpers
-if (process.env.NODE_ENV === 'development') {
+// Development helpers (client-side only)
+if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
   // Make error reporting available in console for debugging
   (window as any).errorReporting = errorReporting;
   

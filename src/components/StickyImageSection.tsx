@@ -115,12 +115,14 @@ const StickyImageSection: React.FC<StickyImageSectionProps> = ({ section, custom
               style={{ y: isDesktop ? imageY : staticY }}
             >
               <img
-                src={urlFor(image).width(1000).quality(85).url()}
+                src={urlFor(image).width(800).quality(70).url()}
                 alt={image.alt || title}
                 className={cn(
                   "w-full h-auto rounded-2xl object-cover",
                   "md:max-h-[calc(100vh-10rem)]"
                 )}
+                loading="lazy"
+                decoding="async"
               />
             </motion.div>
           </div>

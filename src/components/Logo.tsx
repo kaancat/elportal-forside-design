@@ -23,9 +23,10 @@ const Logo: React.FC<LogoProps> = ({
   maxRetries = 3,
   retryDelay = 1000,
 }) => {
-  const [currentSrc, setCurrentSrc] = useState<string>(src || FALLBACK_LOGO);
+  // Show fallback immediately; swap to remote when it's ready
+  const [currentSrc, setCurrentSrc] = useState<string>(FALLBACK_LOGO);
   const [retryCount, setRetryCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const retryTimeoutRef = useRef<NodeJS.Timeout>();
@@ -43,19 +44,26 @@ const Logo: React.FC<LogoProps> = ({
     }
   }, [src]);
 
-  // Update current source when prop changes
+  // When a remote src is provided, preload it and then swap in
   useEffect(() => {
-    if (src && src !== currentSrc) {
-      setCurrentSrc(src);
-      setRetryCount(0);
-      setHasError(false);
-      setIsLoading(true);
-    } else if (!src) {
-      // If no src provided, use fallback immediately
+    if (!src) {
       setCurrentSrc(FALLBACK_LOGO);
       setHasError(false);
       setIsLoading(false);
+      return;
     }
+    setIsLoading(true);
+    const preloader = new Image();
+    preloader.onload = () => {
+      setCurrentSrc(src);
+      setIsLoading(false);
+      setHasError(false);
+    };
+    preloader.onerror = () => {
+      handleFallback();
+    };
+    preloader.src = src;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src]);
 
   // Cleanup timeout on unmount
@@ -151,11 +159,11 @@ const Logo: React.FC<LogoProps> = ({
         onError={handleError}
         onClick={onClick}
         loading="eager" // Logo should load immediately
-        decoding="sync" // Decode synchronously for above-fold content
+        decoding="async" // Prevent main-thread blocking during initial paint
       />
       
-      {/* Loading skeleton while image loads */}
-      {isLoading && (
+      {/* Optional overlay while switching to remote; avoid covering fallback */}
+      {isLoading && currentSrc !== FALLBACK_LOGO && (
         <div 
           className={cn(
             'absolute inset-0 bg-white/20 rounded animate-pulse',

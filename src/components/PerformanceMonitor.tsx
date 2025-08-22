@@ -41,10 +41,9 @@ export function PerformanceMonitor() {
     }
 
     // Use dynamic import to avoid SSR issues
-    import('web-vitals').then(({ onCLS, onFCP, onFID, onINP, onLCP, onTTFB }) => {
+    import('web-vitals').then(({ onCLS, onFCP, onINP, onLCP, onTTFB }) => {
       onCLS(handleWebVitals)
       onFCP(handleWebVitals)
-      onFID(handleWebVitals)
       onINP(handleWebVitals)
       onLCP(handleWebVitals)
       onTTFB(handleWebVitals)

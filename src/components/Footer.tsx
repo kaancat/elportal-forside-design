@@ -2,14 +2,20 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Link } from 'react-router-dom';
+import UniversalLink from './UniversalLink';
 import { useFooterData } from '@/hooks/useFooterData';
+import type { SiteSettings } from '@/types/sanity';
 import { resolveLink } from '@/utils/linkResolver';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FALLBACK_LOGO, FALLBACK_ALT } from '@/constants/branding';
 
-const Footer = () => {
-  const { data: settings, isLoading } = useFooterData();
+interface FooterProps {
+  initialSettings?: SiteSettings | null;
+}
+
+const Footer = ({ initialSettings }: FooterProps) => {
+  const { data: fetched, isLoading } = useFooterData({ enabled: !initialSettings });
+  const settings = initialSettings ?? fetched;
   const footer = settings?.footer;
 
   // Format today's date in Danish
@@ -104,23 +110,12 @@ const Footer = () => {
                       
                       return (
                         <li key={link._key || linkIndex}>
-                          {isInternal ? (
-                            <Link 
-                              to={href}
-                              className="text-gray-300 hover:text-brand-green transition-colors"
-                            >
-                              {link.title}
-                            </Link>
-                          ) : (
-                            <a 
-                              href={href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-gray-300 hover:text-brand-green transition-colors"
-                            >
-                              {link.title}
-                            </a>
-                          )}
+                          <UniversalLink 
+                            href={href}
+                            className="text-gray-300 hover:text-brand-green transition-colors"
+                          >
+                            {link.title}
+                          </UniversalLink>
                         </li>
                       );
                     })}

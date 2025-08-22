@@ -68,6 +68,13 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Next.js migration notes (2025-08-22)
+
+- Dynamic pages are handled by `app/[slug]/page.tsx` only. The legacy `app/(ssr)/__ssr/[slug]/page.tsx` was removed.
+- Per-slug caching is enforced with `unstable_cache` keys including the slug: `['page-by-slug', slug]`.
+- `middleware.ts` simplified: no `__ssr` rewrites; non-SPA paths are served by the App Router directly.
+- Validate Sanity navigation via: `npm run navigation:health`.
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/552b3352-b533-44e5-8485-d315bca5bd83) and click on Share -> Publish.

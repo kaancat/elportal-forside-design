@@ -431,13 +431,15 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
               <div className="relative">
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-black/0 to-black/[0.03] dark:from-white/0 dark:to-white/[0.06]" />
                 <img
-                  src={urlFor(image).width(1000).quality(85).url()}
+                  src={urlFor(image).width(800).quality(70).url()}
                   alt={image.alt || title}
                   className={cn(
                     "w-full h-auto rounded-2xl object-cover",
                     "shadow-xl shadow-black/5",
                     "transition-transform duration-500 group-hover:scale-[1.01]"
                   )}
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             </motion.div>

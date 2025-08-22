@@ -11,10 +11,9 @@ import { unstable_cache } from 'next/cache'
 import { getHomePage } from '@/server/sanity'
 import { urlFor } from '@/server/sanity'
 import { SITE_URL, SITE_NAME, canonicalUrl } from '@/lib/url-helpers'
-import ServerContentBlocks from './(marketing)/ServerContentBlocks'
-import ClientContentBlocks from './(marketing)/ClientContentBlocks'
-import ClientRouterWrapper from './ClientRouterWrapper'
+import UnifiedContentBlocks from '@/components/UnifiedContentBlocks'
 import ClientLayout from './(marketing)/ClientLayout'
+import { getSiteSettings } from '@/server/sanity'
 
 // SPA App component removed - using App Router only
 const SPAApp = () => {
@@ -86,17 +85,21 @@ export async function generateMetadata(): Promise<Metadata> {
 export const revalidate = 300
 
 export default async function HomePage() {
-  // Check if Phase 2 SSR is enabled
+  // Check if Phase 2 SSR is enabled (explicit opt-in only)
+  // Prevent local 404s when homepage isn't published by defaulting to SPA unless flag is true
   const isSSREnabled = process.env.NEXT_PUBLIC_PHASE2_SSR === 'true'
-  
+
   if (!isSSREnabled) {
-    // Return SPA wrapper for backward compatibility
+    // Return SPA wrapper for backward compatibility when explicitly disabled
     return <SPAApp />
   }
 
   // Phase 2: SSR Homepage
   // Fetch homepage data server-side
-  const page = await getCachedHomePage()
+  const [page, siteSettings] = await Promise.all([
+    getCachedHomePage(),
+    getSiteSettings()
+  ])
 
   // Generate WebSite JSON-LD (Organization already in layout)
   const jsonLdWebSite = {
@@ -118,21 +121,12 @@ export default async function HomePage() {
   }
 
   if (!page) {
-    // If no homepage found, show 404
+    // Fallback to SPA in development when homepage is missing
+    if (process.env.NODE_ENV !== 'production') {
+      return <SPAApp />
+    }
     notFound()
   }
-
-  // Separate content blocks into server and client components
-  const serverBlocks = ['hero', 'heroWithCalculator', 'pageSection', 'valueProposition', 'faqGroup', 'callToActionSection', 'infoCards']
-  const clientBlocks = ['livePriceGraph', 'co2EmissionsDisplay', 'monthlyProductionChart', 'renewableEnergyForecast', 'priceCalculatorWidget', 'providerList', 'consumptionMap', 'dailyPriceTimeline', 'applianceCalculator', 'forbrugTracker', 'declarationProduction', 'declarationGridmix', 'regionalComparison', 'energyTipsSection', 'videoSection', 'realPriceComparisonTable', 'locationSelector']
-
-  const serverContentBlocks = page.contentBlocks?.filter((block: any) => 
-    serverBlocks.includes(block._type)
-  ) || []
-  
-  const clientContentBlocks = page.contentBlocks?.filter((block: any) => 
-    clientBlocks.includes(block._type)
-  ) || []
 
   return (
     <>
@@ -140,24 +134,16 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebSite) }}
       />
-      <ClientRouterWrapper>
-        <div className="min-h-screen bg-white">
-          <ClientLayout showReadingProgress={page.showReadingProgress}>
-            <main>
-              {/* Server-rendered content for SEO */}
-              <ServerContentBlocks 
-                blocks={serverContentBlocks}
-                showReadingProgress={page.showReadingProgress}
-              />
-              
-              {/* Client-rendered interactive components */}
-              <ClientContentBlocks 
-                blocks={clientContentBlocks}
-              />
-            </main>
-          </ClientLayout>
-        </div>
-      </ClientRouterWrapper>
+      <div className="min-h-screen bg-white">
+        <ClientLayout showReadingProgress={page.showReadingProgress} initialSiteSettings={siteSettings ?? null}>
+          <main>
+            <UnifiedContentBlocks 
+              page={page}
+              enableBreadcrumbs={false}
+            />
+          </main>
+        </ClientLayout>
+      </div>
     </>
   )
 }

@@ -7,6 +7,7 @@ import { createClient } from '@sanity/client'
 import imageUrlBuilder from '@sanity/image-url'
 import type { SanityImageSource } from '@sanity/image-url/lib/types/types'
 import { env } from '@/lib/env'
+import { pageProjection } from '@/lib/sanityProjections'
 
 // Server-side Sanity client with different configuration
 export const sanityClient = createClient({
@@ -27,230 +28,8 @@ export function urlFor(source: SanityImageSource) {
   return builder.image(source)
 }
 
-// GROQ Queries with proper reference expansion
-const pageProjection = `{
-  _id,
-  _type,
-  title,
-  "slug": slug.current,
-  isHomepage,
-  showReadingProgress,
-  seoMetaTitle,
-  seoMetaDescription,
-  seoKeywords,
-  noIndex,
-  ogImage,
-  contentBlocks[] {
-    _type == "hero" => {
-      _type,
-      _key,
-      headline,
-      subheadline,
-      image,
-      imageAlt,
-      ctaButtonText,
-      ctaButtonLink,
-      backgroundImage,
-      backgroundImageAlt,
-      variant,
-      height
-    },
-    _type == "heroWithCalculator" => {
-      _type,
-      _key,
-      headline,
-      subheadline,
-      ctaButtonText,
-      backgroundImage,
-      backgroundImageAlt,
-      showLivePrices
-    },
-    _type == "pageSection" => {
-      _type,
-      _key,
-      title,
-      headerAlignment,
-      content,
-      image,
-      imagePosition,
-      imageAlt,
-      cta {
-        text,
-        link,
-        variant
-      },
-      settings {
-        backgroundColor,
-        textColor,
-        paddingTop,
-        paddingBottom
-      }
-    },
-    _type == "providerList" => {
-      _type,
-      _key,
-      title,
-      subtitle,
-      description,
-      showDetailedPricing,
-      showEnvironmentalInfo,
-      displayMode
-    },
-    _type == "faqGroup" => {
-      _type,
-      _key,
-      title,
-      subtitle,
-      faqItems[] {
-        _key,
-        question,
-        answer
-      }
-    },
-    _type == "valueProposition" => {
-      _type,
-      _key,
-      heading,
-      subheading,
-      valueItems[] {
-        _key,
-        title,
-        description,
-        icon {
-          provider,
-          name
-        }
-      }
-    },
-    _type == "callToActionSection" => {
-      _type,
-      _key,
-      headline,
-      subheadline,
-      ctaButtons[] {
-        _key,
-        text,
-        link,
-        variant
-      },
-      backgroundImage,
-      backgroundColor
-    },
-    _type == "livePriceGraph" => {
-      _type,
-      _key,
-      title,
-      description,
-      region,
-      timeRange,
-      showComparison,
-      height
-    },
-    _type == "co2EmissionsDisplay" => {
-      _type,
-      _key,
-      title,
-      description,
-      displayMode,
-      showHistorical,
-      showForecast,
-      region
-    },
-    _type == "monthlyProductionChart" => {
-      _type,
-      _key,
-      title,
-      description,
-      year,
-      showComparison,
-      chartType
-    },
-    _type == "renewableEnergyForecast" => {
-      _type,
-      _key,
-      title,
-      description,
-      region,
-      showDetails,
-      forecastDays
-    },
-    _type == "priceCalculatorWidget" => {
-      _type,
-      _key,
-      title,
-      description,
-      showAdvancedOptions,
-      defaultConsumption,
-      variant
-    },
-    _type == "energyTipsSection" => {
-      _type,
-      _key,
-      title,
-      tips[] {
-        _key,
-        title,
-        description,
-        icon,
-        savings
-      }
-    },
-    _type == "consumptionMap" => {
-      _type,
-      _key,
-      title,
-      description,
-      dataType,
-      showLegend,
-      enableInteraction
-    },
-    _type == "infoCards" => {
-      _type,
-      _key,
-      title,
-      cards[] {
-        _key,
-        title,
-        content,
-        icon,
-        backgroundColor
-      },
-      columns
-    },
-    _type == "dailyPriceTimeline" => {
-      _type,
-      _key,
-      title,
-      description,
-      region,
-      showPeakIndicators,
-      showAveragePrice
-    },
-    _type == "applianceCalculator" => {
-      _type,
-      _key,
-      title,
-      description,
-      defaultAppliances,
-      showSavingsTips
-    },
-    _type == "forbrugTracker" => {
-      _type,
-      _key,
-      title,
-      description,
-      enableHistoricalView,
-      showCostProjection
-    },
-    _type => {
-      _type,
-      _key,
-      ...
-    }
-  }
-}`
+// Server-side data fetching functions use the centralized projection
 
-// Server-side data fetching functions
 export async function getHomePage() {
   const query = `*[_type == "page" && isHomepage == true][0] ${pageProjection}`
   
@@ -277,17 +56,23 @@ export async function getPageBySlug(slug: string) {
   const query = `*[_type == "page" && slug.current == $slug][0] ${pageProjection}`
   
   try {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[Sanity] getPageBySlug called`, { slug })
+    }
     const page = await sanityClient.fetch(
       query,
       { slug },
       {
         next: {
           revalidate: 3600, // Revalidate every hour
-          tags: ['page', `page:${slug}`],
+          tags: ['page'],
         },
       }
     )
     
+    if (!page && process.env.NODE_ENV !== 'production') {
+      console.warn(`[Sanity] No page found for slug`, { slug })
+    }
     return page
   } catch (error) {
     console.error(`[Server] Failed to fetch page ${slug}:`, error)
@@ -307,16 +92,15 @@ export async function getAllPageSlugs() {
       {},
       {
         next: {
-          revalidate: 3600,
-          tags: ['pages'],
+          revalidate: 3600, // Revalidate every hour
+          tags: ['page'],
         },
       }
     )
     
-    // Return both slug and _updatedAt for sitemap generation
-    return pages.map((p: { slug: string; _updatedAt: string }) => ({
+    return pages.map((p: any) => ({
       slug: p.slug,
-      lastModified: p._updatedAt
+      lastModified: new Date(p._updatedAt).toISOString(),
     })).filter(p => p.slug)
   } catch (error) {
     console.error('[Server] Failed to fetch page slugs:', error)
@@ -328,74 +112,80 @@ export async function getSiteSettings() {
   const query = `*[_type == "siteSettings"][0] {
     _id,
     _type,
+    title,
     headerLinks[] {
       _type == "link" => {
-        _type,
         _key,
-        label,
+        _type,
+        title,
         linkType,
+        internalLink->{ "slug": slug.current, _type },
         externalUrl,
-        internalLink-> {
-          "slug": slug.current,
-          _type
-        }
+        isButton
       },
       _type == "megaMenu" => {
-        _type,
         _key,
-        label,
-        columns[] {
+        _type,
+        title,
+        content[] {
           _key,
           title,
-          links[] {
+          items[] {
             _key,
-            label,
-            linkType,
-            externalUrl,
-            internalLink-> {
-              "slug": slug.current,
-              _type
+            title,
+            description,
+            icon,
+            link {
+              _type,
+              linkType,
+              internalLink->{ "slug": slug.current, _type },
+              externalUrl
             }
           }
         }
       }
     },
-    footerSettings {
-      logo,
-      logoAlt,
-      description,
+    footer {
+      footerLogo {
+        asset-> {
+          _id,
+          _ref,
+          url
+        },
+        alt
+      },
+      footerDescription,
+      copyrightText,
+      secondaryCopyrightText,
       linkGroups[] {
         _key,
         title,
         links[] {
           _key,
-          label,
+          title,
           linkType,
-          externalUrl,
-          internalLink-> {
-            "slug": slug.current,
-            _type
-          }
+          internalLink->{ "slug": slug.current, _type },
+          externalUrl
         }
+      }
+    },
+    logo {
+      asset-> {
+        _id,
+        _ref,
+        url
       },
-      socialLinks[] {
-        _key,
-        platform,
-        url,
-        icon
-      },
-      bottomText,
-      copyrightText
+      alt
     }
   }`
-  
+
   try {
     const settings = await sanityClient.fetch(
       query,
       {},
       {
         next: {
-          revalidate: 3600,
+          revalidate: 3600, // Revalidate every hour
           tags: ['siteSettings'],
         },
       }
@@ -412,37 +202,48 @@ export async function getProviders() {
   const query = `*[_type == "provider" && !(_id in path("drafts.**"))] | order(name asc) {
     _id,
     _type,
-    name,
-    slug,
-    logo,
-    description,
-    website,
-    isVindstoedProduct,
-    spotPriceAddition,
-    spotPriceAdditionVAT,
+    providerName,
+    productName,
+    logo {
+      asset-> {
+        _id,
+        url
+      },
+      alt
+    },
+    spotPriceMarkup,
+    greenCertificateFee,
+    tradingCosts,
     monthlySubscription,
-    monthlySubscriptionVAT,
-    yearlyPriceEstimate,
+    signupFee,
+    yearlySubscription,
+    isVindstoedProduct,
+    isVariablePrice,
     bindingPeriod,
-    priceGuarantee,
-    greenEnergyPercentage,
-    customerRating,
-    trustpilotRating,
-    supportEmail,
-    supportPhone,
-    features,
-    additionalBenefits,
-    regionSpecific
+    isGreenEnergy,
+    benefits,
+    signupLink,
+    lastPriceUpdate,
+    priceUpdateFrequency,
+    notes,
+    isActive,
+    displayPrice_kWh,
+    displayMonthlyFee,
+    regionalPricing[] {
+      region,
+      spotPriceMarkup,
+      monthlySubscription
+    }
   }`
-  
+
   try {
     const providers = await sanityClient.fetch(
       query,
       {},
       {
         next: {
-          revalidate: 3600,
-          tags: ['providers'],
+          revalidate: 3600, // Revalidate every hour  
+          tags: ['provider'],
         },
       }
     )

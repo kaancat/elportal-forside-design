@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Zap, TrendingDown, Check, X, Star, ExternalLink, Info, Leaf, Wind, Shield, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { RealPriceComparisonTable, ProviderProductBlock } from '../types/sanity';
+import { useIsClient } from '@/hooks/useIsClient';
 import { SanityService } from '../services/sanityService';
 import { PRICE_CONSTANTS } from '@/services/priceCalculationService';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -137,6 +138,7 @@ const getPaddingClasses = (padding?: string) => {
 };
 
 const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ block }) => {
+  const isClient = useIsClient();
   const [selectedProvider1, setSelectedProvider1] = useState<ProviderProductBlock | null>(null);
   const [selectedProvider2, setSelectedProvider2] = useState<ProviderProductBlock | null>(null);
   const [monthlyConsumption, setMonthlyConsumption] = useState(333); // Default ~4000 kWh/year
@@ -152,6 +154,8 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
 
   // Fetch current spot price
   useEffect(() => {
+    if (!isClient) return;
+    
     const fetchSpotPrice = async () => {
       try {
         const response = await fetch('/api/electricity-prices?region=DK2');
@@ -169,9 +173,11 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
     };
     
     fetchSpotPrice();
-  }, []);
+  }, [isClient]);
 
   useEffect(() => {
+    if (!isClient) return;
+    
     const fetchProviders = async () => {
       try {
         const providers = await SanityService.getAllProviders();
@@ -201,7 +207,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
     };
     
     fetchProviders();
-  }, []);
+  }, [isClient]);
 
   const handleSelect1 = (providerId: string) => {
     const provider = allProviders.find(p => p.id === providerId) || null;

@@ -6,7 +6,7 @@ import { SiteSettings } from '@/types/sanity';
  * Unified hook for fetching site settings from Sanity
  * Used by Navigation, metadata, and any other components that need site-wide settings
  */
-export function useSiteSettings() {
+export function useSiteSettings(options?: { enabled?: boolean }) {
   const query = useQuery<SiteSettings | null>({
     queryKey: ['site-settings'],
     queryFn: async () => {
@@ -38,6 +38,8 @@ export function useSiteSettings() {
       return false;
     },
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    // Allow callers to disable fetching when server-provided data is available
+    enabled: options?.enabled !== false,
   });
 
   return {

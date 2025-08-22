@@ -1,5 +1,7 @@
+'use client'
+
 import React from 'react'
-import { AnimatePresence } from 'framer-motion'
+// import { div } from 'framer-motion' // Temporarily disabled for Next.js compatibility
 import { PageSection, FAQItem, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, CO2EmissionsChart, DeclarationProduction, DeclarationGridmix as DeclarationGridmixType, ConsumptionMap, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
 import PageSectionComponent from './PageSectionComponent'
 import FAQItemComponent from './FAQItemComponent'
@@ -286,7 +288,7 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
           </div>
         }
       >
-        <AnimatePresence mode="wait">
+        <div>
           {groupedBlocks.map((block, index) => {
             // Determine spacing for this block
             const nextBlock = groupedBlocks[index + 1];
@@ -312,14 +314,14 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
               </div>
             );
           })}
-        </AnimatePresence>
+        </div>
       </ErrorBoundary>
     );
   }
 
   // Default rendering without error boundaries
   return (
-    <AnimatePresence mode="wait">
+    <div>
       {groupedBlocks.map((block, index) => {
         // Determine spacing for this block
         const nextBlock = groupedBlocks[index + 1];
@@ -354,7 +356,7 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
           </div>
         );
       })}
-    </AnimatePresence>
+    </div>
   );
 }
 

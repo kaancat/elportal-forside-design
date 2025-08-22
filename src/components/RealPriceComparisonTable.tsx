@@ -15,6 +15,7 @@ import { SanityService } from '../services/sanityService';
 import { PRICE_CONSTANTS } from '@/services/priceCalculationService';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { TrackedLink } from '@/components/tracking/TrackedLink';
+import { resolveProviderLogoUrl } from '@/lib/providerLogos';
 
 // Format currency with proper rounding for display
 const formatCurrency = (amount: number) => {
@@ -407,13 +408,12 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
         {/* Provider name and logo display */}
         {provider && (
           <div className="mb-6 text-center">
-            {provider.logoUrl && (
-              <img 
-                src={provider.logoUrl} 
-                alt={provider.providerName}
-                className="w-16 h-16 object-contain mx-auto mb-2"
-              />
-            )}
+            <img 
+              src={resolveProviderLogoUrl(provider?.providerName, provider?.logoUrl)} 
+              alt={provider?.providerName || 'Leverandør'}
+              className="w-16 h-16 object-contain mx-auto mb-2"
+              onError={(e) => { e.currentTarget.src = '/placeholder.svg' }}
+            />
             <h3 className={cn("font-bold text-lg", themeColors.heading)}>
               {provider.providerName}
             </h3>

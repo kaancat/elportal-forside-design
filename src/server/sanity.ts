@@ -199,8 +199,8 @@ export async function getSiteSettings() {
 }
 
 export async function getProviders() {
-  // Use the canonical electricity provider product type and shared projection
-  const query = `*[_type == "electricityProviderProduct" && !(_id in path("drafts.**"))] 
+  // Support both historical and current types to avoid empty results in preview
+  const query = `*[_type in ["electricityProviderProduct", "provider"] && !(_id in path("drafts.**"))]
     | order(providerName asc) ${providerProjection}`
 
   try {

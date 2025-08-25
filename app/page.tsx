@@ -39,8 +39,9 @@ const getCachedHomePage = unstable_cache(
 
 // Generate metadata for SEO (only used in SSR mode)
 export async function generateMetadata(): Promise<Metadata> {
-  // Only generate metadata if SSR is enabled
-  if (process.env.NEXT_PUBLIC_PHASE2_SSR !== 'true') {
+  // Enable SSR by default in preview/production. Allow explicit opt-out with NEXT_PUBLIC_PHASE2_SSR=false
+  const ssrEnabled = process.env.NEXT_PUBLIC_PHASE2_SSR !== 'false'
+  if (!ssrEnabled) {
     return {
       title: 'DinElPortal - Sammenlign elpriser og spar penge',
       description: 'Danmarks uafhængige elportal. Sammenlign elpriser, find den bedste eludbyder og spar op til 2.500 kr om året på din elregning.',
@@ -87,7 +88,7 @@ export const revalidate = 300
 export default async function HomePage() {
   // Check if Phase 2 SSR is enabled (explicit opt-in only)
   // Prevent local 404s when homepage isn't published by defaulting to SPA unless flag is true
-  const isSSREnabled = process.env.NEXT_PUBLIC_PHASE2_SSR === 'true'
+  const isSSREnabled = process.env.NEXT_PUBLIC_PHASE2_SSR !== 'false'
 
   if (!isSSREnabled) {
     // Return SPA wrapper for backward compatibility when explicitly disabled

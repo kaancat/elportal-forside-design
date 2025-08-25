@@ -7,7 +7,7 @@ import { createClient } from '@sanity/client'
 import imageUrlBuilder from '@sanity/image-url'
 import type { SanityImageSource } from '@sanity/image-url/lib/types/types'
 import { env } from '@/lib/env'
-import { pageProjection } from '@/lib/sanityProjections'
+import { pageProjection, providerProjection } from '@/lib/sanityProjections'
 
 // Server-side Sanity client with different configuration
 export const sanityClient = createClient({
@@ -199,42 +199,9 @@ export async function getSiteSettings() {
 }
 
 export async function getProviders() {
-  const query = `*[_type == "provider" && !(_id in path("drafts.**"))] | order(name asc) {
-    _id,
-    _type,
-    providerName,
-    productName,
-    logo {
-      asset-> {
-        _id,
-        url
-      },
-      alt
-    },
-    spotPriceMarkup,
-    greenCertificateFee,
-    tradingCosts,
-    monthlySubscription,
-    signupFee,
-    yearlySubscription,
-    isVindstoedProduct,
-    isVariablePrice,
-    bindingPeriod,
-    isGreenEnergy,
-    benefits,
-    signupLink,
-    lastPriceUpdate,
-    priceUpdateFrequency,
-    notes,
-    isActive,
-    displayPrice_kWh,
-    displayMonthlyFee,
-    regionalPricing[] {
-      region,
-      spotPriceMarkup,
-      monthlySubscription
-    }
-  }`
+  // Use the canonical electricity provider product type and shared projection
+  const query = `*[_type == "electricityProviderProduct" && !(_id in path("drafts.**"))] 
+    | order(providerName asc) ${providerProjection}`
 
   try {
     const providers = await sanityClient.fetch(

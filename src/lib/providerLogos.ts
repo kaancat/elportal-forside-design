@@ -1,28 +1,12 @@
 /**
  * Provider logo resolver
  * - Prefers Sanity-hosted logo URLs when available
- * - Falls back to local static placeholders under /providers
+ * - Otherwise returns any provided absolute URL as-is
  * - Finally falls back to the global /placeholder.svg
+ *
+ * Rationale: Avoid referencing /public/providers/* files which may not exist
+ * on preview deployments and cause 404s. Source of truth should be Sanity CDN.
  */
-
-const LOCAL_BASE = '/providers';
-
-// Known providers mapped to local filenames (placeholders that can be swapped later)
-const KNOWN_PROVIDER_FILES: Record<string, string> = {
-  'vindstød': 'vindstod-logo.svg',
-  'vindstod': 'vindstod-logo.svg',
-  'norlys': 'norlys-logo.svg',
-  'andel energi': 'andel-energi-logo.svg',
-  'andel': 'andel-energi-logo.svg',
-  'nrgi': 'nrgi-logo.svg',
-  'energifyn': 'energifyn-logo.svg',
-  'ok': 'ok-logo.svg',
-  'velkommen': 'velkommen-logo.svg',
-  'ewii': 'ewii-logo.svg',
-  'dcc energi': 'dcc-logo.svg',
-  'energi viborg': 'energi-viborg-logo.svg',
-  'verdo': 'verdo-logo.svg'
-};
 
 function normalizeName(name?: string | null): string {
   return (name || '')
@@ -41,15 +25,14 @@ export function resolveProviderLogoUrl(
     return `${sanityLogoUrl}${sanityLogoUrl.includes('?') ? '&' : '?'}w=200&auto=format&fit=max`;
   }
 
-  // Try known local placeholder by normalized provider name
-  const key = normalizeName(providerName);
-  const localFile = key ? KNOWN_PROVIDER_FILES[key] : undefined;
-  if (localFile) {
-    return `${LOCAL_BASE}/${localFile}`;
+  // If we have another absolute URL, return it as-is
+  if (sanityLogoUrl && /^https?:\/\//.test(sanityLogoUrl)) {
+    return sanityLogoUrl;
   }
 
   // Fallback to global placeholder
   return '/placeholder.svg';
 }
+
 
 

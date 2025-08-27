@@ -9,7 +9,15 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
 // --- TYPES ---
-interface ForecastRecord { HourUTC: string; ForecastType: 'Solar' | 'Onshore Wind' | 'Offshore Wind'; ForecastDayAhead: number; PriceArea: 'DK1' | 'DK2'; }
+// Matches EnergiDataService Forecasts_Hour dataset raw fields
+interface ForecastRecord {
+  HourUTC: string;
+  PriceArea?: 'DK1' | 'DK2';
+  OnshoreWindPowerLT75MWMWh?: number;
+  OnshoreWindPowerGE75MWMWh?: number;
+  OffshoreWindPowerMWh?: number;
+  SolarPowerMWh?: number;
+}
 interface RenewableEnergyForecastProps { 
   block: { 
     _type: 'renewableEnergyForecast'; 
@@ -69,15 +77,22 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
 
   const processedData = useMemo(() => {
     const grouped = allData.reduce((acc, record) => {
-        const hourKey = new Date(record.HourUTC).toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }).replace(/\./g, ':');
-        if (!acc[hourKey]) acc[hourKey] = { 'Solar': 0, 'Onshore Wind': 0, 'Offshore Wind': 0 };
-        if (record.ForecastDayAhead !== null) acc[hourKey][record.ForecastType] += record.ForecastDayAhead;
-        return acc;
-    }, {} as Record<string, any>);
+      const hourKey = new Date(record.HourUTC).toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }).replace(/\./g, ':');
+      if (!acc[hourKey]) acc[hourKey] = { 'Solar': 0, 'Onshore Wind': 0, 'Offshore Wind': 0 } as Record<string, number>;
+
+      const solar = record.SolarPowerMWh ?? 0;
+      const onshore = (record.OnshoreWindPowerLT75MWMWh ?? 0) + (record.OnshoreWindPowerGE75MWMWh ?? 0);
+      const offshore = record.OffshoreWindPowerMWh ?? 0;
+
+      acc[hourKey]['Solar'] += solar;
+      acc[hourKey]['Onshore Wind'] += onshore;
+      acc[hourKey]['Offshore Wind'] += offshore;
+      return acc;
+    }, {} as Record<string, Record<string, number>>);
 
     return Object.entries(grouped)
-      .map(([hour, values]) => ({ hour, ...values, Total: values.Solar + values['Onshore Wind'] + values['Offshore Wind'] }))
-      .sort((a,b) => a.hour.localeCompare(b.hour));
+      .map(([hour, values]) => ({ hour, ...values, Total: (values.Solar || 0) + (values['Onshore Wind'] || 0) + (values['Offshore Wind'] || 0) }))
+      .sort((a, b) => a.hour.localeCompare(b.hour));
   }, [allData]);
 
   const yAxisMax = useMemo(() => {

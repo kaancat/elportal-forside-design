@@ -25,3 +25,5 @@ Goal: Navigation correctness and routing unification
 - NOTE: Navigation health report shows 3 orphaned pages: `/om-os`, `/energibesparende-tips`, and one item with null slug; clean up in Sanity if unintended.
 
 
+
+

@@ -1,0 +1,501 @@
+{
+  "/": {
+    "consoleLogs": [
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "log",
+        "text": "[DinElportal Debug] Debug utility initialized"
+      },
+      {
+        "type": "log",
+        "text": "[Component: ConsumptionMap] Component file loaded "
+      },
+      {
+        "type": "log",
+        "text": "[Component: ConsumptionMap] Component exported successfully "
+      },
+      {
+        "type": "log",
+        "text": "🔧 Development mode: Error reporting available as window.errorReporting"
+      },
+      {
+        "type": "log",
+        "text": "🎯 First Contentful Paint: 212ms"
+      }
+    ],
+    "requests": [
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/dinelportal-logo.png",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/css/app/layout.css?v=1755868323237",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/webpack.js?v=1755868323237",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/layout.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/error.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app-pages-internals.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/not-found.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/image?url=%2Fdinelportal-logo.png&w=256&q=75",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/fonts/Geist-VariableFont_wght.ttf",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/fonts/Inter-VariableFont_opsz,wght.ttf",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/main-app.js?v=1755868323237",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/page.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/_app-pages-browser_node_modules_web-vitals_dist_web-vitals_js.js",
+        "status": 200
+      }
+    ]
+  },
+  "/elpriser": {
+    "consoleLogs": [
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "log",
+        "text": "%c%s%c [Sanity] getPageBySlug called background: #e6e6e6;background: light-dark(rgba(0,0,0,0.1), rgba(255,255,255,0.25));color: #000000;color: light-dark(#000000, #ffffff);border-radius: 2px  Server   {slug: elpriser}"
+      },
+      {
+        "type": "log",
+        "text": "%c%s%c [Sanity] getPageBySlug called background: #e6e6e6;background: light-dark(rgba(0,0,0,0.1), rgba(255,255,255,0.25));color: #000000;color: light-dark(#000000, #ffffff);border-radius: 2px  Server   {slug: elpriser}"
+      },
+      {
+        "type": "log",
+        "text": "[DinElportal Debug] Debug utility initialized"
+      },
+      {
+        "type": "log",
+        "text": "[Component: ConsumptionMap] Component file loaded "
+      },
+      {
+        "type": "log",
+        "text": "[Component: ConsumptionMap] Component exported successfully "
+      },
+      {
+        "type": "log",
+        "text": "🔧 Development mode: Error reporting available as window.errorReporting"
+      },
+      {
+        "type": "log",
+        "text": "[FeatureList] Item icon data: {title: Realtidsdata, icon: Object, hasMetadata: true, url: null}"
+      },
+      {
+        "type": "log",
+        "text": "[FeatureList] Item icon data: {title: Spar op til 3.000 kr., icon: Object, hasMetadata: true, url: null}"
+      },
+      {
+        "type": "log",
+        "text": "[FeatureList] Item icon data: {title: 100% Grøn Strøm, icon: Object, hasMetadata: true, url: null}"
+      },
+      {
+        "type": "log",
+        "text": "[FeatureList] Item icon data: {title: Realtidsdata, icon: Object, hasMetadata: true, url: null}"
+      },
+      {
+        "type": "log",
+        "text": "[FeatureList] Item icon data: {title: Spar op til 3.000 kr., icon: Object, hasMetadata: true, url: null}"
+      },
+      {
+        "type": "log",
+        "text": "[FeatureList] Item icon data: {title: 100% Grøn Strøm, icon: Object, hasMetadata: true, url: null}"
+      },
+      {
+        "type": "error",
+        "text": "A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:\n\n- A server/client branch `if (typeof window !== 'undefined')`.\n- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.\n- Date formatting in a user's locale which doesn't match the server.\n- External changing data without sending a snapshot of it along with the HTML.\n- Invalid HTML tag nesting.\n\nIt can also happen if the client has a browser extension installed which messes with the HTML before React loaded.\n\n%s%s https://react.dev/link/hydration-mismatch \n\n  ...\n    <SafeContentBlock block={{_key:\"prov...\", ...}} index={3}>\n      <ErrorBoundary level=\"component\" fallback={<ContentErrorFallback>} onError={function handleError}>\n        <ProviderListComponent block={{_key:\"prov...\", ...}}>\n          <section className=\"py-16 bg-g...\">\n            <div className=\"container ...\">\n              <div>\n              <div className=\"mb-8\">\n                <LocationSelector onLocationChange={function ProviderListComponent.useCallback[handleLocationChange]} ...>\n                  <div className={\"bg-white...\"}>\n                    <div className=\"space-y-4\">\n                      <div>\n                      <div>\n                        <_c>\n                        <div className=\"mt-1\">\n                          <AddressAutocomplete value=\"\" onChange={function handleInputChange} ...>\n                            <div className=\"relative\">\n                              <div className=\"relative\">\n                                <_c ref={{current:null}} type=\"text\" value=\"\" onChange={function handleInputChange} ...>\n                                  <input\n                                    type=\"text\"\n                                    className=\"flex h-10 w-full rounded-md border border-input bg-background px-3 py-2...\"\n                                    ref={{current:null}}\n                                    value=\"\"\n                                    onChange={function handleInputChange}\n                                    onKeyDown={function handleKeyDown}\n                                    onFocus={function onFocus}\n                                    placeholder=\"F.eks. Birkevej 7 eller 2200\"\n                                    disabled={false}\n-                                   style={{caret-color:\"transparent\"}}\n                                  >\n                                ...\n                        ...\n                      ...\n              <div>\n              <div>\n              ...\n                <SliderProvider scope={undefined} startEdge=\"left\" endEdge=\"right\" direction={1} size=\"width\">\n                  <Primitive.span dir=\"ltr\" data-orientation=\"horizontal\" aria-disabled={false} data-disabled={undefined} ...>\n                    <span dir=\"ltr\" data-orientation=\"horizontal\" aria-disabled={false} data-disabled={undefined} ...>\n                      <SliderTrack>\n                      <SliderThumb className=\"block h-7 ...\" style={{...}}>\n                        <span style={{...}}>\n                          <SliderCollectionItemSlot>\n                          <BubbleInput name={undefined} form={undefined} value={undefined}>\n                            <input\n+                             style={{display:\"none\"}}\n-                             style={{display:\"none\",caret-color:\"transparent\"}}\n                              name={undefined}\n                              form={undefined}\n                              ref={{current:null}}\n                              defaultValue={undefined}\n                            >\n              ...\n"
+      },
+      {
+        "type": "log",
+        "text": "[SiteSettings] Fetching site settings..."
+      },
+      {
+        "type": "log",
+        "text": "[LivePriceGraph] Waiting for client hydration..."
+      },
+      {
+        "type": "log",
+        "text": "Fetching CO2 data from: /api/co2-emissions?region=Danmark&date=2025-08-21&aggregation=hourly"
+      },
+      {
+        "type": "log",
+        "text": "[FeatureList] Item icon data: {title: Realtidsdata, icon: Object, hasMetadata: true, url: null}"
+      },
+      {
+        "type": "log",
+        "text": "[FeatureList] Item icon data: {title: Spar op til 3.000 kr., icon: Object, hasMetadata: true, url: null}"
+      },
+      {
+        "type": "log",
+        "text": "[FeatureList] Item icon data: {title: 100% Grøn Strøm, icon: Object, hasMetadata: true, url: null}"
+      },
+      {
+        "type": "log",
+        "text": "[FeatureList] Item icon data: {title: Realtidsdata, icon: Object, hasMetadata: true, url: null}"
+      },
+      {
+        "type": "log",
+        "text": "[FeatureList] Item icon data: {title: Spar op til 3.000 kr., icon: Object, hasMetadata: true, url: null}"
+      },
+      {
+        "type": "log",
+        "text": "[FeatureList] Item icon data: {title: 100% Grøn Strøm, icon: Object, hasMetadata: true, url: null}"
+      },
+      {
+        "type": "log",
+        "text": "[LivePriceGraph] Waiting for client hydration..."
+      },
+      {
+        "type": "log",
+        "text": "Fetching CO2 data from: /api/co2-emissions?region=Danmark&date=2025-08-21&aggregation=hourly"
+      },
+      {
+        "type": "log",
+        "text": "[LivePriceGraph] Waiting for client hydration..."
+      },
+      {
+        "type": "log",
+        "text": "Fetching CO2 data from: /api/co2-emissions?region=Danmark&date=2025-08-21&aggregation=hourly"
+      },
+      {
+        "type": "log",
+        "text": "[LivePriceGraph] useEffect starting, region: DK2 date: 2025-08-22"
+      },
+      {
+        "type": "log",
+        "text": "[LivePriceGraph] Making API call to: /api/electricity-prices?region=DK2&date=2025-08-22"
+      },
+      {
+        "type": "log",
+        "text": "🎯 First Contentful Paint: 10336ms"
+      },
+      {
+        "type": "log",
+        "text": "[Fast Refresh] rebuilding"
+      }
+    ],
+    "requests": [
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/css/app/layout.css?v=1755868333724",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/webpack.js?v=1755868333724",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/layout.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app-pages-internals.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/error.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/not-found.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/elpriser",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/fonts/Geist-VariableFont_wght.ttf",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/ded0d2281da7baff4f9e0ffc9e32f86a37ef916a-254x143.png",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/fonts/Inter-VariableFont_opsz,wght.ttf",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/fonts/Inter-Italic-VariableFont_opsz,wght.ttf",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/5f9b0216be01e850846fc67d745502ba382c471d-1425x636.png",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/a913240044173def15f4bff7643fd3404c574105-100x42.svg",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/a32ecea311e6c27fdd3a52db49dab06b14d80519-146x40.svg",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/3b6155208349a513fe85436eb9614b7d97e0fb24-3554x1144.png",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/922e49c13f8cd7e85dae4af2e406697e13dde5af-860x344.png",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/9c21af0586a97c3571c995de1961c9c632b50faf-1000x675.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/main-app.js?v=1755868333724",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/fbeee04b30fd8156b3a00049552bc55ce3a941b6-1301x392.svg",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/2f8a40778ae3e7fba0b4a385f8d8184c4a96692a-1200x800.jpg?w=1000&q=85",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.iconify.design/streamline-freehand:charging-battery-eco.svg?color=%2384db41",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.iconify.design/streamline-freehand:power-button.svg?color=%2384db41",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.iconify.design/streamline-freehand:saving-piggy-bank.svg?color=%2384db41",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/7d4aa8ef0d540fdb31d6ecdbac1a6e299c5e9ddc-1200x800.jpg?w=1000&q=85",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/7393282cf0534617a4cd6180abda2c3ad60d2f7c-1200x800.jpg?w=1000&q=85",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/60fb87375e641b44776b9c08987a6cf69bb765f4-840x153.png",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/7dbd408e260d0c0878415f9608e74dd305c9f6d4-514x98.png",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/bb9a19786b2fb356794559452e94346f221339b8-1200x800.jpg?w=1000&q=85",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/a4360444b76ce1afd07aeb178762b0763cc8dff6-1200x800.jpg?w=1000&q=85",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/59a524db582beb0fe19cd0a91d21c304e8f61032-568x110.png",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/%5Bslug%5D/page.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/_app-pages-browser_node_modules_web-vitals_dist_web-vitals_js.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/_app-pages-browser_src_components_ReadingProgress_tsx.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.energidataservice.dk/dataset/DatahubPricelist?filter=%7B%22ChargeType%22%3A%22D03%22%2C%22GLN_Number%22%3A%225790000705689%22%2C%22ChargeTypeCode%22%3A%22DT_C_01%22%7D&sort=ValidFrom+desc&limit=10",
+        "status": 200
+      }
+    ]
+  },
+  "/sammenlign": {
+    "consoleLogs": [
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      },
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "log",
+        "text": "%c%s%c [Sanity] getPageBySlug called background: #e6e6e6;background: light-dark(rgba(0,0,0,0.1), rgba(255,255,255,0.25));color: #000000;color: light-dark(#000000, #ffffff);border-radius: 2px  Server   {slug: sammenlign}"
+      },
+      {
+        "type": "log",
+        "text": "%c%s%c [Sanity] getPageBySlug called background: #e6e6e6;background: light-dark(rgba(0,0,0,0.1), rgba(255,255,255,0.25));color: #000000;color: light-dark(#000000, #ffffff);border-radius: 2px  Server   {slug: sammenlign}"
+      },
+      {
+        "type": "warning",
+        "text": "%c%s%c [Sanity] No page found for slug background: #e6e6e6;background: light-dark(rgba(0,0,0,0.1), rgba(255,255,255,0.25));color: #000000;color: light-dark(#000000, #ffffff);border-radius: 2px  Server   {slug: sammenlign}"
+      },
+      {
+        "type": "warning",
+        "text": "%c%s%c [Sanity] No page found for slug background: #e6e6e6;background: light-dark(rgba(0,0,0,0.1), rgba(255,255,255,0.25));color: #000000;color: light-dark(#000000, #ffffff);border-radius: 2px  Server   {slug: sammenlign}"
+      },
+      {
+        "type": "log",
+        "text": "🎯 First Contentful Paint: 1824ms"
+      }
+    ],
+    "requests": [
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/css/app/layout.css?v=1755868342388",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/webpack.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/sammenlign",
+        "status": 404
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app-pages-internals.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/main-app.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/error.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/layout.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/not-found.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/_app-pages-browser_node_modules_web-vitals_dist_web-vitals_js.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/fonts/Inter-VariableFont_opsz,wght.ttf",
+        "status": 200
+      }
+    ]
+  }
+}

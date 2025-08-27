@@ -1,0 +1,380 @@
+{
+  "/": {
+    "consoleLogs": [
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "log",
+        "text": "[DinElportal Debug] Debug utility initialized"
+      },
+      {
+        "type": "log",
+        "text": "[Component: ConsumptionMap] Component file loaded "
+      },
+      {
+        "type": "log",
+        "text": "[Component: ConsumptionMap] Component exported successfully "
+      },
+      {
+        "type": "log",
+        "text": "🔧 Development mode: Error reporting available as window.errorReporting"
+      }
+    ],
+    "requests": [
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/dinelportal-logo.png",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/css/app/layout.css?v=1755870485780",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/layout.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/webpack.js?v=1755870485780",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app-pages-internals.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/error.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/not-found.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/fonts/Geist-VariableFont_wght.ttf",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/fonts/Inter-VariableFont_opsz,wght.ttf",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/922e49c13f8cd7e85dae4af2e406697e13dde5af-860x344.png?w=200&auto=format&fit=max",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/5f9b0216be01e850846fc67d745502ba382c471d-1425x636.png?w=200&auto=format&fit=max",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/a32ecea311e6c27fdd3a52db49dab06b14d80519-146x40.svg?w=200&auto=format&fit=max",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/3b6155208349a513fe85436eb9614b7d97e0fb24-3554x1144.png?w=200&auto=format&fit=max",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/fonts/Inter-Italic-VariableFont_opsz,wght.ttf",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.iconify.design/ri:leaf-line.svg?width=20&height=20&color=%2384db41",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.iconify.design/ph:trend-up-bold.svg?width=20&height=20&color=%2384db41",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.iconify.design/hugeicons:piggy-bank.svg?width=20&height=20&color=%2384db41",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.iconify.design/hugeicons:zap.svg?width=20&height=20&color=%2384db41",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/main-app.js?v=1755870485780",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/page.js",
+        "status": 200
+      }
+    ],
+    "perf": {
+      "fcp": 972,
+      "domContentLoaded": 963.6000000238419,
+      "load": 3076.7000000476837,
+      "ttfb": 780
+    }
+  },
+  "/elpriser": {
+    "consoleLogs": [
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "log",
+        "text": "[DinElportal Debug] Debug utility initialized"
+      },
+      {
+        "type": "log",
+        "text": "[Component: ConsumptionMap] Component file loaded "
+      },
+      {
+        "type": "log",
+        "text": "[Component: ConsumptionMap] Component exported successfully "
+      },
+      {
+        "type": "log",
+        "text": "🔧 Development mode: Error reporting available as window.errorReporting"
+      }
+    ],
+    "requests": [
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/dinelportal-logo.png",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/css/app/layout.css?v=1755870489381",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/7d4aa8ef0d540fdb31d6ecdbac1a6e299c5e9ddc-1200x800.jpg?w=1000&q=85",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/7393282cf0534617a4cd6180abda2c3ad60d2f7c-1200x800.jpg?w=1000&q=85",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/2f8a40778ae3e7fba0b4a385f8d8184c4a96692a-1200x800.jpg?w=1000&q=85",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/a4360444b76ce1afd07aeb178762b0763cc8dff6-1200x800.jpg?w=1000&q=85",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/layout.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/webpack.js?v=1755870489381",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/error.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app-pages-internals.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/not-found.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/bb9a19786b2fb356794559452e94346f221339b8-1200x800.jpg?w=1000&q=85",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/elpriser",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/5f9b0216be01e850846fc67d745502ba382c471d-1425x636.png?w=200&auto=format&fit=max",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/a32ecea311e6c27fdd3a52db49dab06b14d80519-146x40.svg?w=200&auto=format&fit=max",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/922e49c13f8cd7e85dae4af2e406697e13dde5af-860x344.png?w=200&auto=format&fit=max",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/fonts/Geist-VariableFont_wght.ttf",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.iconify.design/streamline-freehand:saving-piggy-bank.svg?color=%2384db41",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.iconify.design/streamline-freehand:charging-battery-eco.svg?color=%2384db41",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.iconify.design/streamline-freehand:power-button.svg?color=%2384db41",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/fonts/Inter-VariableFont_opsz,wght.ttf",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/fonts/Inter-Italic-VariableFont_opsz,wght.ttf",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/main-app.js?v=1755870489381",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/%5Bslug%5D/page.js",
+        "status": 200
+      }
+    ],
+    "perf": {
+      "fcp": 1220,
+      "domContentLoaded": 1213.4000000357628,
+      "load": 2969.400000035763,
+      "ttfb": 990.7000000476837
+    }
+  },
+  "/sammenlign": {
+    "consoleLogs": [
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      },
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "log",
+        "text": "🎯 First Contentful Paint: 976ms"
+      }
+    ],
+    "requests": [
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/css/app/layout.css?v=1755870492879",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/webpack.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/sammenlign",
+        "status": 404
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app-pages-internals.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/main-app.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/error.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/layout.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/not-found.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/_app-pages-browser_node_modules_web-vitals_dist_web-vitals_js.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/fonts/Inter-VariableFont_opsz,wght.ttf",
+        "status": 200
+      }
+    ],
+    "perf": {
+      "fcp": 976,
+      "domContentLoaded": 144.19999998807907,
+      "load": 923.6000000238419,
+      "ttfb": 102.10000002384186
+    }
+  }
+}

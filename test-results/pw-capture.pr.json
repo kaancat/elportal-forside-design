@@ -1,0 +1,721 @@
+npm WARN using --force Recommended protections disabled.
+{
+  "/": {
+    "consoleLogs": [
+      {
+        "type": "log",
+        "text": "[DinElportal Debug] Debug utility initialized"
+      },
+      {
+        "type": "log",
+        "text": "[Component: ConsumptionMap] Component file loaded "
+      },
+      {
+        "type": "log",
+        "text": "[Component: ConsumptionMap] Component exported successfully "
+      },
+      {
+        "type": "log",
+        "text": "[LivePriceGraph] Waiting for client hydration..."
+      },
+      {
+        "type": "log",
+        "text": "[LivePriceGraph] useEffect starting, region: DK1 date: 2025-08-22"
+      },
+      {
+        "type": "log",
+        "text": "[LivePriceGraph] Making API call to: /api/electricity-prices?region=DK1&date=2025-08-22"
+      },
+      {
+        "type": "log",
+        "text": "[LivePriceGraph] API response status: 200"
+      },
+      {
+        "type": "log",
+        "text": "[LivePriceGraph] API result: 24 records"
+      },
+      {
+        "type": "log",
+        "text": "[LivePriceGraph] Setting data: 24 records"
+      },
+      {
+        "type": "log",
+        "text": "[LivePriceGraph] Data processing complete, maxPrice: 2.416804125"
+      },
+      {
+        "type": "log",
+        "text": "[LivePriceGraph] Setting loading to false"
+      }
+    ],
+    "requests": [
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/css/2a84c5d2010f5088.css",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/dinelportal-logo.png",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/webpack-49c915361891890e.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/css/314e0f73a54f5d04.css",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/main-app-69ba913514befdf1.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/layout-80d39ad7b703b737.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/error-72b808b9a0db539c.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/not-found-714fea5713d74397.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/6874-414075bb21e16c80.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/5964-6d6a41800488ba64.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/4bd1b696-cc729d47eba2cee4.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/page-ae43c7121871db9e.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/b1644e8c-b0165c63dc7dd0ca.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/9628-9d0ac90f3322abb5.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/a6061199-9493481b1258b656.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/fonts/Geist-VariableFont_wght.ttf",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/fonts/Inter-VariableFont_opsz,wght.ttf",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/fonts/Inter-Italic-VariableFont_opsz,wght.ttf",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/a32ecea311e6c27fdd3a52db49dab06b14d80519-146x40.svg?w=200&auto=format&fit=max",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/5f9b0216be01e850846fc67d745502ba382c471d-1425x636.png?w=200&auto=format&fit=max",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.iconify.design/ri:leaf-line.svg?width=20&height=20&color=%2384db41",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.iconify.design/ph:trend-up-bold.svg?width=20&height=20&color=%2384db41",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.iconify.design/hugeicons:zap.svg?width=20&height=20&color=%2384db41",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.iconify.design/hugeicons:piggy-bank.svg?width=20&height=20&color=%2384db41",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/922e49c13f8cd7e85dae4af2e406697e13dde5af-860x344.png?w=200&auto=format&fit=max",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/3b6155208349a513fe85436eb9614b7d97e0fb24-3554x1144.png?w=200&auto=format&fit=max",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/9490-01111eefad7e78b2.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/api/providers",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/elpriser?_rsc=3lb4g",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/elselskaber?_rsc=3lb4g",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/ladeboks?_rsc=3lb4g",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/forbrug-tracker?_rsc=3lb4g",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/%5Bslug%5D/page-8258d371a6893653.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/api/electricity-prices?region=DK2",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/api/electricity-prices?region=DK2",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/api/electricity-prices?region=DK2",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.energidataservice.dk/dataset/DatahubPricelist?filter=%7B%22ChargeType%22%3A%22D03%22%2C%22GLN_Number%22%3A%225790000705689%22%2C%22ChargeTypeCode%22%3A%22DT_C_01%22%7D&sort=ValidFrom+desc&limit=10",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/api/electricity-prices?region=DK1&date=2025-08-22",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/api/monthly-production",
+        "status": 200
+      }
+    ],
+    "perf": {
+      "fcp": 264,
+      "domContentLoaded": 468.30000001192093,
+      "load": 711.6000000238419,
+      "ttfb": 19
+    }
+  },
+  "/elpriser": {
+    "consoleLogs": [
+      {
+        "type": "log",
+        "text": "[DinElportal Debug] Debug utility initialized"
+      },
+      {
+        "type": "log",
+        "text": "[Component: ConsumptionMap] Component file loaded "
+      },
+      {
+        "type": "log",
+        "text": "[Component: ConsumptionMap] Component exported successfully "
+      },
+      {
+        "type": "log",
+        "text": "[LivePriceGraph] Waiting for client hydration..."
+      },
+      {
+        "type": "log",
+        "text": "Fetching CO2 data from: /api/co2-emissions?region=Danmark&date=2025-08-21&aggregation=hourly"
+      },
+      {
+        "type": "log",
+        "text": "[LivePriceGraph] Waiting for client hydration..."
+      },
+      {
+        "type": "log",
+        "text": "Fetching CO2 data from: /api/co2-emissions?region=Danmark&date=2025-08-21&aggregation=hourly"
+      },
+      {
+        "type": "log",
+        "text": "[LivePriceGraph] useEffect starting, region: DK2 date: 2025-08-22"
+      },
+      {
+        "type": "log",
+        "text": "[LivePriceGraph] Making API call to: /api/electricity-prices?region=DK2&date=2025-08-22"
+      },
+      {
+        "type": "log",
+        "text": "API Response: {total: 576, sort: Minutes5UTC ASC, dataset: CO2Emis, records: Array(24), metadata: Object}"
+      },
+      {
+        "type": "log",
+        "text": "Chart data: [Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object]"
+      },
+      {
+        "type": "log",
+        "text": "API Response: {total: 576, sort: Minutes5UTC ASC, dataset: CO2Emis, records: Array(24), metadata: Object}"
+      },
+      {
+        "type": "log",
+        "text": "Chart data: [Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object]"
+      },
+      {
+        "type": "log",
+        "text": "[LivePriceGraph] API response status: 200"
+      },
+      {
+        "type": "log",
+        "text": "[LivePriceGraph] API result: 24 records"
+      },
+      {
+        "type": "log",
+        "text": "[LivePriceGraph] Setting data: 24 records"
+      },
+      {
+        "type": "log",
+        "text": "[LivePriceGraph] Data processing complete, maxPrice: 2.3715530375"
+      },
+      {
+        "type": "log",
+        "text": "[LivePriceGraph] Setting loading to false"
+      }
+    ],
+    "requests": [
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/elpriser",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/css/2a84c5d2010f5088.css",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/dinelportal-logo.png",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/webpack-49c915361891890e.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/main-app-69ba913514befdf1.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/css/314e0f73a54f5d04.css",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/layout-80d39ad7b703b737.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/error-72b808b9a0db539c.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/not-found-714fea5713d74397.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/6874-414075bb21e16c80.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/5964-6d6a41800488ba64.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/4bd1b696-cc729d47eba2cee4.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/%5Bslug%5D/page-8258d371a6893653.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/b1644e8c-b0165c63dc7dd0ca.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/9628-9d0ac90f3322abb5.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/a6061199-9493481b1258b656.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/9490-01111eefad7e78b2.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/fonts/Geist-VariableFont_wght.ttf",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/fonts/Inter-VariableFont_opsz,wght.ttf",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/fonts/Inter-Italic-VariableFont_opsz,wght.ttf",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/5f9b0216be01e850846fc67d745502ba382c471d-1425x636.png?w=200&auto=format&fit=max",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.iconify.design/streamline-freehand:charging-battery-eco.svg?color=%2384db41",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.iconify.design/streamline-freehand:power-button.svg?color=%2384db41",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.iconify.design/streamline-freehand:saving-piggy-bank.svg?color=%2384db41",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/922e49c13f8cd7e85dae4af2e406697e13dde5af-860x344.png?w=200&auto=format&fit=max",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://cdn.sanity.io/images/yxesi03x/production/a32ecea311e6c27fdd3a52db49dab06b14d80519-146x40.svg?w=200&auto=format&fit=max",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/5897.f5a90f8f8d103396.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/api/electricity-prices?region=DK2",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/api/co2-emissions?region=Danmark&date=2025-08-21&aggregation=hourly",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/api/energy-forecast?region=Danmark&date=2025-08-22",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/api/electricity-prices?region=DK2",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/api/co2-emissions?region=Danmark&date=2025-08-21&aggregation=hourly",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/api/energy-forecast?region=Danmark&date=2025-08-22",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/api/electricity-prices?region=DK2",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/api/electricity-prices?region=DK2",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/api/providers",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.iconify.design/streamline-freehand:charging-battery-eco.svg",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.iconify.design/streamline-freehand:power-button.svg",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.iconify.design/streamline-freehand:saving-piggy-bank.svg",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "https://api.energidataservice.dk/dataset/DatahubPricelist?filter=%7B%22ChargeType%22%3A%22D03%22%2C%22GLN_Number%22%3A%225790000705689%22%2C%22ChargeTypeCode%22%3A%22DT_C_01%22%7D&sort=ValidFrom+desc&limit=10",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/api/electricity-prices?region=DK2&date=2025-08-22",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/?_rsc=15y1d",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/ladeboks?_rsc=15y1d",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/elselskaber?_rsc=15y1d",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/forbrug-tracker?_rsc=15y1d",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/page-ae43c7121871db9e.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/api/monthly-production",
+        "status": 200
+      }
+    ],
+    "perf": {
+      "fcp": 248,
+      "domContentLoaded": 217.69999998807907,
+      "load": 627.8000000119209,
+      "ttfb": 18.399999976158142
+    }
+  },
+  "/sammenlign": {
+    "consoleLogs": [
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      },
+      {
+        "type": "log",
+        "text": "[DinElportal Debug] Debug utility initialized"
+      },
+      {
+        "type": "log",
+        "text": "[Component: ConsumptionMap] Component file loaded "
+      },
+      {
+        "type": "log",
+        "text": "[Component: ConsumptionMap] Component exported successfully "
+      }
+    ],
+    "requests": [
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/sammenlign",
+        "status": 404
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/webpack-49c915361891890e.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/main-app-69ba913514befdf1.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/4bd1b696-cc729d47eba2cee4.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/5964-6d6a41800488ba64.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/not-found-714fea5713d74397.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/layout-80d39ad7b703b737.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/error-72b808b9a0db539c.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/6874-414075bb21e16c80.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/css/2a84c5d2010f5088.css",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/css/314e0f73a54f5d04.css",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/?_rsc=6l0n4",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/elpriser?_rsc=6l0n4",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/page-ae43c7121871db9e.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/app/%5Bslug%5D/page-8258d371a6893653.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/b1644e8c-b0165c63dc7dd0ca.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/9628-9d0ac90f3322abb5.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/fonts/Inter-VariableFont_opsz,wght.ttf",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/a6061199-9493481b1258b656.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3005/_next/static/chunks/9490-01111eefad7e78b2.js",
+        "status": 200
+      }
+    ],
+    "perf": {
+      "fcp": 236,
+      "domContentLoaded": 32.5,
+      "load": 150.39999997615814,
+      "ttfb": 18
+    }
+  }
+}

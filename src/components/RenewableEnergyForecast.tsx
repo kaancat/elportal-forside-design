@@ -76,17 +76,31 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
   }, [selectedRegion, selectedDate]);
 
   const processedData = useMemo(() => {
-    const grouped = allData.reduce((acc, record) => {
-      const hourKey = new Date(record.HourUTC).toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }).replace(/\./g, ':');
+    if (!allData || allData.length === 0) return [] as Array<{ hour: string; Solar: number; 'Onshore Wind': number; 'Offshore Wind': number; Total: number }>;
+
+    const grouped = allData.reduce((acc, anyRecord: any) => {
+      // Support HourUTC or HourDK
+      const hourDate = anyRecord.HourUTC ? new Date(anyRecord.HourUTC) : new Date(anyRecord.HourDK);
+      const hourKey = hourDate.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }).replace(/\./g, ':');
       if (!acc[hourKey]) acc[hourKey] = { 'Solar': 0, 'Onshore Wind': 0, 'Offshore Wind': 0 } as Record<string, number>;
 
-      const solar = record.SolarPowerMWh ?? 0;
-      const onshore = (record.OnshoreWindPowerLT75MWMWh ?? 0) + (record.OnshoreWindPowerGE75MWMWh ?? 0);
-      const offshore = record.OffshoreWindPowerMWh ?? 0;
-
-      acc[hourKey]['Solar'] += solar;
-      acc[hourKey]['Onshore Wind'] += onshore;
-      acc[hourKey]['Offshore Wind'] += offshore;
+      // Two possible dataset shapes:
+      // 1) ForecastType + ForecastDayAhead per row
+      // 2) Separate MWh columns (SolarPowerMWh, OnshoreWindPower*, OffshoreWindPowerMWh)
+      if (typeof anyRecord.ForecastType === 'string' && typeof anyRecord.ForecastDayAhead === 'number') {
+        const t = anyRecord.ForecastType as 'Solar' | 'Onshore Wind' | 'Offshore Wind';
+        const v = anyRecord.ForecastDayAhead as number;
+        if (t === 'Solar') acc[hourKey]['Solar'] += v || 0;
+        else if (t === 'Onshore Wind') acc[hourKey]['Onshore Wind'] += v || 0;
+        else if (t === 'Offshore Wind') acc[hourKey]['Offshore Wind'] += v || 0;
+      } else {
+        const solar = (anyRecord.SolarPowerMWh ?? 0) as number;
+        const onshore = ((anyRecord.OnshoreWindPowerLT75MWMWh ?? 0) + (anyRecord.OnshoreWindPowerGE75MWMWh ?? 0)) as number;
+        const offshore = (anyRecord.OffshoreWindPowerMWh ?? 0) as number;
+        acc[hourKey]['Solar'] += solar;
+        acc[hourKey]['Onshore Wind'] += onshore;
+        acc[hourKey]['Offshore Wind'] += offshore;
+      }
       return acc;
     }, {} as Record<string, Record<string, number>>);
 

@@ -120,7 +120,7 @@ export async function GET(request: NextRequest) {
     const apiUrl = `https://api.energidataservice.dk/dataset/Elspotprices?start=${startDate}&end=${endDate}&filter={"PriceArea":["${priceArea}"]}&sort=HourUTC ASC`
 
     // Use queued fetch to prevent duplicate requests
-    const result = await queuedFetch(memCacheKey, async () => {
+    let result = await queuedFetch(memCacheKey, async () => {
       console.log(`[Prices] Fetching prices from EnergiDataService for ${cacheKey}`)
       
       // Use retry helper with exponential backoff
@@ -161,6 +161,40 @@ export async function GET(request: NextRequest) {
         return { ...data, records: processedRecords }
       }, 3, 1000) // 3 attempts, 1s initial delay
     })
+    
+    // Fallback: If no records for the requested date, try previous day
+    if (!result?.records || result.records.length === 0) {
+      console.warn(`[Prices] No records for ${cacheKey}. Falling back to previous day...`)
+      const prev = new Date(baseDate)
+      prev.setUTCDate(baseDate.getUTCDate() - 1)
+      const prevStart = prev.toISOString().split('T')[0]
+      const prevEndDate = startDate // end is original start to include the previous day fully
+      const prevMemKey = `${priceArea}_${prevStart}_${prevEndDate}`
+      const prevApiUrl = `https://api.energidataservice.dk/dataset/Elspotprices?start=${prevStart}&end=${prevEndDate}&filter={"PriceArea":["${priceArea}"]}&sort=HourUTC ASC`
+      const prevResult = await queuedFetch(prevMemKey, async () => {
+        return await retryWithBackoff(async () => {
+          const r = await fetch(prevApiUrl)
+          if (!r.ok) {
+            if (r.status === 404 || r.status === 400) return { records: [] }
+            if (r.status === 429 || r.status === 503) throw new Error(`API returned ${r.status}`)
+            throw new Error(`Failed to fetch price data (fallback): ${r.status}`)
+          }
+          const j = await r.json()
+          const processed = (j.records || []).map((record: any) => {
+            const spotPriceMWh = record.SpotPriceDKK ?? 0
+            const spotPriceKWh = spotPriceMWh / 1000
+            const basePriceKWh = spotPriceKWh + SYSTEM_FEE_KWH + ELECTRICITY_TAX_KWH
+            const totalPriceKWh = basePriceKWh * VAT_RATE
+            return { ...record, SpotPriceKWh: spotPriceKWh, TotalPriceKWh: totalPriceKWh }
+          })
+          return { ...j, records: processed }
+        }, 3, 1000)
+      })
+      if (prevResult?.records && prevResult.records.length > 0) {
+        console.log(`[Prices] Using previous day's prices for ${priceArea} (${prevStart}) as fallback`)
+        result = prevResult
+      }
+    }
     
     // Cache the successful response in both memory and KV
     priceCache.set(memCacheKey, result)

@@ -244,7 +244,8 @@ export async function GET(request: NextRequest) {
     const fallback = await readKvJson(fallbackKey)
     
     if (fallback) {
-      return NextResponse.json(fallback, {
+      const normalized = normalizePriceResponse(fallback)
+      return NextResponse.json(normalized, {
         headers: {
           ...cacheHeaders({ sMaxage: 60 }),
           'X-Cache': 'HIT-STALE',

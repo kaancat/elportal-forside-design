@@ -24,6 +24,7 @@ import {
   createLRUCache
 } from '@/server/api-helpers'
 import { electricityPricesSchema, safeValidateParams } from '@/server/api-validators'
+import { kv } from '@vercel/kv'
 
 // Configure runtime and max duration
 export const runtime = 'nodejs' // Required for KV access
@@ -97,6 +98,11 @@ export async function GET(request: NextRequest) {
     const { region, area, date: dateParam, endDate: endDateParam } = validation.data
     const priceArea = area || region // Support both parameter names
     
+    // Purge/Cache-busting controls
+    const purgeRequested = searchParams.has('purge')
+    const noCacheRequested = searchParams.has('nocache') || searchParams.has('_kv')
+    const skipCache = purgeRequested || noCacheRequested
+    
     // Date logic - timezone-aware using Danish time
     const baseDate = parseDate(dateParam || new Date().toISOString().split('T')[0])
     const startDate = baseDate.toISOString().split('T')[0]
@@ -113,33 +119,54 @@ export async function GET(request: NextRequest) {
       endDate = tomorrow.toISOString().split('T')[0]
     }
     
-    // Check KV cache first (distributed across instances)
+    // Check KV cache first (distributed across instances), unless skipped
     const cacheKey = `${KV_PREFIX}:${priceArea}:${startDate}:${endDate}`
-    
-    const kvCached = await readKvJson(cacheKey)
-    if (kvCached) {
-      console.log(`[Prices] Returning KV cached prices for ${cacheKey}`)
-      const normalized = normalizePriceResponse(kvCached)
-      return NextResponse.json(normalized, { 
-        headers: { 
-          ...cacheHeaders({ sMaxage: 300, swr: 600 }),
-          'X-Cache': 'HIT-KV'
-        } 
-      })
+
+    // Optional purge of KV keys (non-production or with admin secret)
+    if (purgeRequested) {
+      const isProd = process.env.VERCEL_ENV === 'production'
+      const hasSecret = request.headers.get('x-admin-secret') === (process.env.ADMIN_SECRET || '')
+      if (!isProd || hasSecret) {
+        try {
+          await kv.del(cacheKey)
+          await kv.del(`${KV_PREFIX}:${priceArea}`)
+          console.log(`[Prices] Purged KV keys for ${priceArea} ${startDate}-${endDate}`)
+        } catch (e) {
+          console.warn('[Prices] KV purge failed (continuing):', e)
+        }
+      } else {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+    }
+
+    if (!skipCache) {
+      const kvCached = await readKvJson(cacheKey)
+      if (kvCached) {
+        console.log(`[Prices] Returning KV cached prices for ${cacheKey}`)
+        const normalized = normalizePriceResponse(kvCached)
+        return NextResponse.json(normalized, { 
+          headers: { 
+            ...cacheHeaders({ sMaxage: 300, swr: 600 }),
+            'X-Cache': 'HIT-KV'
+          } 
+        })
+      }
     }
     
     // Check in-memory cache as fallback
     const memCacheKey = `${priceArea}_${startDate}_${endDate}`
-    const cached = priceCache.get(memCacheKey)
-    if (cached) {
-      console.log(`[Prices] Returning in-memory cached prices for ${memCacheKey}`)
-      const normalized = normalizePriceResponse(cached)
-      return NextResponse.json(normalized, { 
-        headers: { 
-          ...cacheHeaders({ sMaxage: 300, swr: 600 }),
-          'X-Cache': 'HIT-MEMORY'
-        } 
-      })
+    if (!skipCache) {
+      const cached = priceCache.get(memCacheKey)
+      if (cached) {
+        console.log(`[Prices] Returning in-memory cached prices for ${memCacheKey}`)
+        const normalized = normalizePriceResponse(cached)
+        return NextResponse.json(normalized, { 
+          headers: { 
+            ...cacheHeaders({ sMaxage: 300, swr: 600 }),
+            'X-Cache': 'HIT-MEMORY'
+          } 
+        })
+      }
     }
     
     const apiUrl = `https://api.energidataservice.dk/dataset/Elspotprices?start=${startDate}&end=${endDate}&filter={"PriceArea":["${priceArea}"]}&sort=HourUTC ASC`
@@ -221,12 +248,14 @@ export async function GET(request: NextRequest) {
       }
     }
     
-    // Cache the successful response in both memory and KV
-    priceCache.set(memCacheKey, result)
-    
-    // Store in KV with both specific key and fallback "latest" key
-    const fallbackKey = `${KV_PREFIX}:${priceArea}`
-    await setKvJsonWithFallback(cacheKey, fallbackKey, result, 300, 3600) // 5 min specific, 1 hour fallback
+    // Cache the successful response in both memory and KV (unless skipping)
+    if (!skipCache) {
+      priceCache.set(memCacheKey, result)
+      
+      // Store in KV with both specific key and fallback "latest" key
+      const fallbackKey = `${KV_PREFIX}:${priceArea}`
+      await setKvJsonWithFallback(cacheKey, fallbackKey, result, 300, 3600) // 5 min specific, 1 hour fallback
+    }
     
     const normalizedResult = normalizePriceResponse(result)
     return NextResponse.json(normalizedResult, { 

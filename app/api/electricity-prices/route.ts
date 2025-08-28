@@ -197,8 +197,10 @@ export async function GET(request: NextRequest) {
     
     // Return safe empty response instead of 500
     console.log('[Prices] No fallback available, returning safe empty response')
+    // IMPORTANT: Always include `records` for client components expecting that shape
     const emptyResponse = {
-      data: [],
+      records: [] as any[],
+      data: [], // Back-compat
       metadata: {
         region,
         startDate: new Date().toISOString().split('T')[0],

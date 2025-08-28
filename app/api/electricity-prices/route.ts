@@ -41,6 +41,27 @@ const SYSTEM_FEE_KWH = 0.19
 const ELECTRICITY_TAX_KWH = 0.90
 const VAT_RATE = 1.25
 
+// Normalize historic/stale cache shapes to the current `{ records: [...] }` format
+function normalizePriceResponse(raw: any) {
+  if (!raw) return raw
+  // If already normalized, return as-is
+  if (Array.isArray(raw.records)) return raw
+  // Old shape: { data: { records: [...] }, metadata?: {...} }
+  const legacyRecords = raw?.data?.records
+  if (Array.isArray(legacyRecords)) {
+    const processedRecords = legacyRecords.map((record: any) => {
+      const spotPriceMWh = record.SpotPriceDKK ?? 0
+      const spotPriceKWh = spotPriceMWh / 1000
+      const basePriceKWh = spotPriceKWh + SYSTEM_FEE_KWH + ELECTRICITY_TAX_KWH
+      const totalPriceKWh = basePriceKWh * VAT_RATE
+      return { ...record, SpotPriceKWh: spotPriceKWh, TotalPriceKWh: totalPriceKWh }
+    })
+    return { ...raw, records: processedRecords }
+  }
+  // As a last resort, ensure `records` exists
+  return { ...raw, records: [] }
+}
+
 /**
  * GET /api/electricity-prices
  * 
@@ -96,7 +117,8 @@ export async function GET(request: NextRequest) {
     const kvCached = await readKvJson(cacheKey)
     if (kvCached) {
       console.log(`[Prices] Returning KV cached prices for ${cacheKey}`)
-      return NextResponse.json(kvCached, { 
+      const normalized = normalizePriceResponse(kvCached)
+      return NextResponse.json(normalized, { 
         headers: { 
           ...cacheHeaders({ sMaxage: 300, swr: 600 }),
           'X-Cache': 'HIT-KV'
@@ -109,7 +131,8 @@ export async function GET(request: NextRequest) {
     const cached = priceCache.get(memCacheKey)
     if (cached) {
       console.log(`[Prices] Returning in-memory cached prices for ${memCacheKey}`)
-      return NextResponse.json(cached, { 
+      const normalized = normalizePriceResponse(cached)
+      return NextResponse.json(normalized, { 
         headers: { 
           ...cacheHeaders({ sMaxage: 300, swr: 600 }),
           'X-Cache': 'HIT-MEMORY'
@@ -203,7 +226,8 @@ export async function GET(request: NextRequest) {
     const fallbackKey = `prices:${priceArea}`
     await setKvJsonWithFallback(cacheKey, fallbackKey, result, 300, 3600) // 5 min specific, 1 hour fallback
     
-    return NextResponse.json(result, { 
+    const normalizedResult = normalizePriceResponse(result)
+    return NextResponse.json(normalizedResult, { 
       headers: { 
         ...cacheHeaders({ sMaxage: 300, swr: 600 }),
         'X-Cache': 'MISS'

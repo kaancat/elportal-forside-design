@@ -40,6 +40,8 @@ const priceCache = createLRUCache<any>(5 * 60 * 1000, 100) // 5 min TTL, max 100
 const SYSTEM_FEE_KWH = 0.19
 const ELECTRICITY_TAX_KWH = 0.90
 const VAT_RATE = 1.25
+// KV cache versioning to hard-bust old shapes
+const KV_PREFIX = 'prices:v2'
 
 // Normalize historic/stale cache shapes to the current `{ records: [...] }` format
 function normalizePriceResponse(raw: any) {
@@ -112,7 +114,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Check KV cache first (distributed across instances)
-    const cacheKey = `prices:${priceArea}:${startDate}:${endDate}`
+    const cacheKey = `${KV_PREFIX}:${priceArea}:${startDate}:${endDate}`
     
     const kvCached = await readKvJson(cacheKey)
     if (kvCached) {
@@ -223,7 +225,7 @@ export async function GET(request: NextRequest) {
     priceCache.set(memCacheKey, result)
     
     // Store in KV with both specific key and fallback "latest" key
-    const fallbackKey = `prices:${priceArea}`
+    const fallbackKey = `${KV_PREFIX}:${priceArea}`
     await setKvJsonWithFallback(cacheKey, fallbackKey, result, 300, 3600) // 5 min specific, 1 hour fallback
     
     const normalizedResult = normalizePriceResponse(result)
@@ -240,7 +242,7 @@ export async function GET(request: NextRequest) {
     // Try to return cached data on error
     const region = request.nextUrl.searchParams.get('region') || 
                    request.nextUrl.searchParams.get('area') || 'DK2'
-    const fallbackKey = `prices:${region}` // This now exists thanks to setKvJsonWithFallback
+    const fallbackKey = `${KV_PREFIX}:${region}` // Versioned fallback
     const fallback = await readKvJson(fallbackKey)
     
     if (fallback) {

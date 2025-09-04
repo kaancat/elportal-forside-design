@@ -19,10 +19,17 @@ export const runtime = 'nodejs' // Required for KV access
 export const maxDuration = 10
 export const dynamic = 'force-dynamic'
 
-// Configuration
-const REDIRECT_BASE_URL = process.env.NODE_ENV === 'production'
-  ? 'https://www.dinelportal.dk'
-  : 'http://localhost:3000'
+// Configuration: compute redirect base dynamically to support Preview domains
+function computeRedirectBaseUrl(request: NextRequest): string {
+  const forwardedHost = request.headers.get('x-forwarded-host') || ''
+  const forwardedProto = request.headers.get('x-forwarded-proto') || 'https'
+  const host = forwardedHost || request.nextUrl.host
+  const isPreview = (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== 'production') || host.includes('vercel.app')
+  if (isPreview) {
+    return `${forwardedProto}://${host}`
+  }
+  return 'https://www.dinelportal.dk'
+}
 const SESSION_TTL = 24 * 60 * 60
 
 /**
@@ -90,6 +97,8 @@ export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const state = searchParams.get('state')
   
+  const REDIRECT_BASE_URL = computeRedirectBaseUrl(request)
+
   if (!state) {
     // No state value - redirect to error page
     return NextResponse.redirect(`${REDIRECT_BASE_URL}/forbrug-tracker?error=missing_state`, { status: 302 })

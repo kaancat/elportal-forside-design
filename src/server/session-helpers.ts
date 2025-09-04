@@ -50,6 +50,13 @@ export interface SessionData {
 function getSigningKey(): Uint8Array {
   const rawKey = process.env.ELPORTAL_SIGNING_KEY
   if (!rawKey) {
+    // Development/Preview fallback to avoid hard failures during staging
+    // This key is only used when no signing key is configured.
+    const fallback = 'dev-preview-signing-key-please-set-ELPORTAL_SIGNING_KEY'
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[Session] ELPORTAL_SIGNING_KEY not set. Using non-prod fallback key.')
+      return new TextEncoder().encode(fallback)
+    }
     throw new Error('ELPORTAL_SIGNING_KEY environment variable is not set')
   }
   

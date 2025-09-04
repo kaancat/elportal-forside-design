@@ -96,7 +96,7 @@ export const pageProjection = `{
     description,
     headerAlignment,
     
-    // Hero components - complete projection
+    // Hero components - complete projection aligned with component props
     _type == "hero" => {
       _type,
       _key,
@@ -112,7 +112,6 @@ export const pageProjection = `{
       overlayOpacity,
       padding,
       alignment,
-      variant,
       showLivePrice,
       showProviderComparison,
       stats[] {
@@ -123,9 +122,7 @@ export const pageProjection = `{
       },
       cta {
         text,
-        link,
-        variant,
-        icon ${iconProjection}
+        "url": coalesce(url, link)
       }
     },
     

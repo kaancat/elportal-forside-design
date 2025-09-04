@@ -319,15 +319,9 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
               </div>
             </div>
 
-            {/* Content */}
+            {/* Content: always render; internal fallback handles empty sets */}
             <div className="mt-8">
-              {displayTips.length > 0 ? (
-                renderContent()
-              ) : (
-                <div className="text-center py-12 text-gray-500">
-                  <p>Ingen tips fundet for denne kategori.</p>
-                </div>
-              )}
+              {renderContent()}
             </div>
           </div>
         ) : (

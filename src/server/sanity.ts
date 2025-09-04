@@ -14,7 +14,7 @@ export const sanityClient = createClient({
   projectId: env.SANITY_PROJECT_ID,
   dataset: env.SANITY_DATASET,
   apiVersion: env.SANITY_API_VERSION,
-  useCdn: true, // Enable CDN for server-side requests
+  useCdn: process.env.VERCEL_ENV !== 'preview', // Disable CDN for preview to reflect changes faster
   perspective: 'published', // Only fetch published content
   stega: {
     enabled: false, // Disable visual editing for production

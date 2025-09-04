@@ -83,7 +83,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // Revalidate every 5 minutes (only in SSR mode)
-export const revalidate = 300
+export const revalidate = process.env.VERCEL_ENV === 'preview' ? 60 : 300
 
 export default async function HomePage() {
   // Check if Phase 2 SSR is enabled (explicit opt-in only)

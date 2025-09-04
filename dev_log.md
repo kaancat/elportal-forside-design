@@ -27,3 +27,23 @@ Goal: Navigation correctness and routing unification
 
 
 
+
+
+
+
+
+
+
+
+## [2025-09-04] – Update
+Goal: Fix Eloverblik authorization start on `/forbrug-tracker`
+
+- Action: Updated client to read API envelope: `ForbrugTracker` now reads `sessionId` and `authorizationUrl` from `res.data` when present, matching App Router API responses.
+- Action: Added development/preview fallback signing key in `src/server/session-helpers.ts#getSigningKey` to prevent 500s when `ELPORTAL_SIGNING_KEY` is missing; logs a warning in non‑prod.
+- Impact: Clicking “Forbind med Eloverblik” initializes a session and opens the authorization URL; avoids session init failures in Preview without leaking secrets.
+- NOTE: In production, ensure `ELPORTAL_SIGNING_KEY`, `KV_REST_API_URL`, and `KV_REST_API_TOKEN` are configured. The fallback is ignored in production.
+
+TO VERIFY
+- Run end‑to‑end on Preview: confirm `/api/auth/session` returns `{ ok: true, data: { sessionId } }` and that redirect is triggered.
+- After authorization callback is wired, verify `/api/auth/session?action=verify` returns `authenticated: true` and `hasAuthorization: true`.
+

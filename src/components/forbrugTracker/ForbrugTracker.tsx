@@ -298,7 +298,8 @@ export function ForbrugTracker({
         throw new Error('Kunne ikke starte session')
       }
       
-      const { sessionId } = await sessionResponse.json()
+      const sessionJson = await sessionResponse.json()
+      const sessionId = sessionJson?.data?.sessionId ?? sessionJson?.sessionId
       console.log('Session created:', sessionId)
       
       // Get authorization URL
@@ -311,7 +312,8 @@ export function ForbrugTracker({
         throw new Error('Kunne ikke starte autorisation')
       }
       
-      const { authorizationUrl } = await authResponse.json()
+      const authJson = await authResponse.json()
+      const authorizationUrl = authJson?.data?.authorizationUrl ?? authJson?.authorizationUrl
       console.log('Redirecting to Eloverblik:', authorizationUrl)
       
       // Redirect to Eloverblik

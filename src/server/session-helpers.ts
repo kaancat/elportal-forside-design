@@ -391,17 +391,21 @@ export async function createStateValue(
 ): Promise<string> {
   const stateValue = nanoid(32)
   
-  await kv.set(
-    `state:${stateValue}`,
-    {
-      sessionId,
-      createdAt: Date.now(),
-      type
-    },
-    { ex: STATE_TTL }
-  )
+  if (isKvConfigured()) {
+    await kv.set(
+      `state:${stateValue}`,
+      {
+        sessionId,
+        createdAt: Date.now(),
+        type
+      },
+      { ex: STATE_TTL }
+    )
+    return stateValue
+  }
   
-  return stateValue
+  // Preview fallback (no KV): encode session id in state value (not for production)
+  return `nostore:${type}:${sessionId}:${stateValue}`
 }
 
 /**
@@ -411,20 +415,32 @@ export async function createStateValue(
  */
 export async function verifyStateValue(stateValue: string): Promise<string | null> {
   try {
-    const stateData = await kv.get<{
-      sessionId: string
-      createdAt: number
-      type: string
-    }>(`state:${stateValue}`)
-    
-    if (!stateData) {
-      return null
+    if (isKvConfigured()) {
+      const stateData = await kv.get<{
+        sessionId: string
+        createdAt: number
+        type: string
+      }>(`state:${stateValue}`)
+      
+      if (!stateData) {
+        return null
+      }
+      
+      // Delete state value (one-time use)
+      await kv.del(`state:${stateValue}`)
+      
+      return stateData.sessionId
     }
     
-    // Delete state value (one-time use)
-    await kv.del(`state:${stateValue}`)
-    
-    return stateData.sessionId
+    // Preview fallback: parse inline state
+    if (stateValue.startsWith('nostore:')) {
+      const parts = stateValue.split(':')
+      // Format: nostore:type:sessionId:random
+      if (parts.length >= 4) {
+        return parts[2] || null
+      }
+    }
+    return null
   } catch (error) {
     console.error('[Session] Failed to verify state value:', error)
     return null

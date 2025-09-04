@@ -39,7 +39,7 @@ export async function getHomePage() {
       {},
       {
         next: {
-          revalidate: 300, // Revalidate every 5 minutes
+          revalidate: process.env.VERCEL_ENV === 'preview' ? 60 : 300, // Faster in preview
           tags: ['homepage', 'page'],
         },
       }
@@ -64,7 +64,7 @@ export async function getPageBySlug(slug: string) {
       { slug },
       {
         next: {
-          revalidate: 3600, // Revalidate every hour
+          revalidate: process.env.VERCEL_ENV === 'preview' ? 60 : 3600, // Faster in preview
           tags: ['page', `page:${slug}`],
         },
       }

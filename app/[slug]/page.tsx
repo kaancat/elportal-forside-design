@@ -79,7 +79,7 @@ export async function generateStaticParams() {
 }
 
 // Revalidate every hour for dynamic pages
-export const revalidate = process.env.VERCEL_ENV === 'preview' ? 60 : 3600
+export const revalidate = 3600
 
 export default async function DynamicPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params

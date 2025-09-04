@@ -83,16 +83,25 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
       try {
         // Use manual region if overridden, otherwise use location region
         const region = isManualRegionOverride ? selectedRegion : (location?.region || selectedRegion);
-        const response = await fetch(`/api/electricity-prices?region=${region}`);
-        
+        const today = new Date();
+        const dateStr = today.toISOString().split('T')[0];
+        const response = await fetch(`/api/electricity-prices?region=${region}&date=${dateStr}`);
         if (!response.ok) throw new Error('Could not fetch spot price');
-        const data = await response.json();
-        
-        // Find the price for the current hour
+        let data = await response.json();
+        let records: any[] = Array.isArray(data.records) ? data.records : [];
+        if (records.length === 0) {
+          const prev = new Date(today);
+          prev.setDate(today.getDate() - 1);
+          const prevStr = prev.toISOString().split('T')[0];
+          const prevResp = await fetch(`/api/electricity-prices?region=${region}&date=${prevStr}`);
+          if (prevResp.ok) {
+            const prevJson = await prevResp.json();
+            records = Array.isArray(prevJson.records) ? prevJson.records : [];
+          }
+        }
         const currentHour = new Date().getHours();
-        const currentPriceData = data.records.find((r: any) => new Date(r.HourDK).getHours() === currentHour);
-        
-        if (currentPriceData) {
+        const currentPriceData = records.find((r: any) => new Date(r.HourDK).getHours() === currentHour) || records[records.length - 1];
+        if (currentPriceData && typeof currentPriceData.SpotPriceKWh === 'number') {
           setSpotPrice(currentPriceData.SpotPriceKWh);
           setLastUpdated(new Date());
         }

@@ -365,7 +365,7 @@ export class SanityService {
           showSavingsCalculator,
           maxTipsPerCategory,
           defaultCategory,
-          tips[]-> {
+          tips[]-> | order(priority desc, _updatedAt desc) {
             _id,
             title,
             slug,

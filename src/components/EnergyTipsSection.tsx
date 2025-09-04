@@ -109,20 +109,19 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
   // Use professional animations
   const headerAnimation = useScrollAnimation({ duration: 0.6, type: 'fadeUp' });
   
-  // Use CMS tips if available, otherwise use fallback
-  const allTipsData = block.tips && block.tips.length > 0 
-    ? block.tips 
-    : FALLBACK_TIPS
+  // Prefer CMS tips, but only if they look valid (at least a title or description)
+  const cmsTips = (block.tips || []).filter((t: any) => t && (t.title || t.shortDescription || t.category)) as CMSEnergyTip[]
+  const allTipsData = cmsTips.length > 0 ? cmsTips : FALLBACK_TIPS
 
   // Determine which categories to show
   const categoriesToShow = useMemo(() => {
-    // If showCategories is defined and has items, use it
     if (block.showCategories && block.showCategories.length > 0) {
       return block.showCategories
     }
-    // Otherwise, use all category keys
-    return Object.keys(categoryConfig)
-  }, [block.showCategories])
+    // Derive from available data; fallback to all known categories
+    const fromData = Array.from(new Set(allTipsData.map(t => t.category).filter(Boolean))) as string[]
+    return fromData.length > 0 ? fromData : Object.keys(categoryConfig)
+  }, [block.showCategories, allTipsData])
 
   // Filter and organize tips - SIMPLIFIED LOGIC
   const { displayTips, categoryTips } = useMemo(() => {
@@ -147,14 +146,15 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
     // Determine what to display based on selected category
     let tipsToDisplay: CMSEnergyTip[] = []
     
-    if (selectedCategory === 'all') {
+    const activeCategory = selectedCategory && categoriesToShow.includes(selectedCategory) ? selectedCategory : 'all'
+    if (activeCategory === 'all') {
       // Show all tips from all categories
       tipsToDisplay = allTipsData.filter(tip => 
         categoriesToShow.includes(tip.category)
       )
     } else {
       // Show tips from selected category only
-      tipsToDisplay = grouped[selectedCategory] || []
+      tipsToDisplay = grouped[activeCategory] || []
     }
     
     // Apply max tips limit if needed
@@ -250,7 +250,10 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
       whileInView="visible"
       viewport={{ once: true, margin: "-50px" }}
     >
-      {displayTips.map((tip, index) => renderTipCard(tip, index))}
+      {displayTips.length > 0 ? displayTips.map((tip, index) => renderTipCard(tip, index)) : (
+        // Defensive: show a soft fallback if filtered set is empty
+        FALLBACK_TIPS.map((tip, index) => renderTipCard(tip, index))
+      )}
     </motion.div>
   )
 

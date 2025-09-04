@@ -6,6 +6,21 @@
 import { kv } from '@vercel/kv'
 
 /**
+ * Validate KV env configuration to avoid runtime errors when misconfigured
+ */
+function isValidKvConfig(): boolean {
+  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN
+  if (!url || !token) return false
+  const trimmedUrl = url.trim().replace(/^"+|"+$/g, '')
+  const trimmedToken = token.trim().replace(/^"+|"+$/g, '')
+  // Basic checks: must start with https and contain no whitespace
+  if (!/^https:\/\//.test(trimmedUrl)) return false
+  if (/\s/.test(trimmedUrl) || /\s/.test(trimmedToken)) return false
+  return true
+}
+
+/**
  * Request deduplication queue to prevent duplicate simultaneous requests
  */
 const requestQueue = new Map<string, Promise<any>>()
@@ -43,6 +58,10 @@ export async function queuedFetch<T>(
  */
 export async function readKvJson<T = any>(key: string): Promise<T | null> {
   try {
+    if (!isValidKvConfig()) {
+      console.warn(`[KV] Skipping read for ${key}: invalid KV env configuration`)
+      return null
+    }
     const data = await kv.get<T>(key)
     if (data) {
       console.log(`[KV] Cache hit for ${key}`)
@@ -66,6 +85,10 @@ export async function setKvJson(
   ttl: number
 ): Promise<void> {
   try {
+    if (!isValidKvConfig()) {
+      console.warn(`[KV] Skipping set for ${key}: invalid KV env configuration`)
+      return
+    }
     await kv.set(key, value, { ex: ttl })
     console.log(`[KV] Cached ${key} with TTL ${ttl}s`)
   } catch (error) {
@@ -362,6 +385,10 @@ export async function withLock<T>(
   const lockValue = `${Date.now()}_${Math.random()}`
   
   try {
+    if (!isValidKvConfig()) {
+      console.warn(`[KV] Skipping lock for ${key}: invalid KV env configuration`)
+      return await fn()
+    }
     // Try to acquire lock with NX (only set if not exists)
     const acquired = await kv.set(lockKey, lockValue, {
       ex: ttl,

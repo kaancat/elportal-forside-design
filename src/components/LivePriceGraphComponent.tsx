@@ -34,6 +34,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
   const [data, setData] = useState<PriceData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isPrevDayFallback, setIsPrevDayFallback] = useState<boolean>(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -83,10 +84,41 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
         if (!response.ok) throw new Error('Kunne ikke hente data.');
         const result = await response.json();
         console.log('[LivePriceGraph] API result:', result.records?.length, 'records');
+        setIsPrevDayFallback(result?.metadata?.status === 'fallback_previous_day');
         
         if (!result.records || result.records.length === 0) {
-          setError('Priser for den valgte dato er endnu ikke tilgængelige.');
-          setData([]);
+          // Try client-side previous-day fallback to ensure robust UX
+          try {
+            const prev = new Date(selectedDate);
+            prev.setDate(selectedDate.getDate() - 1);
+            const prevDateString = formatDate(prev);
+            console.log('[LivePriceGraph] No records for selected date. Trying previous day:', prevDateString);
+            const prevResp = await fetch(`/api/electricity-prices?region=${currentRegion}&date=${prevDateString}`);
+            console.log('[LivePriceGraph] Prev-day API response status:', prevResp.status);
+            if (prevResp.ok) {
+              const prevJson = await prevResp.json();
+              const prevRecords = Array.isArray(prevJson.records) ? prevJson.records : [];
+              if (prevRecords.length > 0) {
+                setIsPrevDayFallback(true);
+                setData(prevRecords);
+                // compute max price safely
+                const validPrices = prevRecords
+                  .map((r: PriceData) => r.TotalPriceKWh)
+                  .filter((price: number) => typeof price === 'number' && !isNaN(price) && isFinite(price));
+                const max = validPrices.length > 0 ? Math.max(...validPrices) : 1.5;
+                setMaxPrice(max > 0 ? max : 1.5);
+              } else {
+                setError('Priser for den valgte dato er endnu ikke tilgængelige.');
+                setData([]);
+              }
+            } else {
+              setError('Priser for den valgte dato er endnu ikke tilgængelige.');
+              setData([]);
+            }
+          } catch {
+            setError('Priser for den valgte dato er endnu ikke tilgængelige.');
+            setData([]);
+          }
         } else {
           console.log('[LivePriceGraph] Setting data:', result.records.length, 'records');
           setData(result.records);
@@ -102,6 +134,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
         console.error('[LivePriceGraph] Error fetching data:', err);
         setError(err.message);
         setData([]);
+        setIsPrevDayFallback(false);
       } finally {
         console.log('[LivePriceGraph] Setting loading to false');
         setLoading(false);
@@ -236,6 +269,9 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
         )}>
           <h2 className="text-2xl font-display font-bold text-gray-900 mb-2">{block.title}</h2>
           {block.subtitle && <p className="text-gray-600">{block.subtitle}</p>}
+          {isPrevDayFallback && (
+            <p className="text-xs text-gray-500 mt-1">Viser priser for i går</p>
+          )}
         </div>
 
         {/* MAIN LAYOUT: LEFT (STATS + DATE CONTROLS) | RIGHT (REGION + FEES) */}

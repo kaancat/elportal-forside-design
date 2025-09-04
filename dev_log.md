@@ -47,3 +47,15 @@ TO VERIFY
 - Run end‑to‑end on Preview: confirm `/api/auth/session` returns `{ ok: true, data: { sessionId } }` and that redirect is triggered.
 - After authorization callback is wired, verify `/api/auth/session?action=verify` returns `authenticated: true` and `hasAuthorization: true`.
 
+## [2025-09-04] – Update
+Goal: Restore scrollable (sticky) image behavior for `pageSection` and align data fetching with Vite
+
+- Action: Expanded centralized GROQ `pageProjection` for `_type == "pageSection"` to include `theme->{ background, text, primary }`, full `settings { theme, padding, fullWidth, textAlignment, separator, layoutRatio, verticalAlign, stickyImage }`, and mapped `cta { text, url }`.
+- Action: Verified `PageSectionComponent` and `StickyImageSection` already respect `settings.stickyImage` to enable scrollable image behavior; data path now hydrated correctly.
+- Impact: Page sections with the Sanity toggle for sticky/scrollable images behave as on the Vite production site; CTA links resolve via `cta.url`.
+- NOTE: Keep `pageProjection` as the single source of truth for pages; ensure both `getHomePage` and `getPageBySlug` queries use it (they do).
+
+TO VERIFY
+- Smoke test a page with `pageSection.settings.stickyImage = true` and an image present; confirm sticky behavior on desktop and graceful fallback on mobile.
+- Confirm `cta.url` navigates correctly for sections that include a CTA.
+

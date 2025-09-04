@@ -16,6 +16,7 @@ import CO2EmissionsChartComponent from './CO2EmissionsChart'
 import DeclarationProductionChart from './DeclarationProductionChart'
 import DeclarationGridmix from './DeclarationGridmix'
 import ConsumptionMapComponent from './ConsumptionMap'
+import { ForbrugTracker } from './forbrugTracker/ForbrugTracker'
 import PriceCalculatorWidget from './PriceCalculatorWidget'
 import HeroSection from './HeroSection'
 import MonthlyProductionChart from './MonthlyProductionChart'
@@ -184,6 +185,18 @@ const renderContentBlock = (block: ContentBlock) => {
     
     case 'consumptionMap':
       return <ConsumptionMapComponent block={block as ConsumptionMap} />;
+    
+    case 'forbrugTracker': {
+      const anyBlock: any = block as any
+      const description = Array.isArray(anyBlock?.description) ? '' : anyBlock?.description
+      return (
+        <ForbrugTracker 
+          title={(block as any).title}
+          description={description}
+          headerAlignment={(block as any).headerAlignment}
+        />
+      )
+    }
     
     case 'pageSection':
       return <PageSectionComponent section={block as PageSection} />;

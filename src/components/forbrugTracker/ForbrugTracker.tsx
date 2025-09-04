@@ -309,7 +309,16 @@ export function ForbrugTracker({
       })
       
       if (!authResponse.ok) {
-        throw new Error('Kunne ikke starte autorisation')
+        // Try to read error details for diagnostics
+        try {
+          const errJson = await authResponse.json()
+          console.error('Authorize error details:', errJson)
+          throw new Error('Kunne ikke starte autorisation')
+        } catch (e) {
+          const errText = await authResponse.text()
+          console.error('Authorize error text:', errText)
+          throw new Error('Kunne ikke starte autorisation')
+        }
       }
       
       const authJson = await authResponse.json()

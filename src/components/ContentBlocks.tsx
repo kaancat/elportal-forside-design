@@ -353,10 +353,17 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
           : `${block._type}-${block._key || index}`;
         
         return (
-          <div key={layoutId} className={spacingClass}>
+          <div
+            key={layoutId}
+            className={spacingClass}
+            {...(!Array.isArray(block) && {
+              'data-block-type': (block as any)._type,
+              'data-block-key': (block as any)._key || String(index),
+            })}
+          >
             {Array.isArray(block) ? (
               // This is a group of FAQ items
-              <section className="container mx-auto px-4 py-8">
+              <section className="container mx-auto px-4 py-8" data-block-type="faqGroup" data-block-key={`faq-group-${index}`}>
                 <h2 className="text-2xl font-bold text-brand-dark mb-6">Ofte stillede spørgsmål</h2>
                 <div className="max-w-3xl">
                   {block.map((faqItem, faqIndex) => (

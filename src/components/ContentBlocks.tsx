@@ -131,6 +131,18 @@ const SafeContentBlock: React.FC<{
 
 // Render individual content block
 const renderContentBlock = (block: ContentBlock) => {
+  // Temporary type guard until all schema unions are fully aligned in TS
+  if ((block as any)?._type === 'forbrugTracker') {
+    const anyBlock: any = block as any
+    const description = Array.isArray(anyBlock?.description) ? '' : anyBlock?.description
+    return (
+      <ForbrugTracker 
+        title={(block as any).title}
+        description={description}
+        headerAlignment={(block as any).headerAlignment}
+      />
+    )
+  }
   switch (block._type) {
     case 'faqGroup':
       return <FaqGroupComponent block={block as FaqGroup} />;
@@ -186,17 +198,6 @@ const renderContentBlock = (block: ContentBlock) => {
     case 'consumptionMap':
       return <ConsumptionMapComponent block={block as ConsumptionMap} />;
     
-    case 'forbrugTracker': {
-      const anyBlock: any = block as any
-      const description = Array.isArray(anyBlock?.description) ? '' : anyBlock?.description
-      return (
-        <ForbrugTracker 
-          title={(block as any).title}
-          description={description}
-          headerAlignment={(block as any).headerAlignment}
-        />
-      )
-    }
     
     case 'pageSection':
       return <PageSectionComponent section={block as PageSection} />;

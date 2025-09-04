@@ -65,7 +65,7 @@ export async function getPageBySlug(slug: string) {
       {
         next: {
           revalidate: 3600, // Revalidate every hour
-          tags: ['page'],
+          tags: ['page', `page:${slug}`],
         },
       }
     )

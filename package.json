@@ -23,7 +23,8 @@
     "navigation:health": "tsx scripts/check-navigation-health.ts",
     "generate:sitemap": "tsx scripts/generate-sitemap.ts",
     "test:middleware": "tsx scripts/test-middleware.ts",
-    "test:api-parity": "tsx scripts/test-api-parity.ts"
+    "test:api-parity": "tsx scripts/test-api-parity.ts",
+    "pw:compare": "tsx scripts/pw-compare-sanity-vs-dom.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

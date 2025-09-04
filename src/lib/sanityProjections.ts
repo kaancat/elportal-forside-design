@@ -134,18 +134,22 @@ export const pageProjection = `{
       _key,
       headline,
       subheadline,
-      backgroundImage ${imageProjection},
+      highlightWords,
+      content,
+      calculatorTitle,
+      showLivePrice,
+      showProviderComparison,
+      stats[] {
+        _key,
+        value,
+        label
+      },
       image ${imageProjection},
-      backgroundImageUrl,
-      backgroundImageAlt,
       backgroundStyle,
       textColor,
       overlayOpacity,
       padding,
-      alignment,
-      variant,
-      ctaButtonText,
-      showLivePrices
+      alignment
     },
     
     // Page sections with rich content
@@ -156,18 +160,25 @@ export const pageProjection = `{
       headerAlignment,
       content,
       image ${imageProjection},
-      imageAlt,
       imagePosition,
       cta {
         text,
-        link,
-        variant
+        url
+      },
+      theme->{ 
+        "background": background.hex,
+        "text": text.hex,
+        "primary": primary.hex
       },
       settings {
-        backgroundColor,
-        textColor,
-        paddingTop,
-        paddingBottom
+        theme,
+        padding,
+        fullWidth,
+        textAlignment,
+        separator,
+        layoutRatio,
+        verticalAlign,
+        stickyImage
       }
     },
     
@@ -261,7 +272,7 @@ export const pageProjection = `{
       'providers': providers[]-> ${providerProjection}
     },
     
-    // Live price graph with API region
+    // Live price graph with API region (default DK2)
     _type == "livePriceGraph" => {
       _type,
       _key,
@@ -269,20 +280,20 @@ export const pageProjection = `{
       subtitle,
       description,
       headerAlignment,
-      "apiRegion": region,
+      "apiRegion": coalesce(region, "DK2"),
       timeRange,
       showComparison,
       height
     },
     
-    // Daily price timeline with API region
+    // Daily price timeline with API region (default DK2)
     _type == "dailyPriceTimeline" => {
       _type,
       _key,
       title,
       subtitle,
       headerAlignment,
-      "apiRegion": region,
+      "apiRegion": coalesce(region, "DK2"),
       showComparison,
       height
     },
@@ -314,7 +325,7 @@ export const pageProjection = `{
       showComparison
     },
     
-    // Renewable energy forecast
+    // Renewable energy forecast (default region DK2)
     _type == "renewableEnergyForecast" => {
       _type,
       _key,
@@ -322,7 +333,7 @@ export const pageProjection = `{
       subtitle,
       description,
       headerAlignment,
-      "apiRegion": region,
+      "apiRegion": coalesce(region, "DK2"),
       showDetails,
       forecastDays
     },
@@ -414,19 +425,26 @@ export const pageProjection = `{
       }
     },
     
-    // Energy tips section
+    // Energy tips section (dereference tips -> energySavingTip docs)
     _type == "energyTipsSection" => {
       _type,
       _key,
       title,
       subtitle,
       headerAlignment,
-      tips[] {
-        _key,
+      displayMode,
+      showCategories,
+      tips[]-> | order(priority desc, _updatedAt desc) {
+        _id,
         title,
-        description,
-        icon ${iconProjection},
-        category
+        "shortDescription": coalesce(shortDescription, description),
+        category,
+        savingsPotential,
+        difficulty,
+        icon,
+        estimatedSavings,
+        implementationTime,
+        priority
       }
     },
     

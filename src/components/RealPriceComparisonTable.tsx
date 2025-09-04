@@ -148,6 +148,12 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
   const [currentSpotPrice, setCurrentSpotPrice] = useState<number>(1.5); // Default spot price
 
   const { title, leadingText, settings } = block;
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Lightweight runtime breadcrumb to help diagnose mounting issues in preview
+      console.log('[RealPriceComparisonTable] mounted');
+    }
+  }, []);
   
   // Get theme colors based on settings
   const themeColors = getThemeTextColors(settings?.theme);
@@ -166,6 +172,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
           const currentPriceData = data.records.find((r: any) => new Date(r.HourDK).getHours() === currentHour);
           if (currentPriceData) {
             setCurrentSpotPrice(currentPriceData.SpotPriceKWh);
+            console.log('[RealPriceComparisonTable] spot price set', currentPriceData.SpotPriceKWh);
           }
         }
       } catch (error) {
@@ -183,6 +190,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
       try {
         const providers = await SanityService.getAllProviders();
         setAllProviders(providers);
+        console.log('[RealPriceComparisonTable] providers loaded', providers.length);
         
         // Auto-select first two providers if available
         if (providers.length > 0) {
@@ -298,6 +306,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
   if (isLoading) {
     return (
       <section className={cn(
+        'relative z-10',
         getThemeClasses(settings?.theme),
         getPaddingClasses(settings?.padding)
       )}>
@@ -309,6 +318,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
   if (!allProviders || allProviders.length === 0) {
     return (
       <section className={cn(
+        'relative z-10',
         getThemeClasses(settings?.theme),
         getPaddingClasses(settings?.padding)
       )}>
@@ -541,6 +551,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
 
   return (
     <section className={cn(
+      'relative z-10',
       getThemeClasses(settings?.theme),
       getPaddingClasses(settings?.padding)
     )}>

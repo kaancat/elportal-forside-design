@@ -19,7 +19,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
   
-  // Route consolidation: no internal __ssr routes anymore
+  // Never rewrite internal SSR routes
+  if (pathname.startsWith('/__ssr/')) {
+    return NextResponse.next()
+  }
   
   // Only process GET and HEAD requests
   if (!['GET', 'HEAD'].includes(request.method)) {
@@ -28,7 +31,7 @@ export function middleware(request: NextRequest) {
   
   // Feature flags for gradual rollout
   const phase2Enabled = process.env.NEXT_PUBLIC_PHASE2_SSR === 'true'
-  const phase3Enabled = process.env.PHASE3_DYNAMIC_ENABLED === 'true'
+  const phase3Enabled = process.env.PHASE3_DYNAMIC_ENABLED === 'true' // Server-only flag per Codex
   
   // Routes that have been migrated to Next.js SSR/ISR
   // Start with homepage, add more routes as we migrate them
@@ -66,13 +69,38 @@ export function middleware(request: NextRequest) {
     pathname === route || pathname.startsWith(`${route}/`)
   )
   
-  // Phase 3: Dynamic pages are handled by root-level [slug] route directly
-  // Let Next.js handle any non-SPA routes without rewrite when enabled
-  if (phase3Enabled && !isSpaRoute) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[Middleware] Phase 3 enabled, delegating to App Router for: ${pathname}`)
+  // Phase 3: Dynamic pages with route isolation
+  if (phase3Enabled && !isSpaRoute && !isMigratedRoute) {
+    const dynamicPages = [
+      '/elpriser',
+      '/sammenlign',
+      '/groen-energi',
+      '/vindstod',
+      '/spar-penge',
+    ]
+    
+    const isDynamicPage = dynamicPages.some(page => 
+      pathname === page || pathname.startsWith(`${page}/`)
+    )
+    
+    if (isDynamicPage) {
+      // Rewrite to isolated SSR route (never expose __ssr in canonicals)
+      const url = request.nextUrl.clone()
+      url.pathname = `/__ssr${pathname}`
+      
+      // Add X-Robots-Tag for staging per Codex
+      if (process.env.SITE_URL !== 'https://dinelportal.dk') {
+        const response = NextResponse.rewrite(url)
+        response.headers.set('X-Robots-Tag', 'noindex, nofollow')
+        return response
+      }
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[Middleware] Phase 3 SSR route: ${pathname} -> /__ssr${pathname}`)
+      }
+      
+      return NextResponse.rewrite(url)
     }
-    return NextResponse.next()
   }
   
   if (isMigratedRoute) {
@@ -97,7 +125,18 @@ export function middleware(request: NextRequest) {
     return NextResponse.rewrite(url)
   }
   
-  // For unknown routes, default to Next.js handling (no rewrite)
+  // For unknown routes, try SSR if Phase 3 is enabled, otherwise fallback to SPA
+  if (!isMigratedRoute && phase3Enabled) {
+    // Try SSR for unknown content pages
+    const url = request.nextUrl.clone()
+    url.pathname = `/__ssr${pathname}`
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[Middleware] Trying SSR for unknown route: ${pathname} -> /__ssr${pathname}`)
+    }
+    
+    return NextResponse.rewrite(url)
+  }
   
   // Default: let Next.js handle it
   return NextResponse.next()

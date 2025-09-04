@@ -71,6 +71,12 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[Session] POST error:', error)
     const errorMessage = error instanceof Error ? error.message : 'Failed to create session'
+    // Lightweight diagnostics to help debug Preview issues (no secrets exposed)
+    const diagnostics = {
+      hasSigningKey: !!process.env.ELPORTAL_SIGNING_KEY,
+      hasKvUrl: !!(process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL),
+      hasKvToken: !!(process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN),
+    }
     
     // Check if it's a signing key error
     if (errorMessage.includes('ELPORTAL_SIGNING_KEY')) {
@@ -80,7 +86,7 @@ export async function POST(request: NextRequest) {
           error: {
             code: 'CONFIGURATION_ERROR',
             message: 'Server signing key not configured. Please contact support.',
-            details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+            details: diagnostics,
           }
         },
         { status: 500 }
@@ -92,7 +98,8 @@ export async function POST(request: NextRequest) {
         ok: false,
         error: {
           code: 'SESSION_ERROR',
-          message: errorMessage
+          message: errorMessage,
+          details: diagnostics,
         }
       },
       { status: 500 }

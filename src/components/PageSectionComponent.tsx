@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { urlFor } from '@/lib/sanity'
 import { PortableText } from '@portabletext/react'
 import StickyImageSection from './StickyImageSection'
+import PriceCalculatorWidget from './PriceCalculatorWidget'
 import type { PageSection } from '@/types/sanity'
 import { cn } from '@/lib/utils'
 
@@ -104,6 +105,19 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
           "mb-6 leading-relaxed text-lg",
           themeColors.body
         )}>{children}</p>
+      ),
+    },
+    // Inline/custom object types embedded inside Portable Text
+    types: {
+      priceCalculator: ({ value }: { value?: any }) => (
+        // Full‑bleed subtle background stripe with centered widget
+        <div className="relative my-10 left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
+          <div className="bg-gray-50">
+            <div className="container mx-auto px-4 py-10">
+              <PriceCalculatorWidget block={value || { _type: 'priceCalculator' }} />
+            </div>
+          </div>
+        </div>
       ),
     },
     marks: {

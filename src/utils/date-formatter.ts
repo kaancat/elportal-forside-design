@@ -147,10 +147,13 @@ export function formatPercent(
  * Useful for consistent date inputs/APIs
  */
 export function toISOStringDK(date: Date): string {
-  // Create a new date adjusted for Danish timezone
-  const offset = date.getTimezoneOffset()
-  const dkDate = new Date(date.getTime() - offset * 60000)
-  return dkDate.toISOString()
+  // Normalize to Europe/Copenhagen by formatting to a stable locale string
+  // and re-parsing to a Date, then emit ISO. This avoids off‑by‑one issues
+  // when the client is not in Danish timezone or during DST transitions.
+  const normalized = new Date(
+    date.toLocaleString('sv-SE', { timeZone: DK_TIMEZONE })
+  )
+  return normalized.toISOString()
 }
 
 /**

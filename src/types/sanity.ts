@@ -140,6 +140,17 @@ export interface RealPriceComparisonTable {
   leadingText?: string
 }
 
+export interface ForbrugTrackerBlock {
+  _type: 'forbrugTracker'
+  _key: string
+  title?: string
+  // Some Studio setups may store rich text; renderer expects string, so keep flexible
+  description?: string | BlockContent[]
+  headerAlignment?: 'left' | 'center' | 'right'
+  showAdvancedFeatures?: boolean
+  enableElOverblik?: boolean
+}
+
 export interface RenewableEnergyForecast {
   _type: 'renewableEnergyForecast'
   _key: string
@@ -454,6 +465,7 @@ export type ContentBlock =
   | CallToActionSection 
   | LivePriceGraph 
   | RealPriceComparisonTable 
+  | ForbrugTrackerBlock 
   | RenewableEnergyForecast 
   | CO2EmissionsChart
   | DeclarationProduction

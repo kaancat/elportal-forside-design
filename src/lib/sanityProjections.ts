@@ -186,12 +186,12 @@ export const pageProjection = `{
       heading,
       subheading,
       headerAlignment,
-      valueItems[] {
+      "valueItems": coalesce(valueItems[] {
         _key,
         title,
         description,
         icon ${iconProjection}
-      }
+      }, [])
     },
     
     // Feature lists with icons
@@ -201,12 +201,12 @@ export const pageProjection = `{
       title,
       subtitle,
       headerAlignment,
-      features[] {
+      "features": coalesce(features[] {
         _key,
         title,
         description,
         icon ${iconProjection}
-      }
+      }, [])
     },
     
     // Info cards section with icons (correct type name)
@@ -235,11 +235,11 @@ export const pageProjection = `{
       title,
       subtitle,
       headerAlignment,
-      faqItems[] {
+      "faqItems": coalesce(faqItems[] {
         _key,
         question,
         answer
-      }
+      }, [])
     },
     
     // Call to action sections
@@ -504,11 +504,11 @@ export const pageProjection = `{
       leadingText,
       headerAlignment,
       baseConsumption,
-      providers[] {
+      "providers": coalesce(providers[] {
         _key,
         provider->,
         customPricing
-      }
+      }, [])
     },
     
     // Location selector

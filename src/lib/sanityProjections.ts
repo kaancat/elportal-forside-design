@@ -241,6 +241,14 @@ export const pageProjection = `{
         answer
       }, [])
     },
+
+    // Individual FAQ item (legacy usage on some pages)
+    _type == "faqItem" => {
+      _type,
+      _key,
+      question,
+      answer
+    },
     
     // Call to action sections
     _type == "callToActionSection" => {
@@ -313,6 +321,20 @@ export const pageProjection = `{
       leadingText,
       headerAlignment,
       "apiRegion": region,
+      showComparison,
+      height
+    },
+
+    // Direct CO2 emissions chart block
+    _type == "co2EmissionsChart" => {
+      _type,
+      _key,
+      title,
+      subtitle,
+      description,
+      leadingText,
+      headerAlignment,
+      "apiRegion": coalesce(region, "DK2"),
       showComparison,
       height
     },

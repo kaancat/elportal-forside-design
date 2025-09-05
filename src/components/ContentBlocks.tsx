@@ -115,7 +115,8 @@ const SafeContentBlock: React.FC<{
     );
   }
 
-  const blockType = block._type;
+  // Normalize legacy/alternate type names to current component keys (tolerate unknown string)
+  const blockType = ((block as any)._type === 'co2EmissionsDisplay') ? 'co2EmissionsChart' : block._type;
   const fallback = getErrorFallback(blockType);
 
   return (

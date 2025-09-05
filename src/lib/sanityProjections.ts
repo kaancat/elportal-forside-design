@@ -209,20 +209,23 @@ export const pageProjection = `{
       }
     },
     
-    // Info cards with icons
-    _type == "infoCards" => {
+    // Info cards section with icons (correct type name)
+    _type == "infoCardsSection" => {
       _type,
       _key,
       title,
       subtitle,
       headerAlignment,
+      leadingText,
       cards[] {
         _key,
         title,
         description,
         icon ${iconProjection},
+        iconColor,
         bgColor
-      }
+      },
+      columns
     },
     
     // FAQ groups
@@ -289,19 +292,25 @@ export const pageProjection = `{
       _key,
       title,
       subtitle,
+      leadingText,
       headerAlignment,
       "apiRegion": coalesce(region, "DK2"),
+      showTimeZones,
+      showAveragePrice,
+      highlightPeakHours,
       showComparison,
       height
     },
     
-    // CO2 emissions display (keep original type name)
+    // CO2 emissions: alias Sanity's co2EmissionsDisplay -> app's co2EmissionsChart
     _type == "co2EmissionsDisplay" => {
-      _type,
+      // Force the block type expected by the renderer to avoid missing component
+      "_type": "co2EmissionsChart",
       _key,
       title,
       subtitle,
       description,
+      leadingText,
       headerAlignment,
       "apiRegion": region,
       showComparison,
@@ -329,10 +338,32 @@ export const pageProjection = `{
       title,
       subtitle,
       description,
+      leadingText,
       headerAlignment,
       "apiRegion": coalesce(region, "DK2"),
       showDetails,
       forecastDays
+    },
+
+    // Pricing comparison (fast vs variabel) with recommendation card
+    _type == "pricingComparison" => {
+      _type,
+      _key,
+      title,
+      subtitle,
+      headerAlignment,
+      leadingText,
+      fixedTitle,
+      fixedDescription,
+      variableTitle,
+      variableDescription,
+      comparisonItems[] {
+        feature,
+        fixed,
+        variable,
+        tooltip
+      },
+      recommendation
     },
     
     // Price calculator with aliased type
@@ -352,6 +383,7 @@ export const pageProjection = `{
       _key,
       title,
       subtitle,
+      leadingText,
       headerAlignment,
       "dataSource": dataType,
       consumerType,
@@ -392,6 +424,7 @@ export const pageProjection = `{
       _key,
       title,
       subtitle,
+      leadingText,
       headerAlignment,
       chartType,
       timeRange
@@ -402,24 +435,29 @@ export const pageProjection = `{
       _key,
       title,
       subtitle,
+      leadingText,
       headerAlignment,
       chartType,
       timeRange
     },
     
-    // Regional comparison
+    // Regional comparison (DK1 vs DK2) with descriptive fields
     _type == "regionalComparison" => {
       _type,
       _key,
       title,
       subtitle,
       headerAlignment,
-      showPriceComparison,
-      regions[] {
-        _key,
-        name,
-        code
-      }
+      leadingText,
+      dk1Title,
+      dk1Description,
+      dk1PriceIndicator,
+      dk1Features,
+      dk2Title,
+      dk2Description,
+      dk2PriceIndicator,
+      dk2Features,
+      showMap
     },
     
     // Energy tips section (dereference tips -> energySavingTip docs)
@@ -463,6 +501,7 @@ export const pageProjection = `{
       _key,
       title,
       subtitle,
+      leadingText,
       headerAlignment,
       baseConsumption,
       providers[] {

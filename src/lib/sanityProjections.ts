@@ -366,6 +366,27 @@ export const pageProjection = `{
       recommendation
     },
     
+    // Charging box showcase with products
+    _type == "chargingBoxShowcase" => {
+      _type,
+      _key,
+      heading,
+      description,
+      headerAlignment,
+      "products": coalesce(products[]->{
+        _id,
+        name,
+        description,
+        originalPrice,
+        currentPrice,
+        badge,
+        "features": coalesce(features, []),
+        productImage ${imageProjection},
+        ctaLink,
+        ctaText
+      }, [])
+    },
+    
     // Price calculator with aliased type
     _type == "priceCalculatorWidget" => {
       "_type": "priceCalculator",
@@ -452,11 +473,11 @@ export const pageProjection = `{
       dk1Title,
       dk1Description,
       dk1PriceIndicator,
-      dk1Features,
+      "dk1Features": coalesce(dk1Features, []),
       dk2Title,
       dk2Description,
       dk2PriceIndicator,
-      dk2Features,
+      "dk2Features": coalesce(dk2Features, []),
       showMap
     },
     

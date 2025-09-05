@@ -217,14 +217,14 @@ export const pageProjection = `{
       subtitle,
       headerAlignment,
       leadingText,
-      cards[] {
+      "cards": coalesce(cards[] {
         _key,
         title,
         description,
         icon ${iconProjection},
         iconColor,
         bgColor
-      },
+      }, []),
       columns
     },
     
@@ -357,12 +357,12 @@ export const pageProjection = `{
       fixedDescription,
       variableTitle,
       variableDescription,
-      comparisonItems[] {
+      "comparisonItems": coalesce(comparisonItems[] {
         feature,
         fixed,
         variable,
         tooltip
-      },
+      }, []),
       recommendation
     },
     

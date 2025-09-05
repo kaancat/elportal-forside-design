@@ -320,7 +320,14 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
               : `${block._type}-${block._key || index}`;
             
             return (
-              <div key={layoutId} className={spacingClass}>
+              <div
+                key={layoutId}
+                className={spacingClass}
+                {...(!Array.isArray(block) && {
+                  'data-block-type': (block as any)._type,
+                  'data-block-key': (block as any)._key || String(index),
+                })}
+              >
                 <SafeContentBlock 
                   block={block} 
                   index={index} 

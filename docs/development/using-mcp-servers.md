@@ -235,5 +235,5 @@ npm run mcp:use @unsplash/mcp search -- --args '{"query": "Odense Denmark city",
 - Ensure JSON is properly formatted in --args
 
 ### Authentication errors
-- Verify your VITE_SMITHERY_API_KEY is set correctly
+- Verify your SMITHERY_API_KEY is set correctly
 - Check if your API key has access to the requested server

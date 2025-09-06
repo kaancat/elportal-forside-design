@@ -4,9 +4,9 @@ Smithery provides a unified gateway to access thousands of MCP (Model Context Pr
 
 ## Setup
 
-Ensure you have your Smithery API key in `.env`:
+Ensure you have your Smithery API key in `.env` (server-side only):
 ```
-VITE_SMITHERY_API_KEY=your_smithery_api_key_here
+SMITHERY_API_KEY=your_smithery_api_key_here
 ```
 
 ## Available Commands

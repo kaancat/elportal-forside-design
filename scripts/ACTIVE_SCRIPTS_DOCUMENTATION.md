@@ -43,9 +43,9 @@ npm run generate:sitemap
 ## Environment Variables
 
 Required (from .env):
-- `SANITY_API_TOKEN` - Sanity write token
-- `VITE_SANITY_PROJECT_ID` - Sanity project ID (yxesi03x)
-- `VITE_SANITY_DATASET` - Sanity dataset name (production)
+- `SANITY_API_TOKEN` - Sanity write token (server-only)
+- `NEXT_PUBLIC_SANITY_PROJECT_ID` - Sanity project ID (yxesi03x)
+- `NEXT_PUBLIC_SANITY_DATASET` - Sanity dataset name (production)
 
 ## Content Management Protocol
 

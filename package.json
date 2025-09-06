@@ -1,5 +1,5 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "elportal-next",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -103,26 +103,20 @@
     "@types/node-fetch": "^2.6.13",
     "@types/react": "^18.3.3",
     "@vercel/node": "^5.2.1",
-    "@vitejs/plugin-react-swc": "^3.5.0",
     "autoprefixer": "^10.4.20",
     "chalk": "^5.5.0",
     "commander": "^14.0.0",
     "dotenv": "^17.2.1",
     "eslint": "^9.9.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
-    "eslint-plugin-react-refresh": "^0.4.9",
     "globals": "^15.9.0",
-    "lovable-tagger": "^1.1.7",
     "node-fetch": "^3.3.2",
     "playwright": "^1.54.2",
     "postcss": "^8.4.47",
-    "react-helmet-async": "^2.0.5",
     "tailwindcss": "^3.4.11",
     "terser": "^5.43.1",
     "tsx": "^4.20.3",
     "typescript": "^5.5.3",
-    "typescript-eslint": "^8.0.1",
-    "vite": "^5.4.1",
-    "vite-react-ssg": "^0.8.8"
+    "typescript-eslint": "^8.0.1"
   }
 }

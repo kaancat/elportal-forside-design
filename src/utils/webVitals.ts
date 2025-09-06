@@ -35,7 +35,7 @@ function sendToAnalytics(data: VitalsData) {
   }
 
   // Send to analytics endpoint (if configured)
-  const analyticsEndpoint = process.env.NEXT_PUBLIC_ANALYTICS_ENDPOINT || process.env.VITE_ANALYTICS_ENDPOINT;
+  const analyticsEndpoint = process.env.NEXT_PUBLIC_ANALYTICS_ENDPOINT;
   if (analyticsEndpoint) {
     const body = JSON.stringify({
       ...data,

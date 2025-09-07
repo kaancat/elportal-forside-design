@@ -544,6 +544,7 @@ export const pageProjection = `{
       _key,
       title,
       subtitle,
+      description,
       leadingText,
       headerAlignment,
       baseConsumption,

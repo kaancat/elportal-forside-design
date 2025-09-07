@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Zap, TrendingDown, Check, X, Star, ExternalLink, Info, Leaf, Wind, Shield, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { RealPriceComparisonTable, ProviderProductBlock } from '../types/sanity';
+import { PortableText } from '@portabletext/react';
 import { useIsClient } from '@/hooks/useIsClient';
 import { SanityService } from '../services/sanityService';
 import { PRICE_CONSTANTS } from '@/services/priceCalculationService';
@@ -147,7 +148,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
   const [isLoading, setIsLoading] = useState(true);
   const [currentSpotPrice, setCurrentSpotPrice] = useState<number>(1.5); // Default spot price
 
-  const { title, leadingText, settings } = block;
+  const { title, leadingText, settings, description } = block;
   useEffect(() => {
     if (typeof window !== 'undefined') {
       // Lightweight runtime breadcrumb to help diagnose mounting issues in preview
@@ -564,14 +565,22 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
             {title}
           </h2>
         )}
-        {leadingText && (
+        {Array.isArray(description) && description.length > 0 ? (
+          <div className={cn(
+            "prose prose-lg max-w-3xl mx-auto text-center mb-12",
+            themeColors.body,
+            isDarkTheme(theme) && 'prose-invert'
+          )}>
+            <PortableText value={description} />
+          </div>
+        ) : leadingText ? (
           <p className={cn(
             "text-lg text-center mb-12 max-w-3xl mx-auto",
             themeColors.body
           )}>
             {leadingText}
           </p>
-        )}
+        ) : null}
 
         {/* Consumption slider */}
         <Card className={cn("mb-8 shadow-lg", themeColors.cardBg, themeColors.cardBorder)}>

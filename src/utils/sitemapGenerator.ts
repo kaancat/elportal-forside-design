@@ -75,7 +75,7 @@ export function generateSitemapXml(urls: SitemapUrl[]): string {
 /**
  * Fetches all pages from Sanity and generates sitemap data
  */
-export async function generateSitemapData(baseUrl: string = 'https://elportal.dk'): Promise<SitemapUrl[]> {
+export async function generateSitemapData(baseUrl: string = (process.env.SITE_URL || 'https://dinelportal.dk')): Promise<SitemapUrl[]> {
   const urls: SitemapUrl[] = [];
   
   // Add homepage with highest priority

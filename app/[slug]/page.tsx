@@ -34,6 +34,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const canonical = canonicalUrl(`/${slug}`)
   const robotsDirective = getRobotsDirective(page.noIndex)
   
+  const ogImages = page.ogImage
+    ? [{
+        url: urlFor(page.ogImage).url(),
+        width: 1200,
+        height: 630,
+        alt: page.title,
+      }]
+    : [{
+        url: `${SITE_URL}/dinelportal-og-default.png`,
+        width: 1200,
+        height: 630,
+        alt: page.seoMetaTitle || page.title,
+      }]
+
   return {
     title: page.seoMetaTitle || `${page.title} | ${SITE_NAME}`,
     description: page.seoMetaDescription,
@@ -48,12 +62,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       siteName: SITE_NAME,
       publishedTime: page._createdAt,
       modifiedTime: page._updatedAt,
-      images: page.ogImage ? [{
-        url: urlFor(page.ogImage).url(),
-        width: 1200,
-        height: 630,
-        alt: page.title,
-      }] : undefined,
+      images: ogImages,
     },
     twitter: {
       card: 'summary_large_image',
@@ -61,7 +70,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       creator: '@dinelportal',
       title: page.seoMetaTitle || page.title,
       description: page.seoMetaDescription,
-      images: page.ogImage ? [urlFor(page.ogImage).url()] : undefined,
+      images: ogImages.map(i => i.url),
     },
     robots: robotsDirective,
   }

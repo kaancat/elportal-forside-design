@@ -1,4 +1,7 @@
-# Phase 2 Migration Plan - DinElportal
+# [Archived] Phase 2 Migration Plan - DinElportal
+
+> Archived – Historical Reference. The migration to Next.js (App Router) is complete.
+> See docs/ai-context/project-structure.md and docs/SECURITY.md for current guidance.
 
 ## Status: Ready to Begin
 **Date**: February 18, 2025  

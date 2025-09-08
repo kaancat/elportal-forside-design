@@ -1,4 +1,7 @@
-# Phase 2 Implementation Summary
+# [Archived] Phase 2 Implementation Summary
+
+> Archived – Historical Reference. Migration completed.
+> See docs/ai-context/project-structure.md for the current Next.js layout.
 
 **Date**: February 18, 2025  
 **Status**: Foundation Complete, Ready for Migration

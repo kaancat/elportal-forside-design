@@ -1,4 +1,4 @@
-# Phase 4 - API Routes Migration: COMPLETE ✅
+# [Archived] Phase 4 - API Routes Migration: COMPLETE ✅
 
 ## Summary
 Successfully migrated all 28 API routes from Vercel Functions to Next.js App Router format.

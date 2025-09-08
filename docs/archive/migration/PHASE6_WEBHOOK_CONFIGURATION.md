@@ -1,4 +1,4 @@
-# 🔗 Phase 6: Sanity Studio Webhook Configuration Guide
+# [Archived] 🔗 Phase 6: Sanity Studio Webhook Configuration Guide
 
 ## 📋 **Webhook Configuration Requirements**
 

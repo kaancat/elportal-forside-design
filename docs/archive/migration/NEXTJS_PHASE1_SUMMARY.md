@@ -1,4 +1,6 @@
-# Next.js Migration - Phase 1 Summary
+# [Archived] Next.js Migration - Phase 1 Summary
+
+> Archived – Historical Reference.
 
 ## ✅ Phase 1: Foundation Complete (February 18, 2025)
 

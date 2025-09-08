@@ -81,7 +81,8 @@ export async function getPageBySlug(slug: string) {
 }
 
 export async function getAllPageSlugs() {
-  const query = `*[_type == "page" && !isHomepage && !noIndex] {
+  // Use coalesce() to avoid excluding documents where the boolean isn't set
+  const query = `*[_type == "page" && coalesce(isHomepage,false) != true && coalesce(noIndex,false) != true] {
     "slug": slug.current,
     _updatedAt
   }`
@@ -92,12 +93,14 @@ export async function getAllPageSlugs() {
       {},
       {
         next: {
-          revalidate: 3600, // Revalidate every hour
+          revalidate: 60, // Faster sitemap updates
           tags: ['page'],
         },
       }
     )
-    
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[Sitemap] pages from Sanity:', Array.isArray(pages) ? pages.length : 0)
+    }
     return pages.map((p: any) => ({
       slug: p.slug,
       lastModified: new Date(p._updatedAt).toISOString(),

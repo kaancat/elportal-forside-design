@@ -132,7 +132,7 @@ export function trackClick(
   }
 
   // Log in development
-  if (import.meta.env.DEV) {
+  if (process.env.NODE_ENV === 'development') {
     console.log('🎯 Click tracked:', {
       partner,
       clickId,
@@ -263,7 +263,7 @@ export function trackEnhancedEvent(
   if (typeof window !== 'undefined' && (window as any).gtag) {
     (window as any).gtag('event', eventName, parameters);
     
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV === 'development') {
       console.log('📊 GA4 Event:', eventName, parameters);
     }
   }
@@ -284,7 +284,7 @@ export function trackMarketingEvent(
   if (typeof window !== 'undefined' && (window as any).fbq) {
     (window as any).fbq('track', eventName, parameters);
     
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV === 'development') {
       console.log('📱 FB Pixel Event:', eventName, parameters);
     }
   }

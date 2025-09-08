@@ -1,12 +1,21 @@
+'use client'
+
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Image from 'next/image';
+import UniversalLink from './UniversalLink';
 import { useFooterData } from '@/hooks/useFooterData';
+import type { SiteSettings } from '@/types/sanity';
 import { resolveLink } from '@/utils/linkResolver';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FALLBACK_LOGO, FALLBACK_ALT } from '@/constants/branding';
 
-const Footer = () => {
-  const { data: settings, isLoading } = useFooterData();
+interface FooterProps {
+  initialSettings?: SiteSettings | null;
+}
+
+const Footer = ({ initialSettings }: FooterProps) => {
+  const { data: fetched, isLoading } = useFooterData({ enabled: !initialSettings });
+  const settings = initialSettings ?? fetched;
   const footer = settings?.footer;
 
   // Format today's date in Danish
@@ -62,27 +71,25 @@ const Footer = () => {
           <div className="flex flex-col md:flex-row justify-between">
             <div className="mb-8 md:mb-0">
               {footer.footerLogo ? (
-                <img 
+                <Image
                   src={footer.footerLogo.asset?._ref ? 
                     `https://cdn.sanity.io/images/yxesi03x/production/${footer.footerLogo.asset._ref.replace('image-', '').replace('-png', '.png').replace('-jpg', '.jpg')}` :
                     FALLBACK_LOGO
                   }
-                  alt={FALLBACK_ALT} 
+                  alt={FALLBACK_ALT}
+                  width={200}
+                  height={40}
                   className="h-10 mb-4"
-                  onError={(e) => {
-                    console.error('Footer logo failed to load');
-                    e.currentTarget.style.display = 'none';
-                  }}
+                  sizes="200px"
                 />
               ) : (
-                <img 
-                  src={FALLBACK_LOGO} 
-                  alt={FALLBACK_ALT} 
+                <Image
+                  src={FALLBACK_LOGO}
+                  alt={FALLBACK_ALT}
+                  width={200}
+                  height={40}
                   className="h-10 mb-4"
-                  onError={(e) => {
-                    console.error('Footer fallback logo failed to load');
-                    e.currentTarget.style.display = 'none';
-                  }}
+                  sizes="200px"
                 />
               )}
               <p className="max-w-xs text-gray-300 text-sm">
@@ -103,23 +110,12 @@ const Footer = () => {
                       
                       return (
                         <li key={link._key || linkIndex}>
-                          {isInternal ? (
-                            <Link 
-                              to={href}
-                              className="text-gray-300 hover:text-brand-green transition-colors"
-                            >
-                              {link.title}
-                            </Link>
-                          ) : (
-                            <a 
-                              href={href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-gray-300 hover:text-brand-green transition-colors"
-                            >
-                              {link.title}
-                            </a>
-                          )}
+                          <UniversalLink 
+                            href={href}
+                            className="text-gray-300 hover:text-brand-green transition-colors"
+                          >
+                            {link.title}
+                          </UniversalLink>
                         </li>
                       );
                     })}
@@ -144,14 +140,13 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between">
           <div className="mb-8 md:mb-0">
-            <img 
-              src={FALLBACK_LOGO} 
-              alt={FALLBACK_ALT} 
+            <Image
+              src={FALLBACK_LOGO}
+              alt={FALLBACK_ALT}
+              width={200}
+              height={40}
               className="h-10 mb-4"
-              onError={(e) => {
-                console.error('Footer skeleton logo failed to load');
-                e.currentTarget.style.display = 'none';
-              }}
+              sizes="200px"
             />
             <p className="max-w-xs text-gray-300 text-sm">
               DinElportal.dk er Danmarks sammenligningstjeneste for elpriser.

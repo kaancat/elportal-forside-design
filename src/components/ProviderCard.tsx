@@ -11,6 +11,7 @@ import {
   PRICE_CONSTANTS 
 } from '@/services/priceCalculationService';
 import { TrackedLink } from '@/components/tracking/TrackedLink';
+import { resolveProviderLogoUrl } from '@/lib/providerLogos';
 
 interface ProviderCardProps {
   product: ElectricityProduct;
@@ -60,10 +61,14 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
           <div className="flex flex-col space-y-4">
             <div className="flex items-center space-x-6">
               <div className="flex-shrink-0 w-28 h-28 flex items-center justify-center p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
-                <img 
-                  src={product.supplierLogoURL || '/placeholder.svg'} 
-                  alt={`${product.supplierName || 'Ukendt'} logo`} 
-                  className="max-w-full max-h-full object-contain" 
+                <img
+                  src={resolveProviderLogoUrl(product.supplierName, product.supplierLogoURL)}
+                  alt={`${product.supplierName || 'Ukendt'} logo`}
+                  className="max-w-full max-h-full object-contain"
+                  width={112}
+                  height={112}
+                  loading="lazy"
+                  decoding="async"
                   onError={(e) => {
                     e.currentTarget.src = '/placeholder.svg';
                   }}

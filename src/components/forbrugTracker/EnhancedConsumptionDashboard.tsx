@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -176,7 +178,7 @@ export function EnhancedConsumptionDashboard({ customerData, onRefresh }: Enhanc
       
       setConsumptionData({
         ...processedData,
-        comparisonData: comparisonData,
+        comparisonData: comparisonData || undefined,
         isLoading: false
       })
     } catch (error) {

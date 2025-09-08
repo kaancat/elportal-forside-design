@@ -4,9 +4,9 @@ Smithery provides a unified gateway to access thousands of MCP (Model Context Pr
 
 ## Setup
 
-Ensure you have your Smithery API key in `.env`:
+Ensure you have your Smithery API key in `.env` (server-side only):
 ```
-VITE_SMITHERY_API_KEY=your_smithery_api_key_here
+SMITHERY_API_KEY=your_smithery_api_key_here
 ```
 
 ## Available Commands
@@ -235,5 +235,5 @@ npm run mcp:use @unsplash/mcp search -- --args '{"query": "Odense Denmark city",
 - Ensure JSON is properly formatted in --args
 
 ### Authentication errors
-- Verify your VITE_SMITHERY_API_KEY is set correctly
+- Verify your SMITHERY_API_KEY is set correctly
 - Check if your API key has access to the requested server

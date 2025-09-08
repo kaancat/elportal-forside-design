@@ -1,10 +1,34 @@
+'use client'
+
 import React, { useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { PortableText } from '@portabletext/react';
 import { cn } from '@/lib/utils';
-import { Municipalities, MunicipalityType } from 'react-denmark-map';
+// Default import approach to handle malformed package exports
+import * as DenmarkMap from 'react-denmark-map/dist/esm/index.js';
+
+// React 19-safe typed wrapper for Municipalities
+interface MunicipalityProps {
+  customizeAreas?: (municipality: any) => any;
+  showTooltip?: boolean;
+  zoomable?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+  [key: string]: any;
+}
+
+const MunicipalitiesRaw = (DenmarkMap as any)?.Municipalities;
+const Municipalities: React.FC<MunicipalityProps> = (props) => {
+  if (!MunicipalitiesRaw) {
+    console.warn('Municipalities component not found in react-denmark-map');
+    return <div className={props.className} style={props.style}>Map component not available</div>;
+  }
+  return React.createElement(MunicipalitiesRaw, props);
+};
+
+type MunicipalityType = any; // Fallback type for denmark-map data structures
 import { getMunicipalityRegion } from '@/utils/denmarkRegions';
 import { 
   getMunicipalityByAsciiName,
@@ -147,7 +171,6 @@ const RegionalComparison: React.FC<RegionalComparisonProps> = ({ block }) => {
                   customizeAreas={customizeMunicipalities}
                   showTooltip={false}
                   zoomable={false}
-                  draggable={false}
                   className="w-full h-[400px]"
                   style={{ cursor: 'default' }}
                 />

@@ -1,4 +1,6 @@
 
+'use client'
+
 import React, { useState } from 'react'
 import { FAQItem } from '@/types/sanity'
 import BlockContent from './BlockContent'

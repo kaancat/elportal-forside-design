@@ -1,46 +1,39 @@
 {
-  "buildCommand": "npm run build:clean",
-  "framework": null,
-  "installCommand": "npm install --force",
-  "rewrites": [
+  "builds": [
     {
-      "source": "/((?!api/).*)",
-      "destination": "/index.html"
+      "src": "package.json",
+      "use": "@vercel/next"
     }
   ],
-  "functions": {
-    "api/eloverblik.ts": {
-      "maxDuration": 30
-    },
-    "api/electricity-prices.ts": {
-      "maxDuration": 10
-    },
-    "api/co2-emissions.ts": {
-      "maxDuration": 10
-    },
-    "api/energy-forecast.ts": {
-      "maxDuration": 10
-    },
-    "api/monthly-production.ts": {
-      "maxDuration": 10
-    },
-    "api/consumption-map.ts": {
-      "maxDuration": 10
-    },
-    "api/tracking/log.ts": {
-      "maxDuration": 10
-    },
-    "api/tracking/pixel.ts": {
-      "maxDuration": 3
-    },
-    "api/admin/auth.ts": {
-      "maxDuration": 5
-    },
-    "api/admin/dashboard.ts": {
-      "maxDuration": 15
-    },
-    "api/admin/debug.ts": {
-      "maxDuration": 5
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), browsing-topics=()"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://*.cookiebot.com https://*.googletagmanager.com https://*.google-analytics.com https://connect.facebook.net https://cdn.sanity.io https://cdn.gpteng.co https://vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://*.cookiebot.com https://*.google-analytics.com https://*.facebook.com https://cdn.sanity.io https://yxesi03x.api.sanity.io https://yxesi03x.apicdn.sanity.io https://api.energidataservice.dk https://api.eloverblik.dk https://*.upstash.io wss://*.supabase.co https://*.supabase.co https://*.pusher.com wss://*.pusher.com https://vercel.live wss://vercel.live; frame-src https://consentcdn.cookiebot.com https://vercel.live; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests;"
+        }
+      ]
     }
-  }
+  ]
 }

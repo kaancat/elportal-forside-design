@@ -10,11 +10,11 @@ import {
 } from './ErrorFallbacks';
 
 type ErrorBoundaryLevel = 'app' | 'page' | 'component';
-type ComponentType = 'api' | 'chart' | 'calculator' | 'content' | 'navigation' | 'form' | 'generic';
+type ErrorComponentType = 'api' | 'chart' | 'calculator' | 'content' | 'navigation' | 'form' | 'generic';
 
 interface WithErrorBoundaryOptions {
   level?: ErrorBoundaryLevel;
-  componentType?: ComponentType;
+  componentType?: ErrorComponentType;
   fallback?: ReactNode;
   onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
   displayName?: string;

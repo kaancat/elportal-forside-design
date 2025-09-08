@@ -133,7 +133,7 @@ export function getMunicipalityRegion(municipalityNo: string): string {
  */
 export function getMunicipalityCoordinates(municipalityNo: string): [number, number] | null {
   const data = MUNICIPALITY_DATA[municipalityNo as keyof typeof MUNICIPALITY_DATA];
-  return data?.coordinates || null;
+  return data?.coordinates ? [...data.coordinates] as [number, number] : null;
 }
 
 /**

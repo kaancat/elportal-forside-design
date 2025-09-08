@@ -1,18 +1,8 @@
+'use client'
+
 import React, { useEffect } from 'react';
 import { Icon, hasValidIcon, preloadIcons } from './Icon';
-import { IconManager } from '@/types/sanity';
-
-interface Feature {
-  _key: string;
-  title: string;
-  description: string;
-  icon?: IconManager;
-}
-
-interface FeatureListBlock {
-  title?: string;
-  features: Feature[];
-}
+import { FeatureListBlock } from '@/types/sanity';
 
 interface FeatureListComponentProps {
   block: FeatureListBlock;
@@ -23,8 +13,10 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
 
   // Preload all feature icons on component mount
   useEffect(() => {
-    const icons = block.features.map(f => f.icon).filter(Boolean);
-    preloadIcons(icons);
+    const icons = block.features.map(f => 
+      typeof f.icon === 'string' ? undefined : f.icon
+    ).filter(Boolean);
+    preloadIcons(icons as any);
   }, [block.features]);
 
   return (
@@ -47,17 +39,17 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
               console.log('[FeatureList] Item icon data:', {
                 title: feature.title,
                 icon: feature.icon,
-                hasMetadata: !!feature.icon?.metadata,
-                url: feature.icon?.metadata?.url
+                hasMetadata: typeof feature.icon === 'object' && !!(feature.icon as any)?.metadata,
+                url: typeof feature.icon === 'object' && (feature.icon as any)?.metadata?.url
               });
             }
             
             return (
               <div key={feature._key} className="flex flex-col items-center text-center max-w-sm">
                 <div className="flex items-center justify-center h-20 w-20 mb-6 rounded-full bg-brand-primary-light/10">
-                  {hasValidIcon(feature.icon) ? (
+                  {typeof feature.icon !== 'string' && hasValidIcon(feature.icon as any) ? (
                     <Icon
-                      icon={feature.icon}
+                      icon={feature.icon as any}
                       size={48}
                       className="feature-list-icon"
                     />

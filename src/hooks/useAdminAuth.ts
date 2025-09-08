@@ -65,7 +65,7 @@ export function useAdminAuth() {
     setIsAuthenticated(false);
   };
 
-  const getAuthHeaders = () => {
+  const getAuthHeaders = (): HeadersInit => {
     return sessionToken ? { 'Authorization': `Bearer ${sessionToken}` } : {};
   };
 

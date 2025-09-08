@@ -1,6 +1,6 @@
 import React from 'react';
 import { MegaMenu } from '@/types/sanity';
-import { Link as RouterLink } from 'react-router-dom';
+import UniversalLink from './UniversalLink';
 import { Icon, hasValidIcon } from './Icon';
 import { resolveLink } from '@/utils/linkResolver';
 
@@ -30,7 +30,7 @@ const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
                 
                 return (
                   <li key={item._key}>
-                    <RouterLink to={resolveLink(item.link, 'MegaMenu')} className="flex items-start p-2 rounded-lg hover:bg-brand-green/10">
+                    <UniversalLink href={resolveLink(item.link, 'MegaMenu')} className="flex items-start p-2 rounded-lg hover:bg-brand-green/10">
                       {hasValidIcon(item.icon) && (
                         <Icon
                           icon={item.icon}
@@ -43,7 +43,7 @@ const MegaMenuContent: React.FC<MegaMenuContentProps> = ({ menu }) => {
                         <p className="font-semibold text-white">{item.title}</p>
                         <p className="text-sm text-neutral-400 mt-1">{item.description}</p>
                       </div>
-                    </RouterLink>
+                    </UniversalLink>
                   </li>
                 );
               })}

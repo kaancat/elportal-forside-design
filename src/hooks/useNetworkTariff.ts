@@ -40,29 +40,29 @@ export function useNetworkTariff(
     useFallback = true,
   } = options;
 
-  const queryKey = ['network-tariff', gridProvider?.gln];
+  const gln = gridProvider && 'gln' in gridProvider ? gridProvider.gln : undefined;
+  const queryKey = ['network-tariff', gln];
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey,
     queryFn: async () => {
-      if (!gridProvider?.gln) {
+      if (!gln) {
         throw new Error('No grid provider GLN');
       }
 
-      // Try to fetch from API
+      // Try to fetch from our server-side API via the service
+      const chargeCode = gridProvider && 'chargeCode' in gridProvider ? gridProvider.chargeCode : undefined;
       const tariff = await datahubPricelistService.getCurrentTariff(
-        gridProvider.gln,
-        gridProvider.chargeCode
+        gln,
+        chargeCode
       );
 
       // If API fails and fallback is enabled, use static data
       if (!tariff && useFallback) {
-        const fallbackRate = FALLBACK_TARIFFS[gridProvider.gln] || gridProvider.networkTariff;
-        
-        // Create a synthetic tariff data object
+        const fallbackRate = (gln ? FALLBACK_TARIFFS[gln] : undefined) || gridProvider?.networkTariff || 0.2;
         const syntheticTariff: TariffData = {
-          gln: gridProvider.gln,
-          provider: gridProvider.name,
+          gln: gln || '',
+          provider: gridProvider?.name || 'Unknown',
           validFrom: new Date(),
           validTo: null,
           hourlyRates: new Array(24).fill(fallbackRate),
@@ -70,7 +70,6 @@ export function useNetworkTariff(
           tariffType: 'flat',
           season: 'year-round',
         };
-        
         return { tariff: syntheticTariff, isFallback: true };
       }
 
@@ -78,8 +77,10 @@ export function useNetworkTariff(
     },
     enabled: enabled && !!gridProvider,
     refetchInterval,
-    staleTime: 5 * 60 * 1000, // Consider data stale after 5 minutes
-    gcTime: 24 * 60 * 60 * 1000, // Keep in cache for 24 hours
+    staleTime: 10 * 60 * 1000, // 10 min to avoid duplicate fetches during navigation/hydration
+    gcTime: 24 * 60 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
   });
 
   // Extract tariff data

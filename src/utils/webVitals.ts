@@ -28,13 +28,15 @@ function getRating(metric: string, value: number): 'good' | 'needs-improvement' 
 
 function sendToAnalytics(data: VitalsData) {
   // Log to console in development
-  if (import.meta.env.DEV) {
+  const isDev = process.env.NODE_ENV === 'development';
+  if (isDev) {
     const emoji = data.rating === 'good' ? '✅' : data.rating === 'poor' ? '❌' : '⚠️';
     console.log(`${emoji} Core Web Vital [${data.name}]: ${data.value.toFixed(2)}ms (${data.rating})`);
   }
 
   // Send to analytics endpoint (if configured)
-  if (import.meta.env.VITE_ANALYTICS_ENDPOINT) {
+  const analyticsEndpoint = process.env.NEXT_PUBLIC_ANALYTICS_ENDPOINT;
+  if (analyticsEndpoint) {
     const body = JSON.stringify({
       ...data,
       url: window.location.href,
@@ -45,10 +47,10 @@ function sendToAnalytics(data: VitalsData) {
 
     // Use sendBeacon for reliability
     if (navigator.sendBeacon) {
-      navigator.sendBeacon(import.meta.env.VITE_ANALYTICS_ENDPOINT, body);
+      navigator.sendBeacon(analyticsEndpoint, body);
     } else {
       // Fallback to fetch
-      fetch(import.meta.env.VITE_ANALYTICS_ENDPOINT, {
+      fetch(analyticsEndpoint, {
         method: 'POST',
         body,
         headers: { 'Content-Type': 'application/json' },

@@ -1,0 +1,547 @@
+/**
+ * Shared API Helpers for Next.js App Router
+ * Centralized utilities for caching, request deduplication, and error handling
+ */
+
+import { kv } from '@vercel/kv'
+
+/**
+ * Validate KV env configuration to avoid runtime errors when misconfigured
+ */
+function isValidKvConfig(): boolean {
+  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN
+  if (!url || !token) return false
+  const trimmedUrl = url.trim().replace(/^"+|"+$/g, '')
+  const trimmedToken = token.trim().replace(/^"+|"+$/g, '')
+  // Basic checks: must start with https and contain no whitespace
+  if (!/^https:\/\//.test(trimmedUrl)) return false
+  if (/\s/.test(trimmedUrl) || /\s/.test(trimmedToken)) return false
+  return true
+}
+
+/**
+ * Request deduplication queue to prevent duplicate simultaneous requests
+ */
+const requestQueue = new Map<string, Promise<any>>()
+
+/**
+ * Queued fetch to prevent duplicate simultaneous requests for the same data
+ * @param key - Unique identifier for the request
+ * @param fetcher - Async function that performs the actual fetch
+ * @returns Promise resolving to the fetched data
+ */
+export async function queuedFetch<T>(
+  key: string,
+  fetcher: () => Promise<T>
+): Promise<T> {
+  // If request already in flight, return the same promise
+  if (requestQueue.has(key)) {
+    console.log(`[QueuedFetch] Request already in flight for ${key}, waiting...`)
+    return requestQueue.get(key) as Promise<T>
+  }
+  
+  // Create new request
+  const promise = fetcher().finally(() => {
+    // Clean up after 100ms to handle rapid retries
+    setTimeout(() => requestQueue.delete(key), 100)
+  })
+  
+  requestQueue.set(key, promise)
+  return promise
+}
+
+/**
+ * Read JSON data from KV cache with error handling
+ * @param key - Cache key
+ * @returns Cached data or null if not found/error
+ */
+export async function readKvJson<T = any>(key: string): Promise<T | null> {
+  try {
+    if (!isValidKvConfig()) {
+      console.warn(`[KV] Skipping read for ${key}: invalid KV env configuration`)
+      return null
+    }
+    const data = await kv.get<T>(key)
+    if (data) {
+      console.log(`[KV] Cache hit for ${key}`)
+    }
+    return data
+  } catch (error) {
+    console.error(`[KV] Error reading ${key}:`, error)
+    return null
+  }
+}
+
+/**
+ * Set JSON data in KV cache with TTL
+ * @param key - Cache key
+ * @param value - Data to cache
+ * @param ttl - Time to live in seconds
+ */
+export async function setKvJson(
+  key: string,
+  value: any,
+  ttl: number
+): Promise<void> {
+  try {
+    if (!isValidKvConfig()) {
+      console.warn(`[KV] Skipping set for ${key}: invalid KV env configuration`)
+      return
+    }
+    await kv.set(key, value, { ex: ttl })
+    console.log(`[KV] Cached ${key} with TTL ${ttl}s`)
+  } catch (error) {
+    console.error(`[KV] Error setting ${key}:`, error)
+    // Non-critical - continue without caching
+  }
+}
+
+/**
+ * Set both specific and fallback "latest" keys in KV cache
+ * This ensures we have a stale fallback available on errors
+ * @param specificKey - Specific cache key with all parameters
+ * @param latestKey - Fallback "latest" key for error scenarios
+ * @param value - Data to cache
+ * @param specificTtl - TTL for specific key (shorter)
+ * @param latestTtl - TTL for latest key (longer for fallback)
+ */
+export async function setKvJsonWithFallback(
+  specificKey: string,
+  latestKey: string,
+  value: any,
+  specificTtl: number,
+  latestTtl: number = 3600
+): Promise<void> {
+  // Set the specific key with shorter TTL
+  await setKvJson(specificKey, value, specificTtl)
+  
+  // Also set the fallback "latest" key with longer TTL
+  // This ensures we have something to fall back to on errors
+  await setKvJson(latestKey, value, latestTtl)
+}
+
+/**
+ * Generate standardized cache headers
+ * @param options - Cache configuration
+ * @returns Headers object for cache control
+ */
+export function cacheHeaders(options: {
+  sMaxage: number
+  swr?: number
+  public?: boolean
+}): Record<string, string> {
+  const { sMaxage, swr, public: isPublic = true } = options
+  
+  const directives = [
+    isPublic ? 'public' : 'private',
+    `s-maxage=${sMaxage}`,
+    swr ? `stale-while-revalidate=${swr}` : null
+  ].filter(Boolean).join(', ')
+  
+  return {
+    'Cache-Control': directives,
+    'CDN-Cache-Control': `max-age=${sMaxage}`
+  }
+}
+
+/**
+ * Retry function with exponential backoff and jitter
+ * @param fn - Async function to retry
+ * @param maxAttempts - Maximum number of attempts (default: 3)
+ * @param initialDelay - Initial delay in ms (default: 1000)
+ * @returns Result of the function or throws after max attempts
+ */
+export async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  maxAttempts = 3,
+  initialDelay = 1000
+): Promise<T> {
+  let lastError: any
+  
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn()
+    } catch (error: any) {
+      lastError = error
+      
+      // Don't retry on client errors (4xx except 429)
+      if (error.status && error.status >= 400 && error.status < 500 && error.status !== 429) {
+        throw error
+      }
+      
+      // Check if we should retry
+      if (attempt < maxAttempts) {
+        const baseDelay = initialDelay * Math.pow(2, attempt - 1)
+        const delay = addJitter(baseDelay) // Add jitter to prevent thundering herd
+        console.log(`[Retry] Attempt ${attempt} failed, retrying in ${delay}ms...`)
+        await new Promise(resolve => setTimeout(resolve, delay))
+      }
+    }
+  }
+  
+  console.error(`[Retry] All ${maxAttempts} attempts failed`)
+  throw lastError
+}
+
+/**
+ * Delay helper for rate limiting
+ * @param ms - Milliseconds to delay
+ */
+export function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+/**
+ * Parse date parameter with default to today
+ * @param dateParam - Date string in YYYY-MM-DD format or null
+ * @returns Date object
+ */
+export function parseDate(dateParam: string | null): Date {
+  if (dateParam) {
+    return new Date(dateParam + 'T00:00:00Z')
+  }
+  return new Date()
+}
+
+/**
+ * Format date range for API queries
+ * @param date - Base date
+ * @returns Object with start and end date strings
+ */
+export function getDateRange(date: Date): { start: string; end: string } {
+  const start = date.toISOString().split('T')[0] + 'T00:00'
+  const tomorrow = new Date(date)
+  tomorrow.setUTCDate(date.getUTCDate() + 1)
+  const end = tomorrow.toISOString().split('T')[0] + 'T00:00'
+  
+  return { start, end }
+}
+
+/**
+ * Build API URL with query parameters
+ * @param baseUrl - Base API URL
+ * @param params - Query parameters object
+ * @returns Complete URL string
+ */
+export function buildApiUrl(
+  baseUrl: string,
+  params: Record<string, string | number | boolean | undefined>
+): string {
+  const url = new URL(baseUrl)
+  
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined) {
+      url.searchParams.append(key, String(value))
+    }
+  })
+  
+  return url.toString()
+}
+
+/**
+ * Get cache status based on various cache checks
+ * @param kvHit - Whether KV cache was hit
+ * @param memoryHit - Whether memory cache was hit
+ * @param stale - Whether data is stale
+ * @returns Cache status string for X-Cache header
+ */
+export function getCacheStatus(
+  kvHit: boolean,
+  memoryHit: boolean = false,
+  stale: boolean = false
+): string {
+  if (stale) return 'HIT-STALE'
+  if (kvHit) return 'HIT-KV'
+  if (memoryHit) return 'HIT-MEMORY'
+  return 'MISS'
+}
+
+/**
+ * LRU Cache implementation with TTL and max size
+ * Prevents memory leaks by limiting cache size and pruning old entries
+ */
+export class LRUCache<T> {
+  private cache = new Map<string, { data: T; timestamp: number }>()
+  private maxSize: number
+  private ttl: number
+  
+  constructor(ttl: number, maxSize: number = 100) {
+    this.ttl = ttl
+    this.maxSize = maxSize
+  }
+  
+  /**
+   * Set a value in the cache
+   * Prunes oldest entry if cache is at max size
+   */
+  set(key: string, data: T): void {
+    // Delete the key if it exists (to re-insert at the end)
+    this.cache.delete(key)
+    
+    // Prune if at max size
+    if (this.cache.size >= this.maxSize) {
+      const firstKey = this.cache.keys().next().value
+      if (firstKey) {
+        this.cache.delete(firstKey)
+        console.log(`[LRU] Pruned oldest entry: ${firstKey}`)
+      }
+    }
+    
+    this.cache.set(key, { data, timestamp: Date.now() })
+  }
+  
+  /**
+   * Get a value from the cache
+   * Returns null if not found or expired
+   */
+  get(key: string): T | null {
+    const cached = this.cache.get(key)
+    if (!cached) return null
+    
+    // Check if expired
+    if (Date.now() - cached.timestamp > this.ttl) {
+      this.cache.delete(key)
+      return null
+    }
+    
+    // Move to end (most recently used)
+    this.cache.delete(key)
+    this.cache.set(key, cached)
+    
+    return cached.data
+  }
+  
+  /**
+   * Clear all entries from the cache
+   */
+  clear(): void {
+    this.cache.clear()
+  }
+  
+  /**
+   * Get current cache size
+   */
+  get size(): number {
+    return this.cache.size
+  }
+}
+
+/**
+ * Create an LRU cache instance with specified TTL
+ * @param ttl - Time to live in milliseconds
+ * @param maxSize - Maximum number of entries (default 100)
+ */
+export function createLRUCache<T>(ttl: number, maxSize: number = 100): LRUCache<T> {
+  return new LRUCache<T>(ttl, maxSize)
+}
+
+/**
+ * Fetch with timeout using AbortController
+ * Prevents long-hanging requests from exhausting maxDuration
+ * @param url - URL to fetch
+ * @param options - Fetch options including timeout
+ * @returns Response or throws on timeout
+ */
+export async function fetchWithTimeout(
+  url: string,
+  options: RequestInit & { timeout?: number } = {}
+): Promise<Response> {
+  const { timeout = 8000, ...fetchOptions } = options // Default 8s timeout
+  
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeout)
+  
+  try {
+    const response = await fetch(url, {
+      ...fetchOptions,
+      signal: controller.signal
+    })
+    clearTimeout(timeoutId)
+    return response
+  } catch (error: any) {
+    clearTimeout(timeoutId)
+    if (error.name === 'AbortError') {
+      throw new Error(`Request timeout after ${timeout}ms`)
+    }
+    throw error
+  }
+}
+
+/**
+ * Distributed lock using KV with NX (not exists) pattern
+ * Ensures only one instance can execute critical section at a time
+ * @param key - Lock key
+ * @param ttl - Lock TTL in seconds
+ * @param fn - Function to execute under lock
+ * @returns Result of function or throws if lock cannot be acquired
+ */
+export async function withLock<T>(
+  key: string,
+  ttl: number,
+  fn: () => Promise<T>
+): Promise<T> {
+  const lockKey = `lock:${key}`
+  const lockValue = `${Date.now()}_${Math.random()}`
+  
+  try {
+    if (!isValidKvConfig()) {
+      console.warn(`[KV] Skipping lock for ${key}: invalid KV env configuration`)
+      return await fn()
+    }
+    // Try to acquire lock with NX (only set if not exists)
+    const acquired = await kv.set(lockKey, lockValue, {
+      ex: ttl,
+      nx: true
+    })
+    
+    if (acquired !== 'OK') {
+      throw new Error(`Failed to acquire lock for ${key}`)
+    }
+    
+    // Execute function under lock
+    const result = await fn()
+    
+    // Release lock only if we own it
+    const currentValue = await kv.get(lockKey)
+    if (currentValue === lockValue) {
+      await kv.del(lockKey)
+    }
+    
+    return result
+  } catch (error) {
+    // If KV is not available, execute without lock
+    if (error instanceof Error && error.message.includes('Missing required environment variables')) {
+      console.warn(`[Lock] KV not available, executing ${key} without lock`)
+      return await fn()
+    }
+    throw error
+  }
+}
+
+/**
+ * Generate CORS headers based on request origin
+ * @param origin - Request origin header
+ * @param options - CORS configuration options
+ * @returns Headers object for CORS
+ */
+export function corsHeaders(
+  origin: string | null,
+  options: {
+    allowedOrigins?: string[]
+    allowCredentials?: boolean
+    allowedMethods?: string[]
+    allowedHeaders?: string[]
+    exposedHeaders?: string[]
+  } = {}
+): Record<string, string> {
+  const {
+    allowedOrigins = ['*'],
+    allowCredentials = false,
+    allowedMethods = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders = ['Content-Type', 'Authorization'],
+    exposedHeaders = ['X-Cache', 'X-Request-Id']
+  } = options
+  
+  const headers: Record<string, string> = {
+    'Access-Control-Allow-Methods': allowedMethods.join(', '),
+    'Access-Control-Allow-Headers': allowedHeaders.join(', '),
+    'Access-Control-Expose-Headers': exposedHeaders.join(', '),
+    'Vary': 'Origin'
+  }
+  
+  // Handle origin matching
+  if (allowedOrigins.includes('*') && !allowCredentials) {
+    headers['Access-Control-Allow-Origin'] = '*'
+  } else if (origin) {
+    // Check if origin is allowed
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (allowed === '*') return true
+      if (allowed === origin) return true
+      // Support wildcard subdomains (e.g., *.dinelportal.dk)
+      if (allowed.startsWith('*.')) {
+        const domain = allowed.slice(2)
+        return origin.endsWith(domain)
+      }
+      return false
+    })
+    
+    if (isAllowed) {
+      headers['Access-Control-Allow-Origin'] = origin
+      if (allowCredentials) {
+        headers['Access-Control-Allow-Credentials'] = 'true'
+      }
+    }
+  }
+  
+  return headers
+}
+
+/**
+ * Handle OPTIONS preflight requests
+ * @param origin - Request origin header
+ * @param options - CORS configuration options
+ * @returns NextResponse for OPTIONS request
+ */
+export function handleOptions(
+  origin: string | null,
+  options: Parameters<typeof corsHeaders>[1] = {}
+): Response {
+  return new Response(null, {
+    status: 200,
+    headers: corsHeaders(origin, options)
+  })
+}
+
+/**
+ * Add jitter to retry delay to prevent thundering herd
+ * @param baseDelay - Base delay in milliseconds
+ * @param jitterFactor - Jitter factor (0-1, default 0.2 for ±20%)
+ * @returns Delay with jitter applied
+ */
+export function addJitter(baseDelay: number, jitterFactor: number = 0.2): number {
+  const jitter = baseDelay * jitterFactor * (Math.random() * 2 - 1) // ±jitterFactor
+  return Math.max(0, Math.round(baseDelay + jitter))
+}
+
+/**
+ * CORS helper for public APIs (no credentials)
+ * Allows all origins and doesn't require credentials
+ * @returns Headers for public CORS
+ */
+export function corsPublic(): Record<string, string> {
+  return corsHeaders(null, {
+    allowedOrigins: ['*'],
+    allowCredentials: false,
+    exposedHeaders: ['X-Cache', 'X-Request-Id', 'X-RateLimit-Remaining']
+  })
+}
+
+/**
+ * CORS helper for private APIs (with credentials)
+ * Echoes the origin if allowed and supports credentials
+ * @param origin - Request origin header
+ * @returns Headers for private CORS
+ */
+export function corsPrivate(origin: string | null): Record<string, string> {
+  // Define allowed origins for private APIs
+  const allowedOrigins = [
+    'https://dinelportal.dk',
+    'https://www.dinelportal.dk',
+    '*.dinelportal.dk'
+  ]
+  
+  // In development, also allow localhost
+  if (process.env.NODE_ENV === 'development') {
+    allowedOrigins.push('http://localhost:3000')
+    allowedOrigins.push('http://localhost:3001')
+  }
+  
+  return corsHeaders(origin, {
+    allowedOrigins,
+    allowCredentials: true,
+    allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-CSRF-Value'],
+    exposedHeaders: ['X-Cache', 'X-Request-Id', 'X-RateLimit-Remaining', 'X-Session-Id']
+  })
+}

@@ -1,4 +1,10 @@
-# Phase 1 - Codex Review Fixes Applied
+# [Archived] Phase 1 - Codex Review Fixes Applied
+
+> Archived – Historical Reference. The migration to Next.js (App Router) is complete.
+> For current structure and practices, see:
+> - docs/ai-context/project-structure.md
+> - docs/SECURITY.md
+> - src/lib/env.ts
 
 ## Date: February 18, 2025
 

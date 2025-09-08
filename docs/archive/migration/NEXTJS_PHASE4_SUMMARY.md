@@ -1,4 +1,6 @@
-# Next.js Migration - Phase 4: API Routes Migration Summary
+# [Archived] Next.js Migration - Phase 4: API Routes Migration Summary
+
+> Archived – Historical Reference.
 
 ## Executive Summary
 Phase 4 of the Next.js migration has been successfully completed with all 28 APIs migrated from Vercel Functions to Next.js App Router format. The migration maintains 100% feature parity while adding significant performance optimizations, security enhancements, and architectural improvements.

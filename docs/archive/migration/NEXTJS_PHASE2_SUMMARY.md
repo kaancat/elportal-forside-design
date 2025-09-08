@@ -1,4 +1,6 @@
-# Next.js Migration - Phase 2 Summary
+# [Archived] Next.js Migration - Phase 2 Summary
+
+> Archived – Historical Reference.
 
 ## ✅ Phase 2: SSR/ISR Foundation Complete (February 18, 2025)
 

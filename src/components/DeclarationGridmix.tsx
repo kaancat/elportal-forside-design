@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend, Cell } from 'recharts';
 import { CalendarDays, ChevronLeft, ChevronRight, Zap, AlertCircle, Leaf, Info } from 'lucide-react';
@@ -8,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { PortableText } from '@portabletext/react';
 import type { DeclarationGridmix } from '@/types/sanity';
+import { useIsClient } from '@/hooks/useIsClient';
 
 interface GridmixRecord {
   HourUTC: string;
@@ -214,6 +217,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
   const showSummary = block.showSummary !== undefined ? block.showSummary : true;
   const view = block.view || '7d';
 
+  const isClient = useIsClient(); // Next.js hydration fix
   const [data, setData] = useState<GridmixRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -225,10 +229,13 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
   });
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<'Danmark' | 'DK1' | 'DK2'>('Danmark');
-  const [selectedView, setSelectedView] = useState<'7d' | '30d'>(view === '24h' ? '7d' : view);
+  const [selectedView, setSelectedView] = useState<'7d' | '30d'>(view || '7d');
   const [hoveredSegment, setHoveredSegment] = useState<string | null>(null);
 
   useEffect(() => {
+    // Next.js hydration fix - only run on client
+    if (!isClient) return;
+    
     const fetchData = async () => {
       setLoading(true);
       setError(null);
@@ -262,7 +269,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
     };
     
     fetchData();
-  }, [selectedRegion, selectedDate, selectedView]);
+  }, [isClient, selectedRegion, selectedDate, selectedView]);
 
   // Calculate current hour data for pie chart
   const currentHourData = useMemo(() => {
@@ -411,7 +418,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
             const categoryName = catConfig.name;
             groupedData[categoryName].total += value.percentage;
             groupedData[categoryName].details.push({
-              origin: countryMapping[origin] || origin,
+              origin: origin ? (countryMapping[origin] || origin) : 'Ukendt',
               percentage: value.percentage,
               isImport
             });
@@ -424,7 +431,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
         if (!categoryFound) {
           groupedData['Andet'].total += value.percentage;
           groupedData['Andet'].details.push({
-            origin: countryMapping[origin] || origin,
+            origin: origin ? (countryMapping[origin] || origin) : 'Ukendt',
             percentage: value.percentage,
             isImport
           });
@@ -715,7 +722,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                       />
                       <YAxis type="category" hide={true} />
                       <Tooltip 
-                        content={<CustomTooltip groupedData={groupedData} hoveredSegment={hoveredSegment} />} 
+                        content={(props: any) => <CustomTooltip {...props} groupedData={groupedData} hoveredSegment={hoveredSegment} />} 
                         cursor={{ fill: 'rgba(0,0,0,0.05)' }}
                         wrapperStyle={{ outline: 'none' }}
                         isAnimationActive={false}

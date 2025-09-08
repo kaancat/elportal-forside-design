@@ -81,49 +81,41 @@ class DatahubPricelistService {
       // Determine charge code
       const code = chargeCode || STANDARD_CHARGE_CODES[gln]?.residential || 'DT_C_01';
 
-      // Build filter
-      const filter = {
-        ChargeType: 'D03',
-        GLN_Number: gln,
-        ChargeTypeCode: code,
-      };
-
-      // Query API
-      const params = new URLSearchParams({
-        filter: JSON.stringify(filter),
-        sort: 'ValidFrom desc',
-        limit: '10',
-      });
-
-      const response = await fetch(`${this.API_BASE_URL}?${params}`, {
-        signal: AbortSignal.timeout(5000), // 5 second timeout
-      });
+      // Call our server API (Next.js) instead of external EnergiDataService from the client
+      const params = new URLSearchParams({ gln, chargeCode: code })
+      const response = await fetch(`/api/tariffs?${params.toString()}`, {
+        signal: AbortSignal.timeout(6000),
+      })
 
       if (!response.ok) {
-        console.error(`API error: ${response.status}`);
-        return null;
+        console.error(`Tariffs API error: ${response.status}`)
+        return null
       }
 
-      const data: DatahubPricelistResponse = await response.json();
-      
-      if (!data.records || data.records.length === 0) {
-        console.warn(`No tariff data found for GLN ${gln} with code ${code}`);
-        return null;
+      const data = await response.json()
+
+      // Basic shape guard
+      if (!data || !Array.isArray(data.hourlyRates) || data.hourlyRates.length !== 24) {
+        console.warn('Tariffs API returned unexpected shape')
+        return null
       }
 
-      // Process the records to find current valid tariff
-      const now = new Date();
-      const currentTariff = this.findCurrentTariff(data.records, now);
-
-      if (!currentTariff) {
-        console.warn(`No valid tariff found for current date`);
-        return null;
+      // Convert to TariffData
+      const tariff: TariffData = {
+        gln,
+        provider: data.provider || 'Unknown',
+        validFrom: data.validFrom ? new Date(data.validFrom) : new Date(),
+        validTo: data.validTo ? new Date(data.validTo) : null,
+        hourlyRates: data.hourlyRates,
+        averageRate: typeof data.averageRate === 'number' ? data.averageRate : 0,
+        tariffType: data.tariffType === 'time-of-use' ? 'time-of-use' : 'flat',
+        season: data.season === 'summer' ? 'summer' : 'winter',
       }
 
-      return this.processTariffRecord(currentTariff, gln);
+      return tariff
     } catch (error) {
-      console.error('Error fetching tariff data:', error);
-      return null;
+      console.error('Error fetching tariff data:', error)
+      return null
     }
   }
 

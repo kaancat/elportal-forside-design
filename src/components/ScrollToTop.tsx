@@ -1,5 +1,7 @@
+'use client'
+
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { usePathname } from 'next/navigation';
 
 /**
  * ScrollToTop Component
@@ -11,7 +13,7 @@ import { useLocation } from 'react-router-dom';
  * Based on React Router's recommended pattern for scroll restoration.
  */
 export default function ScrollToTop() {
-  const { pathname } = useLocation();
+  const pathname = usePathname();
 
   useEffect(() => {
     // Skip scroll restoration if navigating to a hash link (e.g., #section)

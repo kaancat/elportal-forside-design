@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Area, AreaChart } from 'recharts';
@@ -5,6 +7,7 @@ import { Sun, Moon, Sunrise, Sunset, AlertCircle, Calendar, MapPin } from 'lucid
 import { Badge } from '@/components/ui/badge';
 import { PortableText } from '@portabletext/react';
 import { cn } from '@/lib/utils';
+import { toISOStringDK } from '@/utils/date-formatter';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -42,18 +45,21 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
     showTimeZones = true,
     showAveragePrice = true,
     highlightPeakHours = true,
-    apiRegion = 'DK2'
   } = block;
+  // Sanitize region input from Sanity (can be null)
+  const blockRegion = (block as any)?.apiRegion ?? 'DK2'
+  const initialRegion = blockRegion === 'DK1' || blockRegion === 'DK2' ? blockRegion : 'DK2'
 
   const [data, setData] = useState<PriceData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [averagePrice, setAveragePrice] = useState(0);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedRegion, setSelectedRegion] = useState<'DK1' | 'DK2'>(apiRegion as 'DK1' | 'DK2');
+  const [isPrevDayFallback, setIsPrevDayFallback] = useState(false);
+  const [selectedRegion, setSelectedRegion] = useState<'DK1' | 'DK2'>(initialRegion as 'DK1' | 'DK2');
 
   // Helper functions
-  const formatDate = (date: Date) => date.toISOString().split('T')[0];
+  const formatDate = (date: Date) => toISOStringDK(date).slice(0, 10);
   
   const getTimeOfDay = (hour: number): 'night' | 'morning' | 'day' | 'evening' => {
     if (hour >= 0 && hour < 6) return 'night';
@@ -96,24 +102,48 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
       setError(null);
       
       const dateString = formatDate(selectedDate);
+      const safeRegion: 'DK1' | 'DK2' = selectedRegion === 'DK1' ? 'DK1' : 'DK2'
       
       try {
-        const response = await fetch(`/api/electricity-prices?region=${selectedRegion}&date=${dateString}`);
-        
-        if (!response.ok) {
-          throw new Error('Kunne ikke hente prisdata');
-        }
-        
+        const response = await fetch(`/api/electricity-prices?region=${safeRegion}&date=${dateString}`);
+        if (!response.ok) throw new Error('Kunne ikke hente prisdata');
         const result = await response.json();
-        
+        // Respect server-side fallback hint
+        if (result?.metadata?.status === 'fallback_previous_day') {
+          setIsPrevDayFallback(true);
+        }
+
         if (!result.records || result.records.length === 0) {
-          setError('Prisdata for den valgte dato er ikke tilgængelig endnu');
-          setData([]);
-          setAveragePrice(0);
+          // Try previous day fallback client-side
+          const prev = new Date(selectedDate);
+          prev.setDate(selectedDate.getDate() - 1);
+          const prevDate = formatDate(prev);
+          const prevResp = await fetch(`/api/electricity-prices?region=${safeRegion}&date=${prevDate}`);
+          if (prevResp.ok) {
+            const prevJson = await prevResp.json();
+            const prevRecords = Array.isArray(prevJson.records) ? prevJson.records : [];
+            if (prevRecords.length > 0) {
+              setIsPrevDayFallback(true);
+              const transformed = transformApiData(prevRecords);
+              setData(transformed);
+              const avg = transformed.reduce((sum, item) => sum + item.price, 0) / transformed.length;
+              setAveragePrice(avg);
+            } else {
+              setError('Prisdata for den valgte dato er ikke tilgængelig endnu');
+              setData([]);
+              setAveragePrice(0);
+              setIsPrevDayFallback(false);
+            }
+          } else {
+            setError('Prisdata for den valgte dato er ikke tilgængelig endnu');
+            setData([]);
+            setAveragePrice(0);
+            setIsPrevDayFallback(false);
+          }
         } else {
+          setIsPrevDayFallback(false);
           const transformedData = transformApiData(result.records);
           setData(transformedData);
-          
           const avg = transformedData.reduce((sum, item) => sum + item.price, 0) / transformedData.length;
           setAveragePrice(avg);
         }
@@ -122,6 +152,7 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
         setError(err.message || 'Der opstod en fejl ved indlæsning af prisdata');
         setData([]);
         setAveragePrice(0);
+        setIsPrevDayFallback(false);
       } finally {
         setLoading(false);
       }
@@ -262,6 +293,9 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
           <CardHeader className="pb-2 md:pb-4">
             <CardTitle className="text-lg md:text-xl font-bold text-gray-900">
               Prisudvikling gennem døgnet
+              {isPrevDayFallback && (
+                <span className="ml-2 text-xs font-normal text-gray-500">(Viser priser for i går)</span>
+              )}
               {error && (
                 <Badge variant="destructive" className="ml-2 text-xs">
                   Data ikke tilgængelig
@@ -310,10 +344,10 @@ const DailyPriceTimeline: React.FC<DailyPriceTimelineProps> = ({ block }) => {
                         dataKey="hour" 
                         tick={{ 
                           fontSize: 10, 
-                          fill: '#6b7280',
-                          angle: -45,
-                          textAnchor: 'end'
+                          fill: '#6b7280'
                         }}
+                        angle={-45}
+                        textAnchor="end"
                         interval={3}
                         height={40}
                       />

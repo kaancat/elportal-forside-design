@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import * as Icons from 'lucide-react'
@@ -13,16 +15,31 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useScrollAnimation, staggerContainer } from '@/hooks/useScrollAnimation'
 
+// Type for CMS energy tip
+interface CMSEnergyTip {
+  _id: string
+  title: string
+  slug?: { current: string }
+  category: string
+  shortDescription: string
+  savingsPotential?: 'low' | 'medium' | 'high'
+  difficulty?: 'easy' | 'medium' | 'hard'
+  icon?: string
+  estimatedSavings?: string
+  implementationTime?: string
+  priority?: number
+}
+
 // Fallback tips for when no CMS data is available
-const FALLBACK_TIPS = [
+const FALLBACK_TIPS: CMSEnergyTip[] = [
   {
     _id: 'fallback-1',
     title: 'Udskift til LED-pærer',
     slug: { current: 'udskift-til-led-paerer' },
     category: 'lighting',
     shortDescription: 'LED-pærer bruger op til 85% mindre strøm end traditionelle glødepærer.',
-    savingsPotential: 'high',
-    difficulty: 'easy',
+    savingsPotential: 'high' as const,
+    difficulty: 'easy' as const,
     icon: 'Lightbulb'
   },
   {
@@ -31,8 +48,8 @@ const FALLBACK_TIPS = [
     slug: { current: 'installer-smart-termostat' },
     category: 'smart_tech',
     shortDescription: 'En smart termostat kan reducere dit varmeforbrug med op til 20%.',
-    savingsPotential: 'high',
-    difficulty: 'medium',
+    savingsPotential: 'high' as const,
+    difficulty: 'medium' as const,
     icon: 'Thermometer'
   },
   {
@@ -41,8 +58,8 @@ const FALLBACK_TIPS = [
     slug: { current: 'sluk-standby-apparater' },
     category: 'daily_habits',
     shortDescription: 'Standby-forbrug kan udgøre op til 10% af din elregning.',
-    savingsPotential: 'medium',
-    difficulty: 'easy',
+    savingsPotential: 'medium' as const,
+    difficulty: 'easy' as const,
     icon: 'Power'
   }
 ]
@@ -69,21 +86,6 @@ const difficultyLabels = {
   hard: 'Svær',
 }
 
-// Type for CMS energy tip
-interface CMSEnergyTip {
-  _id: string
-  title: string
-  slug?: { current: string }
-  category: string
-  shortDescription: string
-  savingsPotential?: 'low' | 'medium' | 'high'
-  difficulty?: 'easy' | 'medium' | 'hard'
-  icon?: string
-  estimatedSavings?: string
-  implementationTime?: string
-  priority?: number
-}
-
 interface EnergyTipsSectionProps {
   block: {
     _type: 'energyTipsSection'
@@ -107,20 +109,19 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
   // Use professional animations
   const headerAnimation = useScrollAnimation({ duration: 0.6, type: 'fadeUp' });
   
-  // Use CMS tips if available, otherwise use fallback
-  const allTipsData = block.tips && block.tips.length > 0 
-    ? block.tips 
-    : FALLBACK_TIPS
+  // Prefer CMS tips, but only if they look valid (at least a title or description)
+  const cmsTips = (block.tips || []).filter((t: any) => t && (t.title || t.shortDescription || t.category)) as CMSEnergyTip[]
+  const allTipsData = cmsTips.length > 0 ? cmsTips : FALLBACK_TIPS
 
   // Determine which categories to show
   const categoriesToShow = useMemo(() => {
-    // If showCategories is defined and has items, use it
     if (block.showCategories && block.showCategories.length > 0) {
       return block.showCategories
     }
-    // Otherwise, use all category keys
-    return Object.keys(categoryConfig)
-  }, [block.showCategories])
+    // Derive from available data; fallback to all known categories
+    const fromData = Array.from(new Set(allTipsData.map(t => t.category).filter(Boolean))) as string[]
+    return fromData.length > 0 ? fromData : Object.keys(categoryConfig)
+  }, [block.showCategories, allTipsData])
 
   // Filter and organize tips - SIMPLIFIED LOGIC
   const { displayTips, categoryTips } = useMemo(() => {
@@ -145,14 +146,15 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
     // Determine what to display based on selected category
     let tipsToDisplay: CMSEnergyTip[] = []
     
-    if (selectedCategory === 'all') {
+    const activeCategory = selectedCategory && categoriesToShow.includes(selectedCategory) ? selectedCategory : 'all'
+    if (activeCategory === 'all') {
       // Show all tips from all categories
       tipsToDisplay = allTipsData.filter(tip => 
         categoriesToShow.includes(tip.category)
       )
     } else {
       // Show tips from selected category only
-      tipsToDisplay = grouped[selectedCategory] || []
+      tipsToDisplay = grouped[activeCategory] || []
     }
     
     // Apply max tips limit if needed
@@ -182,8 +184,8 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
   }, [allTipsData, categoriesToShow, selectedCategory, block.maxTipsPerCategory])
 
   const renderTipCard = (tip: CMSEnergyTip, index: number) => {
-    const Icon = tip.icon && Icons[tip.icon as keyof typeof Icons] 
-      ? Icons[tip.icon as keyof typeof Icons] 
+    const IconComponent = tip.icon && Icons[tip.icon as keyof typeof Icons] 
+      ? (Icons[tip.icon as keyof typeof Icons] as any)
       : Lightbulb
     
     return (
@@ -201,7 +203,7 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
         <Card className="p-6 h-full hover:shadow-lg transition-shadow duration-300">
           <div className="flex items-start justify-between mb-4">
             <div className="p-3 bg-brand-green/10 rounded-lg">
-              <Icon className="h-6 w-6 text-brand-green" />
+              <IconComponent className="h-6 w-6 text-brand-green" />
             </div>
             <div className="flex gap-2">
               {block.showSavingsPotential !== false && tip.savingsPotential && (
@@ -248,7 +250,10 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
       whileInView="visible"
       viewport={{ once: true, margin: "-50px" }}
     >
-      {displayTips.map((tip, index) => renderTipCard(tip, index))}
+      {displayTips.length > 0 ? displayTips.map((tip, index) => renderTipCard(tip, index)) : (
+        // Defensive: show a soft fallback if filtered set is empty
+        FALLBACK_TIPS.map((tip, index) => renderTipCard(tip, index))
+      )}
     </motion.div>
   )
 
@@ -298,7 +303,7 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
                   return (
                     <button
                       key={categoryKey}
-                      onClick={() => setSelectedCategory(categoryKey)}
+                      onClick={() => setSelectedCategory(categoryKey as typeof selectedCategory)}
                       className={`flex items-center justify-center gap-2 px-3 py-2 rounded-md transition-colors ${
                         selectedCategory === categoryKey 
                           ? 'bg-white shadow-sm text-gray-900' 
@@ -314,15 +319,9 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
               </div>
             </div>
 
-            {/* Content */}
+            {/* Content: always render; internal fallback handles empty sets */}
             <div className="mt-8">
-              {displayTips.length > 0 ? (
-                renderContent()
-              ) : (
-                <div className="text-center py-12 text-gray-500">
-                  <p>Ingen tips fundet for denne kategori.</p>
-                </div>
-              )}
+              {renderContent()}
             </div>
           </div>
         ) : (

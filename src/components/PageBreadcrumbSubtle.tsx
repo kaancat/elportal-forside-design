@@ -1,5 +1,7 @@
+'use client'
+
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import {
   Breadcrumb,
@@ -82,7 +84,7 @@ export const PageBreadcrumbSubtle: React.FC<PageBreadcrumbSubtleProps> = ({
       <BreadcrumbList className="text-xs">
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <Link to="/" className="text-gray-500 hover:text-gray-700">Forside</Link>
+            <Link href="/" className="text-gray-500 hover:text-gray-700">Forside</Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
         {items.map((item, index) => (
@@ -93,7 +95,7 @@ export const PageBreadcrumbSubtle: React.FC<PageBreadcrumbSubtleProps> = ({
                 <BreadcrumbPage className="text-gray-600">{item.label}</BreadcrumbPage>
               ) : item.href ? (
                 <BreadcrumbLink asChild>
-                  <Link to={item.href} className="text-gray-500 hover:text-gray-700">{item.label}</Link>
+                  <Link href={item.href} className="text-gray-500 hover:text-gray-700">{item.label}</Link>
                 </BreadcrumbLink>
               ) : (
                 <BreadcrumbPage className="text-gray-600">{item.label}</BreadcrumbPage>

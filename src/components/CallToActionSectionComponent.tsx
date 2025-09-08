@@ -1,5 +1,7 @@
+'use client'
+
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { CallToActionSection } from '@/types/sanity'
 import { Button } from '@/components/ui/button'
@@ -11,7 +13,7 @@ interface CallToActionSectionComponentProps {
 }
 
 const CallToActionSectionComponent: React.FC<CallToActionSectionComponentProps> = ({ block }) => {
-  const navigate = useNavigate()
+  const router = useRouter()
 
   if (!block?.title || !block?.buttonText || !block?.buttonUrl) {
     return null
@@ -24,7 +26,7 @@ const CallToActionSectionComponent: React.FC<CallToActionSectionComponentProps> 
   }
   
   const handleInternalNavigation = () => {
-    navigate(block.buttonUrl);
+    router.push(block.buttonUrl)
   }
 
   return (

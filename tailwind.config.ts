@@ -119,9 +119,10 @@ export default {
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'pulse-glow': 'pulse-glow 2s ease-in-out infinite'
 			},
-			backgroundImage: {
-				'hero-windmills': "url('/public/lovable-uploads/e68808e9-f324-4925-93ed-3433c3de4cd9.png')",
-			},
+            backgroundImage: {
+                // Assets in Next's `public` folder are served from root
+                'hero-windmills': "url('/lovable-uploads/e68808e9-f324-4925-93ed-3433c3de4cd9.png')",
+            },
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

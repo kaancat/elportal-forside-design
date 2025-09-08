@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+'use client'
+
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import ProviderCard from './ProviderCard';
 import HouseholdTypeSelector, { HouseholdType } from './HouseholdTypeSelector';
@@ -19,7 +21,7 @@ interface ProviderListProps {
   block: ProviderListBlock;
 }
 
-export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
+const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
   
   // --- SAFETY CHECK ---
   if (!block) {
@@ -29,6 +31,10 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
   // --- END OF SAFETY CHECK ---
 
   const [annualConsumption, setAnnualConsumption] = useState([4000]);
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   const [selectedHouseholdType, setSelectedHouseholdType] = useState<string | null>('small-house');
   const [spotPrice, setSpotPrice] = useState<number | null>(null);
   const [priceLoading, setPriceLoading] = useState(true);
@@ -58,8 +64,11 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
       ...p,
     }));
   
-  console.log('ProviderList block:', block);
-  console.log('Providers from block (sanitized):', providers);
+  // Debug logging only in development and gated by verbose flag
+  if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_DEBUG_VERBOSE === 'true') {
+    console.log('ProviderList block:', block);
+    console.log('Providers from block (sanitized):', providers);
+  }
 
   // Update selectedRegion when location changes (if not manually overridden)
   useEffect(() => {
@@ -74,16 +83,25 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
       try {
         // Use manual region if overridden, otherwise use location region
         const region = isManualRegionOverride ? selectedRegion : (location?.region || selectedRegion);
-        const response = await fetch(`/api/electricity-prices?region=${region}`);
-        
+        const today = new Date();
+        const dateStr = today.toISOString().split('T')[0];
+        const response = await fetch(`/api/electricity-prices?region=${region}&date=${dateStr}`);
         if (!response.ok) throw new Error('Could not fetch spot price');
-        const data = await response.json();
-        
-        // Find the price for the current hour
+        let data = await response.json();
+        let records: any[] = Array.isArray(data.records) ? data.records : [];
+        if (records.length === 0) {
+          const prev = new Date(today);
+          prev.setDate(today.getDate() - 1);
+          const prevStr = prev.toISOString().split('T')[0];
+          const prevResp = await fetch(`/api/electricity-prices?region=${region}&date=${prevStr}`);
+          if (prevResp.ok) {
+            const prevJson = await prevResp.json();
+            records = Array.isArray(prevJson.records) ? prevJson.records : [];
+          }
+        }
         const currentHour = new Date().getHours();
-        const currentPriceData = data.records.find((r: any) => new Date(r.HourDK).getHours() === currentHour);
-        
-        if (currentPriceData) {
+        const currentPriceData = records.find((r: any) => new Date(r.HourDK).getHours() === currentHour) || records[records.length - 1];
+        if (currentPriceData && typeof currentPriceData.SpotPriceKWh === 'number') {
           setSpotPrice(currentPriceData.SpotPriceKWh);
           setLastUpdated(new Date());
         }
@@ -99,7 +117,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
     fetchSpotPrice();
   }, [selectedRegion, location?.region, isManualRegionOverride]); // Re-fetch when region changes
 
-  const handleHouseholdTypeSelect = (type: HouseholdType | null) => {
+  const handleHouseholdTypeSelect = useCallback((type: HouseholdType | null) => {
     if (type) {
       setAnnualConsumption([type.kWh]);
       setSelectedHouseholdType(type.id);
@@ -111,26 +129,26 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
         setAnnualConsumption([4000]);
       }
     }
-  };
+  }, [annualConsumption]);
 
-  const handleSliderChange = (value: number[]) => {
+  const handleSliderChange = useCallback((value: number[]) => {
     setAnnualConsumption(value);
     // If user manually adjusts slider, switch to custom mode
     setSelectedHouseholdType('custom');
-  };
+  }, []);
 
-  const handleLocationChange = (newLocation: any) => {
+  const handleLocationChange = useCallback((newLocation: any) => {
     updateLocation(newLocation);
     // When user enters postal code, turn off manual override
     if (newLocation) {
       setIsManualRegionOverride(false);
     }
-  };
+  }, [updateLocation]);
 
-  const handleRegionChange = (region: 'DK1' | 'DK2') => {
+  const handleRegionChange = useCallback((region: 'DK1' | 'DK2') => {
     setSelectedRegion(region);
     setIsManualRegionOverride(true);
-  };
+  }, []);
 
   // Get network tariff - use dynamic API data if available, otherwise location-based or regional average
   const getNetworkTariff = () => {
@@ -148,84 +166,89 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
   };
   const networkTariff = getNetworkTariff();
   
-  // Sort providers with Vindstød first, then by calculated total price
-  const sortedProviders = [...providers].sort((a, b) => {
-    // Vindstød always first
-    if (a.isVindstoedProduct && !b.isVindstoedProduct) return -1;
-    if (!a.isVindstoedProduct && b.isVindstoedProduct) return 1;
-    
-    // If both are Vindstød or both are not, sort by calculated total price
-    // Calculate the actual price per kWh for each provider
-    const baseSpotPrice = spotPrice !== null ? spotPrice : 1.5;
-    
-    // Get spot price markup for each provider (considering regional pricing)
-    let aSpotPriceMarkup = a.spotPriceMarkup;
-    let aMonthlySubscription = a.monthlySubscription;
-    let bSpotPriceMarkup = b.spotPriceMarkup;
-    let bMonthlySubscription = b.monthlySubscription;
-    
-    if (isManualRegionOverride) {
-      if (a.regionalPricing?.length > 0) {
-        const aRegional = a.regionalPricing.find((rp: any) => rp.region === selectedRegion);
-        if (aRegional) {
-          if (aRegional.spotPriceMarkup !== undefined) aSpotPriceMarkup = aRegional.spotPriceMarkup;
-          if (aRegional.monthlySubscription !== undefined) aMonthlySubscription = aRegional.monthlySubscription;
+  // Memoize expensive sorting logic to prevent re-computation on every render
+  const sortedProviders = useMemo(() => {
+    return [...providers].sort((a, b) => {
+      // Vindstød always first
+      if (a.isVindstoedProduct && !b.isVindstoedProduct) return -1;
+      if (!a.isVindstoedProduct && b.isVindstoedProduct) return 1;
+      
+      // If both are Vindstød or both are not, sort by calculated total price
+      // Calculate the actual price per kWh for each provider
+      const baseSpotPrice = spotPrice !== null ? spotPrice : 1.5;
+      
+      // Get spot price markup for each provider (considering regional pricing)
+      let aSpotPriceMarkup = a.spotPriceMarkup;
+      let aMonthlySubscription = a.monthlySubscription;
+      let bSpotPriceMarkup = b.spotPriceMarkup;
+      let bMonthlySubscription = b.monthlySubscription;
+      
+      if (isManualRegionOverride) {
+        if (a.regionalPricing?.length > 0) {
+          const aRegional = a.regionalPricing.find((rp: any) => rp.region === selectedRegion);
+          if (aRegional) {
+            if (aRegional.spotPriceMarkup !== undefined) aSpotPriceMarkup = aRegional.spotPriceMarkup;
+            if (aRegional.monthlySubscription !== undefined) aMonthlySubscription = aRegional.monthlySubscription;
+          }
+        }
+        if (b.regionalPricing?.length > 0) {
+          const bRegional = b.regionalPricing.find((rp: any) => rp.region === selectedRegion);
+          if (bRegional) {
+            if (bRegional.spotPriceMarkup !== undefined) bSpotPriceMarkup = bRegional.spotPriceMarkup;
+            if (bRegional.monthlySubscription !== undefined) bMonthlySubscription = bRegional.monthlySubscription;
+          }
         }
       }
-      if (b.regionalPricing?.length > 0) {
-        const bRegional = b.regionalPricing.find((rp: any) => rp.region === selectedRegion);
-        if (bRegional) {
-          if (bRegional.spotPriceMarkup !== undefined) bSpotPriceMarkup = bRegional.spotPriceMarkup;
-          if (bRegional.monthlySubscription !== undefined) bMonthlySubscription = bRegional.monthlySubscription;
+      
+      // Calculate total monthly cost for each provider
+      // Using the priceCalculationService logic
+      const aPricePerKwh = calculatePricePerKwh(
+        baseSpotPrice,
+        aSpotPriceMarkup || 0,
+        networkTariff,
+        {
+          greenCertificates: a.greenCertificateFee,
+          tradingCosts: a.tradingCosts
         }
-      }
-    }
-    
-    // Calculate total monthly cost for each provider
-    // Using the priceCalculationService logic
-    const aPricePerKwh = calculatePricePerKwh(
-      baseSpotPrice,
-      aSpotPriceMarkup || 0,
-      networkTariff,
-      {
-        greenCertificates: a.greenCertificateFee,
-        tradingCosts: a.tradingCosts
-      }
-    );
-    const bPricePerKwh = calculatePricePerKwh(
-      baseSpotPrice,
-      bSpotPriceMarkup || 0,
-      networkTariff,
-      {
-        greenCertificates: b.greenCertificateFee,
-        tradingCosts: b.tradingCosts
-      }
-    );
-    
-    const aMonthlyTotal = calculateMonthlyCost(
-      annualConsumption[0],
-      aPricePerKwh,
-      aMonthlySubscription || 0
-    );
-    const bMonthlyTotal = calculateMonthlyCost(
-      annualConsumption[0],
-      bPricePerKwh,
-      bMonthlySubscription || 0
-    );
-    
-    // Sort by total monthly cost (lower first)
-    return aMonthlyTotal - bMonthlyTotal;
-  });
+      );
+      const bPricePerKwh = calculatePricePerKwh(
+        baseSpotPrice,
+        bSpotPriceMarkup || 0,
+        networkTariff,
+        {
+          greenCertificates: b.greenCertificateFee,
+          tradingCosts: b.tradingCosts
+        }
+      );
+      
+      const aMonthlyTotal = calculateMonthlyCost(
+        annualConsumption[0],
+        aPricePerKwh,
+        aMonthlySubscription || 0
+      );
+      const bMonthlyTotal = calculateMonthlyCost(
+        annualConsumption[0],
+        bPricePerKwh,
+        bMonthlySubscription || 0
+      );
+      
+      // Sort by total monthly cost (lower first)
+      return aMonthlyTotal - bMonthlyTotal;
+    });
+  }, [providers, spotPrice, annualConsumption, selectedRegion, isManualRegionOverride, networkTariff]);
   
-  console.log('Sorted providers:', sortedProviders.map(p => ({
-    name: p.providerName,
-    product: p.productName,
-    isVindstoed: p.isVindstoedProduct,
-    monthly: p.monthlySubscription
-  })));
+  // Debug logging only in development and gated by verbose flag
+  if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_DEBUG_VERBOSE === 'true') {
+    console.log('Sorted providers:', sortedProviders.map(p => ({
+      name: p.providerName,
+      product: p.productName,
+      isVindstoed: p.isVindstoedProduct,
+      monthly: p.monthlySubscription
+    })));
+  }
 
-  // Convert Sanity provider to ElectricityProduct format for ProviderCard
-  const convertToElectricityProduct = (provider: any): ElectricityProduct => {
+  // Memoize the expensive conversion function
+  const convertToElectricityProduct = useCallback((provider: any): ElectricityProduct => {
     // Check for regional pricing if manual override is active
     let spotPriceMarkup = provider.spotPriceMarkup;
     let monthlySubscription = provider.monthlySubscription;
@@ -270,7 +293,7 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
       greenCertificateFee: provider.greenCertificateFee,
       tradingCosts: provider.tradingCosts,
     } as ElectricityProduct & { greenCertificateFee?: number; tradingCosts?: number };
-  };
+  }, [isManualRegionOverride, selectedRegion]);
 
   const headerAlignmentClass = block.headerAlignment === 'left' ? 'text-left' : block.headerAlignment === 'right' ? 'text-right' : 'text-center';
 
@@ -316,27 +339,33 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
           />
         </div>
         
-        {/* Consumption Slider */}
+        {/* Consumption Slider (client-only to avoid SSR hydration diffs from Radix internals) */}
         <div className="mb-12 bg-white rounded-xl shadow-sm border border-gray-100 p-8">
           <div className="max-w-lg mx-auto">
             <h2 className="text-lg font-display font-semibold text-brand-dark mb-6 text-center">
               Præcis årligt forbrug
             </h2>
             <label className="block text-sm font-medium text-brand-dark mb-4 text-center">
-              Forventet årligt kWh-forbrug: <span className="font-bold text-brand-green relative inline-block">{annualConsumption[0].toLocaleString()} kWh<FloatingConsumptionHelper variant="neon" /></span>
+              Forventet årligt kWh-forbrug: <span className="font-bold text-brand-green relative inline-block">{annualConsumption[0].toLocaleString('da-DK')} kWh<FloatingConsumptionHelper variant="neon" /></span>
             </label>
-            <Slider
-              value={annualConsumption}
-              onValueChange={handleSliderChange}
-              min={500}
-              max={10000}
-              step={100}
-              className="w-full mb-4"
-            />
-            <div className="flex justify-between text-xs text-gray-500">
-              <span>500 kWh</span>
-              <span>10.000 kWh</span>
-            </div>
+            {isMounted ? (
+              <>
+                <Slider
+                  value={annualConsumption}
+                  onValueChange={handleSliderChange}
+                  min={500}
+                  max={10000}
+                  step={100}
+                  className="w-full mb-4"
+                />
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>500 kWh</span>
+                  <span>10.000 kWh</span>
+                </div>
+              </>
+            ) : (
+              <div className="w-full h-3 md:h-2 rounded-full bg-gray-100 animate-pulse" />
+            )}
           </div>
         </div>
         
@@ -446,11 +475,11 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
               <p className="text-gray-500">Ingen leverandører tilgængelige</p>
             </div>
           ) : (
-            sortedProviders.map(provider => {
+            sortedProviders.map((provider, index) => {
               const product = convertToElectricityProduct(provider);
               return (
                 <ProviderCard 
-                  key={product.id} 
+                  key={String(product.id)} 
                   product={product}
                   annualConsumption={annualConsumption[0]}
                   spotPrice={spotPrice}
@@ -468,5 +497,8 @@ export const ProviderList: React.FC<ProviderListProps> = ({ block }) => {
     </section>
   );
 };
+
+// Wrap with React.memo to prevent unnecessary re-renders
+export const ProviderList = React.memo(ProviderListComponent);
 
 export default ProviderList;

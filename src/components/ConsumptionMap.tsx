@@ -1,8 +1,34 @@
+'use client'
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Municipalities, MunicipalityType } from 'react-denmark-map';
+// Default import approach to handle malformed package exports
+import * as DenmarkMap from 'react-denmark-map/dist/esm/index.js';
+
+// React 19-safe typed wrapper for Municipalities
+interface MunicipalityProps {
+  customTooltip?: React.ComponentType<any>;
+  customizeAreas?: (municipality: any) => any;
+  onClick?: (municipality: any) => void;
+  showTooltip?: boolean;
+  zoomable?: boolean;
+  className?: string;
+  [key: string]: any;
+}
+
+const MunicipalitiesRaw = (DenmarkMap as any)?.Municipalities;
+const Municipalities: React.FC<MunicipalityProps> = (props) => {
+  if (!MunicipalitiesRaw) {
+    console.warn('Municipalities component not found in react-denmark-map');
+    return <div className={props.className}>Map component not available</div>;
+  }
+  return React.createElement(MunicipalitiesRaw, props);
+};
+
+type MunicipalityType = any; // Fallback type for denmark-map data structures
 import { scaleSequential } from 'd3-scale';
 import { interpolateGreens, interpolateBlues, interpolateReds } from 'd3-scale-chromatic';
 import { MapPin, Activity, Zap, Building2, Home, Info, Filter, RotateCcw, Download, Calendar } from 'lucide-react';
+import { useIsClient } from '@/hooks/useIsClient';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
@@ -60,6 +86,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
   const showStatistics = block.showStatistics !== undefined ? block.showStatistics : true;
   const mobileLayout = block.mobileLayout || 'responsive';
 
+  const isClient = useIsClient(); // Next.js hydration fix
   const [data, setData] = useState<MunicipalityConsumption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +98,9 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
   const [dateRange, setDateRange] = useState<{ start: string; end: string } | null>(null);
 
   useEffect(() => {
+    // Next.js hydration fix - only run on client
+    if (!isClient) return;
+    
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
@@ -81,9 +111,12 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     // Debug log all expected ASCII names once
     
     return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  }, [isClient]);
 
   useEffect(() => {
+    // Next.js hydration fix - only run on client
+    if (!isClient) return;
+    
     const fetchData = async () => {
       setLoading(true);
       setError(null);
@@ -133,7 +166,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     };
     
     fetchData();
-  }, [selectedConsumerType, dataSource, selectedView]);
+  }, [isClient, selectedConsumerType, dataSource, selectedView]);
 
   // Calculate color scale based on selected consumer type
   const colorScale = useMemo(() => {
@@ -195,12 +228,12 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
   }, [data]);
 
   // Handle municipality click
-  const handleMunicipalityClick = useCallback((municipalityName: string) => {
+  const handleMunicipalityClick = useCallback((municipality: MunicipalityType) => {
     if (!enableInteraction) return;
-    // municipalityName here is actually the lowercase Danish name from react-denmark-map
-    let mapping = getMunicipalityByAsciiName(municipalityName);
+    // municipality.name is actually the lowercase Danish name from react-denmark-map
+    let mapping = getMunicipalityByAsciiName(municipality.name);
     if (!mapping) {
-      mapping = getMunicipalityByDanishName(municipalityName);
+      mapping = getMunicipalityByDanishName(municipality.name);
     }
     if (mapping) {
       setSelectedMunicipality(mapping.code === selectedMunicipality ? null : mapping.code);
@@ -301,7 +334,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
         value = consumption.totalConsumption;
     }
     
-    const color = colorScale(value);
+    const color = String(colorScale(value));
     const isSelected = mapping.code === selectedMunicipality;
     
     
@@ -378,7 +411,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
             const maxValue = Math.max(...data.map(m => getConsumptionForSort(m)));
             const percentage = (consumptionValue / maxValue) * 100;
             const isSelected = municipality.municipalityCode === selectedMunicipality;
-            const fillColor = colorScale ? colorScale(consumptionValue) : '#3b82f6';
+            const fillColor = colorScale ? String(colorScale(consumptionValue)) : '#3b82f6';
             
             return (
               <div 
@@ -504,7 +537,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
             </div>
             
             <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full sm:w-auto">
-            <Select value={selectedView} onValueChange={setSelectedView}>
+            <Select value={selectedView} onValueChange={(value) => setSelectedView(value as "month" | "24h" | "7d" | "30d")}>
               <SelectTrigger className="w-full sm:w-40">
                 <SelectValue />
               </SelectTrigger>
@@ -516,7 +549,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
               </SelectContent>
             </Select>
 
-            <Select value={selectedConsumerType} onValueChange={setSelectedConsumerType}>
+            <Select value={selectedConsumerType} onValueChange={(value) => setSelectedConsumerType(value as "all" | "private" | "industry" | "both")}>
               <SelectTrigger className="w-full sm:w-40">
                 <SelectValue />
               </SelectTrigger>

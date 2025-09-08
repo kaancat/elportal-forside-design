@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronDown, MapPin, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -177,7 +179,7 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       : addressData.vejnavn || suggestion.forslagstekst || '';
     
     // Format door/apartment information (e.g., "1.th", "st.tv")
-    let door = null;
+    let door: string | null = null;
     if (addressData.etage || addressData.dør) {
       door = [addressData.etage, addressData.dør].filter(Boolean).join('.');
     }
@@ -232,7 +234,7 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
             
             return (
               <button
-                key={suggestion.data.id || `${suggestion.type}-${index}`}
+                key={(suggestion.data as any).id || `${suggestion.type}-${index}`}
                 type="button"
                 className={cn(
                   "w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0",

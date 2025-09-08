@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 import { ApplianceCalculator } from './appliance-calculator/ApplianceCalculator'
 import { Appliance } from '@/types/appliance'
@@ -395,7 +397,7 @@ interface ApplianceCalculatorSectionProps {
 export function ApplianceCalculatorSection({ block }: ApplianceCalculatorSectionProps) {
   // Filter appliances based on selected categories
   const filteredAppliances = block.showCategories && block.showCategories.length > 0
-    ? APPLIANCES_DATA.filter(appliance => block.showCategories.includes(appliance.category))
+    ? APPLIANCES_DATA.filter(appliance => block.showCategories!.includes(appliance.category))
     : APPLIANCES_DATA
 
   return (

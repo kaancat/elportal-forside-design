@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Slider } from '@/components/ui/slider';
@@ -8,10 +10,13 @@ import { Button } from '@/components/ui/button';
 import { Zap, TrendingDown, Check, X, Star, ExternalLink, Info, Leaf, Wind, Shield, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { RealPriceComparisonTable, ProviderProductBlock } from '../types/sanity';
+import { PortableText } from '@portabletext/react';
+import { useIsClient } from '@/hooks/useIsClient';
 import { SanityService } from '../services/sanityService';
 import { PRICE_CONSTANTS } from '@/services/priceCalculationService';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { TrackedLink } from '@/components/tracking/TrackedLink';
+import { resolveProviderLogoUrl } from '@/lib/providerLogos';
 
 // Format currency with proper rounding for display
 const formatCurrency = (amount: number) => {
@@ -135,6 +140,7 @@ const getPaddingClasses = (padding?: string) => {
 };
 
 const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ block }) => {
+  const isClient = useIsClient();
   const [selectedProvider1, setSelectedProvider1] = useState<ProviderProductBlock | null>(null);
   const [selectedProvider2, setSelectedProvider2] = useState<ProviderProductBlock | null>(null);
   const [monthlyConsumption, setMonthlyConsumption] = useState(333); // Default ~4000 kWh/year
@@ -142,7 +148,13 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
   const [isLoading, setIsLoading] = useState(true);
   const [currentSpotPrice, setCurrentSpotPrice] = useState<number>(1.5); // Default spot price
 
-  const { title, leadingText, settings } = block;
+  const { title, leadingText, settings, description } = block;
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Lightweight runtime breadcrumb to help diagnose mounting issues in preview
+      console.log('[RealPriceComparisonTable] mounted');
+    }
+  }, []);
   
   // Get theme colors based on settings
   const themeColors = getThemeTextColors(settings?.theme);
@@ -150,6 +162,8 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
 
   // Fetch current spot price
   useEffect(() => {
+    if (!isClient) return;
+    
     const fetchSpotPrice = async () => {
       try {
         const response = await fetch('/api/electricity-prices?region=DK2');
@@ -159,6 +173,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
           const currentPriceData = data.records.find((r: any) => new Date(r.HourDK).getHours() === currentHour);
           if (currentPriceData) {
             setCurrentSpotPrice(currentPriceData.SpotPriceKWh);
+            console.log('[RealPriceComparisonTable] spot price set', currentPriceData.SpotPriceKWh);
           }
         }
       } catch (error) {
@@ -167,13 +182,16 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
     };
     
     fetchSpotPrice();
-  }, []);
+  }, [isClient]);
 
   useEffect(() => {
+    if (!isClient) return;
+    
     const fetchProviders = async () => {
       try {
         const providers = await SanityService.getAllProviders();
         setAllProviders(providers);
+        console.log('[RealPriceComparisonTable] providers loaded', providers.length);
         
         // Auto-select first two providers if available
         if (providers.length > 0) {
@@ -199,7 +217,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
     };
     
     fetchProviders();
-  }, []);
+  }, [isClient]);
 
   const handleSelect1 = (providerId: string) => {
     const provider = allProviders.find(p => p.id === providerId) || null;
@@ -289,6 +307,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
   if (isLoading) {
     return (
       <section className={cn(
+        'relative z-10',
         getThemeClasses(settings?.theme),
         getPaddingClasses(settings?.padding)
       )}>
@@ -300,6 +319,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
   if (!allProviders || allProviders.length === 0) {
     return (
       <section className={cn(
+        'relative z-10',
         getThemeClasses(settings?.theme),
         getPaddingClasses(settings?.padding)
       )}>
@@ -399,13 +419,12 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
         {/* Provider name and logo display */}
         {provider && (
           <div className="mb-6 text-center">
-            {provider.logoUrl && (
-              <img 
-                src={provider.logoUrl} 
-                alt={provider.providerName}
-                className="w-16 h-16 object-contain mx-auto mb-2"
-              />
-            )}
+            <img 
+              src={resolveProviderLogoUrl(provider?.providerName, provider?.logoUrl)} 
+              alt={provider?.providerName || 'Leverandør'}
+              className="w-16 h-16 object-contain mx-auto mb-2"
+              onError={(e) => { e.currentTarget.src = '/placeholder.svg' }}
+            />
             <h3 className={cn("font-bold text-lg", themeColors.heading)}>
               {provider.providerName}
             </h3>
@@ -533,6 +552,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
 
   return (
     <section className={cn(
+      'relative z-10',
       getThemeClasses(settings?.theme),
       getPaddingClasses(settings?.padding)
     )}>
@@ -545,14 +565,22 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
             {title}
           </h2>
         )}
-        {leadingText && (
+        {Array.isArray(description) && description.length > 0 ? (
+          <div className={cn(
+            "prose prose-lg max-w-3xl mx-auto text-center mb-12",
+            themeColors.body,
+            isDarkTheme(theme) && 'prose-invert'
+          )}>
+            <PortableText value={description} />
+          </div>
+        ) : leadingText ? (
           <p className={cn(
             "text-lg text-center mb-12 max-w-3xl mx-auto",
             themeColors.body
           )}>
             {leadingText}
           </p>
-        )}
+        ) : null}
 
         {/* Consumption slider */}
         <Card className={cn("mb-8 shadow-lg", themeColors.cardBg, themeColors.cardBorder)}>
@@ -602,7 +630,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
               provider={selectedProvider1}
               details={details1}
               isFirst={true}
-              isCheaper={isCheaper1}
+              isCheaper={!!isCheaper1}
               onSelectProvider={handleSelect1}
             />
           )}
@@ -618,7 +646,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
               provider={selectedProvider2}
               details={details2}
               isFirst={false}
-              isCheaper={isCheaper2}
+              isCheaper={!!isCheaper2}
               onSelectProvider={handleSelect2}
             />
           )}
@@ -648,7 +676,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
                   provider={selectedProvider1}
                   details={details1}
                   isFirst={true}
-                  isCheaper={isCheaper1}
+                  isCheaper={!!isCheaper1}
                   onSelectProvider={handleSelect1}
                 />
               )}
@@ -657,7 +685,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
                   provider={selectedProvider2}
                   details={details2}
                   isFirst={false}
-                  isCheaper={isCheaper2}
+                  isCheaper={!!isCheaper2}
                   onSelectProvider={handleSelect2}
                 />
               )}

@@ -39,9 +39,9 @@ export const getBackgroundStyle = ({
   // Check if image has a valid image (support multiple data structures)
   const hasValidSanityImage = image && (
     image.asset?._ref ||    // Reference structure: {asset: {_ref: "..."}}
-    image._ref ||           // Legacy structure: {_ref: "..."}
-    image.asset?._id ||     // Expanded structure: {asset: {_id: "...", url: "..."}}
-    image.asset?.url        // Direct URL structure: {asset: {url: "..."}}
+    (image as any)._ref ||  // Legacy structure: {_ref: "..."}
+    (image.asset as any)?._id ||     // Expanded structure: {asset: {_id: "...", url: "..."}}
+    (image.asset as any)?.url        // Direct URL structure: {asset: {url: "..."}}
   );
 
   switch (backgroundStyle) {
@@ -107,9 +107,9 @@ export const getTextColorClass = ({
   // Check if image has a valid image (support multiple data structures)
   const hasValidSanityImage = image && (
     image.asset?._ref ||    // Reference structure: {asset: {_ref: "..."}}
-    image._ref ||           // Legacy structure: {_ref: "..."}
-    image.asset?._id ||     // Expanded structure: {asset: {_id: "...", url: "..."}}
-    image.asset?.url        // Direct URL structure: {asset: {url: "..."}}
+    (image as any)._ref ||  // Legacy structure: {_ref: "..."}
+    (image.asset as any)?._id ||     // Expanded structure: {asset: {_id: "...", url: "..."}}
+    (image.asset as any)?.url        // Direct URL structure: {asset: {url: "..."}}
   );
 
   // Manual overrides from Sanity

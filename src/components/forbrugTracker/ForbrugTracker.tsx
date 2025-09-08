@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -296,7 +298,8 @@ export function ForbrugTracker({
         throw new Error('Kunne ikke starte session')
       }
       
-      const { sessionId } = await sessionResponse.json()
+      const sessionJson = await sessionResponse.json()
+      const sessionId = sessionJson?.data?.sessionId ?? sessionJson?.sessionId
       console.log('Session created:', sessionId)
       
       // Get authorization URL
@@ -306,10 +309,20 @@ export function ForbrugTracker({
       })
       
       if (!authResponse.ok) {
-        throw new Error('Kunne ikke starte autorisation')
+        // Try to read error details for diagnostics
+        try {
+          const errJson = await authResponse.json()
+          console.error('Authorize error details:', errJson)
+          throw new Error('Kunne ikke starte autorisation')
+        } catch (e) {
+          const errText = await authResponse.text()
+          console.error('Authorize error text:', errText)
+          throw new Error('Kunne ikke starte autorisation')
+        }
       }
       
-      const { authorizationUrl } = await authResponse.json()
+      const authJson = await authResponse.json()
+      const authorizationUrl = authJson?.data?.authorizationUrl ?? authJson?.authorizationUrl
       console.log('Redirecting to Eloverblik:', authorizationUrl)
       
       // Redirect to Eloverblik

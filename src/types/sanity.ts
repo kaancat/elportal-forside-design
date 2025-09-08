@@ -28,6 +28,7 @@ export interface MarkDef {
 
 export interface BlockContent {
   _type: 'block'
+  _key?: string
   children: Array<{
     _type: 'span'
     text: string
@@ -137,6 +138,17 @@ export interface RealPriceComparisonTable {
   }
   // Deprecated field for backward compatibility
   leadingText?: string
+}
+
+export interface ForbrugTrackerBlock {
+  _type: 'forbrugTracker'
+  _key: string
+  title?: string
+  // Some Studio setups may store rich text; renderer expects string, so keep flexible
+  description?: string | BlockContent[]
+  headerAlignment?: 'left' | 'center' | 'right'
+  showAdvancedFeatures?: boolean
+  enableElOverblik?: boolean
 }
 
 export interface RenewableEnergyForecast {
@@ -268,6 +280,14 @@ export interface ChargingBoxShowcaseBlock {
   description?: any[]
   products?: ChargingBoxProduct[]
   headerAlignment?: 'left' | 'center' | 'right'
+}
+
+export interface LocationSelectorBlock {
+  _type: 'locationSelector';
+  _key: string;
+  label?: string;
+  placeholder?: string;
+  headerAlignment?: 'left' | 'center' | 'right';
 }
 
 export interface RegionalComparisonBlock {
@@ -445,6 +465,7 @@ export type ContentBlock =
   | CallToActionSection 
   | LivePriceGraph 
   | RealPriceComparisonTable 
+  | ForbrugTrackerBlock 
   | RenewableEnergyForecast 
   | CO2EmissionsChart
   | DeclarationProduction
@@ -462,6 +483,7 @@ export type ContentBlock =
   | EnergyTipsSection
   | ChargingBoxShowcaseBlock
   | RegionalComparisonBlock
+  | LocationSelectorBlock
   | PricingComparisonBlock
   | DailyPriceTimelineBlock
   | InfoCardsSectionBlock

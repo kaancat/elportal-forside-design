@@ -1,5 +1,7 @@
+'use client'
+
 import React, { useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { usePathname } from 'next/navigation';
 import { 
   buildTrackingParams, 
   addTrackingToUrl, 
@@ -52,7 +54,7 @@ export const TrackedLink: React.FC<TrackedLinkProps> = ({
   'aria-label': ariaLabel,
   disabled = false
 }) => {
-  const location = useLocation();
+  const pathname = usePathname();
   
   const handleClick = useCallback((e: React.MouseEvent) => {
     // Don't track if disabled
@@ -76,7 +78,7 @@ export const TrackedLink: React.FC<TrackedLinkProps> = ({
       const trackingParams = buildTrackingParams({
         partner: partnerSlug,
         component,
-        page: location.pathname,
+        page: pathname,
         variant,
         consumption,
         region
@@ -92,13 +94,13 @@ export const TrackedLink: React.FC<TrackedLinkProps> = ({
         trackedUrl,
         trackingParams,
         component,
-        page: location.pathname
+        page: pathname
       });
       
       // Track with enhanced analytics (respects consent)
       trackPartnerClick(partnerSlug, trackingParams.click_id, {
         component,
-        page: location.pathname,
+        page: pathname,
         variant,
         consumption,
         region,
@@ -135,7 +137,7 @@ export const TrackedLink: React.FC<TrackedLinkProps> = ({
     disabled, 
     partner, 
     component, 
-    location.pathname, 
+    pathname, 
     variant, 
     consumption, 
     region,

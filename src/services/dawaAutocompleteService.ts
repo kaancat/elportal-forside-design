@@ -138,7 +138,7 @@ export class DawaAutocompleteService {
     
     // Handle address suggestions
     const addressData = data as AdresseData;
-    const parts = [];
+    const parts: string[] = [];
 
     // Add street, number, and door information
     if (addressData.vejnavn && addressData.husnr) {

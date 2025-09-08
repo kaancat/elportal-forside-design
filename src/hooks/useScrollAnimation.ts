@@ -83,7 +83,7 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
   const getVariants = (isMobile: boolean): Variants => {
     const mobileDuration = duration * 0.9
     const mobileDistance = isMobile ? distance * 0.7 : distance
-    const professionalEase = [0.22, 1, 0.36, 1] // Smooth deceleration
+    const professionalEase: [number, number, number, number] = [0.22, 1, 0.36, 1] // Smooth deceleration
 
     switch (animationType) {
       case 'fadeUp':
@@ -117,7 +117,7 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
             transition: {
               duration: isMobile ? mobileDuration * 0.8 : duration * 0.8,
               delay,
-              ease: 'easeOut'
+              ease: 'easeOut' as const
             }
           }
         }
@@ -274,7 +274,7 @@ export const fadeInAnimation = (delay = 0) => {
     transition: { 
       duration: isMobile ? 0.4 : 0.6,
       delay,
-      ease: "easeOut"
+      ease: "easeOut" as const
     }
   }
 }

@@ -1,8 +1,11 @@
+'use client'
+
 import React from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { urlFor } from '@/lib/sanity'
 import { PortableText } from '@portabletext/react'
 import StickyImageSection from './StickyImageSection'
+import PriceCalculatorWidget from './PriceCalculatorWidget'
 import type { PageSection } from '@/types/sanity'
 import { cn } from '@/lib/utils'
 
@@ -21,7 +24,7 @@ const fadeUpVariant = {
     y: 0,
     transition: {
       duration: 0.5,
-      ease: "easeOut",
+      ease: "easeOut" as const,
       delay: 0.05
     }
   }
@@ -41,13 +44,13 @@ const containerVariant = {
 // Subtle item fade-and-lift
 const itemVariant = {
   hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' as const } },
 }
 
 // Image: very soft slide + tiny scale ease-in
 const imageVariant = {
   hidden: { opacity: 0, y: 12, scale: 0.99 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: 'easeOut' } },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: 'easeOut' as const } },
 }
 
 const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
@@ -69,25 +72,25 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   // Define custom components for Portable Text
   const customComponents = {
     block: {
-      h1: ({ children }: { children: React.ReactNode }) => (
+      h1: ({ children }: { children?: React.ReactNode }) => (
         <h1 className={cn(
           "text-3xl md:text-4xl font-bold mb-6 leading-tight",
           themeColors.heading
         )}>{children}</h1>
       ),
-      h2: ({ children }: { children: React.ReactNode }) => (
+      h2: ({ children }: { children?: React.ReactNode }) => (
         <h2 className={cn(
           "text-2xl md:text-3xl font-bold mb-4 leading-tight",
           themeColors.heading
         )}>{children}</h2>
       ),
-      h3: ({ children }: { children: React.ReactNode }) => (
+      h3: ({ children }: { children?: React.ReactNode }) => (
         <h3 className={cn(
           "text-xl md:text-2xl font-bold mb-3 leading-tight",
           themeColors.heading
         )}>{children}</h3>
       ),
-      blockquote: ({ children }: { children: React.ReactNode }) => (
+      blockquote: ({ children }: { children?: React.ReactNode }) => (
         <blockquote className={cn(
           "relative border-l-4 border-brand-green pl-6 py-2 italic mb-6 rounded-r-lg",
           isDarkTheme() 
@@ -97,22 +100,35 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
           {children}
         </blockquote>
       ),
-      normal: ({ children }: { children: React.ReactNode }) => (
+      normal: ({ children }: { children?: React.ReactNode }) => (
         <p className={cn(
           "mb-6 leading-relaxed text-lg",
           themeColors.body
         )}>{children}</p>
       ),
     },
+    // Inline/custom object types embedded inside Portable Text
+    types: {
+      priceCalculator: ({ value }: { value?: any }) => (
+        // Full‑bleed subtle background stripe with centered widget
+        <div className="relative my-10 left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
+          <div className="bg-gray-50">
+            <div className="container mx-auto px-4 py-10">
+              <PriceCalculatorWidget block={value || { _type: 'priceCalculator' }} />
+            </div>
+          </div>
+        </div>
+      ),
+    },
     marks: {
-      strong: ({ children }: { children: React.ReactNode }) => (
+      strong: ({ children }: { children?: React.ReactNode }) => (
         <strong className={cn(
           "font-semibold",
           themeColors.strong
         )}>{children}</strong>
       ),
-      em: ({ children }: { children: React.ReactNode }) => <em className="italic">{children}</em>,
-      link: ({ value, children }: { value?: { href: string }, children: React.ReactNode }) => (
+      em: ({ children }: { children?: React.ReactNode }) => <em className="italic">{children}</em>,
+      link: ({ value, children }: { value?: { href: string }, children?: React.ReactNode }) => (
         <a 
           href={value?.href} 
           className={cn("underline transition-colors duration-200", themeColors.link)}
@@ -429,13 +445,15 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
               <div className="relative">
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-black/0 to-black/[0.03] dark:from-white/0 dark:to-white/[0.06]" />
                 <img
-                  src={urlFor(image).width(1000).quality(85).url()}
+                  src={urlFor(image).width(800).quality(70).url()}
                   alt={image.alt || title}
                   className={cn(
                     "w-full h-auto rounded-2xl object-cover",
                     "shadow-xl shadow-black/5",
                     "transition-transform duration-500 group-hover:scale-[1.01]"
                   )}
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             </motion.div>

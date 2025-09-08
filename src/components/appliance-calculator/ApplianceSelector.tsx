@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState } from 'react'
 import { Plus, Search, Zap } from 'lucide-react'
 import * as Icons from 'lucide-react'
@@ -154,9 +156,7 @@ export function ApplianceSelector({
                     {categoryAppliances
                       .sort((a, b) => (b.popularityScore || 5) - (a.popularityScore || 5))
                       .map((appliance) => {
-                        const Icon = appliance.icon
-                          ? Icons[appliance.icon as keyof typeof Icons]
-                          : Zap
+                        const Icon = (appliance.icon && Icons[appliance.icon as keyof typeof Icons] as any) || Zap
 
                         return (
                           <CommandItem

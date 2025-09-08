@@ -1,8 +1,11 @@
+'use client'
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { cn } from "@/lib/utils";
+import { useIsClient } from '@/hooks/useIsClient';
 
-// --- TYPES VERIFIED FROM YOUR HTML FILE ---
+// --- TYPES VERIFIED FROM PRODUCTION ---
 interface ProductionRecord {
   HourUTC: string;
   CentralPowerMWh: number;
@@ -50,14 +53,19 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 const MonthlyProductionChart: React.FC<MonthlyProductionChartProps> = ({ block }) => {
+  const isClient = useIsClient(); // Next.js hydration fix
   const [data, setData] = useState<ProductionRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Next.js hydration fix - only run on client
+    if (!isClient) return;
+    
     const fetchData = async () => {
       setLoading(true); setError(null);
       try {
+        // Use exact production API call
         const response = await fetch('/api/monthly-production');
         if (!response.ok) throw new Error('Kunne ikke hente månedsdata.');
         const result = await response.json();
@@ -65,8 +73,9 @@ const MonthlyProductionChart: React.FC<MonthlyProductionChartProps> = ({ block }
       } catch (err: any) { setError(err.message); } finally { setLoading(false); }
     };
     fetchData();
-  }, []);
+  }, [isClient]); // Next.js hydration fix - include isClient in dependencies
 
+  // EXACT production data processing logic
   const processedData = useMemo<ProcessedMonthData[]>(() => {
     if (!data || data.length === 0) return [];
     
@@ -175,4 +184,4 @@ const MonthlyProductionChart: React.FC<MonthlyProductionChartProps> = ({ block }
   );
 };
 
-export default MonthlyProductionChart; 
+export default MonthlyProductionChart;

@@ -1,7 +1,6 @@
 /**
- * Environment variable helper for Next.js migration
- * Provides backward compatibility with Vite environment variables
- * while supporting Next.js public variables
+ * Environment variable helper for Next.js
+ * Next-first naming: uses NEXT_PUBLIC_* for public config
  */
 
 interface EnvConfig {
@@ -23,26 +22,14 @@ interface EnvConfig {
  * Get environment variable with fallback to Vite format
  * Handles both NEXT_PUBLIC_* and VITE_* prefixes
  */
-function getEnvVar(nextKey: string, viteKey: string): string | undefined {
-  // Try Next.js format first
+function getEnvVar(nextKey: string): string | undefined {
   const nextValue = process.env[nextKey];
   if (nextValue) return nextValue;
-  
-  // Fallback to Vite format for backward compatibility
-  const viteValue = process.env[viteKey];
-  if (viteValue) return viteValue;
-  
-  // For client-side, check window object (runtime injection)
   if (typeof window !== 'undefined') {
-    // @ts-ignore - accessing dynamic env vars
+    // @ts-ignore - accessing dynamic env vars in client context
     const windowNextValue = window.process?.env?.[nextKey];
     if (windowNextValue) return windowNextValue;
-    
-    // @ts-ignore - accessing dynamic env vars
-    const windowViteValue = window.process?.env?.[viteKey];
-    if (windowViteValue) return windowViteValue;
   }
-  
   return undefined;
 }
 
@@ -52,18 +39,18 @@ function getEnvVar(nextKey: string, viteKey: string): string | undefined {
  */
 export const env: EnvConfig = {
   // Sanity Configuration
-  SANITY_PROJECT_ID: getEnvVar('NEXT_PUBLIC_SANITY_PROJECT_ID', 'VITE_SANITY_PROJECT_ID') || 'yxesi03x',
-  SANITY_DATASET: getEnvVar('NEXT_PUBLIC_SANITY_DATASET', 'VITE_SANITY_DATASET') || 'production',
-  SANITY_API_VERSION: getEnvVar('NEXT_PUBLIC_SANITY_API_VERSION', 'VITE_SANITY_API_VERSION') || '2025-01-01',
+  SANITY_PROJECT_ID: getEnvVar('NEXT_PUBLIC_SANITY_PROJECT_ID') || 'yxesi03x',
+  SANITY_DATASET: getEnvVar('NEXT_PUBLIC_SANITY_DATASET') || 'production',
+  SANITY_API_VERSION: getEnvVar('NEXT_PUBLIC_SANITY_API_VERSION') || '2025-01-01',
   
   // URLs
-  SITE_URL: getEnvVar('SITE_URL', 'VITE_SITE_URL') || 
+  SITE_URL: getEnvVar('SITE_URL') || 
             (typeof window !== 'undefined' ? window.location.origin : 'https://elportal.dk'),
   
   // Optional Analytics
-  COOKIEBOT_ID: getEnvVar('NEXT_PUBLIC_COOKIEBOT_ID', 'VITE_COOKIEBOT_ID'),
-  GA4_MEASUREMENT_ID: getEnvVar('NEXT_PUBLIC_GA4_MEASUREMENT_ID', 'VITE_GA4_MEASUREMENT_ID'),
-  FB_PIXEL_ID: getEnvVar('NEXT_PUBLIC_FB_PIXEL_ID', 'VITE_FB_PIXEL_ID'),
+  COOKIEBOT_ID: getEnvVar('NEXT_PUBLIC_COOKIEBOT_ID'),
+  GA4_MEASUREMENT_ID: getEnvVar('NEXT_PUBLIC_GA4_MEASUREMENT_ID'),
+  FB_PIXEL_ID: getEnvVar('NEXT_PUBLIC_FB_PIXEL_ID'),
 };
 
 /**
@@ -99,11 +86,6 @@ export const isProduction = process.env.NODE_ENV === 'production';
  * Helper to check if we're running in Next.js context
  */
 export const isNextJs = typeof process.env.NEXT_PUBLIC_SANITY_PROJECT_ID !== 'undefined';
-
-/**
- * Helper to check if we're running in Vite context
- */
-export const isVite = typeof process.env.VITE_SANITY_PROJECT_ID !== 'undefined';
 
 // Export for backward compatibility with existing code
 export default env;

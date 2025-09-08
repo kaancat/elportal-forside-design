@@ -1,4 +1,12 @@
-# 🚀 DinElportal Next.js Migration Guide
+# 🚀 DinElportal Next.js Migration Guide (Archived)
+
+> Archived – Historical Reference
+>
+> The migration to Next.js (App Router) is complete. This guide is preserved for context and audit only.
+> For current structure and practices, see:
+> - docs/ai-context/project-structure.md
+> - docs/SECURITY.md
+> - src/lib/env.ts
 
 Last Updated: August 18, 2025  
 Status: Ready for Implementation  

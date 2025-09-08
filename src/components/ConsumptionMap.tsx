@@ -28,6 +28,7 @@ type MunicipalityType = any; // Fallback type for denmark-map data structures
 import { scaleSequential } from 'd3-scale';
 import { interpolateGreens, interpolateBlues, interpolateReds } from 'd3-scale-chromatic';
 import { MapPin, Activity, Zap, Building2, Home, Info, Filter, RotateCcw, Download, Calendar } from 'lucide-react';
+import { useIsClient } from '@/hooks/useIsClient';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
@@ -85,6 +86,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
   const showStatistics = block.showStatistics !== undefined ? block.showStatistics : true;
   const mobileLayout = block.mobileLayout || 'responsive';
 
+  const isClient = useIsClient(); // Next.js hydration fix
   const [data, setData] = useState<MunicipalityConsumption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -96,6 +98,9 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
   const [dateRange, setDateRange] = useState<{ start: string; end: string } | null>(null);
 
   useEffect(() => {
+    // Next.js hydration fix - only run on client
+    if (!isClient) return;
+    
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
@@ -106,9 +111,12 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     // Debug log all expected ASCII names once
     
     return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  }, [isClient]);
 
   useEffect(() => {
+    // Next.js hydration fix - only run on client
+    if (!isClient) return;
+    
     const fetchData = async () => {
       setLoading(true);
       setError(null);
@@ -158,7 +166,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     };
     
     fetchData();
-  }, [selectedConsumerType, dataSource, selectedView]);
+  }, [isClient, selectedConsumerType, dataSource, selectedView]);
 
   // Calculate color scale based on selected consumer type
   const colorScale = useMemo(() => {

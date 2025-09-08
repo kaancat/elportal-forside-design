@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import UniversalLink from './UniversalLink';
 import { Link as LinkType, MegaMenu } from '@/types/sanity';
 import { Button } from '@/components/ui/button';
 import MegaMenuContent from './MegaMenuContent';
@@ -11,17 +11,29 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { resolveLink, checkLinksHealth } from '@/utils/linkResolver';
 import { useNavigationRefresh } from '@/hooks/useNavigationRefresh';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
+import type { SiteSettings } from '@/types/sanity';
 import { FALLBACK_LOGO, FALLBACK_ALT } from '@/constants/branding';
 
-const Navigation = () => {
+function isLinkEntry(link: LinkType | MegaMenu): link is LinkType {
+  return !!link && (link as any)._type === 'link';
+}
+
+interface NavigationProps {
+  initialSettings?: SiteSettings | null;
+}
+
+const Navigation = ({ initialSettings }: NavigationProps) => {
   const [openMenuKey, setOpenMenuKey] = useState<string | null>(null);
   const { refreshNavigation } = useNavigationRefresh();
   
   // Use the unified site settings hook
-  const { settings, isLoading, isFetching, error } = useSiteSettings();
+  // If initialSettings provided from server, skip client fetch for instant header render
+  const { settings: fetchedSettings, isLoading, isFetching, error } = useSiteSettings({ enabled: !initialSettings });
+  const settings = initialSettings ?? fetchedSettings;
 
-  // Health check navigation links in development
-  if (process.env.NODE_ENV === 'development' && settings?.headerLinks) {
+  // Health check navigation links in development (gated by verbose flag)
+  const debugVerbose = process.env.NEXT_PUBLIC_DEBUG_VERBOSE === 'true'
+  if (process.env.NODE_ENV === 'development' && debugVerbose && settings?.headerLinks) {
     checkLinksHealth(settings.headerLinks, 'Navigation');
   }
 
@@ -52,13 +64,13 @@ const Navigation = () => {
     return (
       <header className="sticky top-0 z-50 w-full bg-brand-dark h-16">
         <div className="container mx-auto px-4 flex items-center justify-between h-16">
-          <RouterLink to="/" className="flex-shrink-0 relative">
+          <UniversalLink href="/" className="flex-shrink-0 relative">
             <Logo 
               src={null}
               alt={FALLBACK_ALT}
               className="h-8 sm:h-10"
             />
-          </RouterLink>
+          </UniversalLink>
           <div className="text-white text-sm">Navigation unavailable</div>
         </div>
       </header>
@@ -75,8 +87,8 @@ const Navigation = () => {
     return <header className="sticky top-0 z-50 w-full bg-brand-dark h-16" />;
   }
   
-  // Debug logging to trace the scroll issue
-  console.log('[Navigation] Data state:', {
+  // Debug logging gated by verbose flag
+  if (process.env.NODE_ENV === 'development' && debugVerbose) console.log('[Navigation] Data state:', {
     hasSettings: !!settings,
     headerLinksLength: settings?.headerLinks?.length || 0,
     headerLinks: settings?.headerLinks,
@@ -90,20 +102,54 @@ const Navigation = () => {
     return <header className="sticky top-0 z-50 w-full bg-brand-dark h-16" />;
   }
 
-  const ctaButton = settings.headerLinks.find(link => link._type === 'link' && link.isButton) as LinkType | undefined;
-  const navItems = (settings?.headerLinks || []).filter(link => 
-    link && link._type && !(link._type === 'link' && link.isButton)
-  );
+  // Debug logging for filtering logic (gated)
+  if (process.env.NODE_ENV === 'development' && debugVerbose) console.log('[Navigation] BEFORE filtering - headerLinks:', settings.headerLinks?.map(link => ({
+    title: link.title,
+    _type: link._type,
+    isButton: isLinkEntry(link) ? link.isButton : undefined,
+    linkType: isLinkEntry(link) ? link.linkType : undefined
+  })));
+
+  const ctaButton = settings.headerLinks.find(link => isLinkEntry(link) && link.isButton) as LinkType | undefined;
+  if (process.env.NODE_ENV === 'development' && debugVerbose) console.log('[Navigation] CTA Button found:', ctaButton?.title || 'None');
+
+  const navItems = (settings?.headerLinks || []).filter(link => {
+    const shouldKeep = !!link && !!link._type && !(isLinkEntry(link) && link.isButton);
+    if (process.env.NODE_ENV === 'development' && debugVerbose) console.log('[Navigation] Filter check:', {
+      title: link?.title,
+      _type: link?._type,
+      isButton: isLinkEntry(link) ? link.isButton : undefined,
+      shouldKeep
+    });
+    return shouldKeep;
+  });
+  
+  if (process.env.NODE_ENV === 'development' && debugVerbose) console.log('[Navigation] AFTER filtering - navItems:', navItems.length, navItems.map(item => ({
+    title: item.title,
+    _type: item._type
+  })));
   
   // Add validation after filtering
   if (navItems.length === 0) {
-    console.warn('[Navigation] No nav items after filtering:', {
+    console.warn('[Navigation] No nav items after filtering - CRITICAL ISSUE:', {
       originalLength: settings?.headerLinks?.length,
-      headerLinks: settings?.headerLinks
+      headerLinks: settings?.headerLinks,
+      allAreButtons: settings?.headerLinks?.every(link => isLinkEntry(link) && link.isButton)
     });
   }
   
   const megaMenu = navItems.find(item => item._type === 'megaMenu') as MegaMenu | undefined;
+
+  // Helper to build a small, optimized Sanity image URL for fast header rendering
+  const buildOptimizedSanityUrl = (ref?: string | null) => {
+    if (!ref) return null;
+    const base = ref
+      .replace('image-', '')
+      .replace('-png', '.png')
+      .replace('-jpg', '.jpg')
+      .replace('-webp', '.webp');
+    return `https://cdn.sanity.io/images/yxesi03x/production/${base}?w=200&auto=format&fit=max`;
+  };
 
   return (
     <header 
@@ -111,16 +157,13 @@ const Navigation = () => {
       onMouseLeave={() => setOpenMenuKey(null)}
     >
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
-        <RouterLink to="/" className="flex-shrink-0 relative">
+        <UniversalLink href="/" className="flex-shrink-0 relative">
           <Logo 
-            src={settings.logo?.asset?._ref ? 
-              `https://cdn.sanity.io/images/yxesi03x/production/${settings.logo.asset._ref.replace('image-', '').replace('-png', '.png').replace('-jpg', '.jpg').replace('-webp', '.webp')}` :
-              null
-            }
+            src={buildOptimizedSanityUrl(settings.logo?.asset?._ref)}
             alt={settings.title || FALLBACK_ALT}
             className="h-8 sm:h-10"
           />
-        </RouterLink>
+        </UniversalLink>
         
         <nav className="hidden md:flex items-center justify-center space-x-8">
           {navItems.map((item) => (
@@ -129,9 +172,9 @@ const Navigation = () => {
               onMouseEnter={() => item._type === 'megaMenu' && setOpenMenuKey(item._key)}
             >
               {item._type === 'link' ? (
-                <RouterLink to={resolveLink(item as LinkType, 'Navigation')} className="text-white hover:text-brand-green font-display font-medium transition-colors">
+                <UniversalLink href={resolveLink(item as LinkType, 'Navigation')} className="text-white hover:text-brand-green font-display font-medium transition-colors">
                   {item.title}
-                </RouterLink>
+                </UniversalLink>
               ) : (
                 <button className="text-white hover:text-brand-green font-display font-medium transition-colors flex items-center">
                   {(item as MegaMenu).title}
@@ -145,7 +188,7 @@ const Navigation = () => {
         <div className="hidden md:flex items-center">
           {ctaButton && (
             <Button asChild className="bg-yellow-400 hover:bg-yellow-500 text-brand-dark font-display font-medium rounded-full px-6">
-              <RouterLink to={resolveLink(ctaButton, 'Navigation')}>{ctaButton.title}</RouterLink>
+              <UniversalLink href={resolveLink(ctaButton, 'Navigation')}>{ctaButton.title}</UniversalLink>
             </Button>
           )}
         </div>
@@ -153,16 +196,13 @@ const Navigation = () => {
         <div className="md:hidden flex items-center space-x-2">
           {ctaButton && (
             <Button asChild size="sm" className="bg-yellow-400 hover:bg-yellow-500 text-brand-dark font-display font-medium rounded-full px-4">
-              <RouterLink to={resolveLink(ctaButton, 'Navigation')}>{ctaButton.title}</RouterLink>
+              <UniversalLink href={resolveLink(ctaButton, 'Navigation')}>{ctaButton.title}</UniversalLink>
             </Button>
           )}
           <MobileNav 
             navItems={navItems} 
             resolveLink={(link: LinkType) => resolveLink(link, 'Navigation')}
-            logoSrc={settings.logo?.asset?._ref ? 
-              `https://cdn.sanity.io/images/yxesi03x/production/${settings.logo.asset._ref.replace('image-', '').replace('-png', '.png').replace('-jpg', '.jpg').replace('-webp', '.webp')}` :
-              undefined
-            }
+            logoSrc={buildOptimizedSanityUrl(settings.logo?.asset?._ref) || undefined}
             logoAlt={settings.title || FALLBACK_ALT}
           />
         </div>

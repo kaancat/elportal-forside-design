@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { usePathname } from 'next/navigation';
 import { 
   MetaTagsConfig, 
   injectMetaTags, 
@@ -36,7 +36,7 @@ const MetaTags: React.FC<MetaTagsProps> = ({
   sanityImage,
   ...config 
 }) => {
-  const location = useLocation();
+  const pathname = usePathname();
   
   useEffect(() => {
     let finalConfig: MetaTagsConfig;
@@ -73,7 +73,7 @@ const MetaTags: React.FC<MetaTagsProps> = ({
     
     // Set canonical URL if not provided
     if (!finalConfig.canonical) {
-      finalConfig.canonical = generateCanonicalUrl(location.pathname);
+      finalConfig.canonical = generateCanonicalUrl(pathname);
     }
     
     // Set OG URL if not provided
@@ -89,7 +89,7 @@ const MetaTags: React.FC<MetaTagsProps> = ({
       // Don't remove all meta tags, just reset to defaults
       // This prevents flickering when navigating between pages
     };
-  }, [location.pathname, useDanishDefaults, sanityImage, config]);
+  }, [pathname, useDanishDefaults, sanityImage, config]);
   
   return null; // This component doesn't render anything
 };
@@ -100,7 +100,7 @@ export default MetaTags;
  * Hook for using meta tags
  */
 export function useMetaTags(config: MetaTagsProps) {
-  const location = useLocation();
+  const pathname = usePathname();
   
   useEffect(() => {
     let finalConfig: MetaTagsConfig;
@@ -136,7 +136,7 @@ export function useMetaTags(config: MetaTagsProps) {
     
     // Set canonical URL if not provided
     if (!finalConfig.canonical) {
-      finalConfig.canonical = generateCanonicalUrl(location.pathname);
+      finalConfig.canonical = generateCanonicalUrl(pathname);
     }
     
     // Set OG URL if not provided
@@ -145,7 +145,7 @@ export function useMetaTags(config: MetaTagsProps) {
     }
     
     injectMetaTags(finalConfig);
-  }, [location.pathname, config]);
+  }, [pathname, config]);
 }
 
 /**

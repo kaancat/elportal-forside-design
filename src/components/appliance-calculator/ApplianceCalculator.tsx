@@ -10,7 +10,7 @@ import { ConsumptionDashboard } from './ConsumptionDashboard'
 import { saveCalculatorState, loadCalculatorState } from './utils/storage'
 import { createApplianceSummary } from './utils/calculations'
 import { Appliance } from '@/types/appliance'
-import { useNavigate } from 'react-router-dom'
+import { useRouter } from 'next/navigation'
 
 interface ApplianceCalculatorProps {
   appliances: Appliance[]
@@ -25,7 +25,7 @@ export function ApplianceCalculator({
   isLoading = false,
   defaultElectricityPrice = DEFAULT_ELECTRICITY_PRICE,
 }: ApplianceCalculatorProps) {
-  const navigate = useNavigate()
+  const router = useRouter()
   
   const initialState = {
     userAppliances: [],
@@ -82,9 +82,8 @@ export function ApplianceCalculator({
 
   const handleNavigateToComparison = () => {
     // Navigate to price comparison with pre-filled consumption
-    navigate('/sammenlign-priser', {
-      state: { annualConsumption: Math.round(totals.monthlyKwh * 12) }
-    })
+    const annual = Math.round(totals.monthlyKwh * 12)
+    router.push(`/sammenlign-priser?annualConsumption=${annual}`)
   }
 
   return (

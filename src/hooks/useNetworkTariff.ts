@@ -50,7 +50,7 @@ export function useNetworkTariff(
         throw new Error('No grid provider GLN');
       }
 
-      // Try to fetch from API
+      // Try to fetch from our server-side API via the service
       const chargeCode = gridProvider && 'chargeCode' in gridProvider ? gridProvider.chargeCode : undefined;
       const tariff = await datahubPricelistService.getCurrentTariff(
         gln,
@@ -60,8 +60,6 @@ export function useNetworkTariff(
       // If API fails and fallback is enabled, use static data
       if (!tariff && useFallback) {
         const fallbackRate = (gln ? FALLBACK_TARIFFS[gln] : undefined) || gridProvider?.networkTariff || 0.2;
-        
-        // Create a synthetic tariff data object
         const syntheticTariff: TariffData = {
           gln: gln || '',
           provider: gridProvider?.name || 'Unknown',
@@ -72,7 +70,6 @@ export function useNetworkTariff(
           tariffType: 'flat',
           season: 'year-round',
         };
-        
         return { tariff: syntheticTariff, isFallback: true };
       }
 
@@ -80,8 +77,10 @@ export function useNetworkTariff(
     },
     enabled: enabled && !!gridProvider,
     refetchInterval,
-    staleTime: 5 * 60 * 1000, // Consider data stale after 5 minutes
-    gcTime: 24 * 60 * 60 * 1000, // Keep in cache for 24 hours
+    staleTime: 10 * 60 * 1000, // 10 min to avoid duplicate fetches during navigation/hydration
+    gcTime: 24 * 60 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
   });
 
   // Extract tariff data

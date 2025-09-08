@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { urlFor } from '@/lib/sanity'
 import { PortableText } from '@portabletext/react'
 import StickyImageSection from './StickyImageSection'
+import PriceCalculatorWidget from './PriceCalculatorWidget'
 import type { PageSection } from '@/types/sanity'
 import { cn } from '@/lib/utils'
 
@@ -104,6 +105,19 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
           "mb-6 leading-relaxed text-lg",
           themeColors.body
         )}>{children}</p>
+      ),
+    },
+    // Inline/custom object types embedded inside Portable Text
+    types: {
+      priceCalculator: ({ value }: { value?: any }) => (
+        // Full‑bleed subtle background stripe with centered widget
+        <div className="relative my-10 left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
+          <div className="bg-gray-50">
+            <div className="container mx-auto px-4 py-10">
+              <PriceCalculatorWidget block={value || { _type: 'priceCalculator' }} />
+            </div>
+          </div>
+        </div>
       ),
     },
     marks: {
@@ -431,13 +445,15 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
               <div className="relative">
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-black/0 to-black/[0.03] dark:from-white/0 dark:to-white/[0.06]" />
                 <img
-                  src={urlFor(image).width(1000).quality(85).url()}
+                  src={urlFor(image).width(800).quality(70).url()}
                   alt={image.alt || title}
                   className={cn(
                     "w-full h-auto rounded-2xl object-cover",
                     "shadow-xl shadow-black/5",
                     "transition-transform duration-500 group-hover:scale-[1.01]"
                   )}
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             </motion.div>

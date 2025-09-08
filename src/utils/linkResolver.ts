@@ -2,61 +2,67 @@ import { Link as LinkType } from '@/types/sanity';
 
 /**
  * Safely resolves navigation links from Sanity
- * Provides error logging and fallbacks for broken references
+ * Returns string or null for broken links - never throws
  */
 export const resolveLink = (link: LinkType | any, componentName: string = 'Component'): string => {
   // Safety check
   if (!link) {
-    console.warn(`[${componentName}] Link is null or undefined`);
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`[${componentName}] Link is null or undefined`);
+    }
     return '/';
   }
 
+  // Normalize historic shapes: some documents use `linkType: 'link'` with nested internal/external
+  const linkType = link.linkType === 'link' ? (link.internalLink ? 'internal' : (link.externalUrl ? 'external' : 'unknown')) : link.linkType
+
   // Handle external links
-  if (link.linkType === 'external') {
+  if (linkType === 'external') {
     if (!link.externalUrl) {
-      console.warn(`[${componentName}] External link missing URL:`, {
-        link,
-        title: link.title,
-        _key: link._key
-      });
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`[${componentName}] External link missing URL - skipping:`, {
+          title: link.title,
+          _key: link._key
+        });
+      }
+      return '/'; // Safe fallback instead of '#'
     }
-    return link.externalUrl || '#';
+    return link.externalUrl;
   }
   
   // Handle internal links
-  if (link.linkType === 'internal') {
+  if (linkType === 'internal') {
     if (!link.internalLink) {
-      console.error(`[${componentName}] Broken internal link - missing reference:`, {
-        link,
-        title: link.title,
-        _key: link._key,
-        _ref: link._ref,
-        message: 'This usually happens when a referenced page has been deleted'
-      });
-      // Return home as fallback, but log the error
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`[${componentName}] Broken internal link reference - using fallback:`, {
+          title: link.title,
+          _key: link._key
+        });
+      }
       return '/';
     }
     
     if (!link.internalLink.slug) {
-      console.error(`[${componentName}] Internal link missing slug:`, {
-        link,
-        internalLink: link.internalLink,
-        title: link.title,
-        message: 'Referenced document exists but has no slug'
-      });
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`[${componentName}] Internal link missing slug - using fallback:`, {
+          title: link.title,
+          _key: link._key
+        });
+      }
       return '/';
     }
     
-    // Success - return the slug
+    // Success - return the slug with leading slash
     return `/${link.internalLink.slug}`;
   }
   
-  // Unknown link type
-  console.warn(`[${componentName}] Unknown link type:`, {
-    link,
-    linkType: link.linkType,
-    message: 'Expected linkType to be "internal" or "external"'
-  });
+  // Unknown link type - return safe fallback
+  if (process.env.NODE_ENV === 'development') {
+    console.warn(`[${componentName}] Unknown link type - using fallback:`, {
+      linkType: link.linkType,
+      title: link.title
+    });
+  }
   return '/';
 };
 
@@ -100,12 +106,13 @@ export const checkLinksHealth = (links: (LinkType | any)[], componentName: strin
     }
   });
 
-  if (brokenLinks.length > 0) {
-    console.error(`[${componentName}] Link health check found issues:`, {
+  // Only log in development and only if there are actual issues
+  if (brokenLinks.length > 0 && process.env.NODE_ENV === 'development') {
+    console.warn(`[${componentName}] Link health check found ${brokenLinks.length} issues:`, {
       total: links.length,
       valid: validCount,
       broken: brokenLinks.length,
-      issues: brokenLinks
+      issues: brokenLinks.slice(0, 3) // Show only first 3 issues to avoid log spam
     });
   }
 

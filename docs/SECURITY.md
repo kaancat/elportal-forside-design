@@ -4,7 +4,7 @@
 
 ### ✅ Security Rules
 
-1. **VITE_ Prefix = Public**
+1. **NEXT_PUBLIC_ Prefix = Public**
    - These variables are bundled into client-side code
    - ONLY use for non-sensitive configuration
    - Examples: Project IDs, dataset names, API versions
@@ -17,9 +17,9 @@
 ### ⚠️ NEVER Do This:
 ```bash
 # ❌ WRONG - Exposes token to browser!
-VITE_SANITY_API_TOKEN=sk_xxx
-VITE_SMITHERY_API_KEY=xxx
-VITE_ELOVERBLIK_TOKEN=xxx
+NEXT_PUBLIC_SANITY_API_TOKEN=sk_xxx
+NEXT_PUBLIC_SMITHERY_API_KEY=xxx
+NEXT_PUBLIC_ELOVERBLIK_TOKEN=xxx
 ```
 
 ### ✅ ALWAYS Do This:
@@ -30,8 +30,9 @@ SMITHERY_API_KEY=xxx
 ELOVERBLIK_API_TOKEN=xxx
 
 # ✅ CORRECT - Public config only
-VITE_SANITY_PROJECT_ID=yxesi03x
-VITE_SANITY_DATASET=production
+NEXT_PUBLIC_SANITY_PROJECT_ID=yxesi03x
+NEXT_PUBLIC_SANITY_DATASET=production
+NEXT_PUBLIC_SANITY_API_VERSION=2025-01-01
 ```
 
 ## API Security Architecture
@@ -78,9 +79,9 @@ All sensitive operations MUST go through server-side API routes:
 - `SANITY_WEBHOOK_SECRET`
 
 ### Public Variables (Visible):
-- `VITE_SANITY_PROJECT_ID`
-- `VITE_SANITY_DATASET`
-- `VITE_SANITY_API_VERSION`
+- `NEXT_PUBLIC_SANITY_PROJECT_ID`
+- `NEXT_PUBLIC_SANITY_DATASET`
+- `NEXT_PUBLIC_SANITY_API_VERSION`
 
 ## Token Rotation
 

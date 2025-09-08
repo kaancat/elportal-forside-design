@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { usePathname } from 'next/navigation';
 import { 
   generateCanonicalUrl, 
   injectCanonicalTag, 
@@ -34,7 +34,7 @@ const CanonicalUrl: React.FC<CanonicalUrlProps> = ({
   baseUrl = 'https://elportal.dk',
   enabled = true 
 }) => {
-  const location = useLocation();
+  const pathname = usePathname();
   
   useEffect(() => {
     if (!enabled) {
@@ -43,13 +43,13 @@ const CanonicalUrl: React.FC<CanonicalUrlProps> = ({
     }
     
     // Check if this path should have a canonical tag
-    if (!shouldHaveCanonical(location.pathname)) {
+    if (!shouldHaveCanonical(pathname)) {
       removeCanonicalTag();
       return;
     }
     
     // Use provided URL or generate from current location
-    const canonicalUrl = url || generateCanonicalUrl(location.pathname, baseUrl);
+    const canonicalUrl = url || generateCanonicalUrl(pathname, baseUrl);
     
     // Inject the canonical tag
     injectCanonicalTag(canonicalUrl);
@@ -58,7 +58,7 @@ const CanonicalUrl: React.FC<CanonicalUrlProps> = ({
     return () => {
       removeCanonicalTag();
     };
-  }, [location.pathname, url, baseUrl, enabled]);
+  }, [pathname, url, baseUrl, enabled]);
   
   return null; // This component doesn't render anything
 };
@@ -69,19 +69,19 @@ export default CanonicalUrl;
  * Hook for using canonical URLs
  */
 export function useCanonicalUrl(customUrl?: string, enabled: boolean = true) {
-  const location = useLocation();
+  const pathname = usePathname();
   
   useEffect(() => {
-    if (!enabled || !shouldHaveCanonical(location.pathname)) {
+    if (!enabled || !shouldHaveCanonical(pathname)) {
       removeCanonicalTag();
       return;
     }
     
-    const canonicalUrl = customUrl || generateCanonicalUrl(location.pathname);
+    const canonicalUrl = customUrl || generateCanonicalUrl(pathname);
     injectCanonicalTag(canonicalUrl);
     
     return () => {
       removeCanonicalTag();
     };
-  }, [location.pathname, customUrl, enabled]);
+  }, [pathname, customUrl, enabled]);
 }

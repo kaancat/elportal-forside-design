@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -28,7 +28,7 @@ export const PageBreadcrumb: React.FC<PageBreadcrumbProps> = ({ items }) => {
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <Link to="/">Forside</Link>
+            <Link href="/">Forside</Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
         {items.map((item, index) => (
@@ -39,7 +39,7 @@ export const PageBreadcrumb: React.FC<PageBreadcrumbProps> = ({ items }) => {
                 <BreadcrumbPage>{item.label}</BreadcrumbPage>
               ) : item.href ? (
                 <BreadcrumbLink asChild>
-                  <Link to={item.href}>{item.label}</Link>
+                  <Link href={item.href}>{item.label}</Link>
                 </BreadcrumbLink>
               ) : (
                 <BreadcrumbPage>{item.label}</BreadcrumbPage>

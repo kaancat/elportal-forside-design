@@ -93,14 +93,25 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
             // Fetch current spot price
             let currentSpotPrice = PRICE_CONSTANTS.DEFAULT_SPOT_PRICE;
             try {
-                const response = await fetch('/api/electricity-prices');
+                const now = new Date();
+                const dateStr = now.toISOString().split('T')[0];
+                const response = await fetch(`/api/electricity-prices?region=DK2&date=${dateStr}`);
                 if (response.ok) {
-                    const data = await response.json();
+                    let data = await response.json();
+                    let records: any[] = Array.isArray(data.records) ? data.records : [];
+                    if (records.length === 0) {
+                        const prev = new Date(now);
+                        prev.setDate(now.getDate() - 1);
+                        const prevStr = prev.toISOString().split('T')[0];
+                        const prevResp = await fetch(`/api/electricity-prices?region=DK2&date=${prevStr}`);
+                        if (prevResp.ok) {
+                            const prevJson = await prevResp.json();
+                            records = Array.isArray(prevJson.records) ? prevJson.records : [];
+                        }
+                    }
                     const currentHour = new Date().getHours();
-                    const currentPriceData = data.records?.find((r: any) => 
-                        new Date(r.HourDK).getHours() === currentHour
-                    );
-                    if (currentPriceData) {
+                    const currentPriceData = records.find((r: any) => new Date(r.HourDK).getHours() === currentHour) || records[records.length - 1];
+                    if (currentPriceData && typeof currentPriceData.SpotPriceKWh === 'number') {
                         currentSpotPrice = currentPriceData.SpotPriceKWh;
                         setLastUpdated(new Date());
                     }

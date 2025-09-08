@@ -82,7 +82,8 @@ export async function GET(request: NextRequest) {
     const { start, end } = getDateRange(queryDate)
     
     // Check KV cache first (distributed across instances)
-    const cacheKey = `forecast:${region}:${type}:${start}:${end}`
+    // NOTE: Production used keys without `type`; keeping compatibility by caching by region/date range
+    const cacheKey = `forecast:${region}:${start}:${end}`
     
     const kvCached = await readKvJson(cacheKey)
     if (kvCached) {
@@ -96,7 +97,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Check in-memory cache as fallback
-    const memCacheKey = `${region}_${type}_${start}_${end}`
+    const memCacheKey = `${region}_${start}_${end}`
     const cached = forecastCache.get(memCacheKey)
     if (cached) {
       console.log(`[EnergyForecast] Returning in-memory cached data for ${memCacheKey}`)
@@ -142,27 +143,26 @@ export async function GET(request: NextRequest) {
       }, 3, 1000) // 3 attempts, 1s initial delay
     })
     
-    let records = fetchResult.records || []
-    
-    // Filter by forecast type if specified
-    if (type !== 'all' && records.length > 0) {
-      records = filterByType(records, type)
+    // IMPORTANT: Return RAW EnergiDataService records to match production behavior and client expectations
+    const records = fetchResult.records || []
+    const rawResponse = {
+      ...fetchResult,
+      // Provide lightweight metadata for debugging/headers (safe to include)
+      metadata: {
+        region,
+        type,
+        dataPoints: records.length,
+        lastUpdated: new Date().toISOString(),
+        source: 'EnergiDataService Forecasts_Hour'
+      }
     }
-    
-    // Limit to requested hours
-    if (hoursNum && hoursNum < records.length) {
-      records = records.slice(0, hoursNum)
-    }
-    
-    // Process the data to a more useful format
-    const processedData = processForecastData(records, region, type)
-    
+
     // Cache the successful response in both memory and KV
-    forecastCache.set(memCacheKey, processedData)
+    forecastCache.set(memCacheKey, rawResponse)
     const fallbackKey = `forecast:${region}`
-    await setKvJsonWithFallback(cacheKey, fallbackKey, processedData, 1800, 3600) // 30 min specific, 1 hour fallback
+    await setKvJsonWithFallback(cacheKey, fallbackKey, rawResponse, 1800, 3600) // 30 min specific, 1 hour fallback
     
-    return NextResponse.json(processedData, {
+    return NextResponse.json(rawResponse, {
       headers: { 
         ...cacheHeaders({ sMaxage: 1800, swr: 3600 }),
         'X-Cache': 'MISS'
@@ -187,7 +187,18 @@ export async function GET(request: NextRequest) {
     }
     
     // Return safe empty response instead of 500
-    const emptyResponse = createEmptyForecastResponse(region)
+    // Return an empty but structurally compatible response
+    const emptyResponse = {
+      records: [],
+      metadata: {
+        region,
+        type: 'all',
+        dataPoints: 0,
+        lastUpdated: new Date().toISOString(),
+        source: 'EnergiDataService Forecasts_Hour',
+        message: 'No forecast data available'
+      }
+    }
     return NextResponse.json(emptyResponse, {
       headers: {
         ...cacheHeaders({ sMaxage: 60, swr: 300 }),
@@ -196,96 +207,4 @@ export async function GET(request: NextRequest) {
     })
   }
 }
-
-/**
- * Filter records by forecast type
- */
-function filterByType(records: any[], type: string): any[] {
-  // The API returns different forecast types in the data
-  // We need to filter based on the production type
-  return records.filter((record: any) => {
-    if (type === 'wind') {
-      // Keep only wind-related forecasts
-      return record.OnshoreWindPowerGE75MWMWh > 0 || 
-             record.OnshoreWindPowerLT75MWMWh > 0 || 
-             record.OffshoreWindPowerMWh > 0
-    } else if (type === 'solar') {
-      // Keep only solar-related forecasts
-      return record.SolarPowerMWh > 0
-    }
-    return true // 'all' returns everything
-  })
-}
-
-/**
- * Process forecast data into a more useful format
- */
-function processForecastData(records: any[], region: string, type: string): any {
-  // Aggregate and format the data
-  const processedRecords = records.map((record: any) => ({
-    hour: record.HourUTC,
-    region: record.PriceArea || region,
-    windOnshoreSmall: record.OnshoreWindPowerLT75MWMWh || 0,
-    windOnshoreLarge: record.OnshoreWindPowerGE75MWMWh || 0,
-    windOffshore: record.OffshoreWindPowerMWh || 0,
-    windTotal: (record.OnshoreWindPowerLT75MWMWh || 0) + 
-               (record.OnshoreWindPowerGE75MWMWh || 0) + 
-               (record.OffshoreWindPowerMWh || 0),
-    solar: record.SolarPowerMWh || 0,
-    totalRenewable: (record.OnshoreWindPowerLT75MWMWh || 0) + 
-                    (record.OnshoreWindPowerGE75MWMWh || 0) + 
-                    (record.OffshoreWindPowerMWh || 0) + 
-                    (record.SolarPowerMWh || 0)
-  }))
-  
-  // Calculate statistics
-  const stats = {
-    totalWindForecast: processedRecords.reduce((sum, r) => sum + r.windTotal, 0),
-    totalSolarForecast: processedRecords.reduce((sum, r) => sum + r.solar, 0),
-    totalRenewableForecast: processedRecords.reduce((sum, r) => sum + r.totalRenewable, 0),
-    peakWindHour: processedRecords.reduce((max, r) => r.windTotal > max.windTotal ? r : max, processedRecords[0]),
-    peakSolarHour: processedRecords.reduce((max, r) => r.solar > max.solar ? r : max, processedRecords[0]),
-    averageWind: processedRecords.length > 0 ? 
-      processedRecords.reduce((sum, r) => sum + r.windTotal, 0) / processedRecords.length : 0,
-    averageSolar: processedRecords.length > 0 ? 
-      processedRecords.reduce((sum, r) => sum + r.solar, 0) / processedRecords.length : 0
-  }
-  
-  return {
-    records: processedRecords,
-    statistics: stats,
-    metadata: {
-      region,
-      type,
-      dataPoints: processedRecords.length,
-      lastUpdated: new Date().toISOString(),
-      source: 'EnergiDataService Forecasts_Hour'
-    }
-  }
-}
-
-/**
- * Create empty response structure for error cases
- */
-function createEmptyForecastResponse(region: string): any {
-  return {
-    records: [],
-    statistics: {
-      totalWindForecast: 0,
-      totalSolarForecast: 0,
-      totalRenewableForecast: 0,
-      peakWindHour: null,
-      peakSolarHour: null,
-      averageWind: 0,
-      averageSolar: 0
-    },
-    metadata: {
-      region,
-      type: 'all',
-      dataPoints: 0,
-      lastUpdated: new Date().toISOString(),
-      source: 'EnergiDataService Forecasts_Hour',
-      message: 'No forecast data available'
-    }
-  }
-}
+// Note: Removed processing helpers to align return shape with production/raw dataset

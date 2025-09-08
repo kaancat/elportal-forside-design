@@ -5,7 +5,8 @@ import React, { useEffect } from 'react';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import UniversalLink from './UniversalLink';
+import { usePathname } from 'next/navigation';
 import { Link as LinkType, MegaMenu, MegaMenuColumn } from '@/types/sanity';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Icon, hasValidIcon } from './Icon';
@@ -14,10 +15,9 @@ import { FALLBACK_ALT } from '@/constants/branding';
 
 // Helper for the rich, icon-driven link style
 const RichLinkCard: React.FC<{ item: any, resolveLink: (link: LinkType) => string }> = ({ item, resolveLink }) => (
-  <RouterLink
-    to={resolveLink(item.link)}
+  <UniversalLink
+    href={resolveLink(item.link)}
     className="flex items-start text-left p-3 rounded-lg hover:bg-brand-green/10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-green focus:ring-inset"
-    tabIndex={0}
   >
     {hasValidIcon(item.icon) && (
       <Icon
@@ -30,7 +30,7 @@ const RichLinkCard: React.FC<{ item: any, resolveLink: (link: LinkType) => strin
       <p className="font-display font-semibold text-white">{item.title}</p>
       {item.description && <p className="text-sm text-neutral-400 mt-0.5">{item.description}</p>}
     </div>
-  </RouterLink>
+  </UniversalLink>
 );
 
 // This component renders an entire column as a collapsible accordion item
@@ -58,13 +58,13 @@ interface MobileNavProps {
 
 const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, logoAlt }) => {
   const [isOpen, setIsOpen] = React.useState(false);
-  const location = useLocation();
+  const pathname = usePathname();
 
 
   // Close menu on route change
   useEffect(() => {
     setIsOpen(false);
-  }, [location.pathname]);
+  }, [pathname]);
 
   // Keyboard navigation support
   useEffect(() => {
@@ -125,13 +125,13 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
         
         {/* Fixed header */}
         <div className="flex-shrink-0 bg-brand-dark p-4 flex justify-between items-center border-b border-neutral-800">
-          <RouterLink to="/" className="flex items-center relative" onClick={() => setIsOpen(false)}>
+          <UniversalLink href="/" className="flex items-center relative" onClick={() => setIsOpen(false)}>
             <Logo 
               src={logoSrc}
               alt={logoAlt || FALLBACK_ALT}
               className="h-8"
             />
-          </RouterLink>
+          </UniversalLink>
           <Button 
             variant="ghost" 
             size="icon" 
@@ -151,13 +151,12 @@ const MobileNav: React.FC<MobileNavProps> = ({ navItems, resolveLink, logoSrc, l
             {/* Render Simple Links First */}
             {simpleLinks.map(item => (
                <div key={item._key} onClick={() => setIsOpen(false)}>
-                 <RouterLink 
-                   to={resolveLink(item)} 
+                 <UniversalLink 
+                   href={resolveLink(item)} 
                    className="block text-lg font-display font-semibold p-3 rounded-md hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-brand-green focus:ring-inset"
-                   tabIndex={0}
                  >
                    {item.title}
-                 </RouterLink>
+                 </UniversalLink>
                </div>
             ))}
             

@@ -2,15 +2,19 @@
 
 This document provides the complete technology stack and file tree structure for the DinElportal Forside Design project. **AI agents MUST read this file to understand the project organization before making any changes.**
 
-## Technology Stack
+> Migration Update (Next.js)
+>
+> The project now runs on Next.js (App Router). Any Vite references below are historical. Use this section as the source of truth for stack and layout; the legacy tree further down remains for reference only.
+
+## Technology Stack (Current)
 
 ### Frontend Technologies
-- **TypeScript 5.2.2** with **npm** - Type-safe JavaScript with npm package management
-- **React 18.3.1** - UI library for building component-based interfaces
-- **Vite 5.3.4** - Fast build tool and development server
-- **Tailwind CSS 3.4.14** - Utility-first CSS framework
-- **shadcn/ui** - High-quality React components built on Radix UI
-- **Tanstack Query 5.28.0** - Data fetching and caching library
+- **TypeScript** with **npm**
+- **React 19**
+- **Next.js 15 (App Router)**
+- **Tailwind CSS**
+- **shadcn/ui** (Radix UI based)
+- **TanStack Query**
 
 ### Content Management
 - **Sanity CMS 3.x** - Headless CMS for content management
@@ -58,35 +62,31 @@ The DinElportal ecosystem consists of two interconnected projects:
    - Content management and page builder
    - Receives content via authenticated API for SEO pages
 
-## File Tree Structure
+## File Tree (Current, abbreviated)
 
 ```
 elportal-forside-design/
-├── .claude/                    # Claude Code configuration
-│   ├── commands/              # AI orchestration templates
-│   ├── hooks/                 # Automation scripts
-│   └── settings.local.json    # Local Claude settings
-├── docs/                      # Documentation
-│   ├── ai-context/           # AI context documentation
-│   ├── specs/                # Specification documents
-│   └── *.md                  # Various doc templates
-├── public/                    # Static assets
-├── src/                       # Source code
-│   ├── components/           # React components
-│   ├── hooks/               # Custom React hooks
-│   ├── lib/                 # Utility libraries
-│   ├── pages/               # Page components
-│   ├── services/            # API services (Sanity client)
-│   ├── types/               # TypeScript type definitions
-│   ├── App.tsx              # Main app component
-│   ├── index.css            # Global styles
-│   └── main.tsx             # Application entry point
-├── CLAUDE.md                  # AI context master file
-├── MCP-ASSISTANT-RULES.md     # Coding standards
-├── package.json               # Project dependencies
-├── tsconfig.json              # TypeScript configuration
-├── vite.config.ts             # Vite configuration
-└── tailwind.config.js         # Tailwind CSS configuration
+├── .claude/                   # AI assistant config (keep)
+│   ├── commands/             # Orchestration templates
+│   ├── hooks/                # Automation scripts
+│   └── settings.local.json   # Local settings
+├── app/                      # Next.js App Router
+│   ├── layout.tsx            # Root layout
+│   ├── page.tsx              # Homepage
+│   └── api/                  # Route handlers (server)
+├── src/                      # Libraries and components
+│   ├── components/           # UI & page blocks
+│   ├── lib/                  # Shared libraries (Sanity, env, utils)
+│   ├── hooks/                # Custom hooks
+│   ├── services/             # Client-side services
+│   └── types/                # TS types
+├── public/                   # Static assets
+├── docs/                     # Documentation
+├── package.json
+├── tailwind.config.ts
+├── postcss.config.js
+├── next.config.mjs
+└── vercel.json
 ```
 
 ## Key Directories

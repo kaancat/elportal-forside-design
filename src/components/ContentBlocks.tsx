@@ -1,5 +1,7 @@
+'use client'
+
 import React from 'react'
-import { AnimatePresence } from 'framer-motion'
+// import { div } from 'framer-motion' // Temporarily disabled for Next.js compatibility
 import { PageSection, FAQItem, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, CO2EmissionsChart, DeclarationProduction, DeclarationGridmix as DeclarationGridmixType, ConsumptionMap, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
 import PageSectionComponent from './PageSectionComponent'
 import FAQItemComponent from './FAQItemComponent'
@@ -14,6 +16,7 @@ import CO2EmissionsChartComponent from './CO2EmissionsChart'
 import DeclarationProductionChart from './DeclarationProductionChart'
 import DeclarationGridmix from './DeclarationGridmix'
 import ConsumptionMapComponent from './ConsumptionMap'
+import { ForbrugTracker } from './forbrugTracker/ForbrugTracker'
 import PriceCalculatorWidget from './PriceCalculatorWidget'
 import HeroSection from './HeroSection'
 import MonthlyProductionChart from './MonthlyProductionChart'
@@ -112,7 +115,8 @@ const SafeContentBlock: React.FC<{
     );
   }
 
-  const blockType = block._type;
+  // Normalize legacy/alternate type names to current component keys (tolerate unknown string)
+  const blockType = ((block as any)._type === 'co2EmissionsDisplay') ? 'co2EmissionsChart' : block._type;
   const fallback = getErrorFallback(blockType);
 
   return (
@@ -128,6 +132,18 @@ const SafeContentBlock: React.FC<{
 
 // Render individual content block
 const renderContentBlock = (block: ContentBlock) => {
+  // Temporary type guard until all schema unions are fully aligned in TS
+  if ((block as any)?._type === 'forbrugTracker') {
+    const anyBlock: any = block as any
+    const description = Array.isArray(anyBlock?.description) ? '' : anyBlock?.description
+    return (
+      <ForbrugTracker 
+        title={(block as any).title}
+        description={description}
+        headerAlignment={(block as any).headerAlignment}
+      />
+    )
+  }
   switch (block._type) {
     case 'faqGroup':
       return <FaqGroupComponent block={block as FaqGroup} />;
@@ -182,6 +198,7 @@ const renderContentBlock = (block: ContentBlock) => {
     
     case 'consumptionMap':
       return <ConsumptionMapComponent block={block as ConsumptionMap} />;
+    
     
     case 'pageSection':
       return <PageSectionComponent section={block as PageSection} />;
@@ -286,7 +303,7 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
           </div>
         }
       >
-        <AnimatePresence mode="wait">
+        <div>
           {groupedBlocks.map((block, index) => {
             // Determine spacing for this block
             const nextBlock = groupedBlocks[index + 1];
@@ -304,7 +321,14 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
               : `${block._type}-${block._key || index}`;
             
             return (
-              <div key={layoutId} className={spacingClass}>
+              <div
+                key={layoutId}
+                className={spacingClass}
+                {...(!Array.isArray(block) && {
+                  'data-block-type': (block as any)._type,
+                  'data-block-key': (block as any)._key || String(index),
+                })}
+              >
                 <SafeContentBlock 
                   block={block} 
                   index={index} 
@@ -312,14 +336,14 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
               </div>
             );
           })}
-        </AnimatePresence>
+        </div>
       </ErrorBoundary>
     );
   }
 
   // Default rendering without error boundaries
   return (
-    <AnimatePresence mode="wait">
+    <div>
       {groupedBlocks.map((block, index) => {
         // Determine spacing for this block
         const nextBlock = groupedBlocks[index + 1];
@@ -337,10 +361,17 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
           : `${block._type}-${block._key || index}`;
         
         return (
-          <div key={layoutId} className={spacingClass}>
+          <div
+            key={layoutId}
+            className={spacingClass}
+            {...(!Array.isArray(block) && {
+              'data-block-type': (block as any)._type,
+              'data-block-key': (block as any)._key || String(index),
+            })}
+          >
             {Array.isArray(block) ? (
               // This is a group of FAQ items
-              <section className="container mx-auto px-4 py-8">
+              <section className="container mx-auto px-4 py-8" data-block-type="faqGroup" data-block-key={`faq-group-${index}`}>
                 <h2 className="text-2xl font-bold text-brand-dark mb-6">Ofte stillede spørgsmål</h2>
                 <div className="max-w-3xl">
                   {block.map((faqItem, faqIndex) => (
@@ -354,7 +385,7 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
           </div>
         );
       })}
-    </AnimatePresence>
+    </div>
   );
 }
 

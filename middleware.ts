@@ -38,10 +38,12 @@ export function middleware(request: NextRequest) {
   const nextjsRoutes: string[] = [
     // Homepage is the first to migrate
     '/',
-    // High-traffic pages to migrate next
-    // '/elpriser',
-    // '/sammenlign', 
-    // '/groen-energi',
+    // High-traffic pages now migrated with root-level [slug] route
+    '/elpriser',
+    '/sammenlign', 
+    '/groen-energi',
+    '/vindstod',
+    '/spar-penge',
   ]
   
   // Routes that should always use React Router SPA
@@ -110,9 +112,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
   
-  // For SPA routes or unmigrated routes, rewrite to catch-all
-  // This preserves React Router functionality
-  if (isSpaRoute || !isMigratedRoute) {
+  // For SPA routes, rewrite to catch-all only if they're explicitly SPA routes
+  if (isSpaRoute) {
     // Debug logging (remove in production)
     if (process.env.NODE_ENV === 'development') {
       console.log(`[Middleware] SPA route: ${pathname}`)
@@ -121,6 +122,19 @@ export function middleware(request: NextRequest) {
     // Clone URL to preserve query strings
     const url = request.nextUrl.clone()
     url.pathname = `/spa-fallback${pathname}`
+    return NextResponse.rewrite(url)
+  }
+  
+  // For unknown routes, try SSR if Phase 3 is enabled, otherwise fallback to SPA
+  if (!isMigratedRoute && phase3Enabled) {
+    // Try SSR for unknown content pages
+    const url = request.nextUrl.clone()
+    url.pathname = `/__ssr${pathname}`
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[Middleware] Trying SSR for unknown route: ${pathname} -> /__ssr${pathname}`)
+    }
+    
     return NextResponse.rewrite(url)
   }
   

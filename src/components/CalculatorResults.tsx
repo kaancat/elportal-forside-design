@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import Link from 'next/link';
 import { ArrowRight, Check, TrendingDown, Leaf, Shield, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -245,13 +245,13 @@ const CalculatorResults: React.FC<CalculatorResultsProps> = ({
         </Button>
         
         <div className="text-center">
-          <RouterLink 
-            to="/elpriser" 
+          <Link 
+            href="/elpriser" 
             className="text-sm text-brand-green hover:underline inline-flex items-center gap-1"
           >
             Se alle elselskaber
             <ArrowRight className="h-3 w-3" />
-          </RouterLink>
+          </Link>
         </div>
       </div>
 

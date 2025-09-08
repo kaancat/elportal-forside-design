@@ -14,6 +14,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import type { DeclarationProduction } from '@/types/sanity';
+import { useIsClient } from '@/hooks/useIsClient';
 
 interface ProductionRecord {
   HourDK: string;

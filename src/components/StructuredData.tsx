@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { usePathname } from 'next/navigation';
 import {
   generateOrganizationSchema,
   generateBreadcrumbSchema,
@@ -39,7 +39,7 @@ const StructuredData: React.FC<StructuredDataProps> = ({
   faqItems,
   articleData
 }) => {
-  const location = useLocation();
+  const pathname = usePathname();
   const baseUrl = 'https://elportal.dk'; // Update with actual domain
 
   useEffect(() => {
@@ -76,9 +76,9 @@ const StructuredData: React.FC<StructuredDataProps> = ({
         ...breadcrumbs
       ]);
       schemas.push(breadcrumbSchema);
-    } else if (location.pathname !== '/') {
+    } else if (pathname !== '/') {
       // Auto-generate breadcrumbs from URL
-      const pathSegments = location.pathname.split('/').filter(Boolean);
+      const pathSegments = pathname.split('/').filter(Boolean);
       const autoBreadcrumbs: BreadcrumbItem[] = [];
       let currentPath = '';
       
@@ -100,7 +100,7 @@ const StructuredData: React.FC<StructuredDataProps> = ({
     }
 
     // Page-specific schema
-    const currentUrl = `${baseUrl}${location.pathname}`;
+    const currentUrl = `${baseUrl}${pathname}`;
     
     if (pageType === 'article' && articleData) {
       const articleSchema = generateArticleSchema({
@@ -143,7 +143,7 @@ const StructuredData: React.FC<StructuredDataProps> = ({
     return () => {
       removeJsonLd('main-structured-data');
     };
-  }, [location, pageTitle, pageDescription, pageType, breadcrumbs, faqItems, articleData]);
+  }, [pathname, pageTitle, pageDescription, pageType, breadcrumbs, faqItems, articleData]);
 
   return null; // This component doesn't render anything
 };
@@ -154,7 +154,7 @@ export default StructuredData;
  * Hook to easily use structured data in pages
  */
 export function useStructuredData(props: StructuredDataProps) {
-  const location = useLocation();
+  const pathname = usePathname();
   
   useEffect(() => {
     // This effect runs when the component using this hook mounts
@@ -162,7 +162,7 @@ export function useStructuredData(props: StructuredDataProps) {
     return () => {
       // Cleanup if needed
     };
-  }, [location, props]);
+  }, [pathname, props]);
   
   return <StructuredData {...props} />;
 }

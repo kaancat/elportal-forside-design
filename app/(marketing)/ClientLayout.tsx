@@ -4,16 +4,10 @@ import dynamic from 'next/dynamic'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
 
-// Client components with ssr: false to prevent hydration issues
-const Navigation = dynamic(
-  () => import('@/components/Navigation'),
-  { ssr: false }
-)
-
-const Footer = dynamic(
-  () => import('@/components/Footer'),
-  { ssr: false }
-)
+// Navigation and Footer can now be server-side rendered since we fixed React Router issues
+import Navigation from '@/components/Navigation'
+import type { SiteSettings } from '@/types/sanity'
+import Footer from '@/components/Footer'
 
 const ReadingProgress = dynamic(
   () => import('@/components/ReadingProgress'),
@@ -23,9 +17,10 @@ const ReadingProgress = dynamic(
 interface ClientLayoutProps {
   children: React.ReactNode
   showReadingProgress?: boolean
+  initialSiteSettings?: SiteSettings | null
 }
 
-export default function ClientLayout({ children, showReadingProgress }: ClientLayoutProps) {
+export default function ClientLayout({ children, showReadingProgress, initialSiteSettings }: ClientLayoutProps) {
   // Create QueryClient instance for client-side data fetching
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
@@ -38,10 +33,10 @@ export default function ClientLayout({ children, showReadingProgress }: ClientLa
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Navigation />
+      <Navigation initialSettings={initialSiteSettings} />
       {showReadingProgress && <ReadingProgress />}
       {children}
-      <Footer />
+      <Footer initialSettings={initialSiteSettings} />
     </QueryClientProvider>
   )
 }

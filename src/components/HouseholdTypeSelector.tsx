@@ -133,7 +133,7 @@ const HouseholdTypeSelector: React.FC<HouseholdTypeSelectorProps> = ({
                     text-xs font-semibold mt-1 transition-colors duration-200
                     ${isActive ? 'text-brand-green' : 'text-gray-600'}
                   `}>
-                    {type.kWh.toLocaleString()} kWh
+                    {type.kWh.toLocaleString('da-DK')} kWh
                   </div>
                 )}
               </div>

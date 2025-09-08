@@ -95,9 +95,10 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
     if (textColor === 'light') return 'text-white';
     if (textColor === 'dark') return 'text-gray-900';
     
-    // CRITICAL: If there's an image with any meaningful overlay (30%+), use white text
-    // This handles pages like /elselskaber where images have overlays
-    if ((hasBackgroundUrl || hasValidSanityImage) && overlayOpacity >= 30) {
+    // Only treat image as background if the selected style allows it
+    const allowsBackgroundImage = backgroundStyle === 'default' || backgroundStyle === 'gradientClassic'
+    // If there's an image with any meaningful overlay (30%+) and style allows it, use white text
+    if (allowsBackgroundImage && (hasBackgroundUrl || hasValidSanityImage) && overlayOpacity >= 30) {
       return 'text-white';
     }
     
@@ -162,6 +163,10 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
 
   const isLightText = getTextColorClass().includes('white');
 
+  // Only render an image background for styles that support it
+  const allowsBackgroundImage = backgroundStyle === 'default' || backgroundStyle === 'gradientClassic'
+  const showBackgroundImage = allowsBackgroundImage && (hasValidSanityImage || hasBackgroundUrl)
+
   return (
     // The outer wrapper provides padding on desktop screens only
     <div className="md:p-4">
@@ -169,7 +174,7 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
       <div className="relative md:rounded-2xl overflow-hidden" style={{...getBackgroundStyle(), ...minHeightStyle}}>
         
         {/* Layer 1: Background Image (if provided) */}
-        {(hasValidSanityImage || hasBackgroundUrl) && (
+        {showBackgroundImage && (
           <div 
             className="absolute inset-0"
             style={{

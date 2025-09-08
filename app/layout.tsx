@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import Script from 'next/script'
 import { Inter } from 'next/font/google'
 import { SITE_URL, SITE_NAME } from '@/lib/url-helpers'
+import { PerformanceMonitor } from '@/components/PerformanceMonitor'
 import './globals.css'
 
 // Configure Inter font with optimal settings (Codex-recommended)
@@ -112,10 +113,12 @@ export default function RootLayout({
         {/* Preconnect to external domains for faster resource loading */}
         <link rel="preconnect" href="https://cdn.sanity.io" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
+        {/* Ensure no stray preload for external GPT scripts */}
         <link rel="dns-prefetch" href="https://cdn.sanity.io" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
       </head>
       <body suppressHydrationWarning>
+        <PerformanceMonitor />
         <div id="root">{children}</div>
         
         {/* Cookiebot Consent Management (GDPR Compliance) */}
@@ -211,12 +214,7 @@ export default function RootLayout({
           />
         )}
         
-        {/* IMPORTANT: GPT Engineer script preserved */}
-        <Script 
-          src="https://cdn.gpteng.co/gptengineer.js" 
-          type="module"
-          strategy="afterInteractive"
-        />
+        {/* Removed GPT Engineer script to avoid CORS noise locally */}
       </body>
     </html>
   )

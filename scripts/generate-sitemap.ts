@@ -17,7 +17,8 @@ async function main() {
     console.log('🗺️  Generating sitemap...');
     
     // Generate sitemap content
-    const sitemapXml = await generateSitemap('https://elportal.dk');
+    const baseUrl = process.env.SITE_URL || 'https://dinelportal.dk';
+    const sitemapXml = await generateSitemap(baseUrl);
     
     // Write to public directory
     const publicPath = path.join(process.cwd(), 'public', 'sitemap.xml');

@@ -14,6 +14,7 @@ import { PortableText } from '@portabletext/react';
 import { useIsClient } from '@/hooks/useIsClient';
 import { SanityService } from '../services/sanityService';
 import { PRICE_CONSTANTS } from '@/services/priceCalculationService';
+import { useLocation } from '@/hooks/useLocation';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { TrackedLink } from '@/components/tracking/TrackedLink';
 import { resolveProviderLogoUrl } from '@/lib/providerLogos';
@@ -146,7 +147,10 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
   const [monthlyConsumption, setMonthlyConsumption] = useState(333); // Default ~4000 kWh/year
   const [allProviders, setAllProviders] = useState<ProviderProductBlock[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentSpotPrice, setCurrentSpotPrice] = useState<number>(1.5); // Default spot price
+  // Spotpris: behold live til kontekst, men brug måneds-gennemsnit til beregninger
+  const [currentSpotPrice, setCurrentSpotPrice] = useState<number>(1.5);
+  const [monthlyAvgSpotPrice, setMonthlyAvgSpotPrice] = useState<number>(1.5);
+  const { location } = useLocation();
 
   const { title, leadingText, settings, description } = block;
   useEffect(() => {
@@ -160,13 +164,17 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
   const themeColors = getThemeTextColors(settings?.theme);
   const theme = settings?.theme || 'default';
 
-  // Fetch current spot price
+  // Fetch current spot price (for context) and monthly average (for calculations)
   useEffect(() => {
     if (!isClient) return;
-    
+
     const fetchSpotPrice = async () => {
       try {
-        const response = await fetch('/api/electricity-prices?region=DK2');
+        const region = location?.region || 'DK2';
+        const today = new Date();
+        const dateStr = today.toISOString().split('T')[0];
+        // Live (dagens) til kontekst
+        const response = await fetch(`/api/electricity-prices?region=${region}&date=${dateStr}`);
         if (response.ok) {
           const data = await response.json();
           const currentHour = new Date().getHours();
@@ -176,13 +184,26 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
             console.log('[RealPriceComparisonTable] spot price set', currentPriceData.SpotPriceKWh);
           }
         }
+
+        // Måneds-gennemsnit til beregninger
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const startStr = startOfMonth.toISOString().split('T')[0];
+        const monthlyResp = await fetch(`/api/electricity-prices?region=${region}&date=${startStr}&endDate=${dateStr}`);
+        if (monthlyResp.ok) {
+          const monthlyJson = await monthlyResp.json();
+          const recs: any[] = Array.isArray(monthlyJson.records) ? monthlyJson.records : [];
+          if (recs.length > 0) {
+            const avg = recs.reduce((s, r) => s + (typeof r.SpotPriceKWh === 'number' ? r.SpotPriceKWh : 0), 0) / recs.length;
+            if (avg && isFinite(avg)) setMonthlyAvgSpotPrice(avg);
+          }
+        }
       } catch (error) {
         console.error('Error fetching spot price:', error);
       }
     };
     
     fetchSpotPrice();
-  }, [isClient]);
+  }, [isClient, location?.region]);
 
   useEffect(() => {
     if (!isClient) return;
@@ -233,73 +254,37 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
     if (!provider) {
       return { 
         spotPrice: 0,
-        tillæg: 0, 
-        greenCerts: 0,
-        tradingCosts: 0,
-        networkTariff: 0,
-        systemTariff: 0,
-        transmissionFee: 0,
-        electricityTax: 0,
-        subtotal: 0,
-        vat: 0,
+        tillæg: 0,
         totalPerKwh: 0,
-        subscription: 0, 
-        total: 0 
+        subscription: 0,
+        total: 0
       };
     }
     
-    // Use the correct field names from the provider data - maintain full precision
-    const spotPrice = currentSpotPrice;
-    const tillæg = provider.spotPriceMarkup !== undefined 
-      ? provider.spotPriceMarkup / 100  // Convert from øre to kr
+    // Simplified model: spotpris (måneds-gennemsnit) + tillæg; ingen net/afgifter/moms
+    const spotPrice = monthlyAvgSpotPrice;
+    const tillæg = provider.spotPriceMarkup !== undefined
+      ? provider.spotPriceMarkup / 100
       : (provider.displayPrice_kWh || 0);
-    const greenCerts = (provider.greenCertificateFee || 0) / 100;
-    const tradingCosts = (provider.tradingCosts || 0) / 100;
-    
-    // Fixed fees - using exact values from PRICE_CONSTANTS
-    const networkTariff = 0.30; // Average network tariff
-    const systemTariff = PRICE_CONSTANTS.SYSTEM_TARIFF; // 0.19
-    const transmissionFee = PRICE_CONSTANTS.TRANSMISSION_FEE; // 0.11
-    const electricityTax = PRICE_CONSTANTS.ELECTRICITY_TAX; // 0.90
-    
-    // Calculate subtotal with full precision
-    const subtotal = spotPrice + tillæg + greenCerts + tradingCosts + 
-                    networkTariff + systemTariff + transmissionFee + electricityTax;
-    
-    // Calculate VAT on the precise subtotal
-    const vat = subtotal * 0.25;
-    
-    // Total per kWh with full precision
-    const totalPerKwh = subtotal + vat;
-    
-    // Get subscription fee
+    const totalPerKwh = spotPrice + tillæg;
+
     const subscription = provider.monthlySubscription !== undefined
       ? provider.monthlySubscription
       : (provider.displayMonthlyFee || 0);
     
-    // Calculate total monthly cost with full precision
     const total = (totalPerKwh * monthlyConsumption) + subscription;
-    
-    // Return all values with full precision - rounding will be done only for display
+
     return { 
       spotPrice,
-      tillæg, 
-      greenCerts,
-      tradingCosts,
-      networkTariff,
-      systemTariff,
-      transmissionFee,
-      electricityTax,
-      subtotal,
-      vat,
+      tillæg,
       totalPerKwh,
-      subscription, 
-      total 
+      subscription,
+      total
     };
   };
 
-  const details1 = useMemo(() => getPriceDetails(selectedProvider1), [selectedProvider1, monthlyConsumption, currentSpotPrice]);
-  const details2 = useMemo(() => getPriceDetails(selectedProvider2), [selectedProvider2, monthlyConsumption, currentSpotPrice]);
+  const details1 = useMemo(() => getPriceDetails(selectedProvider1), [selectedProvider1, monthlyConsumption, monthlyAvgSpotPrice]);
+  const details2 = useMemo(() => getPriceDetails(selectedProvider2), [selectedProvider2, monthlyConsumption, monthlyAvgSpotPrice]);
   
   const isCheaper1 = details1.total < details2.total && selectedProvider1 && selectedProvider2;
   const isCheaper2 = details2.total < details1.total && selectedProvider1 && selectedProvider2;
@@ -705,7 +690,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
               <TableBody>
                 <TableRow className={themeColors.tableRowHover}>
                   <TableCell className={cn("font-semibold", themeColors.strong)}>
-                    Spotpris
+                    Spotpris (måneds‑gennemsnit)
                   </TableCell>
                   <TableCell className={cn("text-center", themeColors.body)}>
                     {formatCurrency(details1.spotPrice)}
@@ -726,110 +711,10 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
                     {formatCurrency(details2.tillæg)}
                   </TableCell>
                 </TableRow>
-
-                {(details1.greenCerts > 0 || details2.greenCerts > 0) && (
-                  <TableRow className={themeColors.tableRowHover}>
-                    <TableCell className={cn("font-semibold", themeColors.strong)}>
-                      Grønne certifikater
-                    </TableCell>
-                    <TableCell className={cn("text-center", themeColors.body)}>
-                      {formatCurrency(details1.greenCerts)}
-                    </TableCell>
-                    <TableCell className={cn("text-center", themeColors.body)}>
-                      {formatCurrency(details2.greenCerts)}
-                    </TableCell>
-                  </TableRow>
-                )}
-
-                {(details1.tradingCosts > 0 || details2.tradingCosts > 0) && (
-                  <TableRow className={themeColors.tableRowHover}>
-                    <TableCell className={cn("font-semibold", themeColors.strong)}>
-                      Handelsomkostninger
-                    </TableCell>
-                    <TableCell className={cn("text-center", themeColors.body)}>
-                      {formatCurrency(details1.tradingCosts)}
-                    </TableCell>
-                    <TableCell className={cn("text-center", themeColors.body)}>
-                      {formatCurrency(details2.tradingCosts)}
-                    </TableCell>
-                  </TableRow>
-                )}
-
-                <TableRow className={themeColors.tableRowHover}>
-                  <TableCell className={cn("font-semibold", themeColors.strong)}>
-                    Nettarif
-                  </TableCell>
-                  <TableCell className={cn("text-center", themeColors.body)}>
-                    {formatCurrency(details1.networkTariff)}
-                  </TableCell>
-                  <TableCell className={cn("text-center", themeColors.body)}>
-                    {formatCurrency(details2.networkTariff)}
-                  </TableCell>
-                </TableRow>
-
-                <TableRow className={themeColors.tableRowHover}>
-                  <TableCell className={cn("font-semibold", themeColors.strong)}>
-                    Systemtarif
-                  </TableCell>
-                  <TableCell className={cn("text-center", themeColors.body)}>
-                    {formatCurrency(details1.systemTariff)}
-                  </TableCell>
-                  <TableCell className={cn("text-center", themeColors.body)}>
-                    {formatCurrency(details2.systemTariff)}
-                  </TableCell>
-                </TableRow>
-
-                <TableRow className={themeColors.tableRowHover}>
-                  <TableCell className={cn("font-semibold", themeColors.strong)}>
-                    Transmissionstarif
-                  </TableCell>
-                  <TableCell className={cn("text-center", themeColors.body)}>
-                    {formatCurrency(details1.transmissionFee)}
-                  </TableCell>
-                  <TableCell className={cn("text-center", themeColors.body)}>
-                    {formatCurrency(details2.transmissionFee)}
-                  </TableCell>
-                </TableRow>
-
-                <TableRow className={themeColors.tableRowHover}>
-                  <TableCell className={cn("font-semibold", themeColors.strong)}>
-                    Elafgift
-                  </TableCell>
-                  <TableCell className={cn("text-center", themeColors.body)}>
-                    {formatCurrency(details1.electricityTax)}
-                  </TableCell>
-                  <TableCell className={cn("text-center", themeColors.body)}>
-                    {formatCurrency(details2.electricityTax)}
-                  </TableCell>
-                </TableRow>
-
-                <TableRow className={cn("border-t-2", isDarkTheme(theme) ? "border-gray-600" : "border-gray-300")}>
-                  <TableCell className={cn("font-semibold", themeColors.strong)}>
-                    Subtotal (uden moms)
-                  </TableCell>
-                  <TableCell className={cn("text-center", themeColors.body)}>
-                    {formatCurrency(details1.subtotal)}
-                  </TableCell>
-                  <TableCell className={cn("text-center", themeColors.body)}>
-                    {formatCurrency(details2.subtotal)}
-                  </TableCell>
-                </TableRow>
-
-                <TableRow className={themeColors.tableRowHover}>
-                  <TableCell className={cn("font-semibold", themeColors.strong)}>
-                    Moms (25%)
-                  </TableCell>
-                  <TableCell className={cn("text-center", themeColors.body)}>
-                    {formatCurrency(details1.vat)}
-                  </TableCell>
-                  <TableCell className={cn("text-center", themeColors.body)}>
-                    {formatCurrency(details2.vat)}
-                  </TableCell>
-                </TableRow>
-
-                <TableRow className={cn("border-t-2", isDarkTheme(theme) ? "border-gray-600" : "border-brand-green")}>
+                <TableRow className={cn("border-t-2", isDarkTheme(theme) ? "border-gray-600" : "border-brand-green")}
+                >
                   <TableCell className={cn("font-bold text-lg", themeColors.strong)}>
-                    Total pr. kWh
+                    Pris pr. kWh (spotpris + tillæg)
                   </TableCell>
                   <TableCell className={cn(
                     "text-center font-bold text-lg",
@@ -913,9 +798,19 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
           </Card>
         </div>
 
-        <p className={cn("text-sm text-center mt-8", themeColors.muted)}>
-          * Priserne er estimater baseret på live spotpriser og inkluderer alle afgifter og moms.
-        </p>
+        <div className="mt-8 text-center">
+          <p className={cn("text-sm", themeColors.muted)}>
+            Vi viser <strong>spotpris (måneds‑gennemsnit)</strong> + <strong>elselskabets tillæg</strong> (elpris.dk) + <strong>abonnement</strong>.
+            Nettariffer, afgifter, system/transmission og moms er ikke inkluderet.
+          </p>
+          <p className={cn("text-xs mt-2", themeColors.muted)}>
+            {(() => {
+              const formatted = new Intl.DateTimeFormat('da-DK', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+              const region = (location?.region || 'DK2');
+              return `Abonnement og tillæg fra elpris.dk d. ${formatted}. Spotpris: måneds‑gennemsnit (${region}) fra Nord Pool.`;
+            })()}
+          </p>
+        </div>
       </div>
     </section>
   );

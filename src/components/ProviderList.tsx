@@ -200,13 +200,14 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
       const monthlyConsumption = annualConsumption[0] / 12;
       const aMarkupKr = (aSpotPriceMarkup || 0) / 100; // øre -> kr
       const bMarkupKr = (bSpotPriceMarkup || 0) / 100;
-      const aMonthlyTotal = (aMonthlySubscription || 0) + monthlyConsumption * aMarkupKr;
-      const bMonthlyTotal = (bMonthlySubscription || 0) + monthlyConsumption * bMarkupKr;
+      const currentSpot = spotPrice !== null ? spotPrice : 1.5; // kr/kWh
+      const aMonthlyTotal = (aMonthlySubscription || 0) + monthlyConsumption * (currentSpot + aMarkupKr);
+      const bMonthlyTotal = (bMonthlySubscription || 0) + monthlyConsumption * (currentSpot + bMarkupKr);
 
       // Sort by simplified monthly total (lower first)
       return aMonthlyTotal - bMonthlyTotal;
     });
-  }, [providers, annualConsumption, selectedRegion, isManualRegionOverride]);
+  }, [providers, annualConsumption, selectedRegion, isManualRegionOverride, spotPrice]);
 
   // JSON-LD now rendered server-side for reliability
   
@@ -460,10 +461,10 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
                 <TooltipContent className="max-w-sm" sideOffset={5}>
                   <div className="space-y-2">
                     <p className="text-sm">
-                      Vi viser <strong>kun</strong> elselskabets <strong>tillæg til spotpris</strong> og <strong>abonnement</strong>.
-                      Obligatoriske ydelser (nettarif, afgifter m.m.) kommer <strong>oven i</strong> og indgår ikke i beløbene.
+                      Vi viser <strong>spotpris (live)</strong> + <strong>elselskabets tillæg</strong> (elpris.dk) + <strong>abonnement</strong>.
+                      Obligatoriske ydelser (nettarif, afgifter, system/transmission, moms) er <strong>ikke</strong> inkluderet.
                     </p>
-                    <p className="text-xs text-gray-500">Kilde: elpris.dk</p>
+                    <p className="text-xs text-gray-500">Kilder: Nord Pool (spotpris) og elpris.dk (tillæg/abonnement)</p>
                   </div>
                 </TooltipContent>
               </Tooltip>

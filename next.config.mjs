@@ -51,6 +51,15 @@ const nextConfig = {
         destination: '/leverandoer-sammenligning',
         permanent: true,
       },
+      // Enforce canonical host: redirect www -> apex
+      {
+        source: '/:path*',
+        has: [
+          { type: 'host', value: 'www.dinelportal.dk' }
+        ],
+        destination: 'https://dinelportal.dk/:path*',
+        permanent: true,
+      },
     ]
   },
   

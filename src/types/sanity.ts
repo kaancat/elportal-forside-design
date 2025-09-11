@@ -256,6 +256,8 @@ export interface ProviderListBlock {
   title?: string
   subtitle?: string
   headerAlignment?: 'left' | 'center' | 'right'
+  // Optional: date for price source (elpris.dk)
+  priceSourceDate?: string
   providers: ProviderProductBlock[]
 }
 

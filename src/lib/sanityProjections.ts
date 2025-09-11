@@ -274,6 +274,7 @@ export const pageProjection = `{
       title,
       subtitle,
       headerAlignment,
+      priceSourceDate,
       displayMode,
       showDetailedPricing,
       showEnvironmentalInfo,

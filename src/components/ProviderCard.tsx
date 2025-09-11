@@ -22,9 +22,23 @@ interface ProviderCardProps {
     greenCertificates?: number;
     tradingCosts?: number;
   };
+  pricingMode?: 'simplified' | 'full';
+  priceSourceDate?: string; // from Sanity (providerList block)
+  providerMarkupKrOverride?: number; // in kr/kWh (simplified mode)
+  monthlySubscriptionOverride?: number; // in kr (simplified mode)
 }
 
-const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption, spotPrice, networkTariff, additionalFees }) => {
+const ProviderCard: React.FC<ProviderCardProps> = ({ 
+  product, 
+  annualConsumption, 
+  spotPrice, 
+  networkTariff, 
+  additionalFees,
+  pricingMode = 'full',
+  priceSourceDate,
+  providerMarkupKrOverride,
+  monthlySubscriptionOverride,
+}) => {
   // Add safety checks
   if (!product) {
     console.error('ProviderCard: product is undefined');
@@ -34,16 +48,25 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
   // Region can be passed via props or context in the future
   const userRegion = networkTariff && networkTariff > 0.26 ? 'DK2' : 'DK1'; // Simple heuristic
 
-  // Use the shared calculation service with network tariff and additional fees
+  // Pricing calculations
   const baseSpotPrice = spotPrice !== null ? spotPrice : PRICE_CONSTANTS.DEFAULT_SPOT_PRICE;
-  const pricePerKwh = calculatePricePerKwh(
+  const fullPricePerKwh = calculatePricePerKwh(
     baseSpotPrice, 
     product.displayPrice_kWh || 0, 
     networkTariff,
     additionalFees
   );
-  const estimatedMonthlyPrice = calculateMonthlyCost(annualConsumption, pricePerKwh, product.displayMonthlyFee || 0);
+  const fullEstimatedMonthly = calculateMonthlyCost(annualConsumption, fullPricePerKwh, product.displayMonthlyFee || 0);
   const breakdown = getPriceBreakdown(baseSpotPrice, product.displayPrice_kWh || 0, networkTariff, additionalFees);
+
+  // Simplified mode values
+  const markupKr = typeof providerMarkupKrOverride === 'number' 
+    ? providerMarkupKrOverride 
+    : (product.displayPrice_kWh || 0); // product.displayPrice_kWh is used as markup in øre in some data; ensure conversion below if needed
+  // If markup is very likely in øre, convert to kr when needed
+  const markupKrNormalized = markupKr > 3 ? (markupKr / 100) : markupKr; // heuristic: >3 likely øre
+  const monthlySub = typeof monthlySubscriptionOverride === 'number' ? monthlySubscriptionOverride : (product.displayMonthlyFee || 0);
+  const simplifiedMonthly = monthlySub + (annualConsumption / 12) * markupKrNormalized;
   
 
   return (
@@ -142,54 +165,64 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
           
           {/* Price and action */}
           <div className="flex flex-col items-end lg:min-w-[220px]">
-            <div className="bg-gradient-to-br from-brand-dark/5 to-gray-50 px-6 py-4 rounded-lg border border-gray-100 mb-6 w-full">
+            <div className="bg-gradient-to-br from-brand-dark/5 to-gray-50 px-6 py-4 rounded-lg border border-gray-100 mb-2 w-full">
               <div className="text-right">
                 <div className="text-3xl font-bold text-brand-green mb-1">
-                  {estimatedMonthlyPrice.toFixed(0)} kr
+                  {(pricingMode === 'simplified' ? simplifiedMonthly : fullEstimatedMonthly).toFixed(0)} kr
                 </div>
                 <div className="text-sm text-gray-600 mb-1">
                   pr. måned
                 </div>
                 <div className="text-xs text-gray-500 space-y-1">
-                  <div className="text-sm text-brand-dark font-semibold">Estimeret {pricePerKwh.toFixed(2)} kr/kWh</div>
+                  {pricingMode === 'simplified' ? (
+                    <div className="text-sm text-brand-dark font-semibold">Tillæg: {markupKrNormalized.toFixed(2)} kr/kWh</div>
+                  ) : (
+                    <div className="text-sm text-brand-dark font-semibold">Estimeret {fullPricePerKwh.toFixed(2)} kr/kWh</div>
+                  )}
                   
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button className="text-xs text-brand-green hover:underline mt-1 inline-flex items-center gap-1">
-                        Se prisdetaljer <Info size={14} />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-64">
-                      <div className="space-y-2">
-                        <h4 className="font-medium leading-none">Prisudregning</h4>
-                        <p className="text-sm text-muted-foreground">Estimat baseret på live spotpris.</p>
-                        <div className="text-xs space-y-1 pt-2">
-                          <div className="flex justify-between"><span>Spotpris:</span> <span>{breakdown.spotPrice.toFixed(2)} kr.</span></div>
-                          <div className="flex justify-between"><span>Leverandør tillæg:</span> <span>{breakdown.providerMarkup.toFixed(2)} kr.</span></div>
-                          {breakdown.greenCertificates > 0 && (
-                            <div className="flex justify-between"><span>Grønne certifikater:</span> <span>{breakdown.greenCertificates.toFixed(2)} kr.</span></div>
-                          )}
-                          {breakdown.tradingCosts > 0 && (
-                            <div className="flex justify-between"><span>Handelsomkostninger:</span> <span>{breakdown.tradingCosts.toFixed(2)} kr.</span></div>
-                          )}
-                          <div className="border-t my-1"></div>
-                          <div className="flex justify-between text-gray-600"><span>Nettarif ({breakdown.networkTariff.toFixed(2)} kr):</span> <span className="text-gray-600">{breakdown.networkTariff.toFixed(2)} kr.</span></div>
-                          <div className="flex justify-between text-gray-600"><span>Systemtarif:</span> <span className="text-gray-600">{PRICE_CONSTANTS.SYSTEM_TARIFF.toFixed(2)} kr.</span></div>
-                          <div className="flex justify-between text-gray-600"><span>Transmissionstarif:</span> <span className="text-gray-600">{PRICE_CONSTANTS.TRANSMISSION_FEE.toFixed(2)} kr.</span></div>
-                          <div className="flex justify-between"><span>Elafgift:</span> <span>{breakdown.electricityTax.toFixed(2)} kr.</span></div>
-                          <div className="border-t my-1"></div>
-                          <div className="flex justify-between font-semibold"><span>Pris u. moms:</span> <span>{breakdown.subtotal.toFixed(2)} kr.</span></div>
-                          <div className="flex justify-between font-semibold"><span>Moms (25%):</span> <span>{breakdown.vatAmount.toFixed(2)} kr.</span></div>
-                          <div className="border-t border-dashed my-1"></div>
-                          <div className="flex justify-between font-bold"><span>Total pr. kWh:</span> <span>{breakdown.total.toFixed(2)} kr.</span></div>
+                  {pricingMode === 'full' && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button className="text-xs text-brand-green hover:underline mt-1 inline-flex items-center gap-1">
+                          Se prisdetaljer <Info size={14} />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-64">
+                        <div className="space-y-2">
+                          <h4 className="font-medium leading-none">Prisudregning</h4>
+                          <p className="text-sm text-muted-foreground">Estimat baseret på live spotpris.</p>
+                          <div className="text-xs space-y-1 pt-2">
+                            <div className="flex justify-between"><span>Spotpris:</span> <span>{breakdown.spotPrice.toFixed(2)} kr.</span></div>
+                            <div className="flex justify-between"><span>Leverandør tillæg:</span> <span>{breakdown.providerMarkup.toFixed(2)} kr.</span></div>
+                            {breakdown.greenCertificates > 0 && (
+                              <div className="flex justify-between"><span>Grønne certifikater:</span> <span>{breakdown.greenCertificates.toFixed(2)} kr.</span></div>
+                            )}
+                            {breakdown.tradingCosts > 0 && (
+                              <div className="flex justify-between"><span>Handelsomkostninger:</span> <span>{breakdown.tradingCosts.toFixed(2)} kr.</span></div>
+                            )}
+                            <div className="border-t my-1"></div>
+                            <div className="flex justify-between text-gray-600"><span>Nettarif ({breakdown.networkTariff.toFixed(2)} kr):</span> <span className="text-gray-600">{breakdown.networkTariff.toFixed(2)} kr.</span></div>
+                            <div className="flex justify-between text-gray-600"><span>Systemtarif:</span> <span className="text-gray-600">{PRICE_CONSTANTS.SYSTEM_TARIFF.toFixed(2)} kr.</span></div>
+                            <div className="flex justify-between text-gray-600"><span>Transmissionstarif:</span> <span className="text-gray-600">{PRICE_CONSTANTS.TRANSMISSION_FEE.toFixed(2)} kr.</span></div>
+                            <div className="flex justify-between"><span>Elafgift:</span> <span>{breakdown.electricityTax.toFixed(2)} kr.</span></div>
+                            <div className="border-t my-1"></div>
+                            <div className="flex justify-between font-semibold"><span>Pris u. moms:</span> <span>{breakdown.subtotal.toFixed(2)} kr.</span></div>
+                            <div className="flex justify-between font-semibold"><span>Moms (25%):</span> <span>{breakdown.vatAmount.toFixed(2)} kr.</span></div>
+                            <div className="border-t border-dashed my-1"></div>
+                            <div className="flex justify-between font-bold"><span>Total pr. kWh:</span> <span>{breakdown.total.toFixed(2)} kr.</span></div>
+                          </div>
                         </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
+                      </PopoverContent>
+                    </Popover>
+                  )}
                   
-                  <div>Månedligt abonnement: {product.displayMonthlyFee || 0} kr</div>
+                  <div>Månedligt abonnement: {monthlySub.toFixed(0)} kr</div>
                 </div>
               </div>
+            </div>
+            {/* Source disclaimer bottom-right */}
+            <div className="w-full flex justify-end">
+              <div className="text-[11px] text-gray-500">Priser indhentet fra elpris.dk{priceSourceDate ? ` d. ${new Intl.DateTimeFormat('da-DK', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(priceSourceDate))}` : ''}</div>
             </div>
             
             {product.signupLink ? (
@@ -200,7 +233,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ product, annualConsumption,
                 variant={product.isVindstoedProduct ? 'featured' : 'standard'}
                 consumption={annualConsumption}
                 region={userRegion}
-                estimatedValue={estimatedMonthlyPrice}
+                estimatedValue={pricingMode === 'simplified' ? simplifiedMonthly : fullEstimatedMonthly}
                 className="w-full"
               >
                 <Button 

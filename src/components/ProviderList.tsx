@@ -173,16 +173,13 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
       if (a.isVindstoedProduct && !b.isVindstoedProduct) return -1;
       if (!a.isVindstoedProduct && b.isVindstoedProduct) return 1;
       
-      // If both are Vindstød or both are not, sort by calculated total price
-      // Calculate the actual price per kWh for each provider
-      const baseSpotPrice = spotPrice !== null ? spotPrice : 1.5;
-      
-      // Get spot price markup for each provider (considering regional pricing)
+      // Simplified mode: compare only subscription + markup (tillæg)
+      // Get region-specific values when overridden
       let aSpotPriceMarkup = a.spotPriceMarkup;
       let aMonthlySubscription = a.monthlySubscription;
       let bSpotPriceMarkup = b.spotPriceMarkup;
       let bMonthlySubscription = b.monthlySubscription;
-      
+
       if (isManualRegionOverride) {
         if (a.regionalPricing?.length > 0) {
           const aRegional = a.regionalPricing.find((rp: any) => rp.region === selectedRegion);
@@ -199,43 +196,17 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
           }
         }
       }
-      
-      // Calculate total monthly cost for each provider
-      // Using the priceCalculationService logic
-      const aPricePerKwh = calculatePricePerKwh(
-        baseSpotPrice,
-        aSpotPriceMarkup || 0,
-        networkTariff,
-        {
-          greenCertificates: a.greenCertificateFee,
-          tradingCosts: a.tradingCosts
-        }
-      );
-      const bPricePerKwh = calculatePricePerKwh(
-        baseSpotPrice,
-        bSpotPriceMarkup || 0,
-        networkTariff,
-        {
-          greenCertificates: b.greenCertificateFee,
-          tradingCosts: b.tradingCosts
-        }
-      );
-      
-      const aMonthlyTotal = calculateMonthlyCost(
-        annualConsumption[0],
-        aPricePerKwh,
-        aMonthlySubscription || 0
-      );
-      const bMonthlyTotal = calculateMonthlyCost(
-        annualConsumption[0],
-        bPricePerKwh,
-        bMonthlySubscription || 0
-      );
-      
-      // Sort by total monthly cost (lower first)
+
+      const monthlyConsumption = annualConsumption[0] / 12;
+      const aMarkupKr = (aSpotPriceMarkup || 0) / 100; // øre -> kr
+      const bMarkupKr = (bSpotPriceMarkup || 0) / 100;
+      const aMonthlyTotal = (aMonthlySubscription || 0) + monthlyConsumption * aMarkupKr;
+      const bMonthlyTotal = (bMonthlySubscription || 0) + monthlyConsumption * bMarkupKr;
+
+      // Sort by simplified monthly total (lower first)
       return aMonthlyTotal - bMonthlyTotal;
     });
-  }, [providers, spotPrice, annualConsumption, selectedRegion, isManualRegionOverride, networkTariff]);
+  }, [providers, annualConsumption, selectedRegion, isManualRegionOverride]);
 
   // JSON-LD now rendered server-side for reliability
   
@@ -488,24 +459,11 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
                 </TooltipTrigger>
                 <TooltipContent className="max-w-sm" sideOffset={5}>
                   <div className="space-y-2">
-                    <p className="font-semibold">Vores prisberegning inkluderer:</p>
-                    <ul className="text-sm space-y-1">
-                      <li>• <strong>Live spotpriser</strong> opdateret hver time fra Nord Pool</li>
-                      <li>• <strong>Nettarif</strong> som gennemsnit over døgnet (faktiske timepriser varierer)</li>
-                      <li>• <strong>Leverandørens tillæg</strong> fra deres aktuelle prislister</li>
-                      <li>• <strong>Afgifter og moms</strong> (elafgift, systemtarif, transmission + 25% moms)</li>
-                    </ul>
-                    <p className="text-sm mt-3 font-semibold text-brand-green">
-                      OBS: Priserne vises uden midlertidige rabatter
+                    <p className="text-sm">
+                      Vi viser <strong>kun</strong> elselskabets <strong>tillæg til spotpris</strong> og <strong>abonnement</strong>.
+                      Obligatoriske ydelser (nettarif, afgifter m.m.) kommer <strong>oven i</strong> og indgår ikke i beløbene.
                     </p>
-                    <p className="text-sm mt-1 text-gray-600">
-                      Introrabatter, "første 12 måneder gratis" og lignende kampagnetilbud 
-                      er ikke inkluderet, da disse ikke afspejler den reelle langsigtede pris.
-                    </p>
-                    <p className="text-sm mt-2 text-gray-600">
-                      Vi stræber efter at vise de mest præcise og aktuelle priser, 
-                      så du kan træffe det bedste valg.
-                    </p>
+                    <p className="text-xs text-gray-500">Kilde: elpris.dk</p>
                   </div>
                 </TooltipContent>
               </Tooltip>
@@ -540,6 +498,17 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
           ) : (
             sortedProviders.map((provider, index) => {
               const product = convertToElectricityProduct(provider);
+              // Simplified mode: derive region-adjusted markup and subscription
+              let spotPriceMarkup = provider.spotPriceMarkup;
+              let monthlySubscription = provider.monthlySubscription;
+              if (isManualRegionOverride && provider.regionalPricing?.length > 0) {
+                const regional = provider.regionalPricing.find((rp: any) => rp.region === selectedRegion);
+                if (regional) {
+                  if (regional.spotPriceMarkup !== undefined) spotPriceMarkup = regional.spotPriceMarkup;
+                  if (regional.monthlySubscription !== undefined) monthlySubscription = regional.monthlySubscription;
+                }
+              }
+              const markupKr = (spotPriceMarkup || 0) / 100;
               const isFirst = index === 0;
               return (
                 <div 
@@ -553,6 +522,10 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
                     annualConsumption={annualConsumption[0]}
                     spotPrice={spotPrice}
                     networkTariff={networkTariff}
+                    pricingMode={'simplified'}
+                    priceSourceDate={(block as any)?.priceSourceDate}
+                    providerMarkupKrOverride={markupKr}
+                    monthlySubscriptionOverride={monthlySubscription || 0}
                     additionalFees={{
                       greenCertificates: provider.greenCertificateFee,
                       tradingCosts: provider.tradingCosts

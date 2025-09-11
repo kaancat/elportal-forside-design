@@ -191,6 +191,7 @@ export class SanityService {
           title,
           subtitle,
           headerAlignment,
+          priceSourceDate,
           'providers': providers[]->{ 
             "id": _id,
             providerName,

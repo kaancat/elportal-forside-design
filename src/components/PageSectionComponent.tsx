@@ -128,16 +128,29 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
         )}>{children}</strong>
       ),
       em: ({ children }: { children?: React.ReactNode }) => <em className="italic">{children}</em>,
-      link: ({ value, children }: { value?: { href: string }, children?: React.ReactNode }) => (
-        <a 
-          href={value?.href} 
-          className={cn("underline transition-colors duration-200", themeColors.link)}
-          target={value?.href?.startsWith('http') ? '_blank' : undefined}
-          rel={value?.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
-        >
-          {children}
-        </a>
-      ),
+      link: ({ value, children }: { value?: { href: string }, children?: React.ReactNode }) => {
+        const href = value?.href || '#'
+        let isExternal = false
+        try {
+          if (href.startsWith('http')) {
+            const u = new URL(href)
+            // Treat our own host as internal even if absolute
+            isExternal = !(u.hostname.endsWith('dinelportal.dk'))
+          }
+        } catch {
+          isExternal = false
+        }
+        return (
+          <a
+            href={href}
+            className={cn('underline transition-colors duration-200', themeColors.link)}
+            target={isExternal ? '_blank' : undefined}
+            rel={isExternal ? 'noopener noreferrer' : undefined}
+          >
+            {children}
+          </a>
+        )
+      },
     },
   }
   

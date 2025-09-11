@@ -14,6 +14,7 @@ import { SITE_URL, SITE_NAME, canonicalUrl } from '@/lib/url-helpers'
 import UnifiedContentBlocks from '@/components/UnifiedContentBlocks'
 import ClientLayout from './(marketing)/ClientLayout'
 import { getSiteSettings } from '@/server/sanity'
+import { headers } from 'next/headers'
 
 // SPA App component removed - using App Router only
 const SPAApp = () => {
@@ -120,6 +121,27 @@ export default async function HomePage() {
       'query-input': 'required name=search_term_string',
     },
   }
+  
+  // If homepage includes a provider list block, emit ItemList JSON-LD
+  const providerBlock: any = Array.isArray((page as any)?.contentBlocks)
+    ? (page as any).contentBlocks.find((b: any) => b?._type === 'providerList' && Array.isArray(b.providers) && b.providers.length > 0)
+    : null
+  const jsonLdProviderList = providerBlock ? {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: providerBlock.title || 'Udbydere',
+    numberOfItems: providerBlock.providers.length,
+    itemListElement: providerBlock.providers.slice(0, 10).map((p: any, i: number) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        // Use Organization instead of Product to avoid Product rich result requirements
+        '@type': 'Organization',
+        name: `${p.providerName || ''} ${p.productName || ''}`.trim() || p.providerName || p.productName || 'Ukendt',
+        brand: p.providerName || undefined
+      }
+    }))
+  } : null
 
   if (!page) {
     // Fallback to SPA in development when homepage is missing
@@ -129,12 +151,21 @@ export default async function HomePage() {
     notFound()
   }
 
+  const nonce = (await headers()).get('x-csp-nonce') || undefined
   return (
     <>
       <script
         type="application/ld+json"
+        nonce={nonce as any}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebSite) }}
       />
+      {jsonLdProviderList && (
+        <script
+          type="application/ld+json"
+          nonce={nonce as any}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdProviderList) }}
+        />
+      )}
       <div className="min-h-screen bg-white">
         <ClientLayout showReadingProgress={page.showReadingProgress} initialSiteSettings={siteSettings ?? null}>
           <main>

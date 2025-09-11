@@ -225,7 +225,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
               </div>
             </div>
             {/* Source disclaimer */}
-            <div className="w-full text-right text-[11px] text-gray-500 leading-tight mt-1">
+            <div className="w-full text-right text-[11px] text-gray-500 leading-tight mt-3 mb-3">
               <div>
                 {(() => {
                   const fallback = new Intl.DateTimeFormat('da-DK', { day: 'numeric', month: 'long' }).format(new Date());
@@ -298,7 +298,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                   <button
                     type="button"
                     aria-label="Hvorfor viser vi disse priser?"
-                    className="inline-flex items-center justify-center h-9 w-9 rounded-full border border-brand-dark/20 text-brand-dark bg-gradient-to-br from-brand-dark/10 to-brand-green/10 animate-pulse-glow hover:from-brand-dark/20 hover:to-brand-green/20 transition-colors"
+                    className="inline-flex items-center justify-center h-9 w-9 rounded-full border border-[#a5e96d]/30 text-brand-dark bg-[#a5e96d]/20 hover:bg-[#a5e96d]/30 transition-colors"
                   >
                     <HelpCircle className="h-4 w-4" />
                   </button>
@@ -311,11 +311,9 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                         Din regning består overvejende af <strong>obligatoriske</strong> ting: nettariffer og afgifter til staten. 
                         De er ens uanset leverandør og ligger <strong>uden for</strong> selskabets kontrol.
                       </p>
-                      <p>
-                        Derfor sammenligner vi kun det, du kan påvirke ved at vælge leverandør:
-                      </p>
+                      <p>Spotprisen er fælles for alle – den kan du ikke selv påvirke.</p>
+                      <p>Derfor sammenligner vi kun det, du kan påvirke ved at vælge leverandør:</p>
                       <ul className="list-disc pl-5 space-y-1">
-                        <li>Spotpris (måneds-gennemsnit) fra Nord Pool</li>
                         <li>Elselskabets tillæg til spotpris</li>
                         <li>Månedligt abonnement</li>
                       </ul>

@@ -29,6 +29,8 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
   onLocationChange, 
   className = '' 
 }) => {
+  // Feature flag: hide nettarif line in UI (kept in code for future use)
+  const SHOW_TARIFF_LINE = false;
   const [inputValue, setInputValue] = useState<string>('');
   const [location, setLocation] = useState<LocationData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -305,33 +307,34 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
               </span>
             </div>
 
-            {/* Network Tariff */}
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-600 flex items-center gap-1">
-                Nettarif:
-                <TooltipProvider delayDuration={200}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button type="button" className="p-0.5 hover:bg-gray-100 rounded transition-colors">
-                        <Info className="h-3 w-3 text-gray-400" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent sideOffset={5}>
-                      <p className="max-w-xs">
-                        Nettariffen er den afgift dit netselskab opkræver for at 
-                        transportere strøm til din bolig. {!isFallback && 'Data fra officiel kilde.'}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </span>
-              <span className="font-medium text-brand-dark">
-                {(averageRate || location.gridProvider.networkTariff).toFixed(2)} kr/kWh
-                {!isFallback && averageRate && (
-                  <span className="text-xs text-green-600 ml-1">✓</span>
-                )}
-              </span>
-            </div>
+            {/* Network Tariff (hidden in simplified mode) */}
+            {SHOW_TARIFF_LINE && (
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 flex items-center gap-1">
+                  Nettarif:
+                  <TooltipProvider delayDuration={200}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button type="button" className="p-0.5 hover:bg-gray-100 rounded transition-colors">
+                          <Info className="h-3 w-3 text-gray-400" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent sideOffset={5}>
+                        <p className="max-w-xs">
+                          Nettariffen er den afgift dit netselskab opkræver for at transportere strøm til din bolig.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </span>
+                <span className="font-medium text-brand-dark">
+                  {(averageRate || location.gridProvider.networkTariff).toFixed(2)} kr/kWh
+                  {!isFallback && averageRate && (
+                    <span className="text-xs text-green-600 ml-1">✓</span>
+                  )}
+                </span>
+              </div>
+            )}
           </div>
         )}
 

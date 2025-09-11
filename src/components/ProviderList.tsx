@@ -36,7 +36,8 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
     setIsMounted(true);
   }, []);
   const [selectedHouseholdType, setSelectedHouseholdType] = useState<string | null>('small-house');
-  const [spotPrice, setSpotPrice] = useState<number | null>(null);
+  const [spotPrice, setSpotPrice] = useState<number | null>(null); // live hour price for context
+  const [spotPriceMonthlyAvg, setSpotPriceMonthlyAvg] = useState<number | null>(null); // monthly avg for calculations
   const [priceLoading, setPriceLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   
@@ -77,7 +78,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
     }
   }, [location?.region, isManualRegionOverride]);
 
-  // Fetch live spot price when component mounts or region changes
+  // Fetch live spot price (for context) and monthly average (for calculations)
   useEffect(() => {
     const fetchSpotPrice = async () => {
       try {
@@ -105,10 +106,24 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
           setSpotPrice(currentPriceData.SpotPriceKWh);
           setLastUpdated(new Date());
         }
+
+        // Fetch monthly average for calculations (from first day of month until today)
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const startStr = startOfMonth.toISOString().split('T')[0];
+        const monthlyResp = await fetch(`/api/electricity-prices?region=${region}&date=${startStr}&endDate=${dateStr}`);
+        if (monthlyResp.ok) {
+          const monthlyJson = await monthlyResp.json();
+          const monthlyRecords: any[] = Array.isArray(monthlyJson.records) ? monthlyJson.records : [];
+          if (monthlyRecords.length > 0) {
+            const avg = monthlyRecords.reduce((sum: number, r: any) => sum + (typeof r.SpotPriceKWh === 'number' ? r.SpotPriceKWh : 0), 0) / monthlyRecords.length;
+            if (avg && isFinite(avg)) setSpotPriceMonthlyAvg(avg);
+          }
+        }
       } catch (error) {
         console.error("Failed to fetch live spot price:", error);
         // Fallback to a default value
         setSpotPrice(1.5);
+        setSpotPriceMonthlyAvg(1.5);
       } finally {
         setPriceLoading(false);
       }
@@ -200,14 +215,14 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
       const monthlyConsumption = annualConsumption[0] / 12;
       const aMarkupKr = (aSpotPriceMarkup || 0) / 100; // øre -> kr
       const bMarkupKr = (bSpotPriceMarkup || 0) / 100;
-      const currentSpot = spotPrice !== null ? spotPrice : 1.5; // kr/kWh
+      const currentSpot = spotPriceMonthlyAvg !== null ? spotPriceMonthlyAvg : (spotPrice !== null ? spotPrice : 1.5); // kr/kWh
       const aMonthlyTotal = (aMonthlySubscription || 0) + monthlyConsumption * (currentSpot + aMarkupKr);
       const bMonthlyTotal = (bMonthlySubscription || 0) + monthlyConsumption * (currentSpot + bMarkupKr);
 
       // Sort by simplified monthly total (lower first)
       return aMonthlyTotal - bMonthlyTotal;
     });
-  }, [providers, annualConsumption, selectedRegion, isManualRegionOverride, spotPrice]);
+  }, [providers, annualConsumption, selectedRegion, isManualRegionOverride, spotPrice, spotPriceMonthlyAvg]);
 
   // JSON-LD now rendered server-side for reliability
   
@@ -461,8 +476,11 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
                 <TooltipContent className="max-w-sm" sideOffset={5}>
                   <div className="space-y-2">
                     <p className="text-sm">
-                      Vi viser <strong>spotpris (live)</strong> + <strong>elselskabets tillæg</strong> (elpris.dk) + <strong>abonnement</strong>.
+                      Vi viser <strong>spotpris (måneds-gennemsnit)</strong> + <strong>elselskabets tillæg</strong> (elpris.dk) + <strong>abonnement</strong>.
                       Obligatoriske ydelser (nettarif, afgifter, system/transmission, moms) er <strong>ikke</strong> inkluderet.
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Bemærk: Teksten “Spotpris opdateret” over listen viser den <em>aktuelle</em> timepris for kontekst — beregninger bruger måneds-gennemsnit.
                     </p>
                     <p className="text-xs text-gray-500">Kilder: Nord Pool (spotpris) og elpris.dk (tillæg/abonnement)</p>
                   </div>
@@ -521,10 +539,11 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
                   <ProviderCard 
                     product={product}
                     annualConsumption={annualConsumption[0]}
-                    spotPrice={spotPrice}
+                    spotPrice={spotPriceMonthlyAvg ?? spotPrice}
                     networkTariff={networkTariff}
                     pricingMode={'simplified'}
                     priceSourceDate={(block as any)?.priceSourceDate}
+                    regionCode={selectedRegion}
                     providerMarkupKrOverride={markupKr}
                     monthlySubscriptionOverride={monthlySubscription || 0}
                     additionalFees={{

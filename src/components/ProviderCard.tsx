@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Check, X, ExternalLink, Info, Leaf, Wind } from 'lucide-react';
+import { ArrowRight, Check, X, ExternalLink, Info, Leaf, Wind, Calculator } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -26,6 +26,7 @@ interface ProviderCardProps {
   priceSourceDate?: string; // from Sanity (providerList block)
   providerMarkupKrOverride?: number; // in kr/kWh (simplified mode)
   monthlySubscriptionOverride?: number; // in kr (simplified mode)
+  regionCode?: 'DK1' | 'DK2';
 }
 
 const ProviderCard: React.FC<ProviderCardProps> = ({ 
@@ -38,6 +39,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   priceSourceDate,
   providerMarkupKrOverride,
   monthlySubscriptionOverride,
+  regionCode,
 }) => {
   // Add safety checks
   if (!product) {
@@ -222,16 +224,19 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                 </div>
               </div>
             </div>
-            {/* Source disclaimer bottom-right */}
-            <div className="w-full flex justify-end">
-              <div className="text-[11px] text-gray-500">
+            {/* Source disclaimer */}
+            <div className="w-full text-right text-[11px] text-gray-500 leading-tight">
+              <div>
                 {(() => {
                   const fallback = new Intl.DateTimeFormat('da-DK', { day: 'numeric', month: 'long' }).format(new Date());
                   const formatted = priceSourceDate
                     ? new Intl.DateTimeFormat('da-DK', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(priceSourceDate))
                     : fallback;
-                  return `Abonnement og tillæg fra elpris.dk d. ${formatted}. Spotpris: live fra Nord Pool.`;
+                  return `Abonnement og tillæg fra elpris.dk d. ${formatted}`;
                 })()}
+              </div>
+              <div>
+                {`Spotpris: måneds-gennemsnit ${regionCode ? `(${regionCode}) ` : ''}fra Nord Pool.`}
               </div>
             </div>
             
@@ -260,6 +265,32 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                 Link ikke tilgængelig
               </Button>
             )}
+
+            {/* Info icon popover (bottom-right, small) */}
+            <div className="w-full flex justify-end mt-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="Prisinformation"
+                    className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-brand-green/10 text-brand-dark border border-brand-green/20 hover:bg-brand-green/20 transition-colors"
+                  >
+                    <Calculator className="h-4 w-4" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent sideOffset={6} align="end" className="max-w-xs sm:max-w-sm text-sm">
+                  <div className="space-y-2">
+                    <p className="font-medium">Sådan beregner vi prisen</p>
+                    <ul className="list-disc pl-5 space-y-1 text-gray-700">
+                      <li>Spotpris: måneds-gennemsnit {regionCode ? `(${regionCode}) ` : ''}fra Nord Pool</li>
+                      <li>Tillæg og abonnement: elpris.dk{priceSourceDate ? ` d. ${new Intl.DateTimeFormat('da-DK', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(priceSourceDate))}` : ''}</li>
+                      <li>Beløb ekskl. nettariffer, afgifter, system/transmission og moms</li>
+                    </ul>
+                    <p className="text-xs text-gray-500">Priserne er estimater baseret på dit valgte forbrug.</p>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
         </div>
       </div>

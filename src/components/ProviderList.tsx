@@ -12,11 +12,10 @@ import { Slider } from '@/components/ui/slider';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info, MapPin, Calculator } from 'lucide-react';
 import type { ProviderListBlock } from '../types/sanity';
-import { useScrollAnimation, staggerContainer, animationClasses } from '@/hooks/useScrollAnimation';
+import { staggerContainer } from '@/hooks/useScrollAnimation';
 import { ElectricityProduct } from '@/types/product';
 import { calculatePricePerKwh, calculateMonthlyCost } from '@/services/priceCalculationService';
 import { FloatingConsumptionHelper } from './FloatingConsumptionHelper';
-import { useEffect } from 'react';
 
 interface ProviderListProps {
   block: ProviderListBlock;
@@ -238,35 +237,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
     });
   }, [providers, spotPrice, annualConsumption, selectedRegion, isManualRegionOverride, networkTariff]);
 
-  // Inject ItemList JSON-LD for the first 10 providers (SEO-rich results)
-  useEffect(() => {
-    if (!sortedProviders || sortedProviders.length === 0) return;
-    try {
-      const items = sortedProviders.slice(0, 10).map((p, idx) => ({
-        '@type': 'ListItem',
-        position: idx + 1,
-        item: {
-          '@type': 'Product',
-          name: `${p.providerName || ''} ${p.productName || ''}`.trim(),
-          brand: p.providerName || undefined,
-        }
-      }));
-      const jsonLd = {
-        '@context': 'https://schema.org',
-        '@type': 'ItemList',
-        itemListElement: items,
-      };
-      const script = document.createElement('script');
-      script.type = 'application/ld+json';
-      script.id = 'provider-itemlist-jsonld';
-      script.text = JSON.stringify(jsonLd);
-      const existing = document.getElementById('provider-itemlist-jsonld');
-      if (existing) existing.remove();
-      document.head.appendChild(script);
-    } catch (e) {
-      // Silent fail - JSON-LD is optional
-    }
-  }, [sortedProviders]);
+  // JSON-LD now rendered server-side for reliability
   
   // Debug logging only in development and gated by verbose flag
   if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_DEBUG_VERBOSE === 'true') {

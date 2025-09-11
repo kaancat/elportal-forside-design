@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         alt: page.title,
       }]
     : [{
-        url: `${SITE_URL}/dinelportal-og-default.png`,
+        url: `${SITE_URL}/dinelportal-logo.png`,
         width: 1200,
         height: 630,
         alt: page.seoMetaTitle || page.title,
@@ -90,6 +90,8 @@ export async function generateStaticParams() {
 // Revalidate every hour for dynamic pages
 export const revalidate = 3600
 
+import { headers } from 'next/headers'
+
 export default async function DynamicPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const [page, siteSettings] = await Promise.all([
@@ -130,7 +132,10 @@ export default async function DynamicPage({ params }: { params: Promise<{ slug: 
       name: item.question,
       acceptedAnswer: {
         '@type': 'Answer',
-        text: item.answer,
+        // Ensure plain text only for FAQ answer
+        text: typeof item.answer === 'string' 
+          ? item.answer.replace(/<[^>]*>/g, '') 
+          : String(item.answer ?? ''),
       },
     })),
   } : null
@@ -152,20 +157,52 @@ export default async function DynamicPage({ params }: { params: Promise<{ slug: 
     },
   }
   
+  // Optional: Provider ItemList JSON-LD for pages that include providerList block
+  const providerBlock: any = Array.isArray((page as any)?.contentBlocks)
+    ? (page as any).contentBlocks.find((b: any) => b?._type === 'providerList' && Array.isArray(b.providers) && b.providers.length > 0)
+    : null
+  const jsonLdProviderList = providerBlock ? {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: providerBlock.title || 'Udbydere',
+    numberOfItems: providerBlock.providers.length,
+    itemListElement: providerBlock.providers.slice(0, 10).map((p: any, i: number) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        // Use Organization to avoid Product rich result requirements
+        '@type': 'Organization',
+        name: `${p.providerName || ''} ${p.productName || ''}`.trim() || p.providerName || p.productName || 'Ukendt',
+        brand: p.providerName || undefined
+      }
+    }))
+  } : null
+  
+  const nonce = (await headers()).get('x-csp-nonce') || undefined
   return (
     <>
       {/* JSON-LD in head */}
       <script
         type="application/ld+json"
+        nonce={nonce as any}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdBreadcrumb) }}
       />
       <script
         type="application/ld+json"
+        nonce={nonce as any}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdArticle) }}
       />
+      {jsonLdProviderList && (
+        <script
+          type="application/ld+json"
+          nonce={nonce as any}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdProviderList) }}
+        />
+      )}
       {jsonLdFAQ && (
         <script
           type="application/ld+json"
+          nonce={nonce as any}
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdFAQ) }}
         />
       )}

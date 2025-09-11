@@ -156,32 +156,32 @@ const Footer = ({ initialSettings }: FooterProps) => {
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
             <div>
-              <h3 className="font-bold mb-4 text-lg">Links</h3>
+              <h3 className="font-bold mb-4 text-lg">Vigtige sider</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-300 hover:text-brand-green transition-colors">Elpriser</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-brand-green transition-colors">Elselskaber</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-brand-green transition-colors">Ladeboks</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-brand-green transition-colors">Prisberegner</a></li>
+                <li><a href="/elpriser" className="text-gray-300 hover:text-brand-green transition-colors">Aktuelle elpriser</a></li>
+                <li><a href="/leverandoer-sammenligning" className="text-gray-300 hover:text-brand-green transition-colors">Sammenlign elaftaler</a></li>
+                <li><a href="/elselskaber" className="text-gray-300 hover:text-brand-green transition-colors">Elselskaber</a></li>
+                <li><a href="/historiske-priser" className="text-gray-300 hover:text-brand-green transition-colors">Historiske elpriser</a></li>
               </ul>
             </div>
             
             <div>
-              <h3 className="font-bold mb-4 text-lg">Bliv klogere på</h3>
+              <h3 className="font-bold mb-4 text-lg">Værktøjer</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-300 hover:text-brand-green transition-colors">Elpris guide</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-brand-green transition-colors">Variable vs. faste priser</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-brand-green transition-colors">Strømforbrug</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-brand-green transition-colors">Spar på elregningen</a></li>
+                <li><a href="/forbrug-tracker" className="text-gray-300 hover:text-brand-green transition-colors">Forbrug tracker</a></li>
+                <li><a href="/elprisberegner" className="text-gray-300 hover:text-brand-green transition-colors">Elpris-beregner</a></li>
+                <li><a href="/prognoser" className="text-gray-300 hover:text-brand-green transition-colors">Prognoser</a></li>
+                <li><a href="/ladeboks" className="text-gray-300 hover:text-brand-green transition-colors">Ladeboks</a></li>
               </ul>
             </div>
             
             <div>
               <h3 className="font-bold mb-4 text-lg">Om DinElportal</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-300 hover:text-brand-green transition-colors">Om os</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-brand-green transition-colors">Kontakt</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-brand-green transition-colors">Privatlivspolitik</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-brand-green transition-colors">Cookies</a></li>
+                <li><a href="/om-os" className="text-gray-300 hover:text-brand-green transition-colors">Om os</a></li>
+                <li><a href="/energibesparende-tips-2025" className="text-gray-300 hover:text-brand-green transition-colors">Energibesparende tips 2025</a></li>
+                <li><a href="/privatlivspolitik" className="text-gray-300 hover:text-brand-green transition-colors">Privatlivspolitik</a></li>
+                <li><a href="/cookies" className="text-gray-300 hover:text-brand-green transition-colors">Cookies</a></li>
               </ul>
             </div>
           </div>

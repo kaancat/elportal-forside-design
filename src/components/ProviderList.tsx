@@ -299,8 +299,49 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
 
   const headerAlignmentClass = block.headerAlignment === 'left' ? 'text-left' : block.headerAlignment === 'right' ? 'text-right' : 'text-center';
 
+  // Expose provider list metadata to other components (e.g., hero calculator)
+  useEffect(() => {
+    try {
+      const count = providers.length;
+      const event = new CustomEvent('elportal:providerListReady', {
+        detail: { id: 'provider-list', count }
+      } as any);
+      window.dispatchEvent(event);
+    } catch (e) {
+      // noop
+    }
+  }, [providers.length]);
+
+  // Handle calculator submission from hero: set kWh and scroll into view
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const anyEvent = e as CustomEvent<{ kWh?: number; source?: string }>;
+      const kWh = anyEvent?.detail?.kWh;
+      if (typeof kWh === 'number' && !Number.isNaN(kWh)) {
+        setAnnualConsumption([kWh]);
+        setSelectedHouseholdType('custom');
+        // Scroll to this section and focus for accessibility
+        const section = document.getElementById('provider-list');
+        if (section) {
+          const prefersReduced = typeof window !== 'undefined' &&
+            window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          try {
+            section.scrollIntoView({ behavior: prefersReduced ? 'auto' : 'smooth', block: 'start' });
+          } catch {
+            // Fallback scroll
+            window.scrollTo({ top: section.getBoundingClientRect().top + window.scrollY - 16, behavior: prefersReduced ? 'auto' : 'smooth' });
+          }
+          // Attempt to move focus for screen readers / keyboard users
+          try { (section as HTMLElement).focus?.(); } catch {}
+        }
+      }
+    };
+    window.addEventListener('elportal:calculatorSubmit', handler as EventListener);
+    return () => window.removeEventListener('elportal:calculatorSubmit', handler as EventListener);
+  }, []);
+
   return (
-    <section className="py-16 bg-gray-50">
+    <section id="provider-list" tabIndex={-1} className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="mb-12">
           <h1 className={`text-4xl font-display font-bold ${headerAlignmentClass} mb-4 text-brand-dark`}>

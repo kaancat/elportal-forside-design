@@ -12,6 +12,7 @@ import { FloatingConsumptionHelper } from './FloatingConsumptionHelper';
 import { rankProviders, PRICE_CONSTANTS } from '@/services/priceCalculationService';
 import { useNetworkTariff } from '@/hooks/useNetworkTariff';
 import { gridProviders } from '@/data/gridProviders';
+import { trackEnhancedEvent } from '@/utils/tracking';
 
 // --- PROPS INTERFACE ---
 interface PriceCalculatorWidgetProps {
@@ -56,6 +57,8 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+    const [providerCount, setProviderCount] = useState<number | null>(null);
+    const [providerListId, setProviderListId] = useState<string>('provider-list');
     
     // Get network tariff from Radius (Copenhagen) as default for calculator
     // This covers a large population and provides accurate pricing
@@ -77,10 +80,26 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
 
     // Fetch data when moving to step 3
     useEffect(() => {
-        if (currentStep === 3) {
+        // Only fetch inline results when not in hero variant
+        if (currentStep === 3 && variant !== 'hero') {
             fetchPriceData();
         }
-    }, [currentStep]);
+    }, [currentStep, variant]);
+
+    // Listen for provider list readiness to show dynamic count in hero CTA
+    useEffect(() => {
+        const onReady = (e: Event) => {
+            const evt = e as CustomEvent<{ id?: string; count?: number }>;
+            if (typeof evt.detail?.count === 'number') {
+                setProviderCount(evt.detail.count);
+            }
+            if (evt.detail?.id) {
+                setProviderListId(evt.detail.id);
+            }
+        };
+        window.addEventListener('elportal:providerListReady', onReady as EventListener);
+        return () => window.removeEventListener('elportal:providerListReady', onReady as EventListener);
+    }, []);
 
     const fetchPriceData = async () => {
         setLoading(true);
@@ -136,6 +155,25 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
 
     const handleGoToResults = () => {
         setCurrentStep(3);
+    };
+
+    const handleTeaserCTA = () => {
+        try {
+            // Dispatch event for ProviderList to prefill and scroll
+            const evt = new CustomEvent('elportal:calculatorSubmit', {
+                detail: { kWh: annualConsumption, source: 'hero' }
+            } as any);
+            window.dispatchEvent(evt);
+            // Track GA4 event (consent-aware)
+            trackEnhancedEvent('hero_providerlist_cta', {
+                component: 'hero_calculator',
+                action: 'scroll_to_provider_list',
+                consumption_kwh: annualConsumption,
+                provider_count: providerCount ?? undefined
+            });
+        } catch (e) {
+            // noop
+        }
     };
 
     const brandGreen = '#98ce2f'; // Using a variable for the brand color
@@ -212,34 +250,54 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
             {/* Step 3 */}
             {currentStep === 3 && (
                 <div className="mt-8">
-                    {loading ? (
-                        <div className="text-center py-12">
-                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green"></div>
-                            <p className="mt-4 text-gray-600">Henter aktuelle elpriser...</p>
-                        </div>
-                    ) : error ? (
-                        <div className="text-center py-12">
-                            <p className="text-red-600 mb-4">{error}</p>
-                            <Button onClick={fetchPriceData} variant="outline">
-                                Prøv igen
+                    {variant === 'hero' ? (
+                        <div className="text-center py-8">
+                            <p className="text-gray-700 mb-4 text-sm">Baseret på dine valg</p>
+                            <Button onClick={handleTeaserCTA} className="w-full bg-brand-green hover:opacity-90">
+                                {typeof providerCount === 'number' 
+                                  ? `Du har ${providerCount} matchende selskaber – se listen`
+                                  : 'Se listen over selskaber'}
+                                <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
+                            <div className="mt-4">
+                                <Button onClick={() => setCurrentStep(2)} variant="outline">
+                                    <ArrowLeft className="mr-2 h-4 w-4" /> Rediger valg
+                                </Button>
+                            </div>
                         </div>
-                    ) : spotPrice !== null && providers.length > 0 ? (
-                        <CalculatorResults
-                            providers={providers}
-                            annualConsumption={annualConsumption}
-                            spotPrice={spotPrice}
-                            networkTariff={networkTariff}
-                            onBack={() => setCurrentStep(2)}
-                            lastUpdated={lastUpdated}
-                        />
                     ) : (
-                        <div className="text-center py-12">
-                            <p className="text-gray-600 mb-4">Ingen leverandører fundet</p>
-                            <Button onClick={() => setCurrentStep(2)} variant="outline">
-                                <ArrowLeft className="mr-2 h-4 w-4" /> Tilbage
-                            </Button>
-                        </div>
+                        // Standalone variant retains inline results
+                        <>
+                            {loading ? (
+                                <div className="text-center py-12">
+                                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green"></div>
+                                    <p className="mt-4 text-gray-600">Henter aktuelle elpriser...</p>
+                                </div>
+                            ) : error ? (
+                                <div className="text-center py-12">
+                                    <p className="text-red-600 mb-4">{error}</p>
+                                    <Button onClick={fetchPriceData} variant="outline">
+                                        Prøv igen
+                                    </Button>
+                                </div>
+                            ) : spotPrice !== null && providers.length > 0 ? (
+                                <CalculatorResults
+                                    providers={providers}
+                                    annualConsumption={annualConsumption}
+                                    spotPrice={spotPrice}
+                                    networkTariff={networkTariff}
+                                    onBack={() => setCurrentStep(2)}
+                                    lastUpdated={lastUpdated}
+                                />
+                            ) : (
+                                <div className="text-center py-12">
+                                    <p className="text-gray-600 mb-4">Ingen leverandører fundet</p>
+                                    <Button onClick={() => setCurrentStep(2)} variant="outline">
+                                        <ArrowLeft className="mr-2 h-4 w-4" /> Tilbage
+                                    </Button>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
             )}

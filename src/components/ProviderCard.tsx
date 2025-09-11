@@ -318,7 +318,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                         <li>Månedligt abonnement</li>
                       </ul>
                       <p className="text-xs text-gray-500">
-                        Alt det andet (nettariffer, afgifter, system/transmission, moms) betaler du alligevel.
+                        Alt det andet (nettariffer, afgifter, system/transmission, moms) betaler alle det samme for – uanset leverandør.
                       </p>
                     </div>
                   </div>

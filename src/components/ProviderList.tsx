@@ -314,6 +314,30 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
 
   // Handle calculator submission from hero: set kWh and scroll into view
   useEffect(() => {
+    // Smooth scroll helper with controllable duration and easing
+    const smoothScrollTo = (targetY: number, duration: number = 800) => {
+      if (typeof window === 'undefined') return;
+      // Respect reduced motion
+      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (prefersReduced || duration <= 0) {
+        window.scrollTo({ top: Math.max(0, targetY) });
+        return;
+      }
+      const startY = window.scrollY || window.pageYOffset;
+      const distance = Math.max(0, targetY) - startY;
+      const startTime = performance.now();
+      const easeInOutCubic = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+      const step = (now: number) => {
+        const elapsed = now - startTime;
+        const progress = Math.min(1, elapsed / duration);
+        const eased = easeInOutCubic(progress);
+        window.scrollTo({ top: startY + distance * eased });
+        if (progress < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+
     const handler = (e: Event) => {
       const anyEvent = e as CustomEvent<{ kWh?: number; source?: string }>;
       const kWh = anyEvent?.detail?.kWh;
@@ -325,9 +349,10 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
         if (target) {
           const rect = target.getBoundingClientRect();
           const targetY = rect.top + window.scrollY - (window.innerHeight / 2 - rect.height / 2);
-          window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
-          // Focus after scroll
-          setTimeout(() => { try { (target as HTMLElement).focus?.(); } catch {} }, 120);
+          // Use custom, slightly slower easing for a pleasant motion
+          smoothScrollTo(targetY, 900);
+          // Focus after scroll completes
+          setTimeout(() => { try { (target as HTMLElement).focus?.(); } catch {} }, 950);
         }
       }
     };

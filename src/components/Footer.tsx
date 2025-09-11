@@ -171,7 +171,7 @@ const Footer = ({ initialSettings }: FooterProps) => {
                 <li><a href="/forbrug-tracker" className="text-gray-300 hover:text-brand-green transition-colors">Forbrug tracker</a></li>
                 <li><a href="/elprisberegner" className="text-gray-300 hover:text-brand-green transition-colors">Elpris-beregner</a></li>
                 <li><a href="/prognoser" className="text-gray-300 hover:text-brand-green transition-colors">Prognoser</a></li>
-                <li><a href="/ladeboks" className="text-gray-300 hover:text-brand-green transition-colors">Ladeboks</a></li>
+                {/* Ladeboks midlertidigt fjernet jf. fase 2 plan */}
               </ul>
             </div>
             

@@ -8,7 +8,6 @@ import { useState } from 'react'
 import Navigation from '@/components/Navigation'
 import type { SiteSettings } from '@/types/sanity'
 import Footer from '@/components/Footer'
-import SEOInternalLinks from '@/components/SEOInternalLinks'
 
 const ReadingProgress = dynamic(
   () => import('@/components/ReadingProgress'),
@@ -37,8 +36,6 @@ export default function ClientLayout({ children, showReadingProgress, initialSit
       <Navigation initialSettings={initialSiteSettings} />
       {showReadingProgress && <ReadingProgress />}
       {children}
-      {/* Lightweight internal link nav to strengthen crawl paths */}
-      <SEOInternalLinks />
       <Footer initialSettings={initialSiteSettings} />
     </QueryClientProvider>
   )

@@ -66,7 +66,9 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   // If markup is very likely in øre, convert to kr when needed
   const markupKrNormalized = markupKr > 3 ? (markupKr / 100) : markupKr; // heuristic: >3 likely øre
   const monthlySub = typeof monthlySubscriptionOverride === 'number' ? monthlySubscriptionOverride : (product.displayMonthlyFee || 0);
-  const simplifiedMonthly = monthlySub + (annualConsumption / 12) * markupKrNormalized;
+  const spotKr = typeof spotPrice === 'number' ? spotPrice : PRICE_CONSTANTS.DEFAULT_SPOT_PRICE;
+  const simplifiedKrPerKwh = spotKr + markupKrNormalized;
+  const simplifiedMonthly = monthlySub + (annualConsumption / 12) * simplifiedKrPerKwh;
   
 
   return (
@@ -175,7 +177,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                 </div>
                 <div className="text-xs text-gray-500 space-y-1">
                   {pricingMode === 'simplified' ? (
-                    <div className="text-sm text-brand-dark font-semibold">Tillæg: {markupKrNormalized.toFixed(2)} kr/kWh</div>
+                    <div className="text-sm text-brand-dark font-semibold">Spotpris + tillæg: {simplifiedKrPerKwh.toFixed(2)} kr/kWh</div>
                   ) : (
                     <div className="text-sm text-brand-dark font-semibold">Estimeret {fullPricePerKwh.toFixed(2)} kr/kWh</div>
                   )}
@@ -222,7 +224,15 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
             </div>
             {/* Source disclaimer bottom-right */}
             <div className="w-full flex justify-end">
-              <div className="text-[11px] text-gray-500">Priser indhentet fra elpris.dk{priceSourceDate ? ` d. ${new Intl.DateTimeFormat('da-DK', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(priceSourceDate))}` : ''}</div>
+              <div className="text-[11px] text-gray-500">
+                {(() => {
+                  const fallback = new Intl.DateTimeFormat('da-DK', { day: 'numeric', month: 'long' }).format(new Date());
+                  const formatted = priceSourceDate
+                    ? new Intl.DateTimeFormat('da-DK', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(priceSourceDate))
+                    : fallback;
+                  return `Abonnement og tillæg fra elpris.dk d. ${formatted}. Spotpris: live fra Nord Pool.`;
+                })()}
+              </div>
             </div>
             
             {product.signupLink ? (

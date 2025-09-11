@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Check, X, ExternalLink, Info, Leaf, Wind, Calculator } from 'lucide-react';
+import { ArrowRight, Check, X, ExternalLink, Info, Leaf, Wind, Calculator, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -169,7 +169,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
           
           {/* Price and action */}
           <div className="flex flex-col items-end lg:min-w-[220px]">
-            <div className="bg-gradient-to-br from-brand-dark/5 to-gray-50 px-6 py-4 rounded-lg border border-gray-100 mb-2 w-full">
+            <div className="bg-gradient-to-br from-brand-dark/5 to-gray-50 px-6 py-4 rounded-lg border border-gray-100 mb-3 w-full">
               <div className="text-right">
                 <div className="text-3xl font-bold text-brand-green mb-1">
                   {(pricingMode === 'simplified' ? simplifiedMonthly : fullEstimatedMonthly).toFixed(0)} kr
@@ -225,7 +225,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
               </div>
             </div>
             {/* Source disclaimer */}
-            <div className="w-full text-right text-[11px] text-gray-500 leading-tight">
+            <div className="w-full text-right text-[11px] text-gray-500 leading-tight mt-1">
               <div>
                 {(() => {
                   const fallback = new Intl.DateTimeFormat('da-DK', { day: 'numeric', month: 'long' }).format(new Date());
@@ -266,19 +266,20 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
               </Button>
             )}
 
-            {/* Info icon popover (bottom-right, small) */}
-            <div className="w-full flex justify-end mt-2">
+            {/* Bottom-right helper icons */}
+            <div className="w-full flex justify-end gap-2 mt-3">
+              {/* Pricing calc icon (green) */}
               <Popover>
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    aria-label="Prisinformation"
-                    className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-brand-green/10 text-brand-dark border border-brand-green/20 hover:bg-brand-green/20 transition-colors"
+                    aria-label="Beregning"
+                    className="inline-flex items-center justify-center h-9 w-9 rounded-full bg-brand-green/10 text-brand-dark border border-brand-green/20 hover:bg-brand-green/20 transition-colors"
                   >
                     <Calculator className="h-4 w-4" />
                   </button>
                 </PopoverTrigger>
-                <PopoverContent sideOffset={6} align="end" className="max-w-xs sm:max-w-sm text-sm">
+                <PopoverContent sideOffset={8} align="end" className="max-w-xs sm:max-w-sm text-sm">
                   <div className="space-y-2">
                     <p className="font-medium">Sådan beregner vi prisen</p>
                     <ul className="list-disc pl-5 space-y-1 text-gray-700">
@@ -287,6 +288,41 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                       <li>Beløb ekskl. nettariffer, afgifter, system/transmission og moms</li>
                     </ul>
                     <p className="text-xs text-gray-500">Priserne er estimater baseret på dit valgte forbrug.</p>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* Education icon (invite click): different color + subtle animated gradient */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="Hvorfor viser vi disse priser?"
+                    className="inline-flex items-center justify-center h-9 w-9 rounded-full border border-brand-dark/20 text-brand-dark bg-gradient-to-br from-brand-dark/10 to-brand-green/10 animate-pulse-glow hover:from-brand-dark/20 hover:to-brand-green/20 transition-colors"
+                  >
+                    <HelpCircle className="h-4 w-4" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent sideOffset={8} align="end" className="max-w-xs sm:max-w-sm text-sm">
+                  <div className="space-y-3">
+                    <p className="font-semibold">Hvorfor ser prisen sådan ud?</p>
+                    <div className="space-y-2 text-gray-700">
+                      <p>
+                        Din regning består overvejende af <strong>obligatoriske</strong> ting: nettariffer og afgifter til staten. 
+                        De er ens uanset leverandør og ligger <strong>uden for</strong> selskabets kontrol.
+                      </p>
+                      <p>
+                        Derfor sammenligner vi kun det, du kan påvirke ved at vælge leverandør:
+                      </p>
+                      <ul className="list-disc pl-5 space-y-1">
+                        <li>Spotpris (måneds-gennemsnit) fra Nord Pool</li>
+                        <li>Elselskabets tillæg til spotpris</li>
+                        <li>Månedligt abonnement</li>
+                      </ul>
+                      <p className="text-xs text-gray-500">
+                        Alt det andet (nettariffer, afgifter, system/transmission, moms) betaler du alligevel.
+                      </p>
+                    </div>
                   </div>
                 </PopoverContent>
               </Popover>

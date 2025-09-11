@@ -320,19 +320,14 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
       if (typeof kWh === 'number' && !Number.isNaN(kWh)) {
         setAnnualConsumption([kWh]);
         setSelectedHouseholdType('custom');
-        // Scroll to this section and focus for accessibility
-        const section = document.getElementById('provider-list');
-        if (section) {
-          const prefersReduced = typeof window !== 'undefined' &&
-            window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-          try {
-            section.scrollIntoView({ behavior: prefersReduced ? 'auto' : 'smooth', block: 'start' });
-          } catch {
-            // Fallback scroll
-            window.scrollTo({ top: section.getBoundingClientRect().top + window.scrollY - 16, behavior: prefersReduced ? 'auto' : 'smooth' });
-          }
-          // Attempt to move focus for screen readers / keyboard users
-          try { (section as HTMLElement).focus?.(); } catch {}
+        // Scroll to the first provider card (Vindstød) and center it in viewport
+        const target = document.getElementById('first-provider-card') || document.getElementById('provider-list');
+        if (target) {
+          const rect = target.getBoundingClientRect();
+          const targetY = rect.top + window.scrollY - (window.innerHeight / 2 - rect.height / 2);
+          window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+          // Focus after scroll
+          setTimeout(() => { try { (target as HTMLElement).focus?.(); } catch {} }, 120);
         }
       }
     };
@@ -520,18 +515,25 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
           ) : (
             sortedProviders.map((provider, index) => {
               const product = convertToElectricityProduct(provider);
+              const isFirst = index === 0;
               return (
-                <ProviderCard 
+                <div 
                   key={String(product.id)} 
-                  product={product}
-                  annualConsumption={annualConsumption[0]}
-                  spotPrice={spotPrice}
-                  networkTariff={networkTariff}
-                  additionalFees={{
-                    greenCertificates: provider.greenCertificateFee,
-                    tradingCosts: provider.tradingCosts
-                  }}
-                />
+                  data-provider-card
+                  id={isFirst ? 'first-provider-card' : undefined}
+                  tabIndex={isFirst ? -1 : undefined}
+                >
+                  <ProviderCard 
+                    product={product}
+                    annualConsumption={annualConsumption[0]}
+                    spotPrice={spotPrice}
+                    networkTariff={networkTariff}
+                    additionalFees={{
+                      greenCertificates: provider.greenCertificateFee,
+                      tradingCosts: provider.tradingCosts
+                    }}
+                  />
+                </div>
               );
             })
           )}

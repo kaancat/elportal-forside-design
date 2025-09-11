@@ -9,8 +9,8 @@ const nextConfig = {
   // Using standard build (not static export) for SPA with client-side routing
   // output: 'export', // Removed for client component compatibility
   
-  // Use default Next.js build directory to avoid conflict with Vite
-  // distDir: '.next', // Using default
+  // Use default Next.js dist directory
+  // distDir: '.next',
   
   // Phase 2: Use only App Router
   // Removed pageExtensions restriction to allow robots.ts and sitemap.ts
@@ -41,6 +41,17 @@ const nextConfig = {
         pathname: '/**',
       },
     ],
+  },
+  
+  // Fix legacy slug: redirect /sammenlign -> /leverandoer-sammenligning (permanent)
+  async redirects() {
+    return [
+      {
+        source: '/sammenlign',
+        destination: '/leverandoer-sammenligning',
+        permanent: true,
+      },
+    ]
   },
   
   // Trailing slash handling (matching current behavior)
@@ -103,8 +114,9 @@ const nextConfig = {
   
   // Environment variable validation
   env: {
-    SITE_URL: process.env.SITE_URL || 'https://elportal.dk',
-    NEXTJS_URL: process.env.NEXTJS_URL || 'https://elportal.dk',
+    // Single source of truth for absolute URLs
+    SITE_URL: process.env.SITE_URL || 'https://dinelportal.dk',
+    NEXTJS_URL: process.env.SITE_URL || 'https://dinelportal.dk',
   },
 };
 

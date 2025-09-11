@@ -44,8 +44,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   
   // Add static important routes that might not be in CMS
   const staticRoutes = [
-    { path: '/sammenlign', changeFreq: 'daily' as const, priority: 0.9 },
+    // '/sammenlign' was 404; redirecting to the correct page slug
+    { path: '/leverandoer-sammenligning', changeFreq: 'daily' as const, priority: 0.9 },
     { path: '/elpriser', changeFreq: 'daily' as const, priority: 0.9 },
+    { path: '/historiske-priser', changeFreq: 'weekly' as const, priority: 0.7 },
+    { path: '/elselskaber', changeFreq: 'monthly' as const, priority: 0.6 },
   ]
   
   for (const route of staticRoutes) {

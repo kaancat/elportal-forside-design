@@ -17,6 +17,7 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      "no-duplicate-imports": "error",
       "@typescript-eslint/no-unused-vars": "off",
     },
   }

@@ -32,6 +32,8 @@ docs/specs/example-feature-specification.md
 .vercel
 .env*.local
 .env.local.backup*
+.env.vercel
+.env.production.vercel
 
 # Next.js build output
 .next/

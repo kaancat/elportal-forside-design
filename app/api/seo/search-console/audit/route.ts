@@ -120,14 +120,16 @@ export async function POST(request: NextRequest) {
 
   let body: any = {}
   try { body = await request.json() } catch {}
-  const siteUrl: string | undefined = body.siteUrl
+  // Accept possibly undefined from body, validate, then use a narrowed string thereafter
+  const siteUrlMaybe: string | undefined = body.siteUrl
   const sitemapUrls: string[] = Array.isArray(body.sitemaps) ? body.sitemaps : (body.sitemap ? [body.sitemap] : [])
   const maxUrls: number | undefined = body.maxUrls
   const concurrency = Math.min(Number(body.concurrency) || 2, 5)
 
-  if (!siteUrl) {
+  if (!siteUrlMaybe) {
     return NextResponse.json({ error: 'Missing siteUrl' }, { status: 400, headers: corsPublic() })
   }
+  const siteUrl = siteUrlMaybe as string
 
   try {
     const token = await getSearchConsoleAccessToken(true)
@@ -180,4 +182,3 @@ export async function POST(request: NextRequest) {
 export async function OPTIONS() {
   return new Response(null, { status: 200, headers: corsPublic() })
 }
-

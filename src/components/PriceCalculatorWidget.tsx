@@ -88,18 +88,39 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
 
     // Listen for provider list readiness to show dynamic count in hero CTA
     useEffect(() => {
-        const onReady = (e: Event) => {
-            const evt = e as CustomEvent<{ id?: string; count?: number }>;
-            if (typeof evt.detail?.count === 'number') {
-                setProviderCount(evt.detail.count);
-            }
-            if (evt.detail?.id) {
-                setProviderListId(evt.detail.id);
-            }
-        };
-        window.addEventListener('elportal:providerListReady', onReady as EventListener);
-        return () => window.removeEventListener('elportal:providerListReady', onReady as EventListener);
+      const onReady = (e: Event) => {
+        const evt = e as CustomEvent<{ id?: string; count?: number }>;
+        if (typeof evt.detail?.count === 'number') {
+          setProviderCount(evt.detail.count);
+        }
+        if (evt.detail?.id) {
+          setProviderListId(evt.detail.id);
+        }
+        try {
+          trackEnhancedEvent('provider_list_ready', {
+            component: 'provider_list',
+            page: window.location.pathname,
+            provider_count: typeof evt.detail?.count === 'number' ? evt.detail.count : undefined,
+          });
+        } catch {}
+      };
+      window.addEventListener('elportal:providerListReady', onReady as EventListener);
+      return () => window.removeEventListener('elportal:providerListReady', onReady as EventListener);
     }, []);
+
+    // Track calculator step views (lightweight coverage)
+    useEffect(() => {
+        try {
+            trackEnhancedEvent('calculator_step_view', {
+                component: 'price_calculator',
+                page: window.location.pathname,
+                step: currentStep,
+                variant,
+                consumption_kwh: annualConsumption,
+            });
+        } catch {}
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentStep]);
 
     const fetchPriceData = async () => {
         setLoading(true);

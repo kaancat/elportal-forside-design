@@ -8,10 +8,10 @@ export const TRACKING_CONFIG = {
   ATTRIBUTION_WINDOW_DAYS: 90,
   CLICK_ID_PREFIX: 'dep',
   API_ENDPOINTS: {
-    TRACK_CLICK: '/api/track-click',
-    TRACK_CONVERSION: '/api/track-conversion',
-    TRACK_PIXEL: '/api/track-pixel'
-  }
+    // Aligned with implemented API routes
+    TRACK_LOG: '/api/tracking/log',
+    TRACK_PIXEL: '/api/tracking/pixel',
+  },
 } as const;
 
 /**
@@ -99,36 +99,43 @@ export function trackClick(
     region?: string;
   }
 ): void {
-  // Don't block user navigation
+  // Shape payload for /api/tracking/log
   const payload = {
-    click_id: clickId,
+    type: 'track',
     partner_id: partner,
-    timestamp: Date.now(),
-    source: {
-      page: context.page || window.location.pathname,
-      component: context.component,
-      variant: context.variant
+    partner_domain: window.location.hostname,
+    data: {
+      click_id: clickId,
+      session_id: getSessionId(),
+      event_type: 'click',
+      page_url: window.location.href,
+      referrer: document.referrer,
+      timestamp: Date.now(),
+      metadata: {
+        page: context.page || window.location.pathname,
+        component: context.component,
+        variant: context.variant,
+        consumption: context.consumption,
+        region: context.region,
+      },
     },
-    metadata: {
-      consumption: context.consumption,
-      region: context.region
-    }
   };
 
-  // Use sendBeacon for reliability (survives page navigation)
-  if (navigator.sendBeacon) {
-    const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-    navigator.sendBeacon(TRACKING_CONFIG.API_ENDPOINTS.TRACK_CLICK, blob);
-  } else {
-    // Fallback to fetch
-    fetch(TRACKING_CONFIG.API_ENDPOINTS.TRACK_CLICK, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      keepalive: true
-    }).catch(err => {
-      console.debug('Click tracking failed (non-critical):', err);
-    });
+  // Use sendBeacon for reliability (survives navigation)
+  try {
+    if (navigator.sendBeacon) {
+      const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+      navigator.sendBeacon(TRACKING_CONFIG.API_ENDPOINTS.TRACK_LOG, blob);
+    } else {
+      fetch(TRACKING_CONFIG.API_ENDPOINTS.TRACK_LOG, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        keepalive: true,
+      }).catch(() => {});
+    }
+  } catch (err) {
+    // Non-blocking; ignore
   }
 
   // Log in development
@@ -249,6 +256,23 @@ export function clearClickId(): void {
 }
 
 /**
+ * Get or create a lightweight session ID (client-side, non-PII)
+ */
+export function getSessionId(): string {
+  try {
+    const key = 'dep_session';
+    let sess = sessionStorage.getItem(key);
+    if (!sess) {
+      sess = 'sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 7);
+      sessionStorage.setItem(key, sess);
+    }
+    return sess;
+  } catch {
+    return 'sess_' + Date.now().toString(36);
+  }
+}
+
+/**
  * Enhanced tracking with consent (GA4 events)
  */
 export function trackEnhancedEvent(
@@ -359,4 +383,36 @@ export function trackPartnerConversion(
     'content_name': `${partner} Conversion`,
     'content_category': 'electricity_provider'
   });
+
+  // Server-side logging (non-blocking)
+  const payload = {
+    type: 'conversion',
+    partner_id: partner,
+    partner_domain: typeof window !== 'undefined' ? window.location.hostname : 'unknown',
+    data: {
+      click_id: clickId,
+      session_id: typeof window !== 'undefined' ? getSessionId() : undefined,
+      page_url: typeof window !== 'undefined' ? window.location.href : undefined,
+      timestamp: Date.now(),
+      conversion_value: value,
+      conversion_currency: 'DKK',
+      conversion_type: 'purchase',
+    },
+  };
+
+  try {
+    if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+      const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+      navigator.sendBeacon(TRACKING_CONFIG.API_ENDPOINTS.TRACK_LOG, blob);
+    } else if (typeof fetch !== 'undefined') {
+      fetch(TRACKING_CONFIG.API_ENDPOINTS.TRACK_LOG, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        keepalive: true,
+      }).catch(() => {});
+    }
+  } catch {
+    // ignore
+  }
 }

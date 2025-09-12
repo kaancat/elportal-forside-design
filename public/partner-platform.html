@@ -498,13 +498,35 @@ if (window.DinElportal &amp;&amp; typeof window.DinElportal.trackConversion === 
             </div>
         </div>
         
-        <!-- Step 3: Live Dashboard -->
+        <!-- Step 3: Testing -->
         <div class="card hidden" id="step3">
             <div class="card-header">
                 <div class="card-number">3</div>
+                <h2 class="card-title">Test din integration</h2>
+            </div>
+            <p style="margin-bottom: 16px;">Send testdata i denne rækkefølge:</p>
+            <div style="background: var(--gray-50); padding: 20px; border-radius: 8px;">
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Test URL med click_id</h3>
+                <div class="test-url" id="testUrl"><!-- Test URL will be generated here --></div>
+                <div style="margin-top: 10px; display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="btn btn-secondary" onclick="copyTestUrl()">Kopier test-URL</button>
+                    <button class="btn btn-secondary" onclick="openTestUrl()">Åbn test-URL i ny fane</button>
+                </div>
+                <ol style="margin-top: 16px; padding-left: 20px; font-size: 14px; color: var(--gray-700);">
+                    <li>Åbn test-URL’en på din hjemmeside (simulerer klik fra DinElportal)</li>
+                    <li>Navigér igennem dit flow som en bruger</li>
+                    <li>Hvis <strong>Automatisk</strong>: gå til din tak-side (URL matcher mønstret, fx “/tak”). Hvis <strong>Manuel</strong>: kald <code>window.DinElportal.trackConversion()</code> i din succes-callback</li>
+                    <li>Gå til næste trin og tryk “Tjek Live Status”</li>
+                </ol>
+            </div>
+        </div>
+        
+        <!-- Step 4: Live Dashboard -->
+        <div class="card hidden" id="step4">
+            <div class="card-header">
+                <div class="card-number">4</div>
                 <h2 class="card-title">Live tracking status</h2>
             </div>
-            
             <button class="btn btn-primary" onclick="checkStatus()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="10"></circle>
@@ -512,7 +534,7 @@ if (window.DinElportal &amp;&amp; typeof window.DinElportal.trackConversion === 
                 </svg>
                 Tjek Live Status
             </button>
-            
+
             <div class="status-grid" id="statusGrid" style="display: none;">
                 <div class="status-card">
                     <div class="status-label">Status</div>
@@ -531,7 +553,16 @@ if (window.DinElportal &amp;&amp; typeof window.DinElportal.trackConversion === 
                     <div class="status-value" id="conversions">-</div>
                 </div>
             </div>
-            
+
+            <div id="noDataHelp" class="info-box" style="display:none;">
+                <p><strong>Ingen data endnu?</strong> Gør følgende:</p>
+                <ol style="margin-top:8px; padding-left: 20px;">
+                    <li>Brug <strong>Test URL med click_id</strong> fra trin 3</li>
+                    <li>Gennemfør flowet og nå tak-siden (eller udløs manuel konvertering)</li>
+                    <li>Tryk “Tjek Live Status” igen efter 3–5 sek.</li>
+                </ol>
+            </div>
+
             <!-- Recent Events -->
             <div id="recentEventsSection" style="display: none; margin-top: 24px;">
                 <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Seneste events</h3>
@@ -540,34 +571,6 @@ if (window.DinElportal &amp;&amp; typeof window.DinElportal.trackConversion === 
                         <!-- Events will be populated here -->
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Step 4: Testing -->
-        <div class="card hidden" id="step4">
-            <div class="card-header">
-                <div class="card-number">4</div>
-                <h2 class="card-title">Test din integration</h2>
-            </div>
-            
-            <p style="margin-bottom: 16px;">Test at tracking virker korrekt:</p>
-            
-            <div style="background: var(--gray-50); padding: 20px; border-radius: 8px;">
-                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Test URL med click_id:</h3>
-                <div class="test-url" id="testUrl">
-                    <!-- Test URL will be generated here -->
-                </div>
-                <div style="margin-top: 10px; display:flex; gap:10px; flex-wrap:wrap;">
-                    <button class="btn btn-secondary" onclick="copyTestUrl()">Kopier test-URL</button>
-                    <button class="btn btn-secondary" onclick="openTestUrl()">Åbn test-URL i ny fane</button>
-                </div>
-                
-                <ol style="margin-top: 16px; padding-left: 20px; font-size: 14px; color: var(--gray-700);">
-                    <li>Åbn ovenstående URL i din browser</li>
-                    <li>Naviger rundt på din hjemmeside</li>
-                    <li>Gå til din tak-side (eller udløs manuel konvertering, hvis valgt)</li>
-                    <li>Tjek "Live tracking status" for at se konverteringen</li>
-                </ol>
             </div>
         </div>
         
@@ -695,6 +698,13 @@ if (window.DinElportal &amp;&amp; typeof window.DinElportal.trackConversion === 
                 const conversions = data.recent_events?.filter(e => e.type === 'conversion').length || 0;
                 document.getElementById('conversions').textContent = conversions;
                 
+                // Show no-data helper
+                const help = document.getElementById('noDataHelp');
+                if (help) {
+                  const hasData = (data.total_events_today || 0) > 0 || (data.recent_events && data.recent_events.length > 0);
+                  help.style.display = hasData ? 'none' : 'block';
+                }
+
                 // Show recent events
                 if (data.recent_events && data.recent_events.length > 0) {
                     document.getElementById('recentEventsSection').style.display = 'block';

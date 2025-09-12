@@ -174,6 +174,46 @@ export default function RootLayout({
             `,
           }}
         />
+
+        {/* Cookiebot -> GA4 consent updates */}
+        <Script
+          id="cookiebot-ga4-consent-sync"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                function updateGaConsent() {
+                  try {
+                    var hasStats = (typeof Cookiebot !== 'undefined') && Cookiebot.consent && Cookiebot.consent.statistics === true;
+                    var hasMarketing = (typeof Cookiebot !== 'undefined') && Cookiebot.consent && Cookiebot.consent.marketing === true;
+                    var analytics = hasStats ? 'granted' : 'denied';
+                    var marketing = hasMarketing ? 'granted' : 'denied';
+                    if (typeof gtag === 'function') {
+                      gtag('consent', 'update', {
+                        analytics_storage: analytics,
+                        ad_user_data: marketing,
+                        ad_personalization: marketing,
+                        ad_storage: marketing
+                      });
+                    }
+                  } catch (e) {
+                    // no-op
+                  }
+                }
+
+                // Run when Cookiebot is ready or consent changes
+                window.addEventListener('CookiebotOnConsentReady', updateGaConsent);
+                window.addEventListener('CookiebotOnAccept', updateGaConsent);
+                window.addEventListener('CookiebotOnDecline', updateGaConsent);
+
+                // Attempt initial sync if Cookiebot already loaded
+                if (typeof Cookiebot !== 'undefined') {
+                  updateGaConsent();
+                }
+              })();
+            `,
+          }}
+        />
         
         {/* Google Analytics 4 */}
         {process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID && (

@@ -403,22 +403,46 @@
                         type="text" 
                         id="partnerId" 
                         class="form-input" 
-                        placeholder="f.eks. mondaybrew"
+                        placeholder="f.eks. vindstod"
                         value=""
                     >
                     <div class="form-help">Dit unikke partner ID fra DinElportal</div>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label" for="thankYouPage">Tak-side URL</label>
+                    <label class="form-label" for="thankYouPage">Tak-side URL (hvis automatisk tracking)</label>
                     <input 
                         type="text" 
                         id="thankYouPage" 
                         class="form-input" 
                         placeholder="f.eks. /tak-for-din-ordre"
-                        value="/tak"
+                        value=""
                     >
-                    <div class="form-help">URL'en hvor kunder lander efter køb</div>
+                    <div class="form-help">Din bekræftelses-/kvitteringsside. Lad den være tom hvis du vil udløse konvertering manuelt.</div>
+                </div>
+            </div>
+
+            <div class="two-column" style="margin-top: 8px;">
+                <div class="form-group">
+                    <label class="form-label">Konverteringsmetode</label>
+                    <div style="display:flex; gap:12px; align-items:center;">
+                        <label style="display:flex; align-items:center; gap:8px;">
+                            <input type="radio" name="mode" id="modeAuto" checked>
+                            <span>Automatisk (tak-side URL)</span>
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px;">
+                            <input type="radio" name="mode" id="modeManual">
+                            <span>Manuel (udløs via JavaScript)</span>
+                        </label>
+                    </div>
+                    <div class="form-help">Vælg automatisk hvis din tak-side har en stabil URL. Vælg manuel hvis flowet er dynamisk.</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="websiteUrl">Din hjemmeside (til test)</label>
+                    <input 
+                        type="text" id="websiteUrl" class="form-input" placeholder="https://dit-domæne.dk" value=""
+                    >
+                    <div class="form-help">Bruges til at generere en test-URL med click_id.</div>
                 </div>
             </div>
             
@@ -447,6 +471,20 @@
             <div class="code-block" id="codeBlock">
                 <button class="copy-btn" onclick="copyCode()">Kopier</button>
                 <code id="scriptCode"><!-- Script will be generated here --></code>
+            </div>
+
+            <div id="manualBlock" class="info-box" style="display:none;">
+                <p><strong>Manuel konvertering (brug hvis din tak-side er dynamisk)</strong></p>
+                <p style="margin-top: 8px;">Kald denne funktion i din "succes"-callback — lige efter ordren/kontrakten er bekræftet server-side:</p>
+                <div class="code-block" style="margin-top:12px;">
+<code>
+// Kald på bekræftet succes (eksempel)
+if (window.DinElportal &amp;&amp; typeof window.DinElportal.trackConversion === 'function') {
+  window.DinElportal.trackConversion();
+}
+</code>
+                </div>
+                <p class="form-help" style="margin-top:8px;">Ingen persondata — kun anonym click_id. Sørg for at scriptet herover er indlæst i &lt;head&gt; først.</p>
             </div>
             
             <div class="info-box">
@@ -519,19 +557,17 @@
                 <div class="test-url" id="testUrl">
                     <!-- Test URL will be generated here -->
                 </div>
+                <div style="margin-top: 10px; display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="btn btn-secondary" onclick="copyTestUrl()">Kopier test-URL</button>
+                    <button class="btn btn-secondary" onclick="openTestUrl()">Åbn test-URL i ny fane</button>
+                </div>
                 
                 <ol style="margin-top: 16px; padding-left: 20px; font-size: 14px; color: var(--gray-700);">
                     <li>Åbn ovenstående URL i din browser</li>
                     <li>Naviger rundt på din hjemmeside</li>
-                    <li>Gå til din tak-side</li>
+                    <li>Gå til din tak-side (eller udløs manuel konvertering, hvis valgt)</li>
                     <li>Tjek "Live tracking status" for at se konverteringen</li>
                 </ol>
-            </div>
-            
-            <div style="margin-top: 20px;">
-                <button class="btn btn-secondary" onclick="simulateConversion()">
-                    Simuler Konvertering
-                </button>
             </div>
         </div>
         
@@ -561,38 +597,34 @@
     <script>
         // State
         let currentPartnerId = '';
-        let currentThankYouPage = '/tak';
+        let currentThankYouPage = '';
+        let currentMode = 'auto';
+        let currentTestUrl = '';
         
         // Generate tracking script
         function generateScript() {
             const partnerId = document.getElementById('partnerId').value.trim();
             const thankYouPage = document.getElementById('thankYouPage').value.trim();
+            const websiteUrl = document.getElementById('websiteUrl').value.trim();
+            const auto = document.getElementById('modeAuto').checked;
             
             if (!partnerId) {
                 alert('Indtast venligst dit Partner ID');
                 return;
             }
             
-            if (!thankYouPage) {
-                alert('Indtast venligst din tak-side URL');
-                return;
-            }
-            
             // Store values
             currentPartnerId = partnerId;
-            currentThankYouPage = thankYouPage;
+            currentMode = auto ? 'auto' : 'manual';
+            currentThankYouPage = auto ? (thankYouPage || '/tak') : '';
             
-            // Generate script code using working static approach (escape script tags)
-            const scriptCode = `<` + `script src="https://www.dinelportal.dk/universal-static.js" async><` + `/script>
-<` + `script>
-window.DinElportalConfig = {
-  "partner_id": "${partnerId}",
-  "clickIdParam": "click_id",
-  "enableAutoConversion": true,
-  "conversionPatterns": ["${thankYouPage}"],
-  "debug": true
-};
-<` + `/script>`;
+            // Generate script code (single tag) using dynamic API route
+            let scriptCode = '';
+            if (currentMode === 'auto') {
+              scriptCode = `<` + `script src=\"https://www.dinelportal.dk/api/tracking/universal.js?partner_id=${partnerId}&thank_you=${encodeURIComponent(currentThankYouPage)}&debug=true\" async><` + `/script>`;
+            } else {
+              scriptCode = `<` + `script src=\"https://www.dinelportal.dk/api/tracking/universal.js?partner_id=${partnerId}&debug=true\" async><` + `/script>`;
+            }
             
             // Show generated code
             document.getElementById('scriptCode').textContent = scriptCode;
@@ -600,11 +632,13 @@ window.DinElportalConfig = {
             document.getElementById('step2').classList.remove('hidden');
             document.getElementById('step3').classList.remove('hidden');
             document.getElementById('step4').classList.remove('hidden');
+            document.getElementById('manualBlock').style.display = currentMode === 'manual' ? 'block' : 'none';
             
             // Generate test URL
-            const testDomain = partnerId === 'mondaybrew' ? 'mondaybrew.dk' : 'your-website.dk';
-            const testUrl = `https://${testDomain}/?click_id=dep_test_${Date.now().toString(36)}`;
-            document.getElementById('testUrl').textContent = testUrl;
+            const clickId = `dep_test_${Date.now().toString(36)}`;
+            const base = websiteUrl || 'https://your-website.dk';
+            currentTestUrl = `${base.replace(/\/$/, '')}/?click_id=${clickId}`;
+            document.getElementById('testUrl').textContent = currentTestUrl;
             
             // Scroll to code
             document.getElementById('step2').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -684,43 +718,14 @@ window.DinElportalConfig = {
             }
         }
         
-        // Simulate conversion
-        async function simulateConversion() {
-            if (!currentPartnerId) {
-                alert('Generer venligst script først');
-                return;
-            }
-            
-            try {
-                // Generate test click_id
-                const clickId = `dep_test_${Date.now().toString(36)}`;
-                
-                // Send test conversion
-                await fetch('/api/tracking/log', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        type: 'conversion',
-                        partner_id: currentPartnerId,
-                        partner_domain: 'test',
-                        data: {
-                            click_id: clickId,
-                            page_url: currentThankYouPage,
-                            conversion_type: 'test',
-                            timestamp: Date.now()
-                        }
-                    })
-                });
-                
-                alert('✅ Test konvertering sendt! Tjek status om et øjeblik.');
-                
-                // Auto-check status after 1 second
-                setTimeout(checkStatus, 1000);
-                
-            } catch (error) {
-                console.error('Simulation failed:', error);
-                alert('❌ Kunne ikke sende test konvertering');
-            }
+        function copyTestUrl() {
+            if (!currentTestUrl) { alert('Generer venligst script først'); return; }
+            navigator.clipboard.writeText(currentTestUrl);
+        }
+
+        function openTestUrl() {
+            if (!currentTestUrl) { alert('Generer venligst script først'); return; }
+            window.open(currentTestUrl, '_blank', 'noopener');
         }
         
         // Auto-populate from URL params
@@ -728,6 +733,8 @@ window.DinElportalConfig = {
             const params = new URLSearchParams(window.location.search);
             const partnerId = params.get('partner_id');
             const thankYouPage = params.get('thank_you');
+            const websiteUrl = params.get('website');
+            const mode = params.get('mode');
             
             if (partnerId) {
                 document.getElementById('partnerId').value = partnerId;
@@ -735,9 +742,16 @@ window.DinElportalConfig = {
             if (thankYouPage) {
                 document.getElementById('thankYouPage').value = thankYouPage;
             }
+            if (websiteUrl) {
+                document.getElementById('websiteUrl').value = websiteUrl;
+            }
+            if (mode === 'manual') {
+                document.getElementById('modeManual').checked = true;
+                document.getElementById('modeAuto').checked = false;
+            }
             
-            // Auto-generate if both params present
-            if (partnerId && thankYouPage) {
+            // Auto-generate if partner present
+            if (partnerId) {
                 generateScript();
             }
         });

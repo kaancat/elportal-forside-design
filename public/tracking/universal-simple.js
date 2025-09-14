@@ -143,6 +143,7 @@
   var Tracker = {
     initialized: false,
     config: null,
+    lastPathChecked: null,
     
     init: function() {
       if (this.initialized) return;
@@ -163,8 +164,46 @@
       
       // Check if we're on a thank you page
       this.checkForConversion();
+
+      // Monitor SPA navigations (pushState/replaceState/popstate/hashchange)
+      this.monitorSPA();
       
       this.initialized = true;
+    },
+    
+    monitorSPA: function() {
+      try {
+        var self = this;
+        self.lastPathChecked = window.location.pathname + window.location.search + window.location.hash;
+
+        function onRouteChange() {
+          // Debounce duplicate checks for same path
+          var current = window.location.pathname + window.location.search + window.location.hash;
+          if (current === self.lastPathChecked) return;
+          self.lastPathChecked = current;
+          self.checkForConversion();
+        }
+
+        // Wrap history methods
+        var origPushState = history.pushState;
+        history.pushState = function() {
+          var ret = origPushState.apply(this, arguments);
+          try { onRouteChange(); } catch (e) {}
+          return ret;
+        };
+        var origReplaceState = history.replaceState;
+        history.replaceState = function() {
+          var ret = origReplaceState.apply(this, arguments);
+          try { onRouteChange(); } catch (e) {}
+          return ret;
+        };
+
+        // Listen to native events
+        window.addEventListener('popstate', onRouteChange);
+        window.addEventListener('hashchange', onRouteChange);
+      } catch (e) {
+        // Silent fail if any environment disallows patching history API
+      }
     },
     
     getClickIdFromUrl: function() {

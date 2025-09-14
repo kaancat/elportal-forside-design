@@ -535,17 +535,41 @@
             </div>
 
             <div id="manualBlock" class="info-box" style="display:none;">
-                <p><strong>Manuel konvertering (brug hvis din tak-side er dynamisk)</strong></p>
-                <p style="margin-top: 8px;">Kald denne funktion i din "succes"-callback — lige efter ordren/kontrakten er bekræftet server-side:</p>
+                <p><strong>Manuel konvertering</strong> — for dynamiske flows (SPA, modal, flere trin uden ny side).</p>
+                <p style="margin-top: 8px;">
+                    Sådan gør du i praksis: Når din kode ved, at ordren/tilmeldingen er gennemført (dvs. din backend svarer <em>success</em>), skal du indsætte én linje der udløser konvertering.
+                </p>
+
+                <div class="two-column" style="margin-top:12px; gap:16px;">
+                    <div>
+                        <label class="form-label" for="manualPlatform">Vælg eksempel</label>
+                        <select id="manualPlatform" class="form-input">
+                            <option value="html">Simpel hjemmeside (HTML/vanilla JS)</option>
+                            <option value="fetch">Fetch/AJAX kald</option>
+                            <option value="react">React/Vue (SPA komponent)</option>
+                        </select>
+                        <div class="form-help">Kopier koden herunder og indsæt <strong>i din succes‑callback</strong>.</div>
+                    </div>
+                    <div style="align-self:flex-end;">
+                        <button class="btn btn-secondary" id="copyManualBtn" type="button">Kopier snippet</button>
+                    </div>
+                </div>
+
                 <div class="code-block" style="margin-top:12px;">
-<code>
-// Kald på bekræftet succes (eksempel)
-if (window.DinElportal &amp;&amp; typeof window.DinElportal.trackConversion === 'function') {
-  window.DinElportal.trackConversion();
-}
+<code id="manualSnippet"><!-- Snippet will render here -->
 </code>
                 </div>
-                <p class="form-help" style="margin-top:8px;">Ingen persondata — kun anonym click_id. Sørg for at scriptet herover er indlæst i &lt;head&gt; først.</p>
+
+                <div style="margin-top:12px; font-size:14px; color: var(--gray-700);">
+                    <div style="margin-bottom:6px; font-weight:600;">Placering</div>
+                    <ul style="padding-left:18px;">
+                        <li>Installer først scriptet i &lt;head&gt; på alle sider (se ovenfor).</li>
+                        <li>Når din kode modtager <code>success</code> fra serveren, indsæt linjen <code>window.DinElportal.trackConversion()</code>.</li>
+                        <li>Du kan sende værdi: <code>window.DinElportal.trackConversion(199)</code> (kr).</li>
+                    </ul>
+                </div>
+
+                <p class="form-help" style="margin-top:8px;">Ingen persondata — kun anonym <code>click_id</code>. Kræver at besøget startede fra DinElportal (test via Step 3).</p>
             </div>
             
             <div class="info-box">
@@ -664,6 +688,11 @@ if (window.DinElportal &amp;&amp; typeof window.DinElportal.trackConversion === 
         let currentThankYouPage = '';
         let currentMode = 'auto';
         let currentTestUrl = '';
+        let manualSnippetMap = {
+          html: `// Kør når du viser din \"Tak\" besked\nif (window.DinElportal && typeof window.DinElportal.trackConversion === 'function') {\n  window.DinElportal.trackConversion();\n}`,
+          fetch: `// Eksempel med fetch/AJAX\nfetch('/api/checkout', { method: 'POST', body: JSON.stringify(data) })\n  .then(r => r.json())\n  .then(res => {\n    if (res.success) {\n      window.DinElportal && window.DinElportal.trackConversion();\n    }\n  });`,
+          react: `// React/Vue (kald på succes)\nfunction onOrderSuccess() {\n  if (window.DinElportal && window.DinElportal.trackConversion) {\n    window.DinElportal.trackConversion();\n  }\n}\n// React eksempel:\n// useEffect(() => { if (orderStatus === 'success') onOrderSuccess(); }, [orderStatus]);`
+        };
         
         // Helpers
         function parsePatterns(input) {
@@ -725,6 +754,10 @@ if (window.DinElportal &amp;&amp; typeof window.DinElportal.trackConversion === 
             document.getElementById('step3').classList.remove('hidden');
             document.getElementById('step4').classList.remove('hidden');
             document.getElementById('manualBlock').style.display = currentMode === 'manual' ? 'block' : 'none';
+            if (currentMode === 'manual') {
+              // Render default manual snippet
+              document.getElementById('manualSnippet').textContent = manualSnippetMap.html;
+            }
             
             // Generate test URL
             const clickId = `dep_test_${Date.now().toString(36)}`;
@@ -852,6 +885,25 @@ if (window.DinElportal &amp;&amp; typeof window.DinElportal.trackConversion === 
             // Auto-generate if partner present
             if (partnerId) {
                 generateScript();
+            }
+
+            // Manual snippet switching
+            const selector = document.getElementById('manualPlatform');
+            if (selector) {
+              selector.addEventListener('change', function() {
+                const val = selector.value;
+                const code = manualSnippetMap[val] || manualSnippetMap.html;
+                document.getElementById('manualSnippet').textContent = code;
+              });
+            }
+            const copyBtn = document.getElementById('copyManualBtn');
+            if (copyBtn) {
+              copyBtn.addEventListener('click', function() {
+                const code = document.getElementById('manualSnippet').textContent;
+                navigator.clipboard.writeText(code);
+                copyBtn.textContent = 'Kopieret!';
+                setTimeout(() => copyBtn.textContent = 'Kopier snippet', 1500);
+              });
             }
         });
     </script>

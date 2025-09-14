@@ -178,6 +178,52 @@
             transition: all 0.2s;
         }
         
+        /* Help / tooltips */
+        .help-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .hint {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 9999px;
+            background: var(--brand-green);
+            color: var(--brand-dark);
+            font-weight: 700;
+            font-size: 12px;
+            cursor: help;
+            position: relative;
+            user-select: none;
+        }
+        .hint .tooltip {
+            position: absolute;
+            left: 24px;
+            top: 0;
+            background: var(--gray-900);
+            color: white;
+            padding: 10px 12px;
+            border-radius: 8px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+            font-size: 13px;
+            line-height: 1.5;
+            width: 320px;
+            max-width: calc(100vw - 48px);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-4px);
+            transition: all 0.15s ease;
+            z-index: 100;
+        }
+        .hint:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
         .form-input:focus {
             outline: none;
             border-color: var(--brand-green);
@@ -410,32 +456,47 @@
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label" for="thankYouPage">Tak-side URL (hvis automatisk tracking)</label>
+                    <label class="form-label" for="thankYouPage">Tak-side URL eller mønstre (Auto)
+                        <span class="hint" aria-label="Hjælp" role="tooltip">?
+                            <span class="tooltip">Angiv en eller flere URL‑mønstre hvor konvertering sker.<br>
+                                Eksempler: <code>/tak</code>, <code>/kvittering</code>, <code>/order/complete</code>.<br>
+                                Flere: skriv kommasepareret <code>/tak, /kvittering</code> eller som JSON <code>[&quot;/tak&quot;,&quot;/kvittering&quot;]</code>.
+                            </span>
+                        </span>
+                    </label>
                     <input 
                         type="text" 
                         id="thankYouPage" 
                         class="form-input" 
-                        placeholder="f.eks. /tak-for-din-ordre"
+                        placeholder="f.eks. /tak, /kvittering eller [\"/tak\",\"/kvittering\"]"
                         value=""
                     >
-                    <div class="form-help">Din bekræftelses-/kvitteringsside. Lad den være tom hvis du vil udløse konvertering manuelt.</div>
+                    <div class="form-help">Må være én sti eller flere. Lad være tom for Manuel.</div>
                 </div>
             </div>
 
             <div class="two-column" style="margin-top: 8px;">
                 <div class="form-group">
                     <label class="form-label">Konverteringsmetode</label>
-                    <div style="display:flex; gap:12px; align-items:center;">
+                    <div style="display:flex; gap:16px; align-items:center; flex-wrap: wrap;">
                         <label style="display:flex; align-items:center; gap:8px;">
                             <input type="radio" name="mode" id="modeAuto" checked>
-                            <span>Automatisk (tak-side URL)</span>
+                            <span class="help-inline">Automatisk (tak‑side URL)
+                                <span class="hint" aria-label="Hjælp" role="tooltip">?
+                                    <span class="tooltip">Vi udløser konvertering automatisk når brugeren lander på din tak‑side (fuld sidelæsning). Kræver stabil URL‑sti — brug feltet ovenfor.</span>
+                                </span>
+                            </span>
                         </label>
                         <label style="display:flex; align-items:center; gap:8px;">
                             <input type="radio" name="mode" id="modeManual">
-                            <span>Manuel (udløs via JavaScript)</span>
+                            <span class="help-inline">Manuel (via JavaScript)
+                                <span class="hint" aria-label="Hjælp" role="tooltip">?
+                                    <span class="tooltip">Brug hvis flowet er dynamisk (SPA, modal, flere trin uden ny side). Kald <code>window.DinElportal.trackConversion()</code> i din succes‑callback efter serveren har bekræftet.</span>
+                                </span>
+                            </span>
                         </label>
                     </div>
-                    <div class="form-help">Vælg automatisk hvis din tak-side har en stabil URL. Vælg manuel hvis flowet er dynamisk.</div>
+                    <div class="form-help">Auto = vi genkender tak‑side URL. Manuel = du kalder funktionen ved succes.</div>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="websiteUrl">Din hjemmeside (til test)</label>
@@ -604,6 +665,26 @@ if (window.DinElportal &amp;&amp; typeof window.DinElportal.trackConversion === 
         let currentMode = 'auto';
         let currentTestUrl = '';
         
+        // Helpers
+        function parsePatterns(input) {
+            if (!input) return [];
+            const trimmed = input.trim();
+            if (!trimmed) return [];
+            // JSON array support
+            if (trimmed.startsWith('[')) {
+                try {
+                    const arr = JSON.parse(trimmed);
+                    if (Array.isArray(arr)) {
+                        return arr.map(String).map(s => s.trim()).filter(Boolean);
+                    }
+                } catch (e) {
+                    // fall through
+                }
+            }
+            // Comma separated list
+            return trimmed.split(',').map(s => s.trim()).filter(Boolean);
+        }
+
         // Generate tracking script
         function generateScript() {
             const partnerId = document.getElementById('partnerId').value.trim();
@@ -624,9 +705,17 @@ if (window.DinElportal &amp;&amp; typeof window.DinElportal.trackConversion === 
             // Generate script code (single tag) using dynamic API route
             let scriptCode = '';
             if (currentMode === 'auto') {
-              scriptCode = `<` + `script src=\"https://www.dinelportal.dk/api/tracking/universal.js?partner_id=${partnerId}&thank_you=${encodeURIComponent(currentThankYouPage)}&debug=true\" async><` + `/script>`;
+              const patterns = parsePatterns(thankYouPage);
+              if (patterns.length > 1) {
+                const encoded = encodeURIComponent(JSON.stringify(patterns));
+                scriptCode = `<` + `script src=\"https://www.dinelportal.dk/api/tracking/universal.js?partner_id=${partnerId}&conversion_patterns=${encoded}&debug=true\" async><` + `/script>`;
+              } else {
+                const single = (patterns[0] || currentThankYouPage || '/tak');
+                scriptCode = `<` + `script src=\"https://www.dinelportal.dk/api/tracking/universal.js?partner_id=${partnerId}&thank_you=${encodeURIComponent(single)}&debug=true\" async><` + `/script>`;
+              }
             } else {
-              scriptCode = `<` + `script src=\"https://www.dinelportal.dk/api/tracking/universal.js?partner_id=${partnerId}&debug=true\" async><` + `/script>`;
+              // Manual: disable auto-detection explicitly
+              scriptCode = `<` + `script src=\"https://www.dinelportal.dk/api/tracking/universal.js?partner_id=${partnerId}&auto_conversion=false&debug=true\" async><` + `/script>`;
             }
             
             // Show generated code

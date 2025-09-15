@@ -83,4 +83,4 @@ More info: `scripts/ACTIVE_SCRIPTS_DOCUMENTATION.md`.
 - Security: `docs/SECURITY.md`
 - Calculator logic (business): `docs/ELECTRICITY-CALCULATOR-LOGIC.md`
 
-Archived/legacy docs: `docs/archive/` (pre‑Next migration, experiments, AI‑context, old guides).
+Legacy docs: refer to git history (we removed old/unused guides to keep the repo lean).

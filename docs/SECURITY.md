@@ -112,6 +112,15 @@ All sensitive operations MUST go through server-side API routes:
 - Clear session data on logout
 - Use secure HTTPS only
 
+## Tracking Security & Abuse Prevention (Partner stack)
+
+- Domain whitelist enforced on both tracking endpoints:
+  - `/api/tracking/log` validates `partner_domain` against the partner’s `domain_whitelist` and active status.
+  - `/api/tracking/pixel` validates the HTTP `Referer` hostname the same way. Off‑domain requests are dropped (prevents spam of page views/conversions).
+- Per‑partner/IP rate limiting on server routes.
+- Conversion deduplication by `click_id` on server.
+- No PII in events; attribution window 90 days.
+
 ## Security Checklist
 
 Before each deployment:

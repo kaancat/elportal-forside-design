@@ -1,88 +1,86 @@
-# Welcome to your Lovable project
+# DinElportal — Source of Truth
 
-## Project info
+This repo contains the DinElportal Next.js app and the partner tracking stack (script + APIs + partner tools).
 
-**URL**: https://lovable.dev/projects/552b3352-b533-44e5-8485-d315bca5bd83
+Use this README as the single source of truth. All other docs are indexed from here. Legacy docs live under `docs/archive/`.
 
-## Available Pages
+## Key URLs
 
-- **Homepage** (`/`) - Main landing page
-- **Elpriser** (`/elpriser`) - Electricity prices guide
-- **Elselskaber** (`/elselskaber`) - Comprehensive guide to Danish electricity companies
-- **Om Os** (`/om-os`) - About page
-- **Energispareråd** (`/energispareraad`) - Energy saving tips
+- App (prod): https://www.dinelportal.dk/
+- Partner Platform (self‑serve setup + tests): `/partner-platform.html`
+- Health: `/api/health`
 
-## How can I edit this code?
+## Partner Tracking — TL;DR
 
-There are several ways of editing your application.
+Partners paste one script tag in `<head>` on all pages. Two modes:
 
-**Use Lovable**
+- Statisk tak‑side (preferred):
+  `<script src="https://www.dinelportal.dk/api/tracking/universal.js?partner_id=YOUR_ID&thank_you=/tak&match_mode=exact" async></script>`
+- Dynamisk (ingen tak‑side):
+  `<script src="https://www.dinelportal.dk/api/tracking/universal.js?partner_id=YOUR_ID&auto_conversion=false&url_contains=[\"status=success\"]" async></script>`
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/552b3352-b533-44e5-8485-d315bca5bd83) and start prompting.
+Test: Partner Platform → “Åbn test‑URL” → gennemfør flow → “Tjek Live Status”.
 
-Changes made via Lovable will be committed automatically to this repo.
+Complete reference: `docs/tracking/REFERENCE.md`.
 
-**Use your preferred IDE**
+## Analytics & Ads
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- GA4: client‑side `partner_click` (imported to Google Ads).  
+- GA4: server‑side `partner_conversion` via Measurement Protocol (analytics).
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Details: `docs/tracking/GA4-ADS.md`.
 
-Follow these steps:
+## Security Decisions
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- Domain whitelist enforced on both `/api/tracking/log` and `/api/tracking/pixel` (referer).
+- Rate limiting per partner/IP. Server dedupe for conversions by `click_id`.
+- No PII; 90‑day attribution window.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+See `docs/SECURITY.md`.
 
-# Step 3: Install the necessary dependencies.
+## Dev Quick Start
+
+```bash
 npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Required env (production values live in Vercel):
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- KV: `KV_REST_API_URL`, `KV_REST_API_TOKEN`
+- GA4: `GA4_MEASUREMENT_ID`, `GA4_API_SECRET`
+- Admin: `ADMIN_AUTH_TOKEN`
+- Sanity (app + tools): `NEXT_PUBLIC_SANITY_PROJECT_ID`, `NEXT_PUBLIC_SANITY_DATASET`, `NEXT_PUBLIC_SANITY_API_VERSION`
+- Sanity (server writes only): `SANITY_API_TOKEN`
 
-**Use GitHub Codespaces**
+## Deploy
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Deployed on Vercel (main → production). Updating env vars requires a redeploy.
 
-## What technologies are used for this project?
+## Operations
 
-This project is built with:
+Whitelist or create partner config (admin only):
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```bash
+curl -X PUT https://www.dinelportal.dk/api/tracking/config/{partner_id} \
+  -H "Content-Type: application/json" -H "x-admin-auth: $ADMIN_AUTH_TOKEN" \
+  -d '{"domain_whitelist":["example.dk","www.example.dk","*.example.dk"]}'
+```
 
-## Next.js migration notes (2025-08-22)
+## Scripts (active)
 
-- Dynamic pages are handled by `app/[slug]/page.tsx` only. The legacy `app/(ssr)/__ssr/[slug]/page.tsx` was removed.
-- Per-slug caching is enforced with `unstable_cache` keys including the slug: `['page-by-slug', slug]`.
-- `middleware.ts` simplified: no `__ssr` rewrites; non-SPA paths are served by the App Router directly.
-- Validate Sanity navigation via: `npm run navigation:health`.
+- `scripts/generate-sitemap.ts`
+- `scripts/check-navigation-health.ts`
+- `scripts/force-navigation-refresh.ts`
+- Optional: `scripts/test-api-parity.ts`
 
-## How can I deploy this project?
+More info: `scripts/ACTIVE_SCRIPTS_DOCUMENTATION.md`.
 
-Simply open [Lovable](https://lovable.dev/projects/552b3352-b533-44e5-8485-d315bca5bd83) and click on Share -> Publish.
+## Documentation Index
 
-## Can I connect a custom domain to my Lovable project?
+- Tracking reference: `docs/tracking/REFERENCE.md`
+- GA4 & Ads: `docs/tracking/GA4-ADS.md`
+- Security: `docs/SECURITY.md`
+- Calculator logic (business): `docs/ELECTRICITY-CALCULATOR-LOGIC.md`
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Archived/legacy docs: `docs/archive/` (pre‑Next migration, experiments, AI‑context, old guides).

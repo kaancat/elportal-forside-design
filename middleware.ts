@@ -11,6 +11,8 @@ import type { NextRequest } from 'next/server'
  * Phase 2: Homepage SSR
  * Phase 3: Dynamic pages with route isolation
  */
+import { envBool } from '@/lib/env'
+
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   
@@ -30,8 +32,8 @@ export function middleware(request: NextRequest) {
   }
   
   // Feature flags for gradual rollout
-  const phase2Enabled = process.env.NEXT_PUBLIC_PHASE2_SSR === 'true'
-  const phase3Enabled = process.env.PHASE3_DYNAMIC_ENABLED === 'true' // Server-only flag per Codex
+  const phase2Enabled = envBool('NEXT_PUBLIC_PHASE2_SSR', true)
+  const phase3Enabled = envBool('PHASE3_DYNAMIC_ENABLED', false) // Server-only flag per Codex
   
   // Routes that have been migrated to Next.js SSR/ISR
   // Start with homepage, add more routes as we migrate them

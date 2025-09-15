@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { envBool } from '@/lib/env'
 import { motion } from 'framer-motion';
 import ProviderCard from './ProviderCard';
 import HouseholdTypeSelector, { HouseholdType } from './HouseholdTypeSelector';
@@ -66,7 +67,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
     }));
   
   // Debug logging only in development and gated by verbose flag
-  if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_DEBUG_VERBOSE === 'true') {
+  if (process.env.NODE_ENV === 'development' && envBool('NEXT_PUBLIC_DEBUG_VERBOSE', false)) {
     console.log('ProviderList block:', block);
     console.log('Providers from block (sanitized):', providers);
   }
@@ -227,7 +228,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
   // JSON-LD now rendered server-side for reliability
   
   // Debug logging only in development and gated by verbose flag
-  if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_DEBUG_VERBOSE === 'true') {
+  if (process.env.NODE_ENV === 'development' && envBool('NEXT_PUBLIC_DEBUG_VERBOSE', false)) {
     console.log('Sorted providers:', sortedProviders.map(p => ({
       name: p.providerName,
       product: p.productName,

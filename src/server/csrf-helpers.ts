@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { envBool } from '@/lib/env'
 import { randomBytes } from 'crypto'
 import { getCookieFromRequest, setCookieOnResponse } from './cookie-helpers'
 
@@ -50,7 +51,7 @@ export function setCSRFValue(
  */
 export async function validateCSRF(request: NextRequest): Promise<boolean> {
   // Skip validation in development if explicitly disabled
-  if (process.env.NODE_ENV === 'development' && process.env.SKIP_CSRF === 'true') {
+  if (process.env.NODE_ENV === 'development' && envBool('SKIP_CSRF', false)) {
     console.warn('[CSRF] Validation skipped in development')
     return true
   }

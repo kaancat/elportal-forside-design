@@ -11,6 +11,7 @@ import dynamic from 'next/dynamic'
 import { getHomePage } from '@/server/sanity'
 import { urlFor } from '@/server/sanity'
 import { SITE_URL, SITE_NAME, canonicalUrl } from '@/lib/url-helpers'
+import { envBool } from '@/lib/env'
 import UnifiedContentBlocks from '@/components/UnifiedContentBlocks'
 import ClientLayout from './(marketing)/ClientLayout'
 import { getSiteSettings } from '@/server/sanity'
@@ -34,7 +35,7 @@ const getCachedHomePage = async () => getHomePage()
 // Generate metadata for SEO (only used in SSR mode)
 export async function generateMetadata(): Promise<Metadata> {
   // Enable SSR by default in preview/production. Allow explicit opt-out with NEXT_PUBLIC_PHASE2_SSR=false
-  const ssrEnabled = process.env.NEXT_PUBLIC_PHASE2_SSR !== 'false'
+  const ssrEnabled = envBool('NEXT_PUBLIC_PHASE2_SSR', true)
   if (!ssrEnabled) {
     return {
       title: 'DinElPortal - Sammenlign elpriser og spar penge',
@@ -82,7 +83,7 @@ export const revalidate = 60
 export default async function HomePage() {
   // Check if Phase 2 SSR is enabled (explicit opt-in only)
   // Prevent local 404s when homepage isn't published by defaulting to SPA unless flag is true
-  const isSSREnabled = process.env.NEXT_PUBLIC_PHASE2_SSR !== 'false'
+  const isSSREnabled = envBool('NEXT_PUBLIC_PHASE2_SSR', true)
 
   if (!isSSREnabled) {
     // Return SPA wrapper for backward compatibility when explicitly disabled

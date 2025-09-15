@@ -66,7 +66,7 @@ async function sendGa4Conversion({
   value = 0,
 }: { partner_id: string; click_id?: string; value?: number }) {
   try {
-    const measurementId = process.env.GA4_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || process.env.VITE_GA4_MEASUREMENT_ID
+    const measurementId = process.env.GA4_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID
     const apiSecret = process.env.GA4_API_SECRET || process.env.NEXT_PUBLIC_GA4_API_SECRET
     if (!measurementId || !apiSecret) return
 

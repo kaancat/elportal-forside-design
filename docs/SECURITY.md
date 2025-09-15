@@ -18,7 +18,6 @@
 ```bash
 # ❌ WRONG - Exposes token to browser!
 NEXT_PUBLIC_SANITY_API_TOKEN=sk_xxx
-NEXT_PUBLIC_SMITHERY_API_KEY=xxx
 NEXT_PUBLIC_ELOVERBLIK_TOKEN=xxx
 ```
 

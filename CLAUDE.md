@@ -10,7 +10,7 @@
 ## 2. Two-Project Architecture
 
 ### elportal-forside-design (This Project - Frontend)
-- **Tech Stack:** Vite + React 18 + TypeScript + Tailwind CSS + shadcn/ui
+- **Tech Stack:** Next.js + React 18 + TypeScript + Tailwind CSS + shadcn/ui
 - **Purpose:** User-facing web application
 - **Key Features:** Real-time price graphs, interactive calculator, provider comparison
 - **Deployment:** Vercel with edge functions

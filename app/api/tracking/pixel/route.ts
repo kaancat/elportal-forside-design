@@ -88,6 +88,16 @@ async function trackEvent(request: NextRequest) {
     
     // Store in KV if we have the required data
     if (trackingData.partner_id) {
+      // Validate partner domain (prevent pixel abuse)
+      const referer = request.headers.get('referer')
+      let refererDomain = ''
+      try { if (referer) refererDomain = new URL(referer).hostname } catch {}
+
+      const domainValid = await validatePartnerDomain(trackingData.partner_id, refererDomain)
+      if (!domainValid) {
+        // Drop event silently to avoid abuse/noise
+        return
+      }
       const eventKey = `tracking_event:${trackingData.partner_id}:${Date.now()}:${Math.random().toString(36).substr(2)}`
       
       const event = {
@@ -221,4 +231,38 @@ export async function OPTIONS(request: NextRequest) {
       'Access-Control-Allow-Headers': 'Content-Type'
     }
   })
+}
+
+/**
+ * Validate partner domain against whitelist and active status
+ */
+async function validatePartnerDomain(partnerId: string, domain: string): Promise<boolean> {
+  try {
+    const configKey = `partner_config:${partnerId}`
+    const config = await kv.get<any>(configKey)
+    if (!config) return false
+
+    // Require active partner
+    if (config.metadata?.status !== 'active') return false
+
+    // If a whitelist exists, enforce it
+    if (Array.isArray(config.domain_whitelist) && config.domain_whitelist.length > 0) {
+      if (!domain) return false
+      return config.domain_whitelist.some((allowed: string) => {
+        if (typeof allowed !== 'string') return false
+        if (allowed.startsWith('*.')) {
+          const base = allowed.substring(2)
+          return domain.endsWith(base)
+        }
+        return domain === allowed
+      })
+    }
+
+    // No whitelist configured → allow
+    return true
+  } catch (err) {
+    console.error('[Pixel] Domain validation error:', err)
+    // Fail closed to prevent abuse
+    return false
+  }
 }

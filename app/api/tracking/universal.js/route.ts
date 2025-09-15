@@ -31,6 +31,7 @@ interface TrackingConfig {
   debug?: boolean
   respectDoNotTrack?: boolean
   requireConsent?: boolean
+  matchMode?: 'exact' | 'startsWith' | 'contains'
   // Added: dynamic rules for no-code detection
   dynamicRules?: {
     urlContains?: string[]
@@ -101,6 +102,7 @@ function injectConfiguration(script: string, config: TrackingConfig): string {
     enableAutoConversion: config.enableAutoConversion !== false,
     conversionPatterns: config.conversionPatterns || ['/tak', '/thank-you'],
     debug: config.debug || false,
+    matchMode: config.matchMode || 'contains',
     dynamicRules: (config as any).dynamicRules || undefined
   }
   
@@ -158,6 +160,7 @@ function getPartnerConfig(request: NextRequest): TrackingConfig {
   const form_tracking = searchParams.get('form_tracking')
   const button_tracking = searchParams.get('button_tracking')
   const debug = searchParams.get('debug')
+  const match_mode = searchParams.get('match_mode')
   // Dynamic rule params (no-code detectors)
   const url_contains = searchParams.get('url_contains')
   const text_contains = searchParams.get('text_contains')
@@ -177,7 +180,14 @@ function getPartnerConfig(request: NextRequest): TrackingConfig {
     enableButtonTracking: (button_tracking || 'false') === 'true',
     debug: (debug || 'false') === 'true',
     respectDoNotTrack: (dnt || 'true') === 'true',
-    requireConsent: (require_consent || 'false') === 'true'
+    requireConsent: (require_consent || 'false') === 'true',
+    matchMode: ((): 'exact' | 'startsWith' | 'contains' => {
+      const m = (match_mode || '').toLowerCase()
+      if (m === 'exact' || m === 'startswith' || m === 'contains') {
+        return m === 'startswith' ? 'startsWith' : (m as any)
+      }
+      return 'contains'
+    })()
   }
   
   // Handle thank_you page parameter - this is the key configuration

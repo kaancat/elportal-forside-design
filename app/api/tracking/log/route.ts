@@ -58,6 +58,53 @@ interface StoredClickData {
 }
 
 /**
+ * Send partner conversion to GA4 via Measurement Protocol (server-to-GA4)
+ */
+async function sendGa4Conversion({
+  partner_id,
+  click_id,
+  value = 0,
+}: { partner_id: string; click_id?: string; value?: number }) {
+  try {
+    const measurementId = process.env.GA4_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || process.env.VITE_GA4_MEASUREMENT_ID
+    const apiSecret = process.env.GA4_API_SECRET || process.env.NEXT_PUBLIC_GA4_API_SECRET
+    if (!measurementId || !apiSecret) return
+
+    const endpoint = `https://www.google-analytics.com/mp/collect?measurement_id=${measurementId}&api_secret=${apiSecret}`
+    const nowMicros = Date.now() * 1000
+    const eventId = click_id ? `pc_${click_id}` : `pc_${nowMicros}`
+
+    const body = {
+      client_id: `dep.${click_id || 'unknown'}.${Date.now()}`,
+      non_personalized_ads: true,
+      ...(click_id ? { user_id: click_id } : {}),
+      events: [
+        {
+          name: 'partner_conversion',
+          params: {
+            partner_id,
+            click_id,
+            value: value || 0,
+            currency: 'DKK',
+            engagement_time_msec: 1,
+            timestamp_micros: nowMicros,
+            event_id: eventId,
+          },
+        },
+      ],
+    }
+
+    await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+  } catch {
+    // Ignore MP errors
+  }
+}
+
+/**
  * Extract client IP from request headers
  */
 function getClientIP(request: NextRequest): string {
@@ -438,6 +485,14 @@ export async function POST(request: NextRequest) {
       result = {
         ...result,
         ...conversionResult
+      }
+      // Fire GA4 MP event for attributed conversions
+      if (conversionResult.success) {
+        await sendGa4Conversion({
+          partner_id: event.partner_id,
+          click_id: event.data.click_id,
+          value: event.data.conversion_value,
+        })
       }
       
       // Log significant conversions

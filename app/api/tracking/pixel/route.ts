@@ -142,6 +142,13 @@ async function trackEvent(request: NextRequest) {
             
             // Only increment metrics for new conversions
             await kv.hincrby(metricsKey, 'conversions', 1)
+
+            // Fire GA4 Measurement Protocol event (non-blocking)
+            sendGa4Conversion({
+              partner_id: trackingData.partner_id,
+              click_id: trackingData.click_id,
+              value: typeof trackingData.conversion_value === 'number' ? trackingData.conversion_value : 0,
+            }).catch(() => {})
           }
         } else {
           // No click_id - count as unattributed conversion
@@ -264,5 +271,57 @@ async function validatePartnerDomain(partnerId: string, domain: string): Promise
     console.error('[Pixel] Domain validation error:', err)
     // Fail closed to prevent abuse
     return false
+  }
+}
+
+/**
+ * Send partner conversion to GA4 via Measurement Protocol
+ * Uses user_id=click_id for anonymous linkage. Requires env vars:
+ *   GA4_MEASUREMENT_ID and GA4_API_SECRET
+ */
+async function sendGa4Conversion({
+  partner_id,
+  click_id,
+  value = 0,
+}: { partner_id: string; click_id?: string; value?: number }) {
+  try {
+    const measurementId = process.env.GA4_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || process.env.VITE_GA4_MEASUREMENT_ID
+    const apiSecret = process.env.GA4_API_SECRET || process.env.NEXT_PUBLIC_GA4_API_SECRET
+    if (!measurementId || !apiSecret) return
+
+    const endpoint = `https://www.google-analytics.com/mp/collect?measurement_id=${measurementId}&api_secret=${apiSecret}`
+    const nowMicros = Date.now() * 1000
+    const eventId = click_id ? `pc_${click_id}` : `pc_${nowMicros}`
+
+    const body = {
+      // Provide a synthetic client_id to satisfy MP; user_id ties sessions logically to click_id
+      client_id: `dep.${click_id || 'unknown'}.${Date.now()}`,
+      non_personalized_ads: true,
+      ...(click_id ? { user_id: click_id } : {}),
+      events: [
+        {
+          name: 'partner_conversion',
+          params: {
+            partner_id,
+            click_id,
+            value: value || 0,
+            currency: 'DKK',
+            engagement_time_msec: 1,
+            timestamp_micros: nowMicros,
+            // Dedup key for GA4 (24h window)
+            event_id: eventId,
+          },
+        },
+      ],
+    }
+
+    await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      // Do not rethrow to avoid impacting tracking
+    })
+  } catch {
+    // Swallow errors; MP failure must not affect tracking
   }
 }

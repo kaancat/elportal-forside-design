@@ -2,7 +2,7 @@
 
 Updated: 2025‑09‑15
 
-Only the scripts below are considered “active”. Playwright and other legacy/experimental scripts have been moved to `scripts/archive/`.
+Only the scripts below are considered “active”. Legacy/experimental scripts were removed from the working tree; use git history if you need them.
 
 ## Active
 
@@ -16,10 +16,9 @@ Run via tsx:
 npx tsx scripts/<name>.ts
 ```
 
-## Archived / Not used
+## Removed / Not used (see git history)
 
-Moved to `scripts/archive/`:
 - `pw-*.ts` Playwright utilities (compare, verify-prices, capture, historiske)
-- `test-all-pages.ts`, `test-middleware.ts`
-
-If you need any of these again, move them back to `scripts/` and document the workflow here.
+- `test-all-pages.ts`, `test-middleware.ts`, `test-webhook-revalidation.ts`
+- `monitor-webhook-health.ts`, `internal-linking.ts`, `seo/audit-sitemap.ts`
+- `debug-sanity-elprisberegner.ts`, `inspect-homepage.ts`, `remove-ladeboks.ts`

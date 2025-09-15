@@ -9,6 +9,4 @@ Read the root `README.md` first — this directory only contains canonical refer
 - Security: `SECURITY.md`
 - Calculator logic: `ELECTRICITY-CALCULATOR-LOGIC.md`
 
-## Archived (historical)
-
-All pre‑Next.js migration docs, experiments, and internal context have been moved to `docs/archive/`.
+Legacy docs: refer to git history (we removed old/unused guides).

@@ -1,6 +1,6 @@
 /**
  * Environment variable helper for Next.js
- * Next-first naming: uses NEXT_PUBLIC_* for public config
+ * Uses NEXT_PUBLIC_* for public config exposed to the browser.
  */
 
 interface EnvConfig {
@@ -19,8 +19,8 @@ interface EnvConfig {
 }
 
 /**
- * Get environment variable with fallback to Vite format
- * Handles both NEXT_PUBLIC_* and VITE_* prefixes
+ * Get environment variable consistently in server and browser.
+ * Handles ONLY NEXT_PUBLIC_* keys on the client.
  */
 function getEnvVar(nextKey: string): string | undefined {
   const nextValue = process.env[nextKey];

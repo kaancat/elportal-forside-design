@@ -623,7 +623,7 @@
                     <div class="status-value" id="connectionStatus">-</div>
                 </div>
                 <div class="status-card">
-                    <div class="status-label">Events i dag</div>
+                    <div class="status-label">Hændelser i dag</div>
                     <div class="status-value" id="eventsToday">-</div>
                 </div>
                 <div class="status-card">
@@ -655,10 +655,13 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- FAQ Section -->
         <div class="card" style="margin-top: 40px;">
             <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 16px;">FAQ</h2>
+            <div style="margin-bottom:10px; color: var(--gray-700); font-size:14px;">
+                <strong>Legend:</strong> 👁️ Landing (vi har set et besøg med click_id) · 💰 Konvertering (tak‑side/r egler matchede)
+            </div>
             <details style="margin-bottom:10px;">
                 <summary style="cursor:pointer; font-weight:600;">Skal jeg altid installere scriptet?</summary>
                 <p style="margin-top:8px; color: var(--gray-700);">Ja. Scriptet i &lt;head&gt; er nødvendigt for at fange click_id og teste opsætningen. Det er letvægt og asynkront.</p>
@@ -858,7 +861,19 @@
                 }
                 
                 // Update metrics
-                document.getElementById('eventsToday').textContent = data.total_events_today || '0';
+                let todayEvents = Number(data.total_events_today || 0);
+                // Fallback: if server returns 0 but we clearly have today's events, approximate from recent list
+                try {
+                  if (todayEvents === 0 && Array.isArray(data.recent_events)) {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    const approx = data.recent_events.filter(e => {
+                      const d = new Date(e.timestamp);
+                      return d.toISOString().startsWith(todayStr);
+                    }).length;
+                    if (approx > 0) todayEvents = approx;
+                  }
+                } catch {}
+                document.getElementById('eventsToday').textContent = String(todayEvents);
                 document.getElementById('lastEvent').textContent = data.last_event_time ? 
                     new Date(data.last_event_time).toLocaleTimeString('da-DK') : 'Ingen';
                 
@@ -879,11 +894,13 @@
                     const eventsList = document.getElementById('eventsList');
                     eventsList.innerHTML = data.recent_events.map(event => {
                         const time = new Date(event.timestamp).toLocaleString('da-DK');
-                        const icon = event.type === 'conversion' ? '💰' : '👁️';
+                        const isConversion = event.type === 'conversion';
+                        const icon = isConversion ? '💰' : '👁️';
+                        const label = isConversion ? 'conversion' : 'landing';
                         return `
                             <div style="padding: 8px 0; border-bottom: 1px solid var(--gray-200);">
-                                ${icon} <strong>${event.type}</strong> - ${time}
-                                ${event.click_id ? `<br><span style="font-size: 12px; color: var(--gray-500);">Click ID: ${event.click_id}</span>` : ''}
+                                ${icon} <strong>${label}</strong> - ${time}
+                                ${event.click_id ? `<br><span style=\"font-size: 12px; color: var(--gray-500);\">Click ID: ${event.click_id}</span>` : ''}
                             </div>
                         `;
                     }).join('');

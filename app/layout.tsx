@@ -22,6 +22,13 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   applicationName: SITE_NAME,
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', type: 'image/x-icon' },
+    ],
+    shortcut: ['/favicon.ico'],
+  },
   title: {
     default: 'Sammenlign Elpriser - Find Billigste Elaftale | DinElPortal',
     template: '%s | DinElPortal',
@@ -133,6 +140,8 @@ export default function RootLayout({
         {/* Ensure no stray preload for external GPT scripts */}
         <link rel="dns-prefetch" href="https://cdn.sanity.io" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
+        {/* Safari pinned tab */}
+        <link rel="mask-icon" href="/favicon.svg" color="#6BC52D" />
       </head>
       <body suppressHydrationWarning>
         <PerformanceMonitor />

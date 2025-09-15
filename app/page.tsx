@@ -7,7 +7,7 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { unstable_cache } from 'next/cache'
+// Note: avoid module-level unstable_cache for homepage to prevent stale negative caching
 import { getHomePage } from '@/server/sanity'
 import { urlFor } from '@/server/sanity'
 import { SITE_URL, SITE_NAME, canonicalUrl } from '@/lib/url-helpers'
@@ -28,15 +28,8 @@ const SPAApp = () => {
   );
 }
 
-// Use unstable_cache for better revalidation per Codex recommendation
-const getCachedHomePage = unstable_cache(
-  async () => getHomePage(),
-  ['homepage'],
-  {
-    revalidate: 300, // 5 minutes
-    tags: ['page', 'homepage'],
-  }
-)
+// Fetch directly; sanityClient.fetch in getHomePage already sets Next caching via revalidate + tags
+const getCachedHomePage = async () => getHomePage()
 
 // Generate metadata for SEO (only used in SSR mode)
 export async function generateMetadata(): Promise<Metadata> {
@@ -144,7 +137,7 @@ export default async function HomePage() {
   } : null
 
   if (!page) {
-    // Fallback to SPA in development when homepage is missing
+    // In non-production, keep SPA fallback to aid local development
     if (process.env.NODE_ENV !== 'production') {
       return <SPAApp />
     }

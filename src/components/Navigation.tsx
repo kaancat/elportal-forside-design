@@ -13,6 +13,7 @@ import { useNavigationRefresh } from '@/hooks/useNavigationRefresh';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import type { SiteSettings } from '@/types/sanity';
 import { FALLBACK_LOGO, FALLBACK_ALT } from '@/constants/branding';
+import { envBool } from '@/lib/env'
 
 function isLinkEntry(link: LinkType | MegaMenu): link is LinkType {
   return !!link && (link as any)._type === 'link';
@@ -32,7 +33,7 @@ const Navigation = ({ initialSettings }: NavigationProps) => {
   const settings = initialSettings ?? fetchedSettings;
 
   // Health check navigation links in development (gated by verbose flag)
-  const debugVerbose = process.env.NEXT_PUBLIC_DEBUG_VERBOSE === 'true'
+  const debugVerbose = envBool('NEXT_PUBLIC_DEBUG_VERBOSE', false)
   if (process.env.NODE_ENV === 'development' && debugVerbose && settings?.headerLinks) {
     checkLinksHealth(settings.headerLinks, 'Navigation');
   }

@@ -1,4 +1,5 @@
 import React from 'react'
+import { envBool } from '@/lib/env'
 import { ContentBlock } from '@/types/sanity'
 import ContentBlocks from './ContentBlocks'
 import { ContentBlocksWithBreadcrumb } from './ContentBlocksWithBreadcrumb'
@@ -30,7 +31,7 @@ const UnifiedContentBlocks: React.FC<UnifiedContentBlocksProps> = ({
   breadcrumbItems 
 }) => {
   // Baseline mode strips heavy blocks and returns a tiny, static layout for quick testing
-  const isBaselineMode = process.env.NEXT_PUBLIC_BASELINE_MODE === 'true'
+  const isBaselineMode = envBool('NEXT_PUBLIC_BASELINE_MODE', false)
 
   // Ensure blocks is always an array and filter out null/undefined values
   const blocks = (page?.contentBlocks || []).filter(Boolean)

@@ -34,6 +34,29 @@ function getEnvVar(nextKey: string): string | undefined {
 }
 
 /**
+ * Robust boolean parsing for env flags.
+ * Accepts: true/false, 1/0, yes/no, on/off (case-insensitive, trims whitespace).
+ * Any other value returns the provided default.
+ */
+export function parseBoolean(value: unknown, defaultValue = false): boolean {
+  if (typeof value === 'boolean') return value
+  if (typeof value !== 'string') return defaultValue
+  const v = value.trim().toLowerCase()
+  if (v === 'true' || v === '1' || v === 'yes' || v === 'on') return true
+  if (v === 'false' || v === '0' || v === 'no' || v === 'off') return false
+  return defaultValue
+}
+
+/**
+ * Read a boolean env flag consistently across server/client.
+ * Uses `getEnvVar` so NEXT_PUBLIC_* works in browser too.
+ */
+export function envBool(key: string, defaultValue = false): boolean {
+  const raw = getEnvVar(key)
+  return parseBoolean(raw, defaultValue)
+}
+
+/**
  * Centralized environment configuration
  * Provides type-safe access to environment variables
  */

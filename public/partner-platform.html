@@ -804,7 +804,10 @@
             
             // Generate test URL
             const clickId = `dep_test_${Date.now().toString(36)}`;
-            const base = websiteUrl || 'https://your-website.dk';
+            let base = websiteUrl || 'https://your-website.dk';
+            if (!/^https?:\/\//i.test(base)) {
+                base = 'https://' + base;
+            }
             currentTestUrl = `${base.replace(/\/$/, '')}/?click_id=${clickId}`;
             document.getElementById('testUrl').textContent = currentTestUrl;
             

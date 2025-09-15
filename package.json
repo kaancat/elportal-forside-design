@@ -15,15 +15,9 @@
     "type-check": "tsc --noEmit",
     "preview": "next start",
     "analyze": "ANALYZE=true next build",
-    "mcp:search": "tsx scripts/mcp-search.ts",
-    "mcp:use": "tsx scripts/mcp-use.ts",
-    "mcp:browserbase": "tsx scripts/mcp-browserbase.ts",
-    "mcp:screenshot": "tsx scripts/mcp-browserbase.ts screenshot",
-    "mcp:analyze": "tsx scripts/mcp-browserbase.ts analyze",
     "navigation:health": "tsx scripts/check-navigation-health.ts",
-    "test:middleware": "tsx scripts/test-middleware.ts",
     "test:api-parity": "tsx scripts/test-api-parity.ts",
-    "pw:compare": "tsx scripts/pw-compare-sanity-vs-dom.ts"
+    "sitemap:generate": "tsx scripts/generate-sitemap.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

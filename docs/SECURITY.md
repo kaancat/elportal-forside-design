@@ -54,10 +54,6 @@ All sensitive operations MUST go through server-side API routes:
 - `/api/sanity/update-content` - Update existing content
 - All mutations require server-side `SANITY_API_TOKEN`
 
-#### Smithery MCP Gateway
-- `/api/smithery/search` - Search for MCP servers
-- `/api/smithery/use-tool` - Execute MCP tools
-- All operations use server-side `SMITHERY_API_KEY`
 
 #### Eloverblik Integration
 - `/api/eloverblik/auth` - OAuth authentication
@@ -74,7 +70,6 @@ All sensitive operations MUST go through server-side API routes:
 
 ### Sensitive Variables (Hide with ••••••••):
 - `SANITY_API_TOKEN`
-- `SMITHERY_API_KEY`
 - `ELOVERBLIK_API_TOKEN`
 - `SANITY_WEBHOOK_SECRET`
 

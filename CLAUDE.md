@@ -407,7 +407,7 @@ function calculateTotalPrice(spotPrice: number, provider: Provider): number {
   - Error: `{ "data": null, "error": {"message": "...", "code": "..."} }`
 
 
-## 4. MCP Server Integrations
+## 4. MCP Server Integrations (removed)
 
 ### Gemini Consultation Server
 **When to use:**
@@ -479,8 +479,7 @@ mcp__context7__get_library_docs(
 - Support for specific library versions
 - Integration with current development practices
 
-### Smithery MCP Gateway
-**Documentation**: [Using MCP Servers](/docs/development/using-mcp-servers.md)
+<!-- Smithery/MCP content removed. See git history if needed. -->
 
 **When to use:**
 - Finding images for components (Unsplash, stock photos)
@@ -490,7 +489,7 @@ mcp__context7__get_library_docs(
 
 **Usage patterns:**
 ```bash
-# Search for MCP servers
+<!-- MCP examples removed -->
 npm run mcp:search "image stock photos"
 
 # Use a specific server
@@ -501,7 +500,7 @@ npm run mcp:use @smithery-ai/fetch --list
 ```
 
 **Key capabilities:**
-- Access to 8,000+ MCP servers without installation
+<!-- Removed -->
 - Dynamic tool discovery and usage
 - Unified gateway with single API key
 - Perfect for development tasks like finding images, analyzing competitors, generating content

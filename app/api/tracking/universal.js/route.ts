@@ -31,6 +31,11 @@ interface TrackingConfig {
   debug?: boolean
   respectDoNotTrack?: boolean
   requireConsent?: boolean
+  // Added: dynamic rules for no-code detection
+  dynamicRules?: {
+    urlContains?: string[]
+    textContains?: string[]
+  }
 }
 
 /**
@@ -95,7 +100,8 @@ function injectConfiguration(script: string, config: TrackingConfig): string {
     clickIdParam: config.clickIdParam,
     enableAutoConversion: config.enableAutoConversion !== false,
     conversionPatterns: config.conversionPatterns || ['/tak', '/thank-you'],
-    debug: config.debug || false
+    debug: config.debug || false,
+    dynamicRules: (config as any).dynamicRules || undefined
   }
   
   const configJson = JSON.stringify(simplifiedConfig, null, 2)
@@ -126,6 +132,20 @@ function validatePartnerId(partnerId: string): boolean {
 /**
  * Get partner configuration from query params
  */
+function parseList(input: string | null): string[] | undefined {
+  if (!input) return undefined
+  const s = input.trim()
+  if (!s) return undefined
+  // Support JSON array or comma-separated
+  if (s.startsWith('[')) {
+    try {
+      const arr = JSON.parse(s)
+      if (Array.isArray(arr)) return arr.map(String).map(v => v.trim()).filter(Boolean)
+    } catch {}
+  }
+  return s.split(',').map(v => v.trim()).filter(Boolean)
+}
+
 function getPartnerConfig(request: NextRequest): TrackingConfig {
   const { searchParams } = request.nextUrl
   
@@ -138,6 +158,9 @@ function getPartnerConfig(request: NextRequest): TrackingConfig {
   const form_tracking = searchParams.get('form_tracking')
   const button_tracking = searchParams.get('button_tracking')
   const debug = searchParams.get('debug')
+  // Dynamic rule params (no-code detectors)
+  const url_contains = searchParams.get('url_contains')
+  const text_contains = searchParams.get('text_contains')
   const dnt = searchParams.get('dnt')
   const require_consent = searchParams.get('require_consent')
   const conversion_patterns = searchParams.get('conversion_patterns')
@@ -173,6 +196,16 @@ function getPartnerConfig(request: NextRequest): TrackingConfig {
     config.conversionPatterns = ['/tak', '/thank-you', '/success']
   }
   
+  // Attach dynamic rules if provided
+  const urlRules = parseList(url_contains)
+  const textRules = parseList(text_contains)
+  if (urlRules || textRules) {
+    ;(config as any).dynamicRules = {
+      urlContains: urlRules || [],
+      textContains: textRules || []
+    }
+  }
+
   return config
 }
 

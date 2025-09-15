@@ -144,6 +144,7 @@
     initialized: false,
     config: null,
     lastPathChecked: null,
+    firedOnPaths: {},
     
     init: function() {
       if (this.initialized) return;
@@ -164,6 +165,8 @@
       
       // Check if we're on a thank you page
       this.checkForConversion();
+      // Also evaluate dynamic rules once after load
+      this.checkDynamicRules();
 
       // Monitor SPA navigations (pushState/replaceState/popstate/hashchange)
       this.monitorSPA();
@@ -182,6 +185,8 @@
           if (current === self.lastPathChecked) return;
           self.lastPathChecked = current;
           self.checkForConversion();
+          // Check dynamic rules shortly after route change to allow render
+          setTimeout(function(){ self.checkDynamicRules(); }, 200);
         }
 
         // Wrap history methods
@@ -203,6 +208,46 @@
         window.addEventListener('hashchange', onRouteChange);
       } catch (e) {
         // Silent fail if any environment disallows patching history API
+      }
+    },
+    
+    // Evaluate dynamic, no-code rules: URL contains, Text contains
+    checkDynamicRules: function() {
+      try {
+        var rules = (this.config && this.config.dynamicRules) || {};
+        var hasUrlRules = Array.isArray(rules.urlContains) && rules.urlContains.length > 0;
+        var hasTextRules = Array.isArray(rules.textContains) && rules.textContains.length > 0;
+        if (!hasUrlRules && !hasTextRules) return;
+
+        var clickId = Storage.getClickId();
+        if (!clickId) return; // only convert if we have attribution
+
+        var currentPath = (window.location.pathname + window.location.search + window.location.hash).toLowerCase();
+        var shouldFire = false;
+
+        if (hasUrlRules) {
+          for (var i = 0; i < rules.urlContains.length; i++) {
+            var needle = String(rules.urlContains[i] || '').toLowerCase();
+            if (needle && currentPath.indexOf(needle) !== -1) { shouldFire = true; break; }
+          }
+        }
+
+        if (!shouldFire && hasTextRules) {
+          // Scan visible text cheaply
+          var text = document.body ? (document.body.innerText || '').toLowerCase() : '';
+          for (var j = 0; j < rules.textContains.length; j++) {
+            var phrase = String(rules.textContains[j] || '').toLowerCase();
+            if (phrase && text.indexOf(phrase) !== -1) { shouldFire = true; break; }
+          }
+        }
+
+        var key = currentPath;
+        if (shouldFire && !this.firedOnPaths[key]) {
+          this.firedOnPaths[key] = true;
+          this.trackConversion();
+        }
+      } catch (e) {
+        // Never throw in partner pages
       }
     },
     

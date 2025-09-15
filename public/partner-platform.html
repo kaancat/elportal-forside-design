@@ -456,11 +456,12 @@
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label" for="thankYouPage">Tak-side URL eller mønstre (Auto)
+                    <label class="form-label" for="thankYouPage">Tak‑side sti eller mønstre (Statisk)
                         <span class="hint" aria-label="Hjælp" role="tooltip">?
-                            <span class="tooltip">Angiv en eller flere URL‑mønstre hvor konvertering sker.<br>
+                            <span class="tooltip">Skriv kun stien (ikke domænet). Vi matcher på sti.<br>
                                 Eksempler: <code>/tak</code>, <code>/kvittering</code>, <code>/order/complete</code>.<br>
-                                Flere: skriv kommasepareret <code>/tak, /kvittering</code> eller som JSON <code>[&quot;/tak&quot;,&quot;/kvittering&quot;]</code>.
+                                Flere: kommasepareret <code>/tak, /kvittering</code> eller JSON <code>[&quot;/tak&quot;,&quot;/kvittering&quot;]</code>.<br>
+                                <em>“/tak” matcher også “/checkout/tak”.</em>
                             </span>
                         </span>
                     </label>
@@ -468,35 +469,35 @@
                         type="text" 
                         id="thankYouPage" 
                         class="form-input" 
-                        placeholder="f.eks. /tak, /kvittering eller [\"/tak\",\"/kvittering\"]"
+                        placeholder="f.eks. /tak, /order/complete eller [\"/tak\",\"/kvittering\"]"
                         value=""
                     >
-                    <div class="form-help">Må være én sti eller flere. Lad være tom for Manuel.</div>
+                    <div class="form-help">Én eller flere stier. Lad være tom ved “Dynamisk (ingen tak‑side)”.</div>
                 </div>
             </div>
 
             <div class="two-column" style="margin-top: 8px;">
                 <div class="form-group">
-                    <label class="form-label">Konverteringsmetode</label>
+                    <label class="form-label">Vælg metode</label>
                     <div style="display:flex; gap:16px; align-items:center; flex-wrap: wrap;">
                         <label style="display:flex; align-items:center; gap:8px;">
-                            <input type="radio" name="mode" id="modeAuto" checked>
-                            <span class="help-inline">Automatisk (tak‑side URL)
+                            <input type="radio" name="mode" id="modeStatic" checked>
+                            <span class="help-inline">Statisk tak‑side
                                 <span class="hint" aria-label="Hjælp" role="tooltip">?
-                                    <span class="tooltip">Vi udløser konvertering automatisk når brugeren lander på din tak‑side (fuld sidelæsning). Kræver stabil URL‑sti — brug feltet ovenfor.</span>
+                                    <span class="tooltip">Vi udløser konvertering når brugeren lander på din tak‑side (fuld sidelæsning). Kræver stabil sti — brug feltet ovenfor.</span>
                                 </span>
                             </span>
                         </label>
                         <label style="display:flex; align-items:center; gap:8px;">
-                            <input type="radio" name="mode" id="modeManual">
-                            <span class="help-inline">Manuel (via JavaScript)
+                            <input type="radio" name="mode" id="modeDynamic">
+                            <span class="help-inline">Dynamisk (ingen tak‑side)
                                 <span class="hint" aria-label="Hjælp" role="tooltip">?
-                                    <span class="tooltip">Brug hvis flowet er dynamisk (SPA, modal, flere trin uden ny side). Kald <code>window.DinElportal.trackConversion()</code> i din succes‑callback efter serveren har bekræftet.</span>
+                                    <span class="tooltip">Ingen fast tak‑side? Vælg en simpel regel nedenfor (URL‑indhold, tekst på siden, eller en platform‑preset). Ingen kode krævet.</span>
                                 </span>
                             </span>
                         </label>
                     </div>
-                    <div class="form-help">Auto = vi genkender tak‑side URL. Manuel = du kalder funktionen ved succes.</div>
+                    <div class="form-help">Statisk = vi genkender din tak‑side. Dynamisk = vi opdager succes via simple regler.</div>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="websiteUrl">Din hjemmeside (til test)</label>
@@ -506,7 +507,33 @@
                     <div class="form-help">Bruges til at generere en test-URL med click_id.</div>
                 </div>
             </div>
-            
+
+            <!-- Dynamic (no-code) rule inputs -->
+            <div id="dynamicRules" class="two-column" style="display:none; margin-top:4px;">
+                <div class="form-group">
+                    <label class="form-label">URL indeholder</label>
+                    <input type="text" id="urlContains" class="form-input" placeholder="fx status=success, #thankyou, paid=true">
+                    <div class="form-help">Vi matcher på sti+query+hash. Flere værdier: kommasepareret eller JSON‑liste.</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tekst på siden</label>
+                    <input type="text" id="textContains" class="form-input" placeholder="fx Tak for din ordre">
+                    <div class="form-help">Vi leder efter synlig tekst på siden. Flere værdier: kommasepareret eller JSON.</div>
+                </div>
+            </div>
+            <div id="dynamicPresets" class="two-column" style="display:none; margin-top:4px;">
+                <div class="form-group">
+                    <label class="form-label">Platform preset (valgfri)</label>
+                    <select id="platformPreset" class="form-input">
+                        <option value="">Vælg platform (valgfri)</option>
+                        <option value="shopify">Shopify</option>
+                        <option value="woocommerce">WooCommerce</option>
+                        <option value="webflow">Webflow</option>
+                    </select>
+                    <div class="form-help">Vi udfylder regler, som typisk passer. Du kan redigere dem.</div>
+                </div>
+            </div>
+
             <button class="btn btn-primary" onclick="generateScript()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M9 11l3 3L22 4"></path>
@@ -534,43 +561,16 @@
                 <code id="scriptCode"><!-- Script will be generated here --></code>
             </div>
 
-            <div id="manualBlock" class="info-box" style="display:none;">
-                <p><strong>Manuel konvertering</strong> — for dynamiske flows (SPA, modal, flere trin uden ny side).</p>
-                <p style="margin-top: 8px;">
-                    Sådan gør du i praksis: Når din kode ved, at ordren/tilmeldingen er gennemført (dvs. din backend svarer <em>success</em>), skal du indsætte én linje der udløser konvertering.
-                </p>
-
-                <div class="two-column" style="margin-top:12px; gap:16px;">
-                    <div>
-                        <label class="form-label" for="manualPlatform">Vælg eksempel</label>
-                        <select id="manualPlatform" class="form-input">
-                            <option value="html">Simpel hjemmeside (HTML/vanilla JS)</option>
-                            <option value="fetch">Fetch/AJAX kald</option>
-                            <option value="react">React/Vue (SPA komponent)</option>
-                        </select>
-                        <div class="form-help">Kopier koden herunder og indsæt <strong>i din succes‑callback</strong>.</div>
-                    </div>
-                    <div style="align-self:flex-end;">
-                        <button class="btn btn-secondary" id="copyManualBtn" type="button">Kopier snippet</button>
-                    </div>
-                </div>
-
-                <div class="code-block" style="margin-top:12px;">
-<code id="manualSnippet"><!-- Snippet will render here -->
-</code>
-                </div>
-
-                <div style="margin-top:12px; font-size:14px; color: var(--gray-700);">
-                    <div style="margin-bottom:6px; font-weight:600;">Placering</div>
+            <details id="advancedBlock" class="info-box" style="margin-top:12px;">
+                <summary style="cursor:pointer; font-weight:600;">Avanceret (for udviklere) — valgfrit</summary>
+                <div style="margin-top:8px;">
+                    <p style="margin-bottom:8px;">Hvis din checkout aldrig returnerer til din hjemmeside, eller du vil udløse præcist fra backend:</p>
                     <ul style="padding-left:18px;">
-                        <li>Installer først scriptet i &lt;head&gt; på alle sider (se ovenfor).</li>
-                        <li>Når din kode modtager <code>success</code> fra serveren, indsæt linjen <code>window.DinElportal.trackConversion()</code>.</li>
-                        <li>Du kan sende værdi: <code>window.DinElportal.trackConversion(199)</code> (kr).</li>
+                        <li>JavaScript‑udløsning: <code>window.DinElportal.trackConversion([værdi])</code></li>
+                        <li>Server‑to‑server (S2S): <code>POST /api/tracking/log</code> med <code>partner_id</code> og <code>click_id</code></li>
                     </ul>
                 </div>
-
-                <p class="form-help" style="margin-top:8px;">Ingen persondata — kun anonym <code>click_id</code>. Kræver at besøget startede fra DinElportal (test via Step 3).</p>
-            </div>
+            </details>
             
             <div class="info-box">
                 <p><strong>Hvad gør scriptet?</strong></p>
@@ -600,7 +600,7 @@
                 <ol style="margin-top: 16px; padding-left: 20px; font-size: 14px; color: var(--gray-700);">
                     <li>Åbn test-URL’en på din hjemmeside (simulerer klik fra DinElportal)</li>
                     <li>Navigér igennem dit flow som en bruger</li>
-                    <li>Hvis <strong>Automatisk</strong>: gå til din tak-side (URL matcher mønstret, fx “/tak”). Hvis <strong>Manuel</strong>: kald <code>window.DinElportal.trackConversion()</code> i din succes-callback</li>
+                    <li>Hvis <strong>Statisk</strong>: nå din tak‑side (URL matcher stien, fx “/tak”). Hvis <strong>Dynamisk</strong>: sørg for at din succes‑side opfylder reglen (fx URL indeholder “status=success” eller teksten “Tak for din ordre”).</li>
                     <li>Gå til næste trin og tryk “Tjek Live Status”</li>
                 </ol>
             </div>
@@ -643,7 +643,7 @@
                 <p><strong>Ingen data endnu?</strong> Gør følgende:</p>
                 <ol style="margin-top:8px; padding-left: 20px;">
                     <li>Brug <strong>Test URL med click_id</strong> fra trin 3</li>
-                    <li>Gennemfør flowet og nå tak-siden (eller udløs manuel konvertering)</li>
+                    <li>Gennemfør flowet og nå tak‑siden (eller opfyld dine dynamiske regler)</li>
                     <li>Tryk “Tjek Live Status” igen efter 3–5 sek.</li>
                 </ol>
             </div>
@@ -686,12 +686,13 @@
         // State
         let currentPartnerId = '';
         let currentThankYouPage = '';
-        let currentMode = 'auto';
+        let currentMode = 'static';
         let currentTestUrl = '';
-        let manualSnippetMap = {
-          html: `// Kør når du viser din \"Tak\" besked\nif (window.DinElportal && typeof window.DinElportal.trackConversion === 'function') {\n  window.DinElportal.trackConversion();\n}`,
-          fetch: `// Eksempel med fetch/AJAX\nfetch('/api/checkout', { method: 'POST', body: JSON.stringify(data) })\n  .then(r => r.json())\n  .then(res => {\n    if (res.success) {\n      window.DinElportal && window.DinElportal.trackConversion();\n    }\n  });`,
-          react: `// React/Vue (kald på succes)\nfunction onOrderSuccess() {\n  if (window.DinElportal && window.DinElportal.trackConversion) {\n    window.DinElportal.trackConversion();\n  }\n}\n// React eksempel:\n// useEffect(() => { if (orderStatus === 'success') onOrderSuccess(); }, [orderStatus]);`
+        // Simple presets for dynamic rules
+        const DYNAMIC_PRESETS = {
+          shopify: { url: ['thank_you'], text: [] },
+          woocommerce: { url: ['order-received', 'wc_order'], text: [] },
+          webflow: { url: ['success'], text: ['Tak for din ordre'] }
         };
         
         // Helpers
@@ -719,7 +720,7 @@
             const partnerId = document.getElementById('partnerId').value.trim();
             const thankYouPage = document.getElementById('thankYouPage').value.trim();
             const websiteUrl = document.getElementById('websiteUrl').value.trim();
-            const auto = document.getElementById('modeAuto').checked;
+            const auto = document.getElementById('modeStatic').checked;
             
             if (!partnerId) {
                 alert('Indtast venligst dit Partner ID');
@@ -728,12 +729,12 @@
             
             // Store values
             currentPartnerId = partnerId;
-            currentMode = auto ? 'auto' : 'manual';
+            currentMode = auto ? 'static' : 'dynamic';
             currentThankYouPage = auto ? (thankYouPage || '/tak') : '';
             
             // Generate script code (single tag) using dynamic API route
             let scriptCode = '';
-            if (currentMode === 'auto') {
+            if (currentMode === 'static') {
               const patterns = parsePatterns(thankYouPage);
               if (patterns.length > 1) {
                 const encoded = encodeURIComponent(JSON.stringify(patterns));
@@ -743,8 +744,12 @@
                 scriptCode = `<` + `script src=\"https://www.dinelportal.dk/api/tracking/universal.js?partner_id=${partnerId}&thank_you=${encodeURIComponent(single)}&debug=true\" async><` + `/script>`;
               }
             } else {
-              // Manual: disable auto-detection explicitly
-              scriptCode = `<` + `script src=\"https://www.dinelportal.dk/api/tracking/universal.js?partner_id=${partnerId}&auto_conversion=false&debug=true\" async><` + `/script>`;
+              // Dynamic: disable auto and pass simple no‑code rules
+              const urlRules = parsePatterns(document.getElementById('urlContains').value.trim());
+              const textRules = parsePatterns(document.getElementById('textContains').value.trim());
+              const urlParam = urlRules.length ? `&url_contains=${encodeURIComponent(JSON.stringify(urlRules))}` : '';
+              const textParam = textRules.length ? `&text_contains=${encodeURIComponent(JSON.stringify(textRules))}` : '';
+              scriptCode = `<` + `script src=\"https://www.dinelportal.dk/api/tracking/universal.js?partner_id=${partnerId}&auto_conversion=false${urlParam}${textParam}&debug=true\" async><` + `/script>`;
             }
             
             // Show generated code
@@ -753,11 +758,9 @@
             document.getElementById('step2').classList.remove('hidden');
             document.getElementById('step3').classList.remove('hidden');
             document.getElementById('step4').classList.remove('hidden');
-            document.getElementById('manualBlock').style.display = currentMode === 'manual' ? 'block' : 'none';
-            if (currentMode === 'manual') {
-              // Render default manual snippet
-              document.getElementById('manualSnippet').textContent = manualSnippetMap.html;
-            }
+            // Toggle dynamic UI
+            document.getElementById('dynamicRules').style.display = currentMode === 'dynamic' ? 'flex' : 'none';
+            document.getElementById('dynamicPresets').style.display = currentMode === 'dynamic' ? 'flex' : 'none';
             
             // Generate test URL
             const clickId = `dep_test_${Date.now().toString(36)}`;
@@ -877,32 +880,37 @@
             if (websiteUrl) {
                 document.getElementById('websiteUrl').value = websiteUrl;
             }
-            if (mode === 'manual') {
-                document.getElementById('modeManual').checked = true;
-                document.getElementById('modeAuto').checked = false;
+            if (mode === 'dynamic') {
+                document.getElementById('modeDynamic').checked = true;
+                document.getElementById('modeStatic').checked = false;
             }
             
             // Auto-generate if partner present
             if (partnerId) {
                 generateScript();
             }
-
-            // Manual snippet switching
-            const selector = document.getElementById('manualPlatform');
-            if (selector) {
-              selector.addEventListener('change', function() {
-                const val = selector.value;
-                const code = manualSnippetMap[val] || manualSnippetMap.html;
-                document.getElementById('manualSnippet').textContent = code;
-              });
+            // Mode toggle behavior (show/hide blocks)
+            const staticRadio = document.getElementById('modeStatic');
+            const dynamicRadio = document.getElementById('modeDynamic');
+            function refreshModeUI() {
+              const isStaticNow = staticRadio.checked;
+              document.getElementById('dynamicRules').style.display = isStaticNow ? 'none' : 'flex';
+              document.getElementById('dynamicPresets').style.display = isStaticNow ? 'none' : 'flex';
             }
-            const copyBtn = document.getElementById('copyManualBtn');
-            if (copyBtn) {
-              copyBtn.addEventListener('click', function() {
-                const code = document.getElementById('manualSnippet').textContent;
-                navigator.clipboard.writeText(code);
-                copyBtn.textContent = 'Kopieret!';
-                setTimeout(() => copyBtn.textContent = 'Kopier snippet', 1500);
+            staticRadio.addEventListener('change', refreshModeUI);
+            dynamicRadio.addEventListener('change', refreshModeUI);
+            refreshModeUI();
+
+            // Preset fills
+            const preset = document.getElementById('platformPreset');
+            if (preset) {
+              preset.addEventListener('change', function() {
+                const p = DYNAMIC_PRESETS[preset.value];
+                if (!p) return;
+                const u = document.getElementById('urlContains');
+                const t = document.getElementById('textContains');
+                u.value = (p.url || []).join(', ');
+                t.value = (p.text || []).join(', ');
               });
             }
         });

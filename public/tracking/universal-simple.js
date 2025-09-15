@@ -275,14 +275,19 @@
       
       var currentPath = window.location.pathname.toLowerCase();
       var patterns = this.config.conversionPatterns || ['/tak', '/thank-you'];
+      var mode = (this.config.matchMode || 'contains').toLowerCase();
       
       // Check if current page matches any conversion pattern
       var isConversionPage = false;
       for (var i = 0; i < patterns.length; i++) {
-        if (currentPath === patterns[i].toLowerCase() || 
-            currentPath.indexOf(patterns[i].toLowerCase()) !== -1) {
-          isConversionPage = true;
-          break;
+        var p = String(patterns[i] || '').toLowerCase();
+        if (!p) continue;
+        if (mode === 'exact') {
+          if (currentPath === p) { isConversionPage = true; break; }
+        } else if (mode === 'startswith') {
+          if (currentPath.indexOf(p) === 0) { isConversionPage = true; break; }
+        } else { // contains (default)
+          if (currentPath.indexOf(p) !== -1) { isConversionPage = true; break; }
         }
       }
       

@@ -229,6 +229,11 @@
             border-color: var(--brand-green);
             box-shadow: 0 0 0 3px rgba(132, 219, 65, 0.1);
         }
+        .error-msg {
+            color: #b91c1c;
+            font-size: 13px;
+            margin-top: 6px;
+        }
         
         .form-help {
             font-size: 13px;
@@ -473,6 +478,7 @@
                         value=""
                     >
                     <div class="form-help">Én eller flere stier. Lad være tom ved “Dynamisk (ingen tak‑side)”.</div>
+                    <div id="thankYouError" class="error-msg" style="display:none;"></div>
                 </div>
             </div>
 
@@ -520,17 +526,8 @@
                     <input type="text" id="textContains" class="form-input" placeholder="fx Tak for din ordre">
                     <div class="form-help">Vi leder efter synlig tekst på siden. Flere værdier: kommasepareret eller JSON.</div>
                 </div>
-            </div>
-            <div id="dynamicPresets" class="two-column" style="display:none; margin-top:4px;">
-                <div class="form-group">
-                    <label class="form-label">Platform preset (valgfri)</label>
-                    <select id="platformPreset" class="form-input">
-                        <option value="">Vælg platform (valgfri)</option>
-                        <option value="shopify">Shopify</option>
-                        <option value="woocommerce">WooCommerce</option>
-                        <option value="webflow">Webflow</option>
-                    </select>
-                    <div class="form-help">Vi udfylder regler, som typisk passer. Du kan redigere dem.</div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <div id="dynamicError" class="error-msg" style="display:none;"></div>
                 </div>
             </div>
 
@@ -659,26 +656,51 @@
             </div>
         </div>
         
-        <!-- Help Section -->
-        <div class="card" style="background: var(--gray-50); margin-top: 40px;">
-            <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 16px;">Har du brug for hjælp?</h2>
-            
-            <div class="two-column">
-                <div>
-                    <h3 style="font-size: 16px; font-weight: 500; margin-bottom: 8px;">📧 Support</h3>
-                    <p style="font-size: 14px; color: var(--gray-600);">
-                        Email: tech@dinelportal.dk<br>
-                        Svartid: Inden for 24 timer
-                    </p>
-                </div>
-                <div>
-                    <h3 style="font-size: 16px; font-weight: 500; margin-bottom: 8px;">📚 Dokumentation</h3>
-                    <p style="font-size: 14px; color: var(--gray-600);">
-                        <a href="/docs/partner-integration" style="color: var(--brand-green); text-decoration: none;">Partner Integration Guide</a><br>
-                        <a href="/docs/tracking-faq" style="color: var(--brand-green); text-decoration: none;">Ofte stillede spørgsmål</a>
-                    </p>
-                </div>
-            </div>
+        <!-- FAQ Section -->
+        <div class="card" style="margin-top: 40px;">
+            <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 16px;">FAQ</h2>
+            <details style="margin-bottom:10px;">
+                <summary style="cursor:pointer; font-weight:600;">Skal jeg altid installere scriptet?</summary>
+                <p style="margin-top:8px; color: var(--gray-700);">Ja. Scriptet i &lt;head&gt; er nødvendigt for at fange click_id og teste opsætningen. Det er letvægt og asynkront.</p>
+            </details>
+            <details style="margin-bottom:10px;">
+                <summary style="cursor:pointer; font-weight:600;">Hvad er Partner ID?</summary>
+                <p style="margin-top:8px; color: var(--gray-700);">Det ID du får af os. Det fortæller systemet, hvilken partner vi måler for, og hjælper mod misbrug.</p>
+            </details>
+            <details style="margin-bottom:10px;">
+                <summary style="cursor:pointer; font-weight:600;">Hvad betyder “Tak‑side sti”?</summary>
+                <p style="margin-top:8px; color: var(--gray-700);">Kun stien efter domænet. Eksempler: <code>/tak</code>, <code>/order/complete</code>. Ikke hele URL’en. Vi matcher som delstreng (fx <code>/tak</code> matcher også <code>/checkout/tak</code>).</p>
+            </details>
+            <details style="margin-bottom:10px;">
+                <summary style="cursor:pointer; font-weight:600;">Jeg har ingen fast tak‑side — hvad vælger jeg?</summary>
+                <p style="margin-top:8px; color: var(--gray-700);">Vælg “Dynamisk (ingen tak‑side)” og brug en simpel regel: “URL indeholder” (fx <code>status=success</code>) eller “Tekst på siden” (fx <code>Tak for din ordre</code>). Ingen kode krævet.</p>
+            </details>
+            <details style="margin-bottom:10px;">
+                <summary style="cursor:pointer; font-weight:600;">Hvad er click_id?</summary>
+                <p style="margin-top:8px; color: var(--gray-700);">Et anonymt ID, som følger hvert klik fra DinElportal. Scriptet gemmer det i en cookie (90 dage). Vi bruger det til at tilskrive konverteringer.</p>
+            </details>
+            <details style="margin-bottom:10px;">
+                <summary style="cursor:pointer; font-weight:600;">Skal vi sende persondata?</summary>
+                <p style="margin-top:8px; color: var(--gray-700);">Nej. Vi behandler kun anonyme hændelser og click_id. Ingen persondata.</p>
+            </details>
+            <details style="margin-bottom:10px;">
+                <summary style="cursor:pointer; font-weight:600;">Hvordan tester jeg?</summary>
+                <p style="margin-top:8px; color: var(--gray-700);">Brug “Åbn test‑URL”, gennemfør flowet, og klik “Tjek Live Status”. Hvis du ser “Ingen data”, gentag og vent 3–5 sekunder.</p>
+            </details>
+            <details style="margin-bottom:10px;">
+                <summary style="cursor:pointer; font-weight:600;">Virker det på SPAs / uden fuld sidelæsning?</summary>
+                <p style="margin-top:8px; color: var(--gray-700);">Ja. Vi lytter efter route‑skift. “Statisk” kræver at stien skifter til din tak‑side; “Dynamisk” kan udløse på URL‑/tekstmønstre.</p>
+            </details>
+            <details style="margin-bottom:10px;">
+                <summary style="cursor:pointer; font-weight:600;">Server‑to‑server (S2S) — hvornår og hvordan?</summary>
+                <p style="margin-top:8px; color: var(--gray-700);">Kun hvis flowet aldrig returnerer til din side, eller du vil udløse 100% backend‑styret. Send <code>POST /api/tracking/log</code> med <code>partner_id</code> og den besøgendes <code>click_id</code> fra din session/ordre.</p>
+            </details>
+        </div>
+
+        <!-- Help Section (minimal) -->
+        <div class="card" style="background: var(--gray-50); margin-top: 16px;">
+            <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">Har du brug for hjælp?</h2>
+            <p style="font-size: 14px; color: var(--gray-600);">📧 Email: kc@mondaybrew.dk</p>
         </div>
     </div>
     
@@ -688,12 +710,6 @@
         let currentThankYouPage = '';
         let currentMode = 'static';
         let currentTestUrl = '';
-        // Simple presets for dynamic rules
-        const DYNAMIC_PRESETS = {
-          shopify: { url: ['thank_you'], text: [] },
-          woocommerce: { url: ['order-received', 'wc_order'], text: [] },
-          webflow: { url: ['success'], text: ['Tak for din ordre'] }
-        };
         
         // Helpers
         function parsePatterns(input) {
@@ -734,19 +750,43 @@
             
             // Generate script code (single tag) using dynamic API route
             let scriptCode = '';
+            // Validation & script generation
+            // Clear previous errors
+            const tyErr = document.getElementById('thankYouError');
+            const dynErr = document.getElementById('dynamicError');
+            if (tyErr) tyErr.style.display = 'none', tyErr.textContent = '';
+            if (dynErr) dynErr.style.display = 'none', dynErr.textContent = '';
+
             if (currentMode === 'static') {
               const patterns = parsePatterns(thankYouPage);
+              if (patterns.length === 0) {
+                if (tyErr) {
+                  tyErr.textContent = 'Angiv mindst én tak‑side sti (fx /tak).';
+                  tyErr.style.display = 'block';
+                }
+                // Focus field and stop
+                document.getElementById('thankYouPage').focus();
+                return;
+              }
               if (patterns.length > 1) {
                 const encoded = encodeURIComponent(JSON.stringify(patterns));
                 scriptCode = `<` + `script src=\"https://www.dinelportal.dk/api/tracking/universal.js?partner_id=${partnerId}&conversion_patterns=${encoded}&debug=true\" async><` + `/script>`;
               } else {
-                const single = (patterns[0] || currentThankYouPage || '/tak');
+                const single = patterns[0];
                 scriptCode = `<` + `script src=\"https://www.dinelportal.dk/api/tracking/universal.js?partner_id=${partnerId}&thank_you=${encodeURIComponent(single)}&debug=true\" async><` + `/script>`;
               }
             } else {
               // Dynamic: disable auto and pass simple no‑code rules
               const urlRules = parsePatterns(document.getElementById('urlContains').value.trim());
               const textRules = parsePatterns(document.getElementById('textContains').value.trim());
+              if (urlRules.length === 0 && textRules.length === 0) {
+                if (dynErr) {
+                  dynErr.textContent = 'Angiv mindst én regel (URL eller Tekst), eller skift til Statisk tak‑side.';
+                  dynErr.style.display = 'block';
+                }
+                document.getElementById('urlContains').focus();
+                return;
+              }
               const urlParam = urlRules.length ? `&url_contains=${encodeURIComponent(JSON.stringify(urlRules))}` : '';
               const textParam = textRules.length ? `&text_contains=${encodeURIComponent(JSON.stringify(textRules))}` : '';
               scriptCode = `<` + `script src=\"https://www.dinelportal.dk/api/tracking/universal.js?partner_id=${partnerId}&auto_conversion=false${urlParam}${textParam}&debug=true\" async><` + `/script>`;
@@ -760,7 +800,7 @@
             document.getElementById('step4').classList.remove('hidden');
             // Toggle dynamic UI
             document.getElementById('dynamicRules').style.display = currentMode === 'dynamic' ? 'flex' : 'none';
-            document.getElementById('dynamicPresets').style.display = currentMode === 'dynamic' ? 'flex' : 'none';
+            // no presets
             
             // Generate test URL
             const clickId = `dep_test_${Date.now().toString(36)}`;
@@ -895,24 +935,10 @@
             function refreshModeUI() {
               const isStaticNow = staticRadio.checked;
               document.getElementById('dynamicRules').style.display = isStaticNow ? 'none' : 'flex';
-              document.getElementById('dynamicPresets').style.display = isStaticNow ? 'none' : 'flex';
             }
             staticRadio.addEventListener('change', refreshModeUI);
             dynamicRadio.addEventListener('change', refreshModeUI);
             refreshModeUI();
-
-            // Preset fills
-            const preset = document.getElementById('platformPreset');
-            if (preset) {
-              preset.addEventListener('change', function() {
-                const p = DYNAMIC_PRESETS[preset.value];
-                if (!p) return;
-                const u = document.getElementById('urlContains');
-                const t = document.getElementById('textContains');
-                u.value = (p.url || []).join(', ');
-                t.value = (p.text || []).join(', ');
-              });
-            }
         });
     </script>
 </body>

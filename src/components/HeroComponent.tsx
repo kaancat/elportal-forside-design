@@ -299,18 +299,27 @@ const HeroPreviewCard: React.FC<HeroPreviewCardProps> = ({ href, title, descript
   return (
     <Link
       href={href}
-      className="group w-[207px] h-[124px] rounded-2xl border border-white/50 bg-white/80 backdrop-blur-sm shadow-xl transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green"
+      className="group relative w-[207px] h-[124px] overflow-hidden rounded-2xl border border-white/50 bg-white/75 backdrop-blur-md shadow-xl transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green"
     >
-      <div className="flex h-full flex-col p-4">
-        <div className="flex items-start justify-between text-xs font-semibold text-gray-700">
-          <div>
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-green/15 via-white/30 to-brand-green/10 opacity-60" />
+        <div className="absolute inset-0 p-4 opacity-45 transition-opacity duration-300 group-hover:opacity-55">
+          <div className="h-full w-full scale-105 transform opacity-95">
+            {preview}
+          </div>
+        </div>
+      </div>
+
+      <div className="relative z-10 flex h-full flex-col p-4">
+        <div className="flex items-start justify-between text-xs font-semibold text-gray-800">
+          <div className="space-y-1">
             <p>{title}</p>
-            <p className="text-[11px] font-normal text-gray-500">{description}</p>
+            <p className="text-[11px] font-normal text-gray-600/80">{description}</p>
           </div>
           <ArrowUpRight className="h-4 w-4 text-brand-green transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </div>
-        <div className="mt-3 flex-1 text-[11px] text-gray-600">
-          {preview}
+        <div className="mt-auto flex items-center gap-2 text-[11px] font-medium text-gray-500/80">
+          <span className="rounded-full bg-white/70 px-2 py-1 shadow-sm backdrop-blur">Genvej</span>
         </div>
       </div>
     </Link>
@@ -319,8 +328,8 @@ const HeroPreviewCard: React.FC<HeroPreviewCardProps> = ({ href, title, descript
 
 const DailyPricePreview: React.FC = () => {
   return (
-    <div className="flex h-full flex-col justify-between">
-      <div className="flex items-center justify-between text-[10px] uppercase tracking-wide text-gray-400">
+    <div className="flex h-full flex-col justify-between text-emerald-900/70">
+      <div className="flex items-center justify-between text-[10px] uppercase tracking-wide">
         <span>DK2</span>
         <span>KR/kWh</span>
       </div>
@@ -328,8 +337,8 @@ const DailyPricePreview: React.FC = () => {
         <svg viewBox="0 0 120 48" className="h-full w-full">
           <defs>
             <linearGradient id="dailyPriceGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="rgba(132, 219, 65, 0.5)" />
-              <stop offset="100%" stopColor="rgba(132, 219, 65, 0.05)" />
+              <stop offset="0%" stopColor="rgba(132, 219, 65, 0.35)" />
+              <stop offset="100%" stopColor="rgba(132, 219, 65, 0.08)" />
             </linearGradient>
           </defs>
           <path
@@ -338,16 +347,16 @@ const DailyPricePreview: React.FC = () => {
           />
           <path
             d="M0 36 C 10 12, 26 8, 40 18 S 70 42, 90 20 S 110 6, 120 18"
-            stroke="rgba(34, 146, 92, 0.9)"
+            stroke="rgba(34, 146, 92, 0.55)"
             strokeWidth="2"
             fill="none"
             strokeLinecap="round"
           />
-          <circle cx="96" cy="18" r="3" fill="#ef4444" />
+          <circle cx="96" cy="18" r="3" fill="rgba(239, 68, 68, 0.7)" />
         </svg>
-        <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-emerald-900/20 to-transparent" />
       </div>
-      <div className="mt-1 grid grid-cols-4 gap-1 text-[10px] font-medium text-gray-500">
+      <div className="mt-1 grid grid-cols-4 gap-1 text-[10px] font-medium text-emerald-900/60">
         <span>Nat</span>
         <span>Morgen</span>
         <span>Dag</span>
@@ -365,19 +374,19 @@ const ProviderListPreview: React.FC = () => {
   ];
 
   return (
-    <div className="flex h-full flex-col justify-between">
+    <div className="flex h-full flex-col justify-between text-emerald-900/70">
       <div className="space-y-1">
         {rows.map((row) => (
           <div
             key={row.provider}
-            className={`flex items-center justify-between rounded-lg border border-gray-100 px-2 py-1.5 ${row.highlight ? 'bg-brand-green/10 border-brand-green/30 text-gray-800' : 'bg-white/70 text-gray-600'}`}
+            className={`flex items-center justify-between rounded-lg border border-white/40 px-2 py-1.5 backdrop-blur-sm ${row.highlight ? 'bg-brand-green/15 text-emerald-900/80' : 'bg-white/40 text-emerald-900/60'}`}
           >
             <span className="text-[11px] font-semibold">{row.provider}</span>
             <span className="text-[11px] font-mono">{row.price}</span>
           </div>
         ))}
       </div>
-      <div className="mt-2 rounded-lg bg-gray-100/80 p-2 text-[10px] text-gray-500">
+      <div className="mt-2 rounded-lg bg-white/40 p-2 text-[10px] text-emerald-900/60 backdrop-blur">
         Personlig filter klar · Opdateret i dag
       </div>
     </div>

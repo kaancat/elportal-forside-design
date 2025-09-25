@@ -547,6 +547,7 @@ export const pageProjection = `{
       subtitle,
       duration,
       headerAlignment,
+      accessibilityLabel,
       "audio": audioFile.asset-> {
         url,
         originalFilename,

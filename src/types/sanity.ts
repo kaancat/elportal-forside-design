@@ -98,6 +98,7 @@ export interface PodcastEpisodeBlock {
   } | null
   thumbnail?: SanityImage
   transcript?: BlockContent[]
+  accessibilityLabel?: string
 }
 
 export interface FaqGroup {

@@ -50,7 +50,8 @@ const PodcastEpisode: React.FC<PodcastEpisodeProps> = ({ block }) => {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [durationSeconds, setDurationSeconds] = useState(() => parseDurationString(block.duration))
-  const audioUrl = block.audio?.url
+  const audioUrl = block.audio?.url || null
+  const ariaLabel = block.accessibilityLabel || block.title || 'Podcast episode'
 
   useEffect(() => {
     const audioEl = audioRef.current
@@ -88,6 +89,17 @@ const PodcastEpisode: React.FC<PodcastEpisodeProps> = ({ block }) => {
     }
   }, [])
 
+  useEffect(() => {
+    const audioEl = audioRef.current
+    if (!audioEl) return
+    audioEl.pause()
+    setIsPlaying(false)
+    setCurrentTime(0)
+    if (audioUrl) {
+      audioEl.load()
+    }
+  }, [audioUrl])
+
   const effectiveDuration = useMemo(() => {
     if (durationSeconds && Number.isFinite(durationSeconds) && durationSeconds > 0) {
       return durationSeconds
@@ -98,21 +110,18 @@ const PodcastEpisode: React.FC<PodcastEpisodeProps> = ({ block }) => {
   const durationLabel = effectiveDuration > 0 ? formatTime(effectiveDuration) : block.duration
   const progressPercent = effectiveDuration > 0 ? Math.min((currentTime / effectiveDuration) * 100, 100) : 0
 
-  const handleTogglePlayback = () => {
+  const handleTogglePlayback = async () => {
     const audioEl = audioRef.current
-    if (!audioEl) return
+    if (!audioEl || !audioUrl) return
 
-    if (!audioUrl) {
-      console.warn('No audio file provided for podcast episode')
-      return
-    }
-
-    if (audioEl.paused) {
-      audioEl.play().catch(error => {
-        console.error('Failed to play audio', error)
-      })
-    } else {
-      audioEl.pause()
+    try {
+      if (audioEl.paused) {
+        await audioEl.play()
+      } else {
+        audioEl.pause()
+      }
+    } catch (error) {
+      console.error('Failed to toggle audio playback', error)
     }
   }
 
@@ -129,13 +138,13 @@ const PodcastEpisode: React.FC<PodcastEpisodeProps> = ({ block }) => {
   const thumbnailAlt = block.thumbnail?.alt || block.title || 'Podcast billede'
 
   return (
-    <section className="container mx-auto px-4">
+    <section className="container mx-auto px-4 pb-8">
       <article
         className={cn(
           'mx-auto flex w-full max-w-4xl flex-col gap-4 rounded-2xl border border-brand-dark/5 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:gap-5 sm:p-5',
           'focus-within:ring-2 focus-within:ring-brand-green/60'
         )}
-        aria-label={block.title || 'Podcast episode'}
+        aria-label={ariaLabel}
       >
         {thumbnailUrl && (
           <div className="relative h-20 w-20 flex-none overflow-hidden rounded-xl bg-brand-green/10 sm:h-24 sm:w-24">
@@ -224,10 +233,15 @@ const PodcastEpisode: React.FC<PodcastEpisodeProps> = ({ block }) => {
 
         <audio
           ref={audioRef}
-          src={audioUrl || undefined}
           preload="metadata"
+          crossOrigin="anonymous"
+          src={audioUrl || undefined}
           aria-hidden
-        />
+        >
+          {audioUrl ? (
+            <source key={audioUrl} src={audioUrl} type={block.audio?.mimeType || undefined} />
+          ) : null}
+        </audio>
 
         {!audioUrl && (
           <p className="sr-only">Ingen lydfil er knyttet til denne episode.</p>

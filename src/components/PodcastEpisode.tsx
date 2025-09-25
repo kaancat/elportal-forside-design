@@ -129,26 +129,27 @@ const PodcastEpisode: React.FC<PodcastEpisodeProps> = ({ block }) => {
   const thumbnailAlt = block.thumbnail?.alt || block.title || 'Podcast billede'
 
   return (
-    <section
-      className={cn(
-        'mx-auto flex flex-col gap-4 rounded-2xl border border-brand-dark/5 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:gap-5 sm:p-5',
-        'focus-within:ring-2 focus-within:ring-brand-green/60'
-      )}
-      aria-label={block.title || 'Podcast episode'}
-    >
-      {thumbnailUrl && (
-        <div className="relative h-20 w-20 flex-none overflow-hidden rounded-xl bg-brand-green/10 sm:h-24 sm:w-24">
-          <Image
-            src={thumbnailUrl}
-            alt={thumbnailAlt}
-            fill
-            sizes="96px"
-            className="object-cover"
-          />
-        </div>
-      )}
+    <section className="container mx-auto px-4">
+      <article
+        className={cn(
+          'mx-auto flex w-full max-w-4xl flex-col gap-4 rounded-2xl border border-brand-dark/5 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:gap-5 sm:p-5',
+          'focus-within:ring-2 focus-within:ring-brand-green/60'
+        )}
+        aria-label={block.title || 'Podcast episode'}
+      >
+        {thumbnailUrl && (
+          <div className="relative h-20 w-20 flex-none overflow-hidden rounded-xl bg-brand-green/10 sm:h-24 sm:w-24">
+            <Image
+              src={thumbnailUrl}
+              alt={thumbnailAlt}
+              fill
+              sizes="96px"
+              className="object-cover"
+            />
+          </div>
+        )}
 
-      <div className="flex w-full flex-col gap-3">
+        <div className="flex w-full flex-col gap-3">
         <div className="flex flex-col gap-1">
           {block.title && (
             <h3 className="text-base font-semibold text-brand-dark sm:text-lg">
@@ -219,26 +220,27 @@ const PodcastEpisode: React.FC<PodcastEpisodeProps> = ({ block }) => {
             </div>
           </details>
         )}
-      </div>
+        </div>
 
-      <audio
-        ref={audioRef}
-        src={audioUrl || undefined}
-        preload="metadata"
-        aria-hidden
-      />
+        <audio
+          ref={audioRef}
+          src={audioUrl || undefined}
+          preload="metadata"
+          aria-hidden
+        />
 
-      {!audioUrl && (
-        <p className="sr-only">Ingen lydfil er knyttet til denne episode.</p>
-      )}
+        {!audioUrl && (
+          <p className="sr-only">Ingen lydfil er knyttet til denne episode.</p>
+        )}
 
-      <noscript>
-        {audioUrl ? (
-          <audio controls src={audioUrl} className="mt-4 w-full">
-            Din browser understøtter ikke lydafspilning.
-          </audio>
-        ) : null}
-      </noscript>
+        <noscript>
+          {audioUrl ? (
+            <audio controls src={audioUrl} className="mt-4 w-full">
+              Din browser understøtter ikke lydafspilning.
+            </audio>
+          ) : null}
+        </noscript>
+      </article>
     </section>
   )
 }

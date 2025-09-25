@@ -1,8 +1,9 @@
+"use client";
+
 import React from "react";
 import { ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { urlFor } from "@/lib/sanity";
-import OptimizedImage from "@/components/OptimizedImage";
 
 interface HeroProps {
   block: any;

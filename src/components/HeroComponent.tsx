@@ -1,4 +1,6 @@
 import React from "react";
+import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { urlFor } from "@/lib/sanity";
 import OptimizedImage from "@/components/OptimizedImage";
@@ -263,9 +265,121 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
             </div>
           </div>
         </div>
+
+        {/* Layer 3: Preview shortcuts */}
+        <div className="hidden md:flex absolute bottom-6 right-6 z-20 gap-4">
+          <HeroPreviewCard
+            href="#daily-price-chart"
+            title="Dagens elpris"
+            description="Se døgnets udsving"
+            preview={<DailyPricePreview />}
+          />
+          <HeroPreviewCard
+            href="#provider-list"
+            title="Prissammenligning"
+            description="Find bedste udbyder"
+            preview={<ProviderListPreview />}
+          />
+        </div>
       </div>
     </div>
   );
 };
 
 export default HeroComponent;
+
+interface HeroPreviewCardProps {
+  href: string;
+  title: string;
+  description: string;
+  preview: React.ReactNode;
+}
+
+const HeroPreviewCard: React.FC<HeroPreviewCardProps> = ({ href, title, description, preview }) => {
+  return (
+    <Link
+      href={href}
+      className="group w-[207px] h-[124px] rounded-2xl border border-white/50 bg-white/80 backdrop-blur-sm shadow-xl transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green"
+    >
+      <div className="flex h-full flex-col p-4">
+        <div className="flex items-start justify-between text-xs font-semibold text-gray-700">
+          <div>
+            <p>{title}</p>
+            <p className="text-[11px] font-normal text-gray-500">{description}</p>
+          </div>
+          <ArrowUpRight className="h-4 w-4 text-brand-green transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        </div>
+        <div className="mt-3 flex-1 text-[11px] text-gray-600">
+          {preview}
+        </div>
+      </div>
+    </Link>
+  );
+};
+
+const DailyPricePreview: React.FC = () => {
+  return (
+    <div className="flex h-full flex-col justify-between">
+      <div className="flex items-center justify-between text-[10px] uppercase tracking-wide text-gray-400">
+        <span>DK2</span>
+        <span>KR/kWh</span>
+      </div>
+      <div className="relative mt-1 h-16 w-full">
+        <svg viewBox="0 0 120 48" className="h-full w-full">
+          <defs>
+            <linearGradient id="dailyPriceGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="rgba(132, 219, 65, 0.5)" />
+              <stop offset="100%" stopColor="rgba(132, 219, 65, 0.05)" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M0 36 C 10 12, 26 8, 40 18 S 70 42, 90 20 S 110 6, 120 18 L120 48 L0 48 Z"
+            fill="url(#dailyPriceGradient)"
+          />
+          <path
+            d="M0 36 C 10 12, 26 8, 40 18 S 70 42, 90 20 S 110 6, 120 18"
+            stroke="rgba(34, 146, 92, 0.9)"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+          />
+          <circle cx="96" cy="18" r="3" fill="#ef4444" />
+        </svg>
+        <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+      </div>
+      <div className="mt-1 grid grid-cols-4 gap-1 text-[10px] font-medium text-gray-500">
+        <span>Nat</span>
+        <span>Morgen</span>
+        <span>Dag</span>
+        <span>Aften</span>
+      </div>
+    </div>
+  );
+};
+
+const ProviderListPreview: React.FC = () => {
+  const rows = [
+    { provider: "Vindstød", price: "1,82", highlight: true },
+    { provider: "EWII", price: "1,94" },
+    { provider: "Norlys", price: "2,05" }
+  ];
+
+  return (
+    <div className="flex h-full flex-col justify-between">
+      <div className="space-y-1">
+        {rows.map((row) => (
+          <div
+            key={row.provider}
+            className={`flex items-center justify-between rounded-lg border border-gray-100 px-2 py-1.5 ${row.highlight ? 'bg-brand-green/10 border-brand-green/30 text-gray-800' : 'bg-white/70 text-gray-600'}`}
+          >
+            <span className="text-[11px] font-semibold">{row.provider}</span>
+            <span className="text-[11px] font-mono">{row.price}</span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-2 rounded-lg bg-gray-100/80 p-2 text-[10px] text-gray-500">
+        Personlig filter klar · Opdateret i dag
+      </div>
+    </div>
+  );
+};

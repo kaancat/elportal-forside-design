@@ -1,5 +1,4 @@
 import React from "react";
-import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { urlFor } from "@/lib/sanity";
@@ -269,13 +268,13 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
         {/* Layer 3: Preview shortcuts */}
         <div className="absolute bottom-4 right-3 z-20 flex flex-row flex-wrap items-end justify-end gap-3 sm:right-4 md:bottom-6 md:right-6 md:gap-4">
           <HeroPreviewCard
-            href="#daily-price-chart"
+            onClick={() => scrollToSection('daily-price-chart', { focusSelector: '#daily-price-chart' })}
             title="Dagens elpris"
             description="Se døgnets udsving"
             preview={<DailyPricePreview />}
           />
           <HeroPreviewCard
-            href="#provider-list"
+            onClick={() => scrollToSection('provider-list', { focusSelector: '#provider-list' })}
             title="Prissammenligning"
             description="Find bedste udbyder"
             preview={<ProviderListPreview />}
@@ -288,18 +287,69 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
 
 export default HeroComponent;
 
+const scrollToSection = (targetId: string, options?: { focusSelector?: string }) => {
+  if (typeof window === 'undefined') return;
+  const target = document.getElementById(targetId);
+  if (!target) return;
+
+  const header = document.querySelector('[data-site-header]') || document.querySelector('header');
+  const headerHeight = header instanceof HTMLElement ? header.getBoundingClientRect().height : 0;
+  const offset = headerHeight > 0 ? headerHeight + 16 : 96;
+
+  const rect = target.getBoundingClientRect();
+  const destination = rect.top + window.scrollY - offset;
+  const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const scrollToY = Math.max(0, destination);
+
+  if (prefersReduced) {
+    window.scrollTo({ top: scrollToY });
+  } else {
+    const duration = 800;
+    const startY = window.scrollY;
+    const distance = scrollToY - startY;
+    const startTime = performance.now();
+    const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      const eased = easeInOutCubic(progress);
+      window.scrollTo({ top: startY + distance * eased });
+      if (progress < 1) requestAnimationFrame(step);
+    };
+
+    requestAnimationFrame(step);
+  }
+
+  try {
+    window.history.replaceState(null, '', `#${targetId}`);
+  } catch {}
+
+  const focusTarget = options?.focusSelector ? document.querySelector(options.focusSelector) : target;
+  if (focusTarget instanceof HTMLElement) {
+    setTimeout(() => {
+      try {
+        focusTarget.focus({ preventScroll: true });
+      } catch {}
+    }, prefersReduced ? 0 : 850);
+  }
+};
+
 interface HeroPreviewCardProps {
-  href: string;
   title: string;
   description: string;
   preview: React.ReactNode;
+  onClick: () => void;
 }
 
-const HeroPreviewCard: React.FC<HeroPreviewCardProps> = ({ href, title, description, preview }) => {
+const HeroPreviewCard: React.FC<HeroPreviewCardProps> = ({ title, description, preview, onClick }) => {
   return (
-    <Link
-      href={href}
+    <button
+      type="button"
+      onClick={onClick}
       className="group relative w-[160px] h-[104px] overflow-hidden rounded-2xl border border-white/60 bg-white/90 backdrop-blur-lg shadow-xl transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green sm:w-[180px] sm:h-[112px] md:w-[207px] md:h-[124px]"
+      aria-label={`${title} – gå til sektion`}
     >
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-white/45" />
@@ -310,7 +360,7 @@ const HeroPreviewCard: React.FC<HeroPreviewCardProps> = ({ href, title, descript
         </div>
       </div>
 
-      <div className="relative z-10 flex h-full flex-col p-4">
+      <div className="relative z-10 flex h-full flex-col p-4 text-left">
         <div className="flex items-start justify-between text-xs font-semibold text-gray-800">
           <div className="space-y-1">
             <p>{title}</p>
@@ -322,7 +372,7 @@ const HeroPreviewCard: React.FC<HeroPreviewCardProps> = ({ href, title, descript
           <span className="rounded-full bg-white px-2 py-1 shadow-sm">Genvej</span>
         </div>
       </div>
-    </Link>
+    </button>
   );
 };
 

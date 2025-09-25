@@ -299,7 +299,7 @@ const HeroPreviewCard: React.FC<HeroPreviewCardProps> = ({ href, title, descript
   return (
     <Link
       href={href}
-      className="group w-[207px] h-[124px] rounded-2xl border border-white/50 bg-white/80 backdrop-blur-sm shadow-xl transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green"
+      className="group w-[207px] h-[124px] overflow-hidden rounded-2xl border border-white/50 bg-white/80 backdrop-blur-sm shadow-xl transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green"
     >
       <div className="flex h-full flex-col p-4">
         <div className="flex items-start justify-between text-xs font-semibold text-gray-700">
@@ -309,7 +309,7 @@ const HeroPreviewCard: React.FC<HeroPreviewCardProps> = ({ href, title, descript
           </div>
           <ArrowUpRight className="h-4 w-4 text-brand-green transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </div>
-        <div className="mt-3 flex-1 text-[11px] text-gray-600">
+        <div className="mt-3 flex-1 overflow-hidden text-[11px] text-gray-600">
           {preview}
         </div>
       </div>

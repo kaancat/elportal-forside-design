@@ -538,6 +538,24 @@ export const pageProjection = `{
       thumbnailImage ${imageProjection},
       description
     },
+
+    // Podcast episode player block
+    _type == "podcastEpisode" => {
+      _type,
+      _key,
+      title,
+      subtitle,
+      duration,
+      headerAlignment,
+      "audio": audioFile.asset-> {
+        url,
+        originalFilename,
+        mimeType,
+        size
+      },
+      thumbnail ${imageProjection},
+      transcript
+    },
     
     // Real price comparison table
     _type == "realPriceComparisonTable" => {

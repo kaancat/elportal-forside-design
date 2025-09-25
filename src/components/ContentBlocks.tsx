@@ -2,7 +2,7 @@
 
 import React from 'react'
 // import { div } from 'framer-motion' // Temporarily disabled for Next.js compatibility
-import { PageSection, FAQItem, VideoSection, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, CO2EmissionsChart, DeclarationProduction, DeclarationGridmix as DeclarationGridmixType, ConsumptionMap, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
+import { PageSection, FAQItem, VideoSection, PodcastEpisodeBlock, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, CO2EmissionsChart, DeclarationProduction, DeclarationGridmix as DeclarationGridmixType, ConsumptionMap, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
 import PageSectionComponent from './PageSectionComponent'
 import FAQItemComponent from './FAQItemComponent'
 import VideoSectionComponent from './VideoSectionComponent'
@@ -31,6 +31,7 @@ import RegionalComparison from './RegionalComparison'
 import PricingComparison from './PricingComparison'
 import DailyPriceTimeline from './DailyPriceTimeline'
 import InfoCardsSection from './InfoCardsSection'
+import PodcastEpisode from './PodcastEpisode'
 // import { ForbrugTracker } from './forbrugTracker/ForbrugTracker' // TODO: Add to ContentBlock type
 import ErrorBoundary from './ErrorBoundary'
 import { ContentErrorFallback, ChartErrorFallback, CalculatorErrorFallback } from './ErrorFallbacks'
@@ -150,6 +151,9 @@ const renderContentBlock = (block: ContentBlock) => {
     
     case 'videoSection':
       return <VideoSectionComponent block={block as VideoSection} />;
+
+    case 'podcastEpisode':
+      return <PodcastEpisode block={block as PodcastEpisodeBlock} />;
     
     case 'richTextSection':
       return <RichTextSectionComponent block={block as RichTextSection} />;

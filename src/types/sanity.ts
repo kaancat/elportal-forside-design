@@ -84,6 +84,22 @@ export interface VideoSection {
   customThumbnail?: SanityImage
 }
 
+export interface PodcastEpisodeBlock {
+  _type: 'podcastEpisode'
+  _key: string
+  title: string
+  subtitle?: string
+  duration?: string
+  audio?: {
+    url?: string
+    originalFilename?: string
+    mimeType?: string
+    size?: number
+  } | null
+  thumbnail?: SanityImage
+  transcript?: BlockContent[]
+}
+
 export interface FaqGroup {
   _type: 'faqGroup'
   _key: string
@@ -462,6 +478,7 @@ export type ContentBlock =
   | PageSection 
   | FAQItem 
   | VideoSection 
+  | PodcastEpisodeBlock
   | FaqGroup 
   | RichTextSection 
   | CallToActionSection 

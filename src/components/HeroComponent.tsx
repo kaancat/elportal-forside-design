@@ -303,7 +303,7 @@ const HeroPreviewCard: React.FC<HeroPreviewCardProps> = ({ href, title, descript
     >
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-white/45" />
-        <div className="absolute inset-0 translate-y-6 scale-110 p-4 opacity-45 transition-all duration-300 group-hover:translate-y-4 group-hover:opacity-60">
+        <div className="absolute inset-0 translate-y-12 scale-110 p-4 opacity-45 transition-all duration-300 group-hover:translate-y-8 group-hover:opacity-60">
           <div className="h-full w-full pointer-events-none opacity-95">
             {preview}
           </div>

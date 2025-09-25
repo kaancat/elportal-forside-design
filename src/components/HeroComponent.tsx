@@ -267,7 +267,7 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
         </div>
 
         {/* Layer 3: Preview shortcuts */}
-        <div className="hidden md:flex absolute bottom-6 right-6 z-20 gap-4">
+        <div className="absolute bottom-4 right-3 z-20 flex flex-col gap-3 sm:right-4 sm:flex-row sm:items-end md:bottom-6 md:right-6 md:gap-4">
           <HeroPreviewCard
             href="#daily-price-chart"
             title="Dagens elpris"
@@ -299,12 +299,12 @@ const HeroPreviewCard: React.FC<HeroPreviewCardProps> = ({ href, title, descript
   return (
     <Link
       href={href}
-      className="group relative w-[207px] h-[124px] overflow-hidden rounded-2xl border border-white/50 bg-white/75 backdrop-blur-md shadow-xl transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green"
+      className="group relative w-[160px] h-[104px] overflow-hidden rounded-2xl border border-white/60 bg-white/90 backdrop-blur-lg shadow-xl transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green sm:w-[180px] sm:h-[112px] md:w-[207px] md:h-[124px]"
     >
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-green/15 via-white/30 to-brand-green/10 opacity-60" />
-        <div className="absolute inset-0 p-4 opacity-45 transition-opacity duration-300 group-hover:opacity-55">
-          <div className="h-full w-full scale-105 transform opacity-95">
+        <div className="absolute inset-0 bg-white/45" />
+        <div className="absolute inset-0 translate-y-6 scale-110 p-4 opacity-45 transition-all duration-300 group-hover:translate-y-4 group-hover:opacity-60">
+          <div className="h-full w-full pointer-events-none opacity-95">
             {preview}
           </div>
         </div>
@@ -319,7 +319,7 @@ const HeroPreviewCard: React.FC<HeroPreviewCardProps> = ({ href, title, descript
           <ArrowUpRight className="h-4 w-4 text-brand-green transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </div>
         <div className="mt-auto flex items-center gap-2 text-[11px] font-medium text-gray-500/80">
-          <span className="rounded-full bg-white/70 px-2 py-1 shadow-sm backdrop-blur">Genvej</span>
+          <span className="rounded-full bg-white px-2 py-1 shadow-sm">Genvej</span>
         </div>
       </div>
     </Link>

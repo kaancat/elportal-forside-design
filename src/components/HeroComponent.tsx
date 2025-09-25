@@ -267,7 +267,7 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
         </div>
 
         {/* Layer 3: Preview shortcuts */}
-        <div className="absolute bottom-4 right-3 z-20 flex flex-col gap-3 sm:right-4 sm:flex-row sm:items-end md:bottom-6 md:right-6 md:gap-4">
+        <div className="absolute bottom-4 right-3 z-20 flex flex-row flex-wrap items-end justify-end gap-3 sm:right-4 md:bottom-6 md:right-6 md:gap-4">
           <HeroPreviewCard
             href="#daily-price-chart"
             title="Dagens elpris"

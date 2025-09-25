@@ -368,8 +368,8 @@ const DailyPricePreview: React.FC = () => {
 
 const ProviderListPreview: React.FC = () => {
   const rows = [
-    { provider: "Vindstød", price: "0,59 kr/kWh", detail: "Spotpris + tillæg", highlight: true },
-    { provider: "Velkommen", price: "0,62 kr/kWh", detail: "Spotpris + tillæg" },
+    { provider: "Vindstød", price: "0,59 kr/kWh", highlight: true },
+    { provider: "Velkommen", price: "0,62 kr/kWh" },
     { provider: "Norlys", price: "0,65 kr/kWh" }
   ];
 
@@ -385,11 +385,6 @@ const ProviderListPreview: React.FC = () => {
               <span>{row.provider}</span>
               <span className="ml-3 font-mono">{row.price}</span>
             </div>
-            {row.detail && (
-              <p className="mt-1 text-[10px] font-normal text-emerald-900/60">
-                {row.detail}
-              </p>
-            )}
           </div>
         ))}
       </div>

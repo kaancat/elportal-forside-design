@@ -59,3 +59,12 @@ TO VERIFY
 - Smoke test a page with `pageSection.settings.stickyImage = true` and an image present; confirm sticky behavior on desktop and graceful fallback on mobile.
 - Confirm `cta.url` navigates correctly for sections that include a CTA.
 
+## [2025-10-07] – Update
+Goal: Create Next.js-compliant .env.local and remove Vite prefixes
+
+- Action: Added `env.local` with deduplicated variables using NEXT_PUBLIC_* for client and server-only for secrets; normalized `SITE_URL`, `KV_*`, `ELPORTAL_SIGNING_KEY`, `SANITY_*`, and analytics IDs.
+- Action: Mapped legacy Vite vars: `VITE_SANITY_*` → `NEXT_PUBLIC_SANITY_*`; removed Vite prefixes from any sensitive tokens.
+- Impact: Next.js reads env at build/runtime without leaking secrets to the client. Local dev now works with `npm run dev` using `env.local`.
+- TO VERIFY: Visit `/api/health` and confirm `eloverblikToken` and `kvUrl` flags; load homepage to ensure Sanity reads succeed; test SSR flag by toggling `NEXT_PUBLIC_PHASE2_SSR=false`.
+- NOTE: `SMITHERY_API_KEY` is not referenced in the code currently; kept out of env by default. If needed later, add server-side only.
+

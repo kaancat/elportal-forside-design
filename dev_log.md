@@ -68,3 +68,20 @@ Goal: Create Next.js-compliant .env.local and remove Vite prefixes
 - TO VERIFY: Visit `/api/health` and confirm `eloverblikToken` and `kvUrl` flags; load homepage to ensure Sanity reads succeed; test SSR flag by toggling `NEXT_PUBLIC_PHASE2_SSR=false`.
 - NOTE: `SMITHERY_API_KEY` is not referenced in the code currently; kept out of env by default. If needed later, add server-side only.
 
+## [2025-10-07] – Update
+Goal: Add Blog link and placeholder page
+
+- Action: Injected local "Blog" nav link between "Leverandører" and the mega menu in `src/components/Navigation.tsx`; non-destructive (does not mutate CMS).
+- Action: Created empty placeholder page at `app/blogs/page.tsx`.
+- Impact: Header now shows "Blog" linking to `/blogs`; page renders an empty container for now.
+- TO VERIFY: Start dev server and confirm the new link appears between the specified items and navigates to `/blogs`.
+
+## [2025-10-10] – Update
+Goal: Replace blog placeholder images with energy-relevant themes
+
+- Action: Updated all blog post images in `app/blogs/page.tsx` and `app/blogs/[slug]/page.tsx` from forest/nature themes to energy-specific imagery.
+- Action: New images showcase: wind turbines, solar panels, EV charging stations, smart home devices, electricity infrastructure, heat pumps, power meters, and energy-related visuals.
+- Action: Updated image alt texts to Danish descriptions matching the new energy themes.
+- Impact: Blog archive and individual post pages now display contextually relevant imagery that aligns with DinElPortal's electricity/energy focus instead of generic nature photos.
+- NOTE: All changes limited to `/blogs` route and subpages only; no modifications to other parts of the application.
+

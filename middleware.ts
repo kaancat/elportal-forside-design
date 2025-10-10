@@ -15,26 +15,26 @@ import { envBool } from '@/lib/env'
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
-  
+
   // Avoid rewrite loops: never process the fallback route itself
   if (pathname === '/spa-fallback' || pathname.startsWith('/spa-fallback/')) {
     return NextResponse.next()
   }
-  
+
   // Never rewrite internal SSR routes
   if (pathname.startsWith('/__ssr/')) {
     return NextResponse.next()
   }
-  
+
   // Only process GET and HEAD requests
   if (!['GET', 'HEAD'].includes(request.method)) {
     return NextResponse.next()
   }
-  
+
   // Feature flags for gradual rollout
   const phase2Enabled = envBool('NEXT_PUBLIC_PHASE2_SSR', true)
   const phase3Enabled = envBool('PHASE3_DYNAMIC_ENABLED', false) // Server-only flag per Codex
-  
+
   // Routes that have been migrated to Next.js SSR/ISR
   // Start with homepage, add more routes as we migrate them
   const nextjsRoutes: string[] = [
@@ -42,12 +42,14 @@ export function middleware(request: NextRequest) {
     '/',
     // High-traffic pages now migrated with root-level [slug] route
     '/elpriser',
-    '/sammenlign', 
+    '/sammenlign',
     '/groen-energi',
     '/vindstod',
     '/spar-penge',
+    // Blog pages
+    '/blogs',
   ]
-  
+
   // Routes that should always use React Router SPA
   // These are lower priority or complex interactive pages
   const spaOnlyRoutes = [
@@ -57,7 +59,7 @@ export function middleware(request: NextRequest) {
     '/admin',
     '/privacy-policy',
   ]
-  
+
   // Check if this is a migrated Next.js route
   const isMigratedRoute = phase2Enabled && nextjsRoutes.some(route => {
     if (route === '/') {
@@ -65,12 +67,12 @@ export function middleware(request: NextRequest) {
     }
     return pathname === route || pathname.startsWith(`${route}/`)
   })
-  
+
   // Check if this is explicitly a SPA route
-  const isSpaRoute = spaOnlyRoutes.some(route => 
+  const isSpaRoute = spaOnlyRoutes.some(route =>
     pathname === route || pathname.startsWith(`${route}/`)
   )
-  
+
   // Phase 3: Dynamic pages with route isolation
   if (phase3Enabled && !isSpaRoute && !isMigratedRoute) {
     const dynamicPages = [
@@ -80,31 +82,31 @@ export function middleware(request: NextRequest) {
       '/vindstod',
       '/spar-penge',
     ]
-    
-    const isDynamicPage = dynamicPages.some(page => 
+
+    const isDynamicPage = dynamicPages.some(page =>
       pathname === page || pathname.startsWith(`${page}/`)
     )
-    
+
     if (isDynamicPage) {
       // Rewrite to isolated SSR route (never expose __ssr in canonicals)
       const url = request.nextUrl.clone()
       url.pathname = `/__ssr${pathname}`
-      
+
       // Add X-Robots-Tag for staging per Codex
       if (process.env.SITE_URL !== 'https://dinelportal.dk') {
         const response = NextResponse.rewrite(url)
         response.headers.set('X-Robots-Tag', 'noindex, nofollow')
         return response
       }
-      
+
       if (process.env.NODE_ENV === 'development') {
         console.log(`[Middleware] Phase 3 SSR route: ${pathname} -> /__ssr${pathname}`)
       }
-      
+
       return NextResponse.rewrite(url)
     }
   }
-  
+
   if (isMigratedRoute) {
     // Let Next.js handle this route with SSR/ISR
     // Debug logging (remove in production)
@@ -113,7 +115,7 @@ export function middleware(request: NextRequest) {
     }
     return NextResponse.next()
   }
-  
+
   // For SPA routes, rewrite to catch-all only if they're explicitly SPA routes
   if (isSpaRoute) {
     // Debug logging (remove in production)
@@ -126,20 +128,20 @@ export function middleware(request: NextRequest) {
     url.pathname = `/spa-fallback${pathname}`
     return NextResponse.rewrite(url)
   }
-  
+
   // For unknown routes, try SSR if Phase 3 is enabled, otherwise fallback to SPA
   if (!isMigratedRoute && phase3Enabled) {
     // Try SSR for unknown content pages
     const url = request.nextUrl.clone()
     url.pathname = `/__ssr${pathname}`
-    
+
     if (process.env.NODE_ENV === 'development') {
       console.log(`[Middleware] Trying SSR for unknown route: ${pathname} -> /__ssr${pathname}`)
     }
-    
+
     return NextResponse.rewrite(url)
   }
-  
+
   // Default: let Next.js handle it
   return NextResponse.next()
 }

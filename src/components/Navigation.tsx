@@ -26,7 +26,7 @@ interface NavigationProps {
 const Navigation = ({ initialSettings }: NavigationProps) => {
   const [openMenuKey, setOpenMenuKey] = useState<string | null>(null);
   const { refreshNavigation } = useNavigationRefresh();
-  
+
   // Use the unified site settings hook
   // If initialSettings provided from server, skip client fetch for instant header render
   const { settings: fetchedSettings, isLoading, isFetching, error } = useSiteSettings({ enabled: !initialSettings });
@@ -66,7 +66,7 @@ const Navigation = ({ initialSettings }: NavigationProps) => {
       <header className="sticky top-0 z-50 w-full bg-brand-dark h-16">
         <div className="container mx-auto px-4 flex items-center justify-between h-16">
           <UniversalLink href="/" className="flex-shrink-0 relative">
-            <Logo 
+            <Logo
               src={null}
               alt={FALLBACK_ALT}
               className="h-8 sm:h-10"
@@ -87,7 +87,7 @@ const Navigation = ({ initialSettings }: NavigationProps) => {
     });
     return <header className="sticky top-0 z-50 w-full bg-brand-dark h-16" />;
   }
-  
+
   // Debug logging gated by verbose flag
   if (process.env.NODE_ENV === 'development' && debugVerbose) console.log('[Navigation] Data state:', {
     hasSettings: !!settings,
@@ -124,12 +124,12 @@ const Navigation = ({ initialSettings }: NavigationProps) => {
     });
     return shouldKeep;
   });
-  
+
   if (process.env.NODE_ENV === 'development' && debugVerbose) console.log('[Navigation] AFTER filtering - navItems:', navItems.length, navItems.map(item => ({
     title: item.title,
     _type: item._type
   })));
-  
+
   // Add validation after filtering
   if (navItems.length === 0) {
     console.warn('[Navigation] No nav items after filtering - CRITICAL ISSUE:', {
@@ -138,8 +138,38 @@ const Navigation = ({ initialSettings }: NavigationProps) => {
       allAreButtons: settings?.headerLinks?.every(link => isLinkEntry(link) && link.isButton)
     });
   }
-  
-  const megaMenu = navItems.find(item => item._type === 'megaMenu') as MegaMenu | undefined;
+
+  // Inject local "Blog" link between "Leverandører" and "Lær mere om" (non-destructive; does not mutate CMS)
+  const displayItems: (LinkType | MegaMenu)[] = (() => {
+    const copy = [...navItems];
+
+    // Prevent duplicate if already present
+    const alreadyHasBlog = copy.some(it => it._type === 'link' && (it as LinkType).internalLink?.slug === 'blogs');
+    if (alreadyHasBlog) return copy;
+
+    const blogLink: LinkType = {
+      _key: 'local-blog-link',
+      _type: 'link',
+      title: 'Blog',
+      linkType: 'internal',
+      internalLink: { slug: 'blogs', _type: 'page' },
+      isButton: false,
+    } as LinkType;
+
+    // Find reference positions
+    const lower = (s?: string) => (s || '').trim().toLowerCase();
+    const leverIndex = copy.findIndex(it => it._type === 'link' && lower((it as LinkType).title) === 'leverandører');
+    const learnIndex = copy.findIndex(it => it._type === 'megaMenu' && lower((it as MegaMenu).title).includes('lær mere om'));
+
+    let insertIndex = copy.length;
+    if (learnIndex >= 0) insertIndex = learnIndex; // just before mega menu
+    else if (leverIndex >= 0) insertIndex = leverIndex + 1; // after Leverandører
+
+    copy.splice(Math.max(0, Math.min(insertIndex, copy.length)), 0, blogLink);
+    return copy;
+  })();
+
+  const megaMenu = displayItems.find(item => item._type === 'megaMenu') as MegaMenu | undefined;
 
   // Helper to build a small, optimized Sanity image URL for fast header rendering
   const buildOptimizedSanityUrl = (ref?: string | null) => {
@@ -153,22 +183,22 @@ const Navigation = ({ initialSettings }: NavigationProps) => {
   };
 
   return (
-    <header 
+    <header
       className="sticky top-0 z-50 w-full bg-brand-dark shadow-md"
       onMouseLeave={() => setOpenMenuKey(null)}
     >
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
         <UniversalLink href="/" className="flex-shrink-0 relative">
-          <Logo 
+          <Logo
             src={buildOptimizedSanityUrl(settings.logo?.asset?._ref)}
             alt={settings.title || FALLBACK_ALT}
             className="h-8 sm:h-10"
           />
         </UniversalLink>
-        
+
         <nav className="hidden md:flex items-center justify-center space-x-8">
-          {navItems.map((item) => (
-            <div 
+          {displayItems.map((item) => (
+            <div
               key={item._key}
               onMouseEnter={() => item._type === 'megaMenu' && setOpenMenuKey(item._key)}
             >
@@ -200,8 +230,8 @@ const Navigation = ({ initialSettings }: NavigationProps) => {
               <UniversalLink href={resolveLink(ctaButton, 'Navigation')}>{ctaButton.title}</UniversalLink>
             </Button>
           )}
-          <MobileNav 
-            navItems={navItems} 
+          <MobileNav
+            navItems={displayItems}
             resolveLink={(link: LinkType) => resolveLink(link, 'Navigation')}
             logoSrc={buildOptimizedSanityUrl(settings.logo?.asset?._ref) || undefined}
             logoAlt={settings.title || FALLBACK_ALT}

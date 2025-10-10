@@ -137,3 +137,10 @@ All route handlers live under `app/api/**` and share helpers from `src/server/ap
 - `dev_log.md` — recent migrations, verification tasks, and pending follow-ups.
 
 Keep this README as the source of truth; update it alongside significant architectural or operational changes.
+
+## Environment Quickstart (Next.js)
+- Copy `env.local` from the repo or create one from `.env.local.example`.
+- Client-safe vars must start with `NEXT_PUBLIC_` (e.g., `NEXT_PUBLIC_SANITY_PROJECT_ID`).
+- Secrets must NOT use `NEXT_PUBLIC_` (e.g., `SANITY_API_TOKEN`, `ELPORTAL_SIGNING_KEY`).
+- Vite mapping: `VITE_SANITY_*` → `NEXT_PUBLIC_SANITY_*`.
+- Start dev server: `npm run dev`.

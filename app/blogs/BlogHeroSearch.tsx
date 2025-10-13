@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { BlogPageSettings } from '@/types/sanity'
 
 interface SimplePost {
     date: string
@@ -18,57 +19,75 @@ interface SimplePost {
 }
 
 interface BlogHeroSearchProps {
-    defaultFeaturedPosts: SimplePost[]  // Now accepts array of 3 featured posts
-    allPosts: SimplePost[]
-    heroBackgroundImage: string
+    allBlogPosts: SimplePost[]
+    blogSettings?: BlogPageSettings
 }
 
-export default function BlogHeroSearch({ defaultFeaturedPosts, allPosts, heroBackgroundImage }: BlogHeroSearchProps) {
+export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroSearchProps) {
     const [searchQuery, setSearchQuery] = useState('')
     const [currentIndex, setCurrentIndex] = useState(0)
     const [isSearchActive, setIsSearchActive] = useState(false)
     const [activeTopic, setActiveTopic] = useState<string | null>(null)
 
-    // Filter posts based on search query
-    const matchingPosts = useMemo(() => {
-        if (!searchQuery.trim()) {
-            return defaultFeaturedPosts  // Show 3 featured posts by default
+    // Get default featured posts from settings or fallback to latest 3 posts
+    const defaultFeaturedPosts = useMemo(() => {
+        if (blogSettings?.featuredPosts && blogSettings.featuredPosts.length > 0) {
+            return blogSettings.featuredPosts.map(post => ({
+                date: new Date(post.publishedAt).toLocaleDateString('da-DK', { year: 'numeric', month: 'long', day: 'numeric' }),
+                title: post.title,
+                description: post.description,
+                imageUrl: (post.featuredImage?.asset && 'url' in post.featuredImage.asset && post.featuredImage.asset.url)
+                    ? post.featuredImage.asset.url
+                    : 'https://images.unsplash.com/photo-1466611653911-95081537e5b7?ixlib=rb-4.0.3',
+                imageAlt: post.featuredImage?.alt || 'Featured blog image',
+                type: post.type,
+                slug: post.slug.current,
+                readTime: post.readTime
+            }))
         }
+        // Fallback to latest 3 posts if no featured posts are set
+        return allBlogPosts.slice(0, 3)
+    }, [blogSettings, allBlogPosts])
 
-        const query = searchQuery.toLowerCase().trim()
+    // Filter posts based on search query
+    const filteredPosts = useMemo(() => {
+        if (!isSearchActive || !searchQuery.trim()) {
+            return defaultFeaturedPosts
+        }
+        const lowerCaseQuery = searchQuery.toLowerCase()
+        return allBlogPosts.filter(post =>
+            post.title.toLowerCase().includes(lowerCaseQuery) ||
+            post.description.toLowerCase().includes(lowerCaseQuery) ||
+            post.type.toLowerCase().includes(lowerCaseQuery)
+        )
+    }, [allBlogPosts, searchQuery, isSearchActive, defaultFeaturedPosts])
 
-        // Search only in title
-        const matches = allPosts.filter(post => {
-            const titleLower = post.title.toLowerCase()
-            return titleLower.includes(query)
-        })
+    const matchingPosts = filteredPosts.length > 0 ? filteredPosts : defaultFeaturedPosts
 
-        return matches.length > 0 ? matches : defaultFeaturedPosts
-    }, [searchQuery, allPosts, defaultFeaturedPosts])
-
-    // Reset index when matches change and activate search
-    const handleSearch = () => {
-        setCurrentIndex(0)
-        setIsSearchActive(searchQuery.trim().length > 0)
-    }
-
-    // Update search active state and reset index when query changes
-    useMemo(() => {
-        const isActive = searchQuery.trim().length > 0
-        setIsSearchActive(isActive)
-        if (isActive) {
-            setCurrentIndex(0) // Reset to first result when search changes
+    const handleSearch = useCallback((topic?: string) => {
+        const query = topic || searchQuery
+        if (query.trim()) {
+            setIsSearchActive(true)
+            setActiveTopic(topic || null)
+            setCurrentIndex(0) // Reset carousel to first result
+        } else {
+            setIsSearchActive(false)
+            setActiveTopic(null)
         }
     }, [searchQuery])
 
-    // Carousel navigation
-    const goToPrevious = () => {
-        setCurrentIndex((prev) => (prev === 0 ? matchingPosts.length - 1 : prev - 1))
-    }
+    const goToNext = useCallback(() => {
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % matchingPosts.length)
+    }, [matchingPosts.length])
 
-    const goToNext = () => {
-        setCurrentIndex((prev) => (prev === matchingPosts.length - 1 ? 0 : prev + 1))
-    }
+    const goToPrevious = useCallback(() => {
+        setCurrentIndex((prevIndex) => (prevIndex - 1 + matchingPosts.length) % matchingPosts.length)
+    }, [matchingPosts.length])
+
+    useEffect(() => {
+        const interval = setInterval(goToNext, 5000) // Auto-advance every 5 seconds
+        return () => clearInterval(interval)
+    }, [goToNext])
 
     const currentPost = matchingPosts[currentIndex] || defaultFeaturedPosts[0]
     const showCarousel = matchingPosts.length > 1

@@ -33,7 +33,7 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
     const defaultFeaturedPosts = useMemo(() => {
         if (blogSettings?.featuredPosts && blogSettings.featuredPosts.length > 0) {
             return blogSettings.featuredPosts.map(post => ({
-                date: new Date(post.publishedAt).toLocaleDateString('da-DK', { year: 'numeric', month: 'long', day: 'numeric' }),
+                date: new Date(post.publishedDate).toLocaleDateString('da-DK', { year: 'numeric', month: 'long', day: 'numeric' }),
                 title: post.title,
                 description: post.description,
                 imageUrl: (post.featuredImage?.asset && 'url' in post.featuredImage.asset && post.featuredImage.asset.url)

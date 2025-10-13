@@ -33,8 +33,10 @@ function transformBlogPost(post: BlogPost): SimplePost {
         day: '2-digit'
     })
 
-    // Get image URL from Sanity asset (with fallback)
-    const imageUrl = (post.featuredImage?.asset as any)?.url || 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?ixlib=rb-4.0.3'
+    // Get image URL from Sanity asset (handle union type)
+    const imageUrl = (post.featuredImage?.asset && 'url' in post.featuredImage.asset) 
+        ? post.featuredImage.asset.url 
+        : 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?ixlib=rb-4.0.3'
     const imageAlt = post.featuredImage?.alt || post.title
 
     return {
@@ -70,9 +72,10 @@ export default async function BlogsPage() {
         featuredPostsTransformed = allPostsTransformed.slice(0, 3)
     }
 
-    // Get hero background image from settings or use default
-    const heroBackgroundImage = blogSettings?.heroBackgroundImage?.asset?.url ||
-        'https://images.unsplash.com/photo-1466611653911-95081537e5b7?ixlib=rb-4.0.3'
+    // Get hero background image from settings or use default (handle union type)
+    const heroBackgroundImage = (blogSettings?.heroBackgroundImage?.asset && 'url' in blogSettings.heroBackgroundImage.asset)
+        ? blogSettings.heroBackgroundImage.asset.url
+        : 'https://images.unsplash.com/photo-1466611653911-95081537e5b7?ixlib=rb-4.0.3'
 
     // Fallback content if no posts exist yet
     const defaultPost: SimplePost = {

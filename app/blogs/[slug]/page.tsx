@@ -221,7 +221,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     })
 
     // Get image URL from Sanity asset (handle union type)
-    const imageUrl = (post.featuredImage?.asset && 'url' in post.featuredImage.asset) 
+    const imageUrl = (post.featuredImage?.asset && 'url' in post.featuredImage.asset && post.featuredImage.asset.url) 
         ? post.featuredImage.asset.url 
         : 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?ixlib=rb-4.0.3'
     const imageAlt = post.featuredImage?.alt || post.title

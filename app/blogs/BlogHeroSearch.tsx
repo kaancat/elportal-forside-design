@@ -135,7 +135,7 @@ export default function BlogHeroSearch({ defaultFeaturedPosts, allPosts, heroBac
                                 {/* Image with overlay gradient */}
                                 <div className="relative w-full aspect-[16/9] flex-shrink-0 overflow-hidden">
                                     <Image
-                                        src={`${currentPost.imageUrl}&auto=format&fit=crop&w=800&q=80`}
+                                        src={currentPost.imageUrl.includes('?') ? `${currentPost.imageUrl}&auto=format&fit=crop&w=800&q=80` : `${currentPost.imageUrl}?auto=format&fit=crop&w=800&q=80`}
                                         alt={currentPost.imageAlt}
                                         fill
                                         sizes="(min-width: 1024px) 384px, (min-width: 640px) 448px, 100vw"

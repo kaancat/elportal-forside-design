@@ -34,7 +34,7 @@ function transformBlogPost(post: BlogPost): SimplePost {
     })
 
     // Get image URL from Sanity asset (handle union type)
-    const imageUrl = (post.featuredImage?.asset && 'url' in post.featuredImage.asset) 
+    const imageUrl = (post.featuredImage?.asset && 'url' in post.featuredImage.asset && post.featuredImage.asset.url) 
         ? post.featuredImage.asset.url 
         : 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?ixlib=rb-4.0.3'
     const imageAlt = post.featuredImage?.alt || post.title
@@ -73,7 +73,7 @@ export default async function BlogsPage() {
     }
 
     // Get hero background image from settings or use default (handle union type)
-    const heroBackgroundImage = (blogSettings?.heroBackgroundImage?.asset && 'url' in blogSettings.heroBackgroundImage.asset)
+    const heroBackgroundImage = (blogSettings?.heroBackgroundImage?.asset && 'url' in blogSettings.heroBackgroundImage.asset && blogSettings.heroBackgroundImage.asset.url)
         ? blogSettings.heroBackgroundImage.asset.url
         : 'https://images.unsplash.com/photo-1466611653911-95081537e5b7?ixlib=rb-4.0.3'
 

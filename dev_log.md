@@ -12,6 +12,16 @@ Goal: Replace hardcoded blog content with dynamic data from Sanity CMS while mai
   - All instances checking for expanded URLs now use `(image.asset && 'url' in image.asset && image.asset.url)`
   - Production build now succeeds on Vercel
 
+### Runtime Error Fixes (Null Safety & URL Handling)
+- ✅ FIXED: Resolved runtime errors during static page generation for blog pages
+  - Added null safety checks for `asset.url` in all image URL extractions
+  - Changed from `'url' in asset` to `('url' in asset && asset.url)` to handle cases where URL exists but is null
+  - Fixed in `app/blogs/page.tsx` (transformBlogPost function and heroBackgroundImage)
+  - Fixed in `app/blogs/[slug]/page.tsx` (imageUrl extraction)
+  - Fixed query parameter appending to handle URLs with existing query strings
+  - `BlogArchive.tsx` and `BlogHeroSearch.tsx` now use conditional `?` vs `&` based on `imageUrl.includes('?')`
+  - Prevents malformed URLs like `image.jpg&auto=format` (should be `image.jpg?auto=format`)
+
 ### Changes Made:
 - ✅ COMPLETED: Updated TypeScript types for blog integration
   - Extended `BlogPost` interface with new schema fields: `type`, `description`, `featuredImage`, `contentBlocks`, `publishedDate`, `featured`, `readTime`, `tags`

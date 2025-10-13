@@ -72,7 +72,7 @@ const Footer = ({ initialSettings }: FooterProps) => {
             <div className="mb-8 md:mb-0">
               {footer.footerLogo ? (
                 <Image
-                  src={footer.footerLogo.asset?._ref ? 
+                  src={footer.footerLogo.asset && '_ref' in footer.footerLogo.asset ? 
                     `https://cdn.sanity.io/images/yxesi03x/production/${footer.footerLogo.asset._ref.replace('image-', '').replace('-png', '.png').replace('-jpg', '.jpg')}` :
                     FALLBACK_LOGO
                   }

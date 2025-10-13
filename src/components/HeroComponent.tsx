@@ -34,10 +34,9 @@ const HeroComponent: React.FC<HeroProps> = ({ block }) => {
   
   // Check if heroImage has a valid image (support multiple data structures)
   const hasValidSanityImage = heroImage && (
-    heroImage.asset?._ref ||    // Reference structure: {asset: {_ref: "..."}}
+    (heroImage.asset && '_ref' in heroImage.asset && heroImage.asset._ref) ||    // Reference structure: {asset: {_ref: "..."}}
     heroImage._ref ||           // Legacy structure: {_ref: "..."}
-    heroImage.asset?._id ||     // Expanded structure: {asset: {_id: "...", url: "..."}}
-    heroImage.asset?.url        // Direct URL structure: {asset: {url: "..."}}
+    (heroImage.asset && 'url' in heroImage.asset && heroImage.asset.url)        // Expanded structure: {asset: {url: "..."}}
   );
   
   // Define background styles - using inline styles for gradients to ensure they work

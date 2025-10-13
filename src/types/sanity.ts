@@ -1,8 +1,10 @@
 export interface SanityImage {
   _type: 'image'
   asset: {
-    _ref: string
-    _type: 'reference'
+    _ref?: string
+    _type?: 'reference'
+    _id?: string
+    url?: string // When expanded in GROQ query with asset->
   }
   alt?: string
   hotspot?: {
@@ -475,24 +477,24 @@ export interface ConsumptionMap {
 
 
 // Centralized ContentBlock union type
-export type ContentBlock = 
-  | PageSection 
-  | FAQItem 
-  | VideoSection 
+export type ContentBlock =
+  | PageSection
+  | FAQItem
+  | VideoSection
   | PodcastEpisodeBlock
-  | FaqGroup 
-  | RichTextSection 
-  | CallToActionSection 
-  | LivePriceGraph 
-  | RealPriceComparisonTable 
-  | ForbrugTrackerBlock 
-  | RenewableEnergyForecast 
+  | FaqGroup
+  | RichTextSection
+  | CallToActionSection
+  | LivePriceGraph
+  | RealPriceComparisonTable
+  | ForbrugTrackerBlock
+  | RenewableEnergyForecast
   | CO2EmissionsChart
   | DeclarationProduction
   | DeclarationGridmix
   | ConsumptionMap
-  | PriceCalculator 
-  | HeroWithCalculator 
+  | PriceCalculator
+  | HeroWithCalculator
   | HeroBlock
   | MonthlyProductionChartBlock
   | ProviderListBlock
@@ -515,11 +517,31 @@ export interface BlogPost {
   slug: {
     current: string
   }
-  mainImage?: SanityImage
-  body: BlockContent[]
-  publishedAt: string
-  seoMetaTitle: string
-  seoMetaDescription: string
+  type: 'Blog' | 'Guide'
+  description: string
+  featuredImage?: SanityImage
+  contentBlocks: any[] // Array of component references
+  publishedDate: string
+  featured?: boolean
+  readTime?: number
+  tags?: string[]
+  seoMetaTitle?: string
+  seoMetaDescription?: string
+  seoMetaKeywords?: string
+  seoOpenGraphImage?: SanityImage
+}
+
+export interface BlogPageSettings {
+  _id: string
+  _type: 'blogPageSettings'
+  heroTitle: string
+  heroSubtitle?: string
+  heroBackgroundImage?: SanityImage
+  featuredPosts?: BlogPost[]
+  seoMetaTitle?: string
+  seoMetaDescription?: string
+  seoMetaKeywords?: string
+  seoOpenGraphImage?: SanityImage
 }
 
 // Navigation and Site Settings Types
@@ -590,17 +612,17 @@ export interface MegaMenu {
 }
 
 export interface FooterLinkGroup {
-    _key: string;
-    title: string;
-    links: Link[];
+  _key: string;
+  title: string;
+  links: Link[];
 }
 
 export interface FooterSettings {
-    footerLogo?: SanityImage;
-    footerDescription?: string;
-    copyrightText?: string;
-    secondaryCopyrightText?: string;
-    linkGroups: FooterLinkGroup[];
+  footerLogo?: SanityImage;
+  footerDescription?: string;
+  copyrightText?: string;
+  secondaryCopyrightText?: string;
+  linkGroups: FooterLinkGroup[];
 }
 
 export interface SiteSettings {

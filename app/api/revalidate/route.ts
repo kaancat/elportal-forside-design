@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 // Enhanced TypeScript interface for webhook payload (Codex-recommended)
 interface SanityWebhookPayload {
   _id: string;
-  _type: 'homePage' | 'page' | 'provider' | 'siteSettings';
+  _type: 'homePage' | 'page' | 'provider' | 'siteSettings' | 'blogPost' | 'blogPageSettings';
   _rev?: string;
   _createdAt?: string;
   _updatedAt?: string;
@@ -167,6 +167,33 @@ export async function POST(request: NextRequest) {
           console.log('[Revalidation] Site settings cache invalidated');
           break;
           
+        case 'blogPost':
+          // Blog post changes: invalidate specific post + blog archive
+          if (payload.slug?.current) {
+            // Specific blog post cache
+            revalidateTag(`blogPost:${payload.slug.current}`);
+            revalidatedTags.push(`blogPost:${payload.slug.current}`);
+            // Specific blog post path
+            revalidatePath(`/blogs/${payload.slug.current}`);
+            revalidatedPaths.push(`/blogs/${payload.slug.current}`);
+          }
+          // Blog archive page (shows all posts)
+          revalidateTag('blogPosts');
+          revalidatedTags.push('blogPosts');
+          revalidatePath('/blogs');
+          revalidatedPaths.push('/blogs');
+          console.log(`[Revalidation] Blog post cache invalidated: ${payload.slug?.current || payload._id}`);
+          break;
+          
+        case 'blogPageSettings':
+          // Blog page settings affect blog landing page
+          revalidateTag('blogPageSettings');
+          revalidatedTags.push('blogPageSettings');
+          revalidatePath('/blogs');
+          revalidatedPaths.push('/blogs');
+          console.log('[Revalidation] Blog page settings cache invalidated');
+          break;
+          
         default:
           // Enhanced fallback with logging for debugging new content types
           console.warn(`[Revalidation] Unhandled document type: ${payload._type}`);
@@ -258,8 +285,8 @@ export async function GET(request: NextRequest) {
       secret_configured: !!SANITY_WEBHOOK_SECRET,
       runtime: 'nodejs',
       max_duration: 30,
-      supported_document_types: ['homePage', 'page', 'provider', 'siteSettings'],
-      cache_tags: ['homepage', 'page', 'siteSettings', 'providers'],
+      supported_document_types: ['homePage', 'page', 'provider', 'siteSettings', 'blogPost', 'blogPageSettings'],
+      cache_tags: ['homepage', 'page', 'siteSettings', 'providers', 'blogPosts', 'blogPageSettings'],
       webhook_url: `${request.nextUrl.origin}/api/revalidate`
     },
     instructions: {

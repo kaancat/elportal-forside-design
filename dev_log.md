@@ -22,6 +22,17 @@ Goal: Replace hardcoded blog content with dynamic data from Sanity CMS while mai
   - `BlogArchive.tsx` and `BlogHeroSearch.tsx` now use conditional `?` vs `&` based on `imageUrl.includes('?')`
   - Prevents malformed URLs like `image.jpg&auto=format` (should be `image.jpg?auto=format`)
 
+### Comprehensive Null Safety Fixes for SanityImage References
+- ✅ FIXED: Resolved "Cannot read properties of null (reading 'replace')" errors across entire codebase
+  - **Root Cause**: Sanity can return `{asset: {_ref: null}}` - the `_ref` key exists but value is null
+  - **Pattern**: Changed all `'_ref' in asset` checks to `'_ref' in asset && asset._ref`
+  - **Files Fixed**:
+    - `src/components/Footer.tsx` - Fixed footerLogo null _ref access
+    - `src/components/Navigation.tsx` - Fixed logo _ref access (2 locations: desktop + mobile nav)
+    - `src/components/MetaTags.tsx` - Fixed SEO image _ref access (2 locations)
+    - `src/components/OptimizedImage.tsx` - Fixed image optimization _ref access
+  - **Impact**: All Sanity image references now safely handle null _ref values with proper fallbacks
+
 ### Changes Made:
 - ✅ COMPLETED: Updated TypeScript types for blog integration
   - Extended `BlogPost` interface with new schema fields: `type`, `description`, `featuredImage`, `contentBlocks`, `publishedDate`, `featured`, `readTime`, `tags`

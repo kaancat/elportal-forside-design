@@ -1,5 +1,61 @@
 # Dev Log
 
+## [2025-10-13] – Blog Integration: Connect Frontend to Sanity CMS
+Goal: Replace hardcoded blog content with dynamic data from Sanity CMS while maintaining exact same design
+
+### Changes Made:
+- ✅ COMPLETED: Updated TypeScript types for blog integration
+  - Extended `BlogPost` interface with new schema fields: `type`, `description`, `featuredImage`, `contentBlocks`, `publishedDate`, `featured`, `readTime`, `tags`
+  - Added `BlogPageSettings` interface for blog landing page configuration
+  - Updated `SanityImage` interface to support expanded asset URLs from GROQ queries
+- ✅ COMPLETED: Enhanced `SanityService` with blog-specific queries
+  - Updated `getAllBlogPosts()` to fetch from new schema with proper field mappings
+  - Updated `getBlogPostBySlug()` to include full content blocks for individual posts
+  - Added `getBlogPageSettings()` to fetch hero section and featured posts configuration
+  - All queries use `asset->{url}` expansion for immediate image URL access
+- ✅ COMPLETED: Transformed `app/blogs/page.tsx` to use Sanity data
+  - Created `transformBlogPost()` helper to convert Sanity data to component format
+  - Replaced 20+ hardcoded blog posts with dynamic fetch from CMS
+  - Implemented fallback logic: uses CMS featured posts if set, otherwise auto-selects latest 3
+  - Added default post for graceful handling when no posts exist yet
+  - Kept legacy hardcoded data as comments for reference
+  - Added ISR revalidation (60 seconds)
+- ✅ COMPLETED: Transformed `app/blogs/[slug]/page.tsx` to use Sanity data
+  - Added `generateStaticParams()` for static site generation of all blog post pages
+  - Replaced hardcoded post lookup with `SanityService.getBlogPostBySlug()`
+  - Implemented Danish date formatting for proper locale display
+  - Uses CMS `readTime` field or defaults to 5 minutes
+  - Added ISR revalidation (60 seconds)
+  - Kept legacy data as comments for reference
+
+### Impact:
+- **Dynamic Content**: Blog pages now fetch real-time data from Sanity CMS
+- **CMS-Managed**: Content editors can create, edit, and manage blog posts entirely through Sanity Studio
+- **Design Preservation**: Exact same UI/UX - no visual changes, only data source changed
+- **Performance**: ISR with 60-second revalidation ensures fast page loads while staying up-to-date
+- **Static Generation**: All blog post pages are pre-generated at build time for optimal performance
+- **Graceful Fallbacks**: Handles edge cases like missing images, no posts, or missing settings
+
+### Frontend Architecture:
+```
+/blogs → Fetches blogPageSettings + all posts → Displays archive + hero
+/blogs/[slug] → Fetches individual post by slug → Displays full article
+```
+
+### Next Steps (Future Implementation):
+- Render `contentBlocks` array in individual blog posts (currently showing placeholder content)
+- Use existing content block renderer from regular pages
+- Add metadata/SEO tags from blog post and page settings
+- Consider adding blog post tags/filtering if needed
+
+### Files Modified:
+- `src/types/sanity.ts` - Updated BlogPost & SanityImage interfaces, added BlogPageSettings
+- `src/services/sanityService.ts` - Enhanced blog queries with proper GROQ projections
+- `app/blogs/page.tsx` - Transformed to fetch from Sanity with fallbacks
+- `app/blogs/[slug]/page.tsx` - Transformed to fetch individual posts with SSG
+
+---
+
 ## [2025-08-22] – Session Start
 Goal: Fix per-slug caching, validate slugs, and consolidate routing to App Router
 

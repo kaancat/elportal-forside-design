@@ -8,23 +8,32 @@ export class SanityService {
 
   // Fetch all blog posts
   static async getAllBlogPosts(): Promise<BlogPost[]> {
-    const query = `*[_type == "blogPost"] | order(publishedAt desc){
+    const query = `*[_type == "blogPost"] | order(publishedDate desc){
       _id,
       _type,
       title,
       slug,
-      mainImage{
-        asset,
+      type,
+      description,
+      featuredImage{
+        asset->{
+          _id,
+          url
+        },
         alt,
         hotspot,
         crop
       },
-      body,
-      publishedAt,
+      publishedDate,
+      featured,
+      readTime,
+      tags,
       seoMetaTitle,
-      seoMetaDescription
+      seoMetaDescription,
+      seoMetaKeywords,
+      seoOpenGraphImage
     }`
-    
+
     try {
       const posts = await client.fetch<BlogPost[]>(query)
       return posts
@@ -34,30 +43,126 @@ export class SanityService {
     }
   }
 
-  // Fetch single blog post by slug
+  // Fetch single blog post by slug (with full content blocks)
   static async getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
     const query = `*[_type == "blogPost" && slug.current == $slug][0]{
       _id,
       _type,
       title,
       slug,
-      mainImage{
-        asset,
+      type,
+      description,
+      featuredImage{
+        asset->{
+          _id,
+          url
+        },
         alt,
         hotspot,
         crop
       },
-      body,
-      publishedAt,
+      contentBlocks[]{
+        ...,
+        _type == "richTextSection" => {
+          ...,
+          content
+        },
+        _type == "hero" => {
+          ...,
+          backgroundImage{
+            asset->{url},
+            alt
+          }
+        },
+        _type == "videoSection" => {
+          ...,
+          videoUrl,
+          thumbnailImage{
+            asset->{url},
+            alt
+          }
+        },
+        _type == "faqGroup" => {
+          ...,
+          items[]{
+            question,
+            answer
+          }
+        }
+      },
+      publishedDate,
+      featured,
+      readTime,
+      tags,
       seoMetaTitle,
-      seoMetaDescription
+      seoMetaDescription,
+      seoMetaKeywords,
+      seoOpenGraphImage{
+        asset->{url},
+        alt
+      }
     }`
-    
+
     try {
       const post = await client.fetch<BlogPost>(query, { slug })
       return post
     } catch (error) {
       console.error('Error fetching blog post:', error)
+      return null
+    }
+  }
+
+  // Fetch blog page settings
+  static async getBlogPageSettings() {
+    const query = `*[_type == "blogPageSettings" && _id == "blogPageSettings"][0]{
+      _id,
+      _type,
+      heroTitle,
+      heroSubtitle,
+      heroBackgroundImage{
+        asset->{
+          _id,
+          url
+        },
+        alt,
+        hotspot,
+        crop
+      },
+      "featuredPosts": featuredPosts[]->{
+        _id,
+        _type,
+        title,
+        slug,
+        type,
+        description,
+        featuredImage{
+          asset->{
+            _id,
+            url
+          },
+          alt,
+          hotspot,
+          crop
+        },
+        publishedDate,
+        featured,
+        readTime,
+        tags
+      },
+      seoMetaTitle,
+      seoMetaDescription,
+      seoMetaKeywords,
+      seoOpenGraphImage{
+        asset->{url},
+        alt
+      }
+    }`
+
+    try {
+      const settings = await client.fetch(query)
+      return settings
+    } catch (error) {
+      console.error('Error fetching blog page settings:', error)
       return null
     }
   }
@@ -71,11 +176,11 @@ export class SanityService {
           'Content-Type': 'application/json',
         },
       })
-      
+
       if (!response.ok) {
         throw new Error(`API response not ok: ${response.status}`)
       }
-      
+
       const settings = await response.json()
       return settings
     } catch (error) {
@@ -435,7 +540,7 @@ export class SanityService {
         }
       }
     }`
-    
+
     try {
       const page = await client.fetch<SanityPage>(query, { slug })
       // Sanitize and validate
@@ -485,7 +590,7 @@ export class SanityService {
           ${this.getUnifiedPageQueryFragment()}
         }`
       )
-      
+
       // Sanitize and validate
       if (page && page.contentBlocks) {
         page.contentBlocks = sanitizeContentBlocks(page.contentBlocks)
@@ -527,7 +632,7 @@ export class SanityService {
       if (page && page.contentBlocks) {
         page.contentBlocks = sanitizeContentBlocks(page.contentBlocks)
       }
-      
+
       return page
     } catch (error) {
       console.error('Error fetching unified page:', error)
@@ -969,7 +1074,7 @@ export class SanityService {
       _createdAt,
       _updatedAt
     }`
-    
+
     try {
       const pages = await client.fetch(query)
       return pages || []

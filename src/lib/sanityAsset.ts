@@ -92,7 +92,7 @@ export function isImageAsset(asset: any): boolean {
     return asset._ref.startsWith('image-');
   }
   
-  if (asset.asset?._ref && typeof asset.asset._ref === 'string') {
+  if (asset.asset && '_ref' in asset.asset && typeof asset.asset._ref === 'string') {
     return asset.asset._ref.startsWith('image-');
   }
   

@@ -38,10 +38,9 @@ export const getBackgroundStyle = ({
   const hasBackgroundUrl = backgroundImageUrl && backgroundImageUrl.length > 0;
   // Check if image has a valid image (support multiple data structures)
   const hasValidSanityImage = image && (
-    image.asset?._ref ||    // Reference structure: {asset: {_ref: "..."}}
+    (image.asset && '_ref' in image.asset && image.asset._ref) ||    // Reference structure: {asset: {_ref: "..."}}
     (image as any)._ref ||  // Legacy structure: {_ref: "..."}
-    (image.asset as any)?._id ||     // Expanded structure: {asset: {_id: "...", url: "..."}}
-    (image.asset as any)?.url        // Direct URL structure: {asset: {url: "..."}}
+    (image.asset && 'url' in image.asset && image.asset.url)        // Expanded structure: {asset: {url: "..."}}
   );
 
   switch (backgroundStyle) {
@@ -106,10 +105,9 @@ export const getTextColorClass = ({
   const hasBackgroundUrl = backgroundImageUrl && backgroundImageUrl.length > 0;
   // Check if image has a valid image (support multiple data structures)
   const hasValidSanityImage = image && (
-    image.asset?._ref ||    // Reference structure: {asset: {_ref: "..."}}
+    (image.asset && '_ref' in image.asset && image.asset._ref) ||    // Reference structure: {asset: {_ref: "..."}}
     (image as any)._ref ||  // Legacy structure: {_ref: "..."}
-    (image.asset as any)?._id ||     // Expanded structure: {asset: {_id: "...", url: "..."}}
-    (image.asset as any)?.url        // Direct URL structure: {asset: {url: "..."}}
+    (image.asset && 'url' in image.asset && image.asset.url)        // Expanded structure: {asset: {url: "..."}}
   );
 
   // Manual overrides from Sanity
@@ -197,7 +195,7 @@ export const getOptimizedImageUrl = (image: any, width = 1920, height = 1080, qu
   }
   
   // Check for reference structure: image.asset._ref
-  if (image?.asset?._ref) {
+  if (image?.asset && '_ref' in image.asset) {
     return urlFor(image).width(width).height(height).quality(quality).url();
   }
   

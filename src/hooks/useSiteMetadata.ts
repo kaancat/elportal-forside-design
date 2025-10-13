@@ -8,7 +8,7 @@ export function useSiteMetadata() {
     if (!settings) return
 
     // Update favicon
-    if (settings.favicon?.asset?._ref) {
+    if (settings.favicon?.asset && '_ref' in settings.favicon.asset) {
       const faviconUrl = `https://cdn.sanity.io/images/yxesi03x/production/${settings.favicon.asset._ref
         .replace('image-', '')
         .replace('-png', '.png')

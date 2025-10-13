@@ -61,8 +61,8 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       if (src._ref) {
         // Direct reference object
         ref = src._ref;
-      } else if (src.asset && typeof src.asset === 'object' && src.asset._ref) {
-        // Full image object with asset
+      } else if (src.asset && typeof src.asset === 'object' && '_ref' in src.asset) {
+        // Full image object with asset reference
         ref = src.asset._ref;
       } else if (src.asset && typeof src.asset === 'string') {
         // Asset as string reference

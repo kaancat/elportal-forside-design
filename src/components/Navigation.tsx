@@ -190,7 +190,7 @@ const Navigation = ({ initialSettings }: NavigationProps) => {
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
         <UniversalLink href="/" className="flex-shrink-0 relative">
           <Logo
-            src={buildOptimizedSanityUrl(settings.logo?.asset?._ref)}
+            src={buildOptimizedSanityUrl(settings.logo?.asset && '_ref' in settings.logo.asset ? settings.logo.asset._ref : null)}
             alt={settings.title || FALLBACK_ALT}
             className="h-8 sm:h-10"
           />
@@ -233,7 +233,7 @@ const Navigation = ({ initialSettings }: NavigationProps) => {
           <MobileNav
             navItems={displayItems}
             resolveLink={(link: LinkType) => resolveLink(link, 'Navigation')}
-            logoSrc={buildOptimizedSanityUrl(settings.logo?.asset?._ref) || undefined}
+            logoSrc={buildOptimizedSanityUrl(settings.logo?.asset && '_ref' in settings.logo.asset ? settings.logo.asset._ref : null) || undefined}
             logoAlt={settings.title || FALLBACK_ALT}
           />
         </div>

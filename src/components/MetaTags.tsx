@@ -56,7 +56,7 @@ const MetaTags: React.FC<MetaTagsProps> = ({
     }
     
     // Handle Sanity image
-    if (sanityImage?.asset) {
+    if (sanityImage?.asset && '_ref' in sanityImage.asset) {
       const imageUrl = getSanityImageUrl(sanityImage.asset._ref, {
         width: 1200,
         height: 630,
@@ -119,7 +119,7 @@ export function useMetaTags(config: MetaTagsProps) {
     }
     
     // Handle Sanity image
-    if (config.sanityImage?.asset) {
+    if (config.sanityImage?.asset && '_ref' in config.sanityImage.asset) {
       const imageUrl = getSanityImageUrl(config.sanityImage.asset._ref, {
         width: 1200,
         height: 630,

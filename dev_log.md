@@ -1,5 +1,50 @@
 # Dev Log
 
+## [2025-10-13] – Blog Hero Section: Magazine-Style Redesign + CMS Integration
+Goal: Restructure blog hero section to eliminate awkward gaps and create a more cohesive, magazine-style layout. Integrate title/subtitle with Sanity CMS.
+
+### What Changed - Final Design (Reverted to Single Featured Card)
+- ✅ **Layout Flip**: Featured blog card moved from left to right for better visual hierarchy
+- ✅ **Vertical Flow**: Title, subtitle, search, and popular topics now stack vertically on the left column
+- ✅ **Perfect Alignment**: Added `max-w-xl` constraint to left column with `w-full` on all child sections - title, search field, and popular topics all align perfectly on the right edge
+- ✅ **Equal Spacing**: Set `gap-6` between all three sections (title, search, popular topics) for consistent vertical rhythm
+- ✅ **Larger Title**: Increased from `text-3xl md:text-4xl lg:text-5xl` to `text-4xl md:text-5xl lg:text-6xl` for better prominence
+- ✅ **Consistent Headings**: Both "Filtrer indlæg" and "Populære emner" now use `text-lg font-bold` for visual harmony
+- ✅ **Compact Featured Card**: 
+  - Grid ratio: **1.2fr : 1fr** (content-emphasis layout with smaller card)
+  - Grid alignment: `items-start` for top alignment with title
+  - Max width: `max-w-md` (constrains card size)
+  - Image aspect ratio: **16:9** (compact, widescreen format)
+  - Image optimization: `w=900 q=80`
+  - Card title: `text-base lg:text-lg` (compact sizing)
+  - Description: `text-sm` with `line-clamp-2`
+  - Padding: `p-4 lg:p-5` (reduced for compact feel)
+  - Gap: `gap-2.5` (tighter spacing)
+  - Button: `size="sm"` with `h-4 w-4` arrow icon
+  - **Carousel Arrows**: Positioned on the card itself (`left-3`, `right-3`) instead of outside container
+  - **Carousel with arrows & dots** for navigating featured posts
+- ✅ **Mobile Optimization**: Carousel hidden on mobile, search & popular topics below
+- ✅ **Animation Update**: Changed card animation from `slide-in-from-left-4` to `slide-in-from-right-4` to match new position
+
+### Why This Improves UX
+1. **Natural Reading Flow**: Left-to-right reading pattern now flows from title → search → featured content
+2. **Eliminates Dead Space**: Compact vertical stacking removes awkward gaps between title and search
+3. **Better Visual Hierarchy**: Larger featured card draws attention while maintaining balance
+4. **Magazine Aesthetic**: More editorial, professional feel compared to previous layout
+5. **Mobile-First**: Ensures search functionality is accessible on all screen sizes
+
+### CMS Integration (Final Update)
+- ✅ **Editable Hero Title**: `blogSettings.heroTitle` - first word automatically styled green
+- ✅ **Editable Hero Subtitle**: `blogSettings.heroSubtitle` - full control over supporting text
+- ✅ **Dynamic Popular Topics**: Re-enabled automatic topic extraction from blog post titles (removed hardcoded dummy data)
+- ✅ **Carousel Arrows**: Repositioned onto the card itself (`left-3`, `right-3`) for classic carousel feel
+- ✅ **Fallback Values**: Default title/subtitle if not set in CMS
+
+### Files Modified
+- `app/blogs/BlogHeroSearch.tsx` - Complete hero section restructure + CMS integration
+
+---
+
 ## [2025-10-13] – Blog Integration: Connect Frontend to Sanity CMS
 Goal: Replace hardcoded blog content with dynamic data from Sanity CMS while maintaining exact same design
 

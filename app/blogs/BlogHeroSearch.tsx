@@ -82,7 +82,7 @@ export default function BlogHeroSearch({ defaultFeaturedPosts, allPosts, heroBac
         const keywords = ['elpriser', 'solceller', 'elbil', 'varmepumpe', 'besparelse', 'grøn energi',
             'spotpris', 'fastpris', 'smart-home', 'energi', 'guide', 'intropris']
 
-        allPosts.forEach(post => {
+        allBlogPosts.forEach(post => {
             const titleLower = post.title.toLowerCase()
             keywords.forEach(keyword => {
                 if (titleLower.includes(keyword)) {
@@ -101,10 +101,19 @@ export default function BlogHeroSearch({ defaultFeaturedPosts, allPosts, heroBac
             .sort(([, a], [, b]) => b - a)
             .slice(0, 6)
             .map(([topic]) => topic)
-    }, [allPosts])
+    }, [allBlogPosts])
 
     // Safety check - if no current post, don't render
     if (!currentPost) return null
+
+    // Get hero title and subtitle from settings or use defaults
+    const heroTitle = blogSettings?.heroTitle || 'Indsigt i elforbrug og priser'
+    const heroSubtitle = blogSettings?.heroSubtitle || 'Hold dig opdateret med de seneste nyheder, guides og eksperttips om elpriser, grøn energi og intelligente besparelser til din husstand'
+    
+    // Split title to make first word green
+    const titleWords = heroTitle.split(' ')
+    const firstWord = titleWords[0]
+    const restOfTitle = titleWords.slice(1).join(' ')
 
     return (
         <div className="md:p-4">
@@ -121,25 +130,90 @@ export default function BlogHeroSearch({ defaultFeaturedPosts, allPosts, heroBac
                     {/* Mobile title - centered, above everything */}
                     <div className="text-center flex-shrink-0 lg:hidden mb-8">
                         <h1 className="text-3xl sm:text-4xl font-display font-extrabold text-white mb-2 tracking-tight leading-tight">
-                            <span className="text-brand-green">Indsigt</span> i elforbrug og priser
+                            <span className="text-brand-green">{firstWord}</span> {restOfTitle}
                         </h1>
                         <p className="text-base sm:text-lg text-white/90 leading-snug">
-                            Hold dig opdateret med de seneste nyheder, guides og eksperttips om elpriser, grøn energi og intelligente besparelser til din husstand
+                            {heroSubtitle}
                         </p>
                     </div>
 
-                    {/* Main grid: 1fr (card) + 2fr (title + search/topics) */}
-                    <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-8 md:gap-12 max-w-7xl mx-auto w-full relative">
-                        {/* Column 1: Featured blog card (1fr) */}
-                        <div className="flex flex-col items-center justify-center w-full px-4 sm:px-6 lg:px-0 relative">
-                            <div key={currentPost.title} className="bg-white rounded-xl md:rounded-2xl overflow-hidden shadow-xl border-2 border-white/20 flex flex-col w-full max-w-sm transition-all duration-300 animate-in fade-in slide-in-from-left-4">
-                                {/* Image with overlay gradient */}
+                    {/* Main grid: 1.2fr (title + search) + 1fr (blog stack) - News-style layout */}
+                    <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-8 md:gap-10 max-w-7xl mx-auto w-full relative items-start">
+                        {/* Column 1: Title + Search + Topics (compact vertical flow) */}
+                        <div className="hidden lg:flex lg:flex-col lg:gap-6 lg:max-w-xl">
+                            {/* Title + Subheading */}
+                            <div className="text-left w-full">
+                                <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-extrabold text-white mb-3 tracking-tight leading-tight">
+                                    <span className="text-brand-green">{firstWord}</span> {restOfTitle}
+                                </h1>
+                                <p className="text-base md:text-lg text-white/90 leading-relaxed">
+                                    {heroSubtitle}
+                                </p>
+                            </div>
+
+                            {/* Search field */}
+                            <div className="w-full">
+                                <h3 className="text-white text-lg font-display font-bold mb-3 leading-tight">
+                                    Filtrer indlæg
+                                </h3>
+                                <div className="relative shadow-xl rounded-xl md:rounded-2xl border-2 border-white/20 bg-white overflow-hidden">
+                                    <input
+                                        type="text"
+                                        placeholder="Skriv emne eller nøgleord..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                        className="w-full px-4 pr-10 h-11 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 outline-none border-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
+                                        style={{ boxShadow: 'none' }}
+                                    />
+                                    {/* Clear button */}
+                                    {searchQuery && (
+                                        <button
+                                            onClick={() => {
+                                                setSearchQuery('')
+                                                setIsSearchActive(false)
+                                            }}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                            aria-label="Clear search"
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Popular Topics */}
+                            <div className="w-full">
+                                <h3 className="text-white text-lg font-display font-bold mb-3 leading-tight">
+                                    Populære emner
+                                </h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {popularTopics.map((topic, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => {
+                                                setSearchQuery(topic)
+                                                handleSearch(topic)
+                                            }}
+                                            className="px-3 py-1.5 text-sm bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-full border border-white/20 transition-all duration-200 hover:scale-105"
+                                        >
+                                            {topic}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Column 2: Featured blog card (compact, magazine-style) */}
+                        <div className="flex flex-col items-center justify-center w-full px-4 sm:px-6 lg:px-0">
+                            <div key={currentPost.title} className="bg-white rounded-xl md:rounded-2xl overflow-hidden shadow-xl border-2 border-white/20 flex flex-col w-full max-w-md transition-all duration-300 animate-in fade-in slide-in-from-right-4 relative">
+                                {/* Image with overlay gradient - compact size */}
                                 <div className="relative w-full aspect-[16/9] flex-shrink-0 overflow-hidden">
                                     <Image
-                                        src={currentPost.imageUrl.includes('?') ? `${currentPost.imageUrl}&auto=format&fit=crop&w=800&q=80` : `${currentPost.imageUrl}?auto=format&fit=crop&w=800&q=80`}
+                                        src={currentPost.imageUrl.includes('?') ? `${currentPost.imageUrl}&auto=format&fit=crop&w=900&q=80` : `${currentPost.imageUrl}?auto=format&fit=crop&w=900&q=80`}
                                         alt={currentPost.imageAlt}
                                         fill
-                                        sizes="(min-width: 1024px) 384px, (min-width: 640px) 448px, 100vw"
+                                        sizes="(min-width: 1024px) 500px, (min-width: 640px) 448px, 100vw"
                                         className="object-cover transition-all duration-500 hover:scale-105"
                                     />
                                     {/* Subtle gradient overlay at bottom */}
@@ -155,9 +229,9 @@ export default function BlogHeroSearch({ defaultFeaturedPosts, allPosts, heroBac
                                     </div>
                                 </div>
 
-                                {/* Content */}
-                                <div className="p-5 flex flex-col bg-white gap-3">
-                                    <h2 className="font-display text-lg font-bold text-brand-dark leading-tight transition-colors duration-200">
+                                {/* Content - compact size */}
+                                <div className="p-4 lg:p-5 flex flex-col bg-white gap-2.5">
+                                    <h2 className="font-display text-base lg:text-lg font-bold text-brand-dark leading-tight transition-colors duration-200">
                                         {currentPost.title}
                                     </h2>
                                     <p className="text-sm text-neutral-600 leading-relaxed line-clamp-2 transition-opacity duration-200">{currentPost.description}</p>
@@ -173,27 +247,27 @@ export default function BlogHeroSearch({ defaultFeaturedPosts, allPosts, heroBac
                                         </Button>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Carousel navigation arrows - only show if multiple matches */}
-                            {showCarousel && (
-                                <>
-                                    <button
-                                        onClick={goToPrevious}
-                                        className="absolute left-0 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-brand-dark rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110 z-10"
-                                        aria-label="Previous post"
-                                    >
-                                        <ChevronLeft className="h-5 w-5" />
-                                    </button>
-                                    <button
-                                        onClick={goToNext}
-                                        className="absolute right-0 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-brand-dark rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110 z-10"
-                                        aria-label="Next post"
-                                    >
-                                        <ChevronRight className="h-5 w-5" />
-                                    </button>
-                                </>
-                            )}
+                                {/* Carousel navigation arrows - only show if multiple matches */}
+                                {showCarousel && (
+                                    <>
+                                        <button
+                                            onClick={goToPrevious}
+                                            className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-brand-dark rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110 z-10"
+                                            aria-label="Previous post"
+                                        >
+                                            <ChevronLeft className="h-5 w-5" />
+                                        </button>
+                                        <button
+                                            onClick={goToNext}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-brand-dark rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110 z-10"
+                                            aria-label="Next post"
+                                        >
+                                            <ChevronRight className="h-5 w-5" />
+                                        </button>
+                                    </>
+                                )}
+                            </div>
 
                             {/* Carousel dots and search results - aligned together */}
                             <div className="flex gap-4 justify-center items-center mt-4 h-6">
@@ -223,77 +297,58 @@ export default function BlogHeroSearch({ defaultFeaturedPosts, allPosts, heroBac
                             </div>
                         </div>
 
-                        {/* Column 2 (2fr): Title on top, Search + Topics on bottom */}
-                        <div className="hidden lg:grid lg:grid-rows-[auto_1fr] gap-6">
-                            {/* Row 1: Title + Subheading */}
-                            <div className="text-left">
-                                <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-display font-extrabold text-white mb-2 tracking-tight leading-tight">
-                                    <span className="text-brand-green">Indsigt</span> i elforbrug og priser
-                                </h1>
-                                <p className="text-base md:text-lg xl:text-xl text-white/90 max-w-2xl leading-snug">
-                                    Hold dig opdateret med de seneste nyheder, guides og eksperttips om elpriser, grøn energi og intelligente besparelser til din husstand
-                                </p>
+                        {/* Mobile Search & Topics - below the featured card */}
+                        <div className="lg:hidden mt-8 w-full max-w-2xl mx-auto px-4 flex flex-col gap-6">
+
+                            {/* Search field */}
+                            <div className="w-full">
+                                <h3 className="text-white text-lg font-display font-bold mb-3 leading-tight">
+                                    Filtrer indlæg
+                                </h3>
+                                <div className="relative shadow-xl rounded-xl md:rounded-2xl border-2 border-white/20 bg-white overflow-hidden">
+                                    <input
+                                        type="text"
+                                        placeholder="Skriv emne eller nøgleord..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                        className="w-full px-4 pr-10 h-11 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 outline-none border-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
+                                        style={{ boxShadow: 'none' }}
+                                    />
+                                    {/* Clear button */}
+                                    {searchQuery && (
+                                        <button
+                                            onClick={() => {
+                                                setSearchQuery('')
+                                                setIsSearchActive(false)
+                                            }}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                            aria-label="Clear search"
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    )}
+                                </div>
                             </div>
 
-                            {/* Row 2: Search field + Popular Topics in 2 columns */}
-                            <div className="grid grid-cols-2 gap-6 items-end">
-                                {/* Search field - with extra top margin to align with card bottom */}
-                                <div className="w-full flex flex-col" style={{ marginTop: '0.5rem' }}>
-                                    <h3 className="text-white text-lg font-display font-bold mb-4 leading-tight">
-                                        Filtrer indlæg
-                                    </h3>
-                                    <div className="relative shadow-xl rounded-xl md:rounded-2xl border-2 border-white/20 bg-white overflow-hidden">
-                                        <input
-                                            type="text"
-                                            placeholder="Skriv emne eller nøgleord..."
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                            className="w-full px-4 pr-10 h-11 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 outline-none border-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
-                                            style={{ boxShadow: 'none' }}
-                                        />
-                                        {/* Clear button - shows when there's text */}
-                                        {searchQuery && (
-                                            <button
-                                                onClick={() => {
-                                                    setSearchQuery('')
-                                                    setCurrentIndex(0)
-                                                    setIsSearchActive(false)
-                                                    setActiveTopic(null)
-                                                }}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
-                                                aria-label="Ryd søgning"
-                                            >
-                                                <X className="h-4 w-4" />
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Popular Topics */}
-                                <div className="w-full flex flex-col" style={{ marginTop: '0.5rem' }}>
-                                    <h3 className="text-white text-lg font-display font-bold mb-4 leading-tight">
-                                        Populære emner
-                                    </h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {popularTopics.map((topic) => (
-                                            <button
-                                                key={topic}
-                                                onClick={() => {
-                                                    setSearchQuery(topic)
-                                                    setCurrentIndex(0)
-                                                    setIsSearchActive(true)
-                                                    setActiveTopic(topic)
-                                                }}
-                                                className={`px-3 py-1.5 backdrop-blur-sm border text-sm rounded-full transition-all duration-200 hover:scale-105 ${activeTopic === topic
-                                                    ? 'bg-white/50 text-white border-white/70 shadow-md'
-                                                    : 'bg-white/10 hover:bg-white/20 border-white/30 text-white'
-                                                    }`}
-                                            >
-                                                {topic}
-                                            </button>
-                                        ))}
-                                    </div>
+                            {/* Popular Topics */}
+                            <div className="w-full">
+                                <h3 className="text-white text-base font-display font-semibold mb-3 leading-tight">
+                                    Populære emner
+                                </h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {popularTopics.map((topic, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => {
+                                                setSearchQuery(topic)
+                                                handleSearch(topic)
+                                            }}
+                                            className="px-3 py-1.5 text-sm bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-full border border-white/20 transition-all duration-200 hover:scale-105"
+                                        >
+                                            {topic}
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
                         </div>

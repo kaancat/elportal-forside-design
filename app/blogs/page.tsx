@@ -1,13 +1,15 @@
 /**
  * /blogs page route
- * What: Blog archive layout with a featured post and 9 placeholders.
- * Why: Visual skeleton until real CMS content is wired.
+ * What: Blog archive layout fetching real content from Sanity CMS
+ * Why: Dynamic blog page with CMS-managed content
  */
 
 import ClientLayout from '../(marketing)/ClientLayout'
 import { getSiteSettings } from '@/server/sanity'
+import { SanityService } from '@/services/sanityService'
 import BlogArchive from './BlogArchive'
 import BlogHeroSearch from './BlogHeroSearch'
+import type { BlogPost } from '@/types/sanity'
 
 interface SimplePost {
     date: string
@@ -19,24 +21,76 @@ interface SimplePost {
     slug: string
 }
 
+/**
+ * Transform Sanity BlogPost to SimplePost format for components
+ */
+function transformBlogPost(post: BlogPost): SimplePost {
+    // Format date to Danish format
+    const date = new Date(post.publishedDate)
+    const formattedDate = date.toLocaleDateString('da-DK', {
+        year: 'numeric',
+        month: 'long',
+        day: '2-digit'
+    })
+
+    // Get image URL from Sanity asset (with fallback)
+    const imageUrl = (post.featuredImage?.asset as any)?.url || 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?ixlib=rb-4.0.3'
+    const imageAlt = post.featuredImage?.alt || post.title
+
+    return {
+        date: formattedDate,
+        title: post.title,
+        description: post.description,
+        imageUrl,
+        imageAlt,
+        type: post.type,
+        slug: post.slug.current
+    }
+}
+
 export default async function BlogsPage() {
     const siteSettings = await getSiteSettings()
 
-    const featuredPost: SimplePost = {
-        date: 'Marts 05, 2025',
-        title: 'Sådan undgår du "strøm-spild" – smarte vaner der sænker elregningen',
-        description:
-            'Praktiske tips til at reducere standby-forbrug, optimere opvarmning og bruge strøm i de billigste timer.',
-        imageUrl:
-            'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3', // smart home control
-        imageAlt: 'Smart home energistyring',
-        type: 'Blog',
-        slug: 'saadan-undgaar-du-stroem-spild',
+    // Fetch blog data from Sanity
+    const [blogSettings, allBlogPosts] = await Promise.all([
+        SanityService.getBlogPageSettings(),
+        SanityService.getAllBlogPosts()
+    ])
+
+    // Transform all blog posts to SimplePost format
+    const allPostsTransformed = allBlogPosts.map(transformBlogPost)
+
+    // Determine featured posts
+    let featuredPostsTransformed: SimplePost[] = []
+    if (blogSettings?.featuredPosts && blogSettings.featuredPosts.length > 0) {
+        // Use manually selected featured posts from CMS
+        featuredPostsTransformed = blogSettings.featuredPosts.map(transformBlogPost)
+    } else {
+        // Fallback: use latest 3 posts
+        featuredPostsTransformed = allPostsTransformed.slice(0, 3)
     }
 
-    const heroBackgroundImage = 'https://images.unsplash.com/photo-1466611653911-95081537e5b7?ixlib=rb-4.0.3' // wind turbines against blue sky
+    // Get hero background image from settings or use default
+    const heroBackgroundImage = blogSettings?.heroBackgroundImage?.asset?.url ||
+        'https://images.unsplash.com/photo-1466611653911-95081537e5b7?ixlib=rb-4.0.3'
 
-    const archivePosts: SimplePost[] = [
+    // Fallback content if no posts exist yet
+    const defaultPost: SimplePost = {
+        date: 'Marts 05, 2025',
+        title: 'Velkommen til vores blog',
+        description: 'Her deler vi indsigter om elpriser, energibesparelser og grøn strøm.',
+        imageUrl: 'https://images.unsplash.com/photo-1466611653911-95081537e5b7?ixlib=rb-4.0.3',
+        imageAlt: 'Energi og bæredygtighed',
+        type: 'Blog',
+        slug: 'velkommen',
+    }
+
+    // Use real posts or fallback
+    const postsToDisplay = allPostsTransformed.length > 0 ? allPostsTransformed : [defaultPost]
+    const featuredToDisplay = featuredPostsTransformed.length > 0 ? featuredPostsTransformed : [defaultPost]
+
+    // Legacy hardcoded posts (kept as fallback, but commented out)
+    /* const archivePosts: SimplePost[] = [
         {
             date: 'Marts 01, 2025',
             title: 'Komplet guide til at skifte elleverandør i 2025',
@@ -257,13 +311,7 @@ export default async function BlogsPage() {
             type: 'Blog',
             slug: 'installerede-elbil-lader-derhjemme-regnestykket',
         },
-    ]
-
-    // Select top 3 posts as featured (mix of blogs and guides)
-    const top3Featured = [featuredPost, archivePosts[0], archivePosts[1]]
-
-    // All posts including featured (for archive display and search)
-    const allPostsForArchive = [featuredPost, ...archivePosts]
+    ] */
 
     return (
         <ClientLayout initialSiteSettings={siteSettings ?? null}>
@@ -277,13 +325,16 @@ export default async function BlogsPage() {
 
             {/* Hero section with search functionality */}
             <BlogHeroSearch
-                defaultFeaturedPosts={top3Featured}
-                allPosts={allPostsForArchive}
+                defaultFeaturedPosts={featuredToDisplay}
+                allPosts={postsToDisplay}
                 heroBackgroundImage={heroBackgroundImage}
             />
 
             {/* Archive grid with filters - shows ALL posts including featured */}
-            <BlogArchive posts={allPostsForArchive} />
+            <BlogArchive posts={postsToDisplay} />
         </ClientLayout>
     )
 }
+
+// Enable ISR (Incremental Static Regeneration) - revalidate every 60 seconds
+export const revalidate = 60

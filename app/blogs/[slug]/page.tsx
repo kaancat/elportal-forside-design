@@ -1,11 +1,12 @@
 /**
  * Individual blog post page
- * What: Dynamic route for viewing a single blog post
+ * What: Dynamic route for viewing a single blog post fetched from Sanity CMS
  * Why: Allows users to read full articles from the blog archive
  */
 
 import ClientLayout from '../../(marketing)/ClientLayout'
 import { getSiteSettings } from '@/server/sanity'
+import { SanityService } from '@/services/sanityService'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -16,8 +17,16 @@ interface BlogPostPageProps {
     params: Promise<{ slug: string }>
 }
 
-// Mock blog data - will be replaced with Sanity CMS later
-const getBlogPost = (slug: string) => {
+// Generate static paths for all blog posts
+export async function generateStaticParams() {
+    const posts = await SanityService.getAllBlogPosts()
+    return posts.map((post) => ({
+        slug: post.slug.current,
+    }))
+}
+
+// Legacy mock blog data (kept as reference but commented out)
+/* const getBlogPost = (slug: string) => {
     const allPosts = {
         'saadan-undgaar-du-stroem-spild': {
             title: 'Sådan undgår du "strøm-spild" – smarte vaner der sænker elregningen',
@@ -190,19 +199,35 @@ const getBlogPost = (slug: string) => {
     }
 
     return allPosts[slug as keyof typeof allPosts] || null
-}
+} */
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
     const { slug } = await params
     const siteSettings = await getSiteSettings()
 
-    const post = getBlogPost(slug)
+    // Fetch the blog post from Sanity
+    const post = await SanityService.getBlogPostBySlug(slug)
 
     if (!post) {
         notFound()
     }
 
-    // Calculate read time based on article content (placeholder text here)
+    // Format date to Danish format
+    const date = new Date(post.publishedDate)
+    const formattedDate = date.toLocaleDateString('da-DK', {
+        year: 'numeric',
+        month: 'long',
+        day: '2-digit'
+    })
+
+    // Get image URL from Sanity asset
+    const imageUrl = post.featuredImage?.asset?.url || 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?ixlib=rb-4.0.3'
+    const imageAlt = post.featuredImage?.alt || post.title
+
+    // Use read time from CMS or calculate default
+    const readTime = post.readTime || 5
+
+    // Placeholder article content (will be replaced with contentBlocks rendering later)
     const articleContent = `
         Dette er et placeholder-indlæg som viser, hvordan en individuel artikel vil se ud. Når vi forbinder til Sanity CMS, vil dette område indeholde det faktiske indhold fra databasen.
         
@@ -212,8 +237,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         
         Når vi tilføjer rigtigt indhold fra CMS'et, vil det erstatte denne placeholder-tekst med det faktiske artikelindhold. Indtil da viser denne side strukturen og designet.
     `
-    const wordCount = articleContent.trim().split(/\s+/).length
-    const readTime = Math.max(1, Math.ceil(wordCount / 200)) // ~200 words per minute
 
     return (
         <ClientLayout initialSiteSettings={siteSettings ?? null}>
@@ -222,8 +245,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 <div className="md:p-4">
                     <div className="relative h-[60vh] md:h-[70vh] md:rounded-2xl overflow-hidden">
                         <Image
-                            src={`${post.imageUrl}&auto=format&fit=crop&w=1920&q=80`}
-                            alt={post.imageAlt}
+                            src={imageUrl.includes('?') ? `${imageUrl}&auto=format&fit=crop&w=1920&q=80` : `${imageUrl}?auto=format&fit=crop&w=1920&q=80`}
+                            alt={imageAlt}
                             fill
                             className="object-cover"
                             priority
@@ -248,7 +271,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                                         }`}>
                                         {post.type.toUpperCase()}
                                     </span>
-                                    <time className="text-sm text-white/80">{post.date}</time>
+                                    <time className="text-sm text-white/80">{formattedDate}</time>
                                     <span className="flex items-center gap-1 text-sm text-white/80">
                                         <Clock className="h-3 w-3" />
                                         {readTime} min
@@ -312,3 +335,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         </ClientLayout>
     )
 }
+
+// Enable ISR (Incremental Static Regeneration) - revalidate every 60 seconds
+export const revalidate = 60

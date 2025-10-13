@@ -14,6 +14,7 @@ interface SimplePost {
     imageAlt: string
     type: 'Blog' | 'Guide'
     slug: string
+    readTime?: number  // Optional reading time in minutes
 }
 
 interface BlogHeroSearchProps {

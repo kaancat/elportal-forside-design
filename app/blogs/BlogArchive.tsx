@@ -14,6 +14,7 @@ interface SimplePost {
     imageAlt: string
     type: 'Blog' | 'Guide'
     slug: string
+    readTime?: number  // Optional reading time in minutes
 }
 
 interface BlogArchiveProps {
@@ -21,9 +22,11 @@ interface BlogArchiveProps {
 }
 
 function BlogCard({ post }: { post: SimplePost }) {
-    // Calculate read time: ~200 words per minute, based on title + description
-    const wordCount = (post.title + ' ' + post.description).split(' ').length
-    const readTime = Math.max(1, Math.ceil(wordCount / 200))
+    // Use provided read time or calculate from title + description
+    const readTime = post.readTime || (() => {
+        const wordCount = (post.title + ' ' + post.description).split(' ').length
+        return Math.max(1, Math.ceil(wordCount / 200))
+    })()
 
     return (
         <Link href={`/blogs/${post.slug}`} className="group block h-full">

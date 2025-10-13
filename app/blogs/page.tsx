@@ -19,6 +19,7 @@ interface SimplePost {
     imageAlt: string
     type: 'Blog' | 'Guide'
     slug: string
+    readTime?: number  // Optional reading time in minutes
 }
 
 /**
@@ -38,7 +39,36 @@ function transformBlogPost(post: BlogPost): SimplePost {
         ? post.featuredImage.asset.url 
         : 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?ixlib=rb-4.0.3'
     const imageAlt = post.featuredImage?.alt || post.title
-
+    
+    // Calculate reading time from content blocks if not set in CMS
+    const calculateReadTime = (): number => {
+        if (post.readTime) return post.readTime
+        
+        let totalWords = 0
+        totalWords += (post.title?.split(/\s+/).length || 0)
+        totalWords += (post.description?.split(/\s+/).length || 0)
+        
+        // Extract text from content blocks
+        post.contentBlocks?.forEach((block: any) => {
+            if (block._type === 'richTextSection' && block.content) {
+                const extractText = (node: any): string => {
+                    if (typeof node === 'string') return node
+                    if (Array.isArray(node)) return node.map(extractText).join(' ')
+                    if (node.text) return node.text
+                    if (node.children) return extractText(node.children)
+                    return ''
+                }
+                const text = extractText(block.content)
+                totalWords += text.split(/\s+/).filter(word => word.length > 0).length
+            }
+            if (block.title) totalWords += block.title.split(/\s+/).length
+            if (block.description) totalWords += block.description.split(/\s+/).length
+        })
+        
+        // 200 words per minute reading speed, minimum 1 minute
+        return Math.max(1, Math.ceil(totalWords / 200))
+    }
+    
     return {
         date: formattedDate,
         title: post.title,
@@ -46,7 +76,8 @@ function transformBlogPost(post: BlogPost): SimplePost {
         imageUrl,
         imageAlt,
         type: post.type,
-        slug: post.slug.current
+        slug: post.slug.current,
+        readTime: calculateReadTime()
     }
 }
 
@@ -86,6 +117,7 @@ export default async function BlogsPage() {
         imageAlt: 'Energi og bæredygtighed',
         type: 'Blog',
         slug: 'velkommen',
+        readTime: 1
     }
 
     // Use real posts or fallback

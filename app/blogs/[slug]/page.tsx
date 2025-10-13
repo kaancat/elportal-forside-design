@@ -12,6 +12,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Clock } from 'lucide-react'
 import { notFound } from 'next/navigation'
+import ContentBlocks from '@/components/ContentBlocks'
 
 interface BlogPostPageProps {
     params: Promise<{ slug: string }>
@@ -226,19 +227,45 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         : 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?ixlib=rb-4.0.3'
     const imageAlt = post.featuredImage?.alt || post.title
 
-    // Use read time from CMS or calculate default
-    const readTime = post.readTime || 5
+    // Get content blocks from the blog post
+    const contentBlocks = post.contentBlocks || []
 
-    // Placeholder article content (will be replaced with contentBlocks rendering later)
-    const articleContent = `
-        Dette er et placeholder-indlæg som viser, hvordan en individuel artikel vil se ud. Når vi forbinder til Sanity CMS, vil dette område indeholde det faktiske indhold fra databasen.
+    // Calculate reading time dynamically based on content length
+    const calculateReadTime = (blocks: any[]): number => {
+        let totalWords = 0
         
-        I mellemtiden kan du se layoutet, typografien og hvordan artiklen præsenteres. Vi har designet siden til at være let læselig med god afstand mellem linjerne og en behagelig bredde for længere tekster.
+        // Count words in title and description
+        totalWords += (post.title?.split(/\s+/).length || 0)
+        totalWords += (post.description?.split(/\s+/).length || 0)
         
-        God læsbarhed med optimal linjeafstand. Responsivt design der fungerer på alle enheder. Professionel typografi med display-skrifttype til overskrifter. Konsistent styling der matcher resten af sitet.
+        // Extract text from content blocks
+        blocks.forEach((block: any) => {
+            if (block._type === 'richTextSection' && block.content) {
+                // Handle Portable Text content
+                const extractText = (node: any): string => {
+                    if (typeof node === 'string') return node
+                    if (Array.isArray(node)) return node.map(extractText).join(' ')
+                    if (node.text) return node.text
+                    if (node.children) return extractText(node.children)
+                    return ''
+                }
+                const text = extractText(block.content)
+                totalWords += text.split(/\s+/).filter(word => word.length > 0).length
+            }
+            
+            // Count words in other text fields
+            if (block.title) totalWords += block.title.split(/\s+/).length
+            if (block.description) totalWords += block.description.split(/\s+/).length
+            if (block.leadingText) totalWords += block.leadingText.split(/\s+/).length
+        })
         
-        Når vi tilføjer rigtigt indhold fra CMS'et, vil det erstatte denne placeholder-tekst med det faktiske artikelindhold. Indtil da viser denne side strukturen og designet.
-    `
+        // Average reading speed: 200 words per minute
+        // Minimum 1 minute, round up
+        return Math.max(1, Math.ceil(totalWords / 200))
+    }
+
+    // Use calculated reading time or fall back to CMS value or default
+    const readTime = post.readTime || calculateReadTime(contentBlocks)
 
     return (
         <ClientLayout initialSiteSettings={siteSettings ?? null}>
@@ -292,32 +319,18 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                     </div>
                 </div>
 
-                {/* Article content */}
+                {/* Article content - render content blocks from Sanity */}
                 <div className="container mx-auto px-4 py-16">
-                    <div className="max-w-3xl mx-auto">
-                        <div className="prose prose-lg max-w-none">
-                            <h2 className="text-3xl font-display font-bold text-brand-dark mb-4">Introduktion</h2>
-                            <p className="text-gray-700 leading-relaxed mb-6">
-                                Dette er et placeholder-indlæg som viser, hvordan en individuel artikel vil se ud. Når vi forbinder til Sanity CMS, vil dette område indeholde det faktiske indhold fra databasen.
-                            </p>
-
-                            <p className="text-gray-700 leading-relaxed mb-6">
-                                I mellemtiden kan du se layoutet, typografien og hvordan artiklen præsenteres. Vi har designet siden til at være let læselig med god afstand mellem linjerne og en behagelig bredde for længere tekster.
-                            </p>
-
-                            <h2 className="text-3xl font-display font-bold text-brand-dark mb-4 mt-12">Vigtige punkter</h2>
-                            <ul className="list-disc list-inside space-y-3 text-gray-700 mb-6">
-                                <li>God læsbarhed med optimal linjeafstand</li>
-                                <li>Responsivt design der fungerer på alle enheder</li>
-                                <li>Professionel typografi med display-skrifttype til overskrifter</li>
-                                <li>Konsistent styling der matcher resten af sitet</li>
-                            </ul>
-
-                            <h2 className="text-3xl font-display font-bold text-brand-dark mb-4 mt-12">Konklusion</h2>
-                            <p className="text-gray-700 leading-relaxed mb-6">
-                                Når vi tilføjer rigtigt indhold fra CMS'et, vil det erstatte denne placeholder-tekst med det faktiske artikelindhold. Indtil da viser denne side strukturen og designet.
-                            </p>
-                        </div>
+                    <div className="max-w-4xl mx-auto">
+                        {contentBlocks.length > 0 ? (
+                            <ContentBlocks blocks={contentBlocks} />
+                        ) : (
+                            <div className="prose prose-lg max-w-none">
+                                <p className="text-gray-700 leading-relaxed mb-6">
+                                    Intet indhold tilgængeligt endnu. Tilføj content blocks i Sanity CMS for at vise indhold her.
+                                </p>
+                            </div>
+                        )}
 
                         {/* Call to action */}
                         <div className="mt-16 pt-8 border-t border-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">

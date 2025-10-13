@@ -3,6 +3,15 @@
 ## [2025-10-13] – Blog Integration: Connect Frontend to Sanity CMS
 Goal: Replace hardcoded blog content with dynamic data from Sanity CMS while maintaining exact same design
 
+### TypeScript Type Safety Fixes (Latest Update)
+- ✅ FIXED: Resolved TypeScript errors in production build due to `SanityImage.asset` union type
+  - Updated `src/hooks/useSiteMetadata.ts` to use type guards when accessing favicon asset
+  - Updated `src/lib/sanityAsset.ts` to use type guards for image reference validation
+  - Updated `src/lib/backgroundStyles.ts` to use type guards in both `getBackgroundStyle` and `getTextColorClass` functions
+  - All instances of `image.asset?._ref` replaced with `(image.asset && '_ref' in image.asset && image.asset._ref)`
+  - All instances checking for expanded URLs now use `(image.asset && 'url' in image.asset && image.asset.url)`
+  - Production build now succeeds on Vercel
+
 ### Changes Made:
 - ✅ COMPLETED: Updated TypeScript types for blog integration
   - Extended `BlogPost` interface with new schema fields: `type`, `description`, `featuredImage`, `contentBlocks`, `publishedDate`, `featured`, `readTime`, `tags`

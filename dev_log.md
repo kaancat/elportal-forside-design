@@ -43,6 +43,11 @@ Goal: Restructure blog hero section to eliminate awkward gaps and create a more 
 ### Files Modified
 - `app/blogs/BlogHeroSearch.tsx` - Complete hero section restructure + CMS integration
 
+### Deployment Status
+- ✅ **Frontend**: Pushed to GitHub (main branch) - commit `4b72434`
+- ✅ **Sanity Studio**: Deployed to https://dinelportal.sanity.studio/
+- ✅ **Live URL**: Changes will be visible at https://dinelportal.dk/blogs after Vercel redeploys
+
 ---
 
 ## [2025-10-13] – Blog Integration: Connect Frontend to Sanity CMS

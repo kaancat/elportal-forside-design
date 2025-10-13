@@ -128,7 +128,7 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
     // Get hero title and subtitle from settings or use defaults
     const heroTitle = blogSettings?.heroTitle || 'Indsigt i elforbrug og priser'
     const heroSubtitle = blogSettings?.heroSubtitle || 'Hold dig opdateret med de seneste nyheder, guides og eksperttips om elpriser, grøn energi og intelligente besparelser til din husstand'
-    
+
     // Split title to make first word green
     const titleWords = heroTitle.split(' ')
     const firstWord = titleWords[0]

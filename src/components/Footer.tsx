@@ -23,7 +23,7 @@ const Footer = ({ initialSettings }: FooterProps) => {
     const today = new Date();
     return today.toLocaleDateString('da-DK', {
       day: 'numeric',
-      month: 'long', 
+      month: 'long',
       year: 'numeric'
     });
   };
@@ -72,7 +72,7 @@ const Footer = ({ initialSettings }: FooterProps) => {
             <div className="mb-8 md:mb-0">
               {footer.footerLogo ? (
                 <Image
-                  src={footer.footerLogo.asset && '_ref' in footer.footerLogo.asset ? 
+                  src={footer.footerLogo.asset && '_ref' in footer.footerLogo.asset && footer.footerLogo.asset._ref ?
                     `https://cdn.sanity.io/images/yxesi03x/production/${footer.footerLogo.asset._ref.replace('image-', '').replace('-png', '.png').replace('-jpg', '.jpg')}` :
                     FALLBACK_LOGO
                   }
@@ -93,12 +93,12 @@ const Footer = ({ initialSettings }: FooterProps) => {
                 />
               )}
               <p className="max-w-xs text-gray-300 text-sm">
-                {footer.footerDescription || 
+                {footer.footerDescription ||
                   "DinElportal.dk er Danmarks sammenligningstjeneste for elpriser. Vi hjælper dig med at finde den bedste elpris og spare penge på din elregning."
                 }
               </p>
             </div>
-            
+
             <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
               {footer.linkGroups.map((group, index) => (
                 <div key={group._key || index}>
@@ -107,10 +107,10 @@ const Footer = ({ initialSettings }: FooterProps) => {
                     {group.links?.map((link, linkIndex) => {
                       const href = resolveLink(link, 'Footer');
                       const isInternal = link.linkType === 'internal';
-                      
+
                       return (
                         <li key={link._key || linkIndex}>
-                          <UniversalLink 
+                          <UniversalLink
                             href={href}
                             className="text-gray-300 hover:text-brand-green transition-colors"
                           >
@@ -124,7 +124,7 @@ const Footer = ({ initialSettings }: FooterProps) => {
               ))}
             </div>
           </div>
-          
+
           <div className="mt-12 pt-6 border-t border-gray-700 text-sm text-gray-400">
             <p>{footer.copyrightText || `© ${new Date().getFullYear()} DinElportal.dk - Alle rettigheder forbeholdes`}</p>
             <p className="mt-1">{getSecondaryText()}</p>
@@ -153,7 +153,7 @@ const Footer = ({ initialSettings }: FooterProps) => {
               Vi hjælper dig med at finde den bedste elpris og spare penge på din elregning.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
             <div>
               <h3 className="font-bold mb-4 text-lg">Vigtige sider</h3>
@@ -164,7 +164,7 @@ const Footer = ({ initialSettings }: FooterProps) => {
                 <li><a href="/historiske-priser" className="text-gray-300 hover:text-brand-green transition-colors">Historiske elpriser</a></li>
               </ul>
             </div>
-            
+
             <div>
               <h3 className="font-bold mb-4 text-lg">Værktøjer</h3>
               <ul className="space-y-2">
@@ -174,7 +174,7 @@ const Footer = ({ initialSettings }: FooterProps) => {
                 {/* Ladeboks midlertidigt fjernet jf. fase 2 plan */}
               </ul>
             </div>
-            
+
             <div>
               <h3 className="font-bold mb-4 text-lg">Om DinElportal</h3>
               <ul className="space-y-2">
@@ -186,7 +186,7 @@ const Footer = ({ initialSettings }: FooterProps) => {
             </div>
           </div>
         </div>
-        
+
         <div className="mt-12 pt-6 border-t border-gray-700 text-sm text-gray-400">
           <p>© {new Date().getFullYear()} DinElportal.dk - Alle rettigheder forbeholdes</p>
           <p className="mt-1">Priserne er senest opdateret: {formatDate()}</p>

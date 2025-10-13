@@ -360,9 +360,8 @@ export default async function BlogsPage() {
 
             {/* Hero section with search functionality */}
             <BlogHeroSearch
-                defaultFeaturedPosts={featuredToDisplay}
-                allPosts={postsToDisplay}
-                heroBackgroundImage={heroBackgroundImage}
+                allBlogPosts={postsToDisplay}
+                blogSettings={blogSettings}
             />
 
             {/* Archive grid with filters - shows ALL posts including featured */}

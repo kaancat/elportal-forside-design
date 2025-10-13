@@ -35,19 +35,19 @@ function transformBlogPost(post: BlogPost): SimplePost {
     })
 
     // Get image URL from Sanity asset (handle union type)
-    const imageUrl = (post.featuredImage?.asset && 'url' in post.featuredImage.asset && post.featuredImage.asset.url) 
-        ? post.featuredImage.asset.url 
+    const imageUrl = (post.featuredImage?.asset && 'url' in post.featuredImage.asset && post.featuredImage.asset.url)
+        ? post.featuredImage.asset.url
         : 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?ixlib=rb-4.0.3'
     const imageAlt = post.featuredImage?.alt || post.title
-    
+
     // Calculate reading time from content blocks if not set in CMS
     const calculateReadTime = (): number => {
         if (post.readTime) return post.readTime
-        
+
         let totalWords = 0
         totalWords += (post.title?.split(/\s+/).length || 0)
         totalWords += (post.description?.split(/\s+/).length || 0)
-        
+
         // Extract text from content blocks
         post.contentBlocks?.forEach((block: any) => {
             if (block._type === 'richTextSection' && block.content) {
@@ -64,11 +64,11 @@ function transformBlogPost(post: BlogPost): SimplePost {
             if (block.title) totalWords += block.title.split(/\s+/).length
             if (block.description) totalWords += block.description.split(/\s+/).length
         })
-        
+
         // 200 words per minute reading speed, minimum 1 minute
         return Math.max(1, Math.ceil(totalWords / 200))
     }
-    
+
     return {
         date: formattedDate,
         title: post.title,

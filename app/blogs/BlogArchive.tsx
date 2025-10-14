@@ -97,17 +97,17 @@ export default function BlogArchive({ posts }: BlogArchiveProps) {
         })
 
     return (
-        <section className="container mx-auto px-4 py-16">
+        <section className="container mx-auto px-4 py-8 sm:py-16">
             {/* Title */}
-            <h2 className="text-3xl md:text-4xl font-display font-bold text-brand-dark mb-8 text-center">Seneste Indlæg</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-brand-dark mb-6 sm:mb-8 text-left sm:text-center">Seneste Indlæg</h2>
 
-            {/* Filter controls */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-                {/* Type filters */}
-                <div className="flex items-center gap-2">
+            {/* Filter controls - Mobile: stacked layout, Desktop: horizontal */}
+            <div className="flex flex-col gap-3 mb-6">
+                {/* Type filters - full width on mobile */}
+                <div className="flex items-center gap-2 sm:justify-center">
                     <button
                         onClick={() => setTypeFilter('All')}
-                        className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${typeFilter === 'All'
+                        className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-sm font-semibold transition-all ${typeFilter === 'All'
                             ? 'bg-brand-dark text-white shadow-md'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
@@ -116,7 +116,7 @@ export default function BlogArchive({ posts }: BlogArchiveProps) {
                     </button>
                     <button
                         onClick={() => setTypeFilter('Blog')}
-                        className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${typeFilter === 'Blog'
+                        className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-sm font-semibold transition-all ${typeFilter === 'Blog'
                             ? 'bg-brand-green text-white shadow-md'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
@@ -125,7 +125,7 @@ export default function BlogArchive({ posts }: BlogArchiveProps) {
                     </button>
                     <button
                         onClick={() => setTypeFilter('Guide')}
-                        className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${typeFilter === 'Guide'
+                        className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-sm font-semibold transition-all ${typeFilter === 'Guide'
                             ? 'bg-brand-green-dark text-white shadow-md'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
@@ -134,24 +134,27 @@ export default function BlogArchive({ posts }: BlogArchiveProps) {
                     </button>
                 </div>
 
-                {/* Sort dropdown */}
-                <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">Sorter:</span>
-                    <select
-                        value={sortOrder}
-                        onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
-                        className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium bg-white hover:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green focus:border-transparent transition-all"
-                    >
-                        <option value="newest">Nyeste først</option>
-                        <option value="oldest">Ældste først</option>
-                    </select>
+                {/* Results count + Sort dropdown on same line (mobile), separate rows on desktop */}
+                <div className="flex items-center justify-between gap-4 sm:flex-col sm:items-center sm:gap-2">
+                    {/* Results count */}
+                    <p className="text-sm text-gray-500">
+                        Viser {filteredPosts.length} {filteredPosts.length === 1 ? 'indlæg' : 'indlæg'}
+                    </p>
+
+                    {/* Sort dropdown */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600">Sorter:</span>
+                        <select
+                            value={sortOrder}
+                            onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
+                            className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-gray-200 text-sm font-medium bg-white hover:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green focus:border-transparent transition-all"
+                        >
+                            <option value="newest">Nyeste først</option>
+                            <option value="oldest">Ældste først</option>
+                        </select>
+                    </div>
                 </div>
             </div>
-
-            {/* Results count */}
-            <p className="text-sm text-gray-500 mb-6">
-                Viser {filteredPosts.length} {filteredPosts.length === 1 ? 'indlæg' : 'indlæg'}
-            </p>
 
             {/* Archive grid */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

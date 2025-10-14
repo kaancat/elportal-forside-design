@@ -158,7 +158,7 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
             >
 
                 {/* Content - centered both vertically and horizontally */}
-                <div className="relative z-10 container mx-auto px-4 flex flex-col justify-center items-center h-full">
+                <div className="relative z-10 container mx-auto px-4 flex flex-col justify-center items-center h-full pt-20 lg:pt-0">
                     {/* Mobile title - centered, above everything */}
                     <div className="text-center flex-shrink-0 lg:hidden mb-8">
                         <h1 className="text-3xl sm:text-4xl font-display font-extrabold text-white mb-2 tracking-tight leading-tight">
@@ -329,10 +329,10 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
                             </div>
                         </div>
 
-                        {/* Mobile Search & Topics - below the featured card */}
-                        <div className="lg:hidden mt-8 w-full max-w-2xl mx-auto px-4 flex flex-col gap-6">
+                        {/* Mobile Search & Topics - HIDDEN on mobile per user request */}
+                        {/* <div className="lg:hidden mt-8 w-full max-w-2xl mx-auto px-4 flex flex-col gap-6">
 
-                            {/* Search field */}
+                            Search field
                             <div className="w-full">
                                 <h3 className="text-white text-lg font-display font-bold mb-3 leading-tight">
                                     Filtrer indlæg
@@ -347,7 +347,7 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
                                         className="w-full px-4 pr-10 h-11 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 outline-none border-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
                                         style={{ boxShadow: 'none' }}
                                     />
-                                    {/* Clear button */}
+                                    Clear button
                                     {searchQuery && (
                                         <button
                                             onClick={() => {
@@ -363,7 +363,7 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
                                 </div>
                             </div>
 
-                            {/* Popular Topics */}
+                            Popular Topics
                             <div className="w-full">
                                 <h3 className="text-white text-base font-display font-semibold mb-3 leading-tight">
                                     Populære emner
@@ -383,7 +383,7 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
                                     ))}
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </section>

@@ -104,7 +104,7 @@ export default function BlogArchive({ posts }: BlogArchiveProps) {
             {/* Filter controls */}
             <div className="flex flex-col gap-4 mb-6">
                 {/* Type filters */}
-                <div className="flex items-center gap-2 justify-center">
+                <div className="flex items-center gap-2">
                     <button
                         onClick={() => setTypeFilter('All')}
                         className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${typeFilter === 'All'

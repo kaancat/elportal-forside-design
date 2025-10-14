@@ -26,10 +26,15 @@ interface ScrollAnimationOptions {
 }
 
 export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
-  const [shouldReduceMotion, setShouldReduceMotion] = useState(prefersReducedMotion())
-  const [isMobile, setIsMobile] = useState(isMobileDevice())
+  // Start with false (server-safe) and update on client mount to avoid hydration mismatch
+  const [shouldReduceMotion, setShouldReduceMotion] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
+    // Set initial values on mount
+    setIsMobile(isMobileDevice())
+    setShouldReduceMotion(prefersReducedMotion())
+
     const checkDevice = () => {
       setIsMobile(isMobileDevice())
     }
@@ -40,7 +45,7 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
 
     window.addEventListener('resize', checkDevice)
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-    
+
     // Check if addEventListener is supported (modern browsers)
     if (mediaQuery.addEventListener) {
       mediaQuery.addEventListener('change', checkMotionPreference)
@@ -89,11 +94,11 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
       case 'fadeUp':
         // Slide up animation (no opacity change to prevent blinking)
         return {
-          hidden: { 
+          hidden: {
             opacity: 1,
             y: isMobile ? mobileDistance : distance
           },
-          visible: { 
+          visible: {
             opacity: 1,
             y: 0,
             transition: {
@@ -107,11 +112,11 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
       case 'fadeIn':
         // Subtle zoom in (no opacity to prevent blinking)
         return {
-          hidden: { 
+          hidden: {
             opacity: 1,
             scale: 0.95
           },
-          visible: { 
+          visible: {
             opacity: 1,
             scale: 1,
             transition: {
@@ -125,11 +130,11 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
       case 'slideUp':
         // Stronger slide animation (no opacity)
         return {
-          hidden: { 
+          hidden: {
             opacity: 1,
             y: isMobile ? 40 : 50
           },
-          visible: { 
+          visible: {
             opacity: 1,
             y: 0,
             transition: {
@@ -143,12 +148,12 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
       case 'hero':
         // Hero animation with scale and slide (no opacity)
         return {
-          hidden: { 
+          hidden: {
             opacity: 1,
             scale: 0.98,
             y: 20
           },
-          visible: { 
+          visible: {
             opacity: 1,
             scale: 1,
             y: 0,
@@ -163,11 +168,11 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
       case 'fadeLeft':
         // Slide in from left (no opacity)
         return {
-          hidden: { 
+          hidden: {
             opacity: 1,
             x: isMobile ? -20 : -30
           },
-          visible: { 
+          visible: {
             opacity: 1,
             x: 0,
             transition: {
@@ -181,11 +186,11 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
       case 'fadeRight':
         // Slide in from right (no opacity)
         return {
-          hidden: { 
+          hidden: {
             opacity: 1,
             x: isMobile ? 20 : 30
           },
-          visible: { 
+          visible: {
             opacity: 1,
             x: 0,
             transition: {
@@ -199,11 +204,11 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
       case 'scale':
         // Subtle scale animation (no opacity)
         return {
-          hidden: { 
+          hidden: {
             opacity: 1,
             scale: 0.95
           },
-          visible: { 
+          visible: {
             opacity: 1,
             scale: 1,
             transition: {
@@ -217,11 +222,11 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
       case 'stagger':
         // For staggered list animations (no opacity)
         return {
-          hidden: { 
+          hidden: {
             opacity: 1,
             y: 20
           },
-          visible: { 
+          visible: {
             opacity: 1,
             y: 0,
             transition: {
@@ -235,11 +240,11 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
       default:
         // Default to slideUp (no opacity)
         return {
-          hidden: { 
+          hidden: {
             opacity: 1,
             y: isMobile ? 20 : 30
           },
-          visible: { 
+          visible: {
             opacity: 1,
             y: 0,
             transition: {
@@ -254,8 +259,8 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
 
   return {
     variants: getVariants(isMobile),
-    viewport: { 
-      once: true, 
+    viewport: {
+      once: true,
       margin: isMobile ? "50px" : "100px", // Positive margin to trigger earlier
       amount: isMobile ? 0.05 : 0.1 // Trigger when less of element is visible
     },
@@ -266,12 +271,13 @@ export const useScrollAnimation = (options?: ScrollAnimationOptions) => {
 
 // Utility function for simple scale animations (no opacity to prevent blinking)
 export const fadeInAnimation = (delay = 0) => {
-  const isMobile = isMobileDevice()
-  
+  // Use server-safe default for SSR
+  const isMobile = typeof window !== 'undefined' ? isMobileDevice() : false
+
   return {
     initial: { opacity: 1, scale: 0.95 },
     animate: { opacity: 1, scale: 1 },
-    transition: { 
+    transition: {
       duration: isMobile ? 0.4 : 0.6,
       delay,
       ease: "easeOut" as const

@@ -28,6 +28,8 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
     const [currentIndex, setCurrentIndex] = useState(0)
     const [isSearchActive, setIsSearchActive] = useState(false)
     const [activeTopic, setActiveTopic] = useState<string | null>(null)
+    const [touchStart, setTouchStart] = useState<number | null>(null)
+    const [touchEnd, setTouchEnd] = useState<number | null>(null)
 
     // Get default featured posts from settings or fallback to latest 3 posts
     const defaultFeaturedPosts = useMemo(() => {
@@ -96,6 +98,33 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
     const goToPrevious = useCallback(() => {
         setCurrentIndex((prevIndex) => (prevIndex - 1 + matchingPosts.length) % matchingPosts.length)
     }, [matchingPosts.length])
+
+    // Swipe handling for mobile/tablet
+    const minSwipeDistance = 50 // Minimum distance for a swipe
+
+    const onTouchStart = (e: React.TouchEvent) => {
+        setTouchEnd(null) // Reset touch end
+        setTouchStart(e.targetTouches[0].clientX)
+    }
+
+    const onTouchMove = (e: React.TouchEvent) => {
+        setTouchEnd(e.targetTouches[0].clientX)
+    }
+
+    const onTouchEnd = () => {
+        if (!touchStart || !touchEnd) return
+
+        const distance = touchStart - touchEnd
+        const isLeftSwipe = distance > minSwipeDistance
+        const isRightSwipe = distance < -minSwipeDistance
+
+        if (isLeftSwipe) {
+            goToNext()
+        }
+        if (isRightSwipe) {
+            goToPrevious()
+        }
+    }
 
     useEffect(() => {
         const interval = setInterval(goToNext, 5000) // Auto-advance every 5 seconds
@@ -238,7 +267,13 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
 
                         {/* Column 2: Featured blog card (compact, magazine-style) */}
                         <div className="flex flex-col items-center justify-center w-full px-4 sm:px-6 lg:px-0">
-                            <div key={currentPost.title} className="bg-white rounded-xl md:rounded-2xl overflow-hidden shadow-xl border-2 border-white/20 flex flex-col w-full max-w-md transition-all duration-300 animate-in fade-in slide-in-from-right-4 relative">
+                            <div
+                                key={currentPost.title}
+                                className="bg-white rounded-xl md:rounded-2xl overflow-hidden shadow-xl border-2 border-white/20 flex flex-col w-full max-w-md transition-all duration-300 animate-in fade-in slide-in-from-right-4 relative touch-pan-y"
+                                onTouchStart={onTouchStart}
+                                onTouchMove={onTouchMove}
+                                onTouchEnd={onTouchEnd}
+                            >
                                 {/* Image with overlay gradient - compact size */}
                                 <div className="relative w-full aspect-[16/9] flex-shrink-0 overflow-hidden">
                                     <Image

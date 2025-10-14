@@ -26,13 +26,16 @@ interface SimplePost {
  * Transform Sanity BlogPost to SimplePost format for components
  */
 function transformBlogPost(post: BlogPost): SimplePost {
-    // Format date to Danish format
+    // Format date to match parseDate format in BlogArchive: "Marts 01, 2025"
     const date = new Date(post.publishedDate)
-    const formattedDate = date.toLocaleDateString('da-DK', {
-        year: 'numeric',
-        month: 'long',
-        day: '2-digit'
-    })
+    const months = [
+        'Januar', 'Februar', 'Marts', 'April', 'Maj', 'Juni',
+        'Juli', 'August', 'September', 'Oktober', 'November', 'December'
+    ]
+    const day = String(date.getDate()).padStart(2, '0')
+    const month = months[date.getMonth()]
+    const year = date.getFullYear()
+    const formattedDate = `${month} ${day}, ${year}`
 
     // Get image URL from Sanity asset (handle union type)
     const imageUrl = (post.featuredImage?.asset && 'url' in post.featuredImage.asset && post.featuredImage.asset.url)

@@ -32,18 +32,31 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
     // Get default featured posts from settings or fallback to latest 3 posts
     const defaultFeaturedPosts = useMemo(() => {
         if (blogSettings?.featuredPosts && blogSettings.featuredPosts.length > 0) {
-            return blogSettings.featuredPosts.map(post => ({
-                date: new Date(post.publishedDate).toLocaleDateString('da-DK', { year: 'numeric', month: 'long', day: 'numeric' }),
-                title: post.title,
-                description: post.description,
-                imageUrl: (post.featuredImage?.asset && 'url' in post.featuredImage.asset && post.featuredImage.asset.url)
-                    ? post.featuredImage.asset.url
-                    : 'https://images.unsplash.com/photo-1466611653911-95081537e5b7?ixlib=rb-4.0.3',
-                imageAlt: post.featuredImage?.alt || 'Featured blog image',
-                type: post.type,
-                slug: post.slug.current,
-                readTime: post.readTime
-            }))
+            return blogSettings.featuredPosts.map(post => {
+                // Format date to match parseDate format: "Marts 01, 2025"
+                const date = new Date(post.publishedDate)
+                const months = [
+                    'Januar', 'Februar', 'Marts', 'April', 'Maj', 'Juni',
+                    'Juli', 'August', 'September', 'Oktober', 'November', 'December'
+                ]
+                const day = String(date.getDate()).padStart(2, '0')
+                const month = months[date.getMonth()]
+                const year = date.getFullYear()
+                const formattedDate = `${month} ${day}, ${year}`
+
+                return {
+                    date: formattedDate,
+                    title: post.title,
+                    description: post.description,
+                    imageUrl: (post.featuredImage?.asset && 'url' in post.featuredImage.asset && post.featuredImage.asset.url)
+                        ? post.featuredImage.asset.url
+                        : 'https://images.unsplash.com/photo-1466611653911-95081537e5b7?ixlib=rb-4.0.3',
+                    imageAlt: post.featuredImage?.alt || 'Featured blog image',
+                    type: post.type,
+                    slug: post.slug.current,
+                    readTime: post.readTime
+                }
+            })
         }
         // Fallback to latest 3 posts if no featured posts are set
         return allBlogPosts.slice(0, 3)

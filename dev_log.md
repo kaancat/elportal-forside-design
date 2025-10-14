@@ -1,5 +1,28 @@
 # Dev Log
 
+## [2025-10-14] – Fixed Blog Sorting (Date Format Issue)
+Goal: Fix broken sorting functionality in blog archive
+
+### Issue:
+- Sorting dropdown ("Nyeste først" / "Ældste først") was not working
+- Date formatting mismatch between what was produced and what the parser expected
+- `toLocaleDateString('da-DK')` produced "14. oktober 2025"
+- `parseDate` function expected "Oktober 14, 2025"
+
+### Changes Made:
+- ✅ FIXED: Updated date formatting in `app/blogs/page.tsx`
+  - Now uses manual formatting: `${month} ${day}, ${year}` → "Oktober 14, 2025"
+- ✅ FIXED: Updated date formatting in `app/blogs/BlogHeroSearch.tsx`
+  - Consistent formatting for featured posts carousel
+- ✅ Both files now use the same Danish month array and format
+
+### Impact:
+- **Sorting now works**: Blog posts correctly sort by newest/oldest
+- **Consistent dates**: All blog post dates use the same format across the site
+- **Proper parsing**: `parseDate` function can now correctly parse and compare dates
+
+---
+
 ## [2025-10-13] – Blog Hero Section: Magazine-Style Redesign + CMS Integration
 Goal: Restructure blog hero section to eliminate awkward gaps and create a more cohesive, magazine-style layout. Integrate title/subtitle with Sanity CMS.
 

@@ -272,7 +272,7 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
                                 {/* Image with overlay gradient - compact size */}
                                 <div className="relative w-full aspect-[16/9] flex-shrink-0 overflow-hidden">
                                     <Image
-                                        src={currentPost.imageUrl.includes('?') ? `${currentPost.imageUrl}&auto=format&fit=crop&w=900&q=80` : `${currentPost.imageUrl}?auto=format&fit=crop&w=900&q=80`}
+                                        src={currentPost.imageUrl.includes('?') ? `${currentPost.imageUrl}&auto=format&fit=crop&w=800&q=75&fm=webp` : `${currentPost.imageUrl}?auto=format&fit=crop&w=800&q=75&fm=webp`}
                                         alt={currentPost.imageAlt}
                                         fill
                                         priority

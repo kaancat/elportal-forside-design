@@ -32,7 +32,7 @@ const BlogCard = memo(({ post }: { post: SimplePost }) => {
             <article className="flex flex-col overflow-hidden rounded-xl md:rounded-2xl border border-neutral-200/50 bg-white shadow-sm transition hover:shadow-md h-full cursor-pointer">
                 <div className="relative h-40 sm:h-44 md:h-48 w-full flex-shrink-0">
                     <Image
-                        src={post.imageUrl.includes('?') ? `${post.imageUrl}&auto=format&fit=crop&w=900&q=80` : `${post.imageUrl}?auto=format&fit=crop&w=900&q=80`}
+                        src={post.imageUrl.includes('?') ? `${post.imageUrl}&auto=format&fit=crop&w=600&q=70&fm=webp` : `${post.imageUrl}?auto=format&fit=crop&w=600&q=70&fm=webp`}
                         alt={post.imageAlt}
                         fill
                         sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"

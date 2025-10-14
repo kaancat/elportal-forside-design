@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
@@ -20,7 +20,7 @@ interface BlogArchiveProps {
     posts: SimplePost[]
 }
 
-function BlogCard({ post }: { post: SimplePost }) {
+const BlogCard = memo(({ post }: { post: SimplePost }) => {
     // Use provided read time or calculate from title + description
     const readTime = post.readTime || (() => {
         const wordCount = (post.title + ' ' + post.description).split(' ').length
@@ -37,7 +37,7 @@ function BlogCard({ post }: { post: SimplePost }) {
                         fill
                         sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                         className="object-cover"
-                        priority={false}
+                        loading="lazy"
                     />
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition group-hover:opacity-20" />
                     {/* Type badge */}
@@ -65,7 +65,8 @@ function BlogCard({ post }: { post: SimplePost }) {
             </article>
         </Link>
     )
-}
+})
+BlogCard.displayName = 'BlogCard'
 
 export default function BlogArchive({ posts }: BlogArchiveProps) {
     const [typeFilter, setTypeFilter] = useState<'All' | 'Blog' | 'Guide'>('All')

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -125,11 +125,6 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
             goToPrevious()
         }
     }
-
-    useEffect(() => {
-        const interval = setInterval(goToNext, 5000) // Auto-advance every 5 seconds
-        return () => clearInterval(interval)
-    }, [goToNext])
 
     const currentPost = matchingPosts[currentIndex] || defaultFeaturedPosts[0]
     const showCarousel = matchingPosts.length > 1

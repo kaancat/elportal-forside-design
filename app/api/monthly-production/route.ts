@@ -51,9 +51,11 @@ export async function GET(request: NextRequest) {
     const kvCached = await readKvJson(cacheKey)
     if (kvCached) {
       console.log(`[MonthlyProduction] Returning KV cached data for ${cacheKey}`)
-      return NextResponse.json(kvCached, {
+      const headers = cacheHeaders({ sMaxage: 86400, swr: 172800 })
+      return NextResponse.json(kvCached, { 
         headers: {
-          ...cacheHeaders({ sMaxage: 86400, swr: 172800, maxAge: 86400 }), // 24h browser + server cache
+          ...headers,
+          'Cache-Control': `${headers['Cache-Control']}, max-age=86400`, // Add 24h browser cache
           'X-Cache': 'HIT-KV'
         }
       })
@@ -64,9 +66,11 @@ export async function GET(request: NextRequest) {
     const cached = productionCache.get(memCacheKey)
     if (cached) {
       console.log(`[MonthlyProduction] Returning in-memory cached data for ${memCacheKey}`)
-      return NextResponse.json(cached, {
+      const headers = cacheHeaders({ sMaxage: 86400, swr: 172800 })
+      return NextResponse.json(cached, { 
         headers: {
-          ...cacheHeaders({ sMaxage: 86400, swr: 172800, maxAge: 86400 }),
+          ...headers,
+          'Cache-Control': `${headers['Cache-Control']}, max-age=86400`, // Add 24h browser cache
           'X-Cache': 'HIT-MEMORY'
         }
       })
@@ -121,9 +125,11 @@ export async function GET(request: NextRequest) {
     console.log('[MonthlyProduction] Production data cached in KV')
 
     // Return raw data like production (NO processing)
+    const headers = cacheHeaders({ sMaxage: 86400, swr: 172800 })
     return NextResponse.json(data, {
-      headers: {
-        ...cacheHeaders({ sMaxage: 86400, swr: 172800, maxAge: 86400 }),
+      headers: { 
+        ...headers,
+        'Cache-Control': `${headers['Cache-Control']}, max-age=86400`, // Add 24h browser cache
         'X-Cache': 'MISS'
       }
     })

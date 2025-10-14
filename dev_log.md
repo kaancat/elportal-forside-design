@@ -1,5 +1,27 @@
 # Dev Log
 
+## [2025-10-14] – Mobile Blog Hero Improvements
+Goal: Improve mobile UX by simplifying hero section and fixing title visibility
+
+### Changes Made:
+- ✅ FIXED: Title positioning on mobile
+  - Added `pt-20` (80px top padding) to push content below header
+  - Title now fully visible and readable on mobile devices
+- ✅ REMOVED: Search field on mobile (`lg:hidden` section commented out)
+  - Reduces clutter in mobile hero section
+  - Users can still filter in archive section below
+- ✅ REMOVED: Popular topics on mobile
+  - Cleaner, more focused mobile experience
+  - Desktop still has full search & topics functionality
+
+### Impact:
+- **Better Mobile UX**: Title is no longer cut off by fixed header
+- **Cleaner Design**: Mobile hero focuses on title and featured post only
+- **Maintained Functionality**: Search/filter still available in archive section
+- **Desktop Unchanged**: Full functionality preserved on larger screens
+
+---
+
 ## [2025-10-14] – Fixed Blog Sorting (Date Format Issue)
 Goal: Fix broken sorting functionality in blog archive
 

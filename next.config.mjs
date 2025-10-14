@@ -23,6 +23,12 @@ const nextConfig = {
   images: {
     // Enable modern image formats for optimal performance (Codex-recommended)
     formats: ['image/avif', 'image/webp'],
+    // Device sizes for responsive images
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    // Image sizes for srcset
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // Cache optimized images for 60 days
+    minimumCacheTTL: 5184000,
     // Configure remote patterns for Sanity and Unsplash
     remotePatterns: [
       {

@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { createContext, useContext } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { urlFor } from '@/lib/sanity'
 import { PortableText } from '@portabletext/react'
@@ -9,18 +9,21 @@ import PriceCalculatorWidget from './PriceCalculatorWidget'
 import type { PageSection } from '@/types/sanity'
 import { cn } from '@/lib/utils'
 
+// Context to prevent nested links
+const LinkContext = createContext(false)
+
 interface PageSectionProps {
   section: PageSection;
 }
 
 // Simple fade-up animation variant
 const fadeUpVariant = {
-  hidden: { 
-    opacity: 0, 
-    y: 20 
+  hidden: {
+    opacity: 0,
+    y: 20
   },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     transition: {
       duration: 0.5,
@@ -59,11 +62,11 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   const sectionMotionProps = prefersReducedMotion
     ? {}
     : {
-        initial: 'hidden' as const,
-        whileInView: 'visible' as const,
-        viewport: { once: true, margin: '0px 0px -50px 0px', amount: 0.1 } as const,
-      };
-  
+      initial: 'hidden' as const,
+      whileInView: 'visible' as const,
+      viewport: { once: true, margin: '0px 0px -50px 0px', amount: 0.1 } as const,
+    };
+
   // Extract layout settings with defaults
   const layoutRatio = settings?.layoutRatio || '50/50';
   const verticalAlign = settings?.verticalAlign || 'start';
@@ -93,8 +96,8 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
       blockquote: ({ children }: { children?: React.ReactNode }) => (
         <blockquote className={cn(
           "relative border-l-4 border-brand-green pl-6 py-2 italic mb-6 rounded-r-lg",
-          isDarkTheme() 
-            ? "text-gray-200 bg-white/10" 
+          isDarkTheme()
+            ? "text-gray-200 bg-white/10"
             : "text-neutral-700 bg-brand-green/5"
         )}>
           {children}
@@ -130,6 +133,13 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
       em: ({ children }: { children?: React.ReactNode }) => <em className="italic">{children}</em>,
       link: ({ value, children }: { value?: { href: string }, children?: React.ReactNode }) => {
         const href = value?.href || '#'
+        const isInsideLink = useContext(LinkContext)
+
+        // If already inside a link, render as span to prevent nested <a> tags
+        if (isInsideLink) {
+          return <span className={cn('underline', themeColors.link)}>{children}</span>
+        }
+
         let isExternal = false
         try {
           if (href.startsWith('http')) {
@@ -141,19 +151,21 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
           isExternal = false
         }
         return (
-          <a
-            href={href}
-            className={cn('underline transition-colors duration-200', themeColors.link)}
-            target={isExternal ? '_blank' : undefined}
-            rel={isExternal ? 'noopener noreferrer' : undefined}
-          >
-            {children}
-          </a>
+          <LinkContext.Provider value={true}>
+            <a
+              href={href}
+              className={cn('underline transition-colors duration-200', themeColors.link)}
+              target={isExternal ? '_blank' : undefined}
+              rel={isExternal ? 'noopener noreferrer' : undefined}
+            >
+              {children}
+            </a>
+          </LinkContext.Provider>
         )
       },
     },
   }
-  
+
   // Simplified theme system with 5 themes
   const getThemeClasses = () => {
     const themeType = settings?.theme || 'default';
@@ -212,7 +224,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   // Get consistent text colors for each theme
   const getThemeTextColors = () => {
     const themeType = settings?.theme || 'default';
-    
+
     const computedDark = isDarkTheme();
     switch (computedDark ? 'dark' : themeType) {
       case 'dark':
@@ -253,7 +265,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   // Get button styling based on theme
   const getButtonClasses = () => {
     const themeType = settings?.theme || 'default';
-    
+
     switch (themeType) {
       case 'dark':
         return "bg-brand-green text-brand-dark hover:bg-brand-green-light";
@@ -293,7 +305,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
         return 'text-center';
     }
   };
-  
+
   const textAlignClass = getTextAlignClass();
 
   // Container width control (supports fullWidth from Sanity settings)
@@ -314,11 +326,11 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
 
   // Check if this is a text-only section (no image)
   const isTextOnly = !image;
-  
+
   // If sticky image is enabled and there's an image, use the StickyImageSection component
   if (stickyImage && image) {
     return (
-      <motion.section 
+      <motion.section
         {...sectionMotionProps}
         variants={fadeUpVariant}
         className={cn(
@@ -335,7 +347,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
       </motion.section>
     );
   }
-  
+
   // Get grid layout classes based on ratio
   const getGridClasses = () => {
     switch (layoutRatio) {
@@ -348,7 +360,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
         return 'md:grid-cols-2';
     }
   };
-  
+
   // Get column span classes for text
   const getTextColumnClasses = () => {
     switch (layoutRatio) {
@@ -361,7 +373,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
         return '';
     }
   };
-  
+
   // Get column span classes for image
   const getImageColumnClasses = () => {
     switch (layoutRatio) {
@@ -374,7 +386,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
         return '';
     }
   };
-  
+
   // Get vertical alignment class
   const getVerticalAlignClass = () => {
     switch (verticalAlign) {
@@ -389,7 +401,7 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   };
 
   return (
-    <motion.section 
+    <motion.section
       {...sectionMotionProps}
       variants={fadeUpVariant}
       className={cn(
@@ -426,8 +438,8 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
             </motion.div>
             {cta && cta.text && cta.url && (
               <motion.div variants={itemVariant} className={`mt-10 ${textAlignClass === 'text-center' ? 'flex justify-center' : textAlignClass === 'text-right' ? 'flex justify-end' : ''}`}>
-                <a 
-                  href={cta.url} 
+                <a
+                  href={cta.url}
                   className={cn(
                     "inline-flex items-center px-8 py-4 font-semibold rounded-full transition-all duration-200",
                     "shadow-lg ring-1 ring-black/10 dark:ring-white/10 hover:shadow-xl hover:-translate-y-0.5",
@@ -495,13 +507,13 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
                 isDarkTheme() && "prose-invert"
               )}>
                 {content && Array.isArray(content) && content.length > 0 && (
-                <PortableText value={content} components={customComponents} />
-              )}
+                  <PortableText value={content} components={customComponents} />
+                )}
               </motion.div>
               {cta && cta.text && cta.url && (
                 <motion.div variants={itemVariant} className={`mt-10 ${textAlignClass === 'text-center' ? 'flex justify-center' : textAlignClass === 'text-right' ? 'flex justify-end' : ''}`}>
-                  <a 
-                    href={cta.url} 
+                  <a
+                    href={cta.url}
                     className={cn(
                       "inline-flex items-center px-8 py-4 font-semibold rounded-full transition-all duration-200",
                       "shadow-lg ring-1 ring-black/10 dark:ring-white/10 hover:shadow-xl hover:-translate-y-0.5",

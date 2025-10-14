@@ -47,26 +47,26 @@ export async function GET(request: NextRequest) {
   const cacheKey = `production:${start}:${end}`
 
   try {
-    
+
     const kvCached = await readKvJson(cacheKey)
     if (kvCached) {
       console.log(`[MonthlyProduction] Returning KV cached data for ${cacheKey}`)
-      return NextResponse.json(kvCached, { 
+      return NextResponse.json(kvCached, {
         headers: {
-          ...cacheHeaders({ sMaxage: 86400, swr: 172800 }), // 24h cache like production
+          ...cacheHeaders({ sMaxage: 86400, swr: 172800, maxAge: 86400 }), // 24h browser + server cache
           'X-Cache': 'HIT-KV'
         }
       })
     }
-    
+
     // Check in-memory cache as fallback
     const memCacheKey = `${start}_${end}`
     const cached = productionCache.get(memCacheKey)
     if (cached) {
       console.log(`[MonthlyProduction] Returning in-memory cached data for ${memCacheKey}`)
-      return NextResponse.json(cached, { 
+      return NextResponse.json(cached, {
         headers: {
-          ...cacheHeaders({ sMaxage: 86400, swr: 172800 }),
+          ...cacheHeaders({ sMaxage: 86400, swr: 172800, maxAge: 86400 }),
           'X-Cache': 'HIT-MEMORY'
         }
       })
@@ -78,16 +78,16 @@ export async function GET(request: NextRequest) {
     // Use queued fetch with production retry logic
     const data = await queuedFetch(memCacheKey, async () => {
       console.log(`[MonthlyProduction] Fetching production data from EnergiDataService for ${cacheKey}`)
-      
+
       // EXACT production retry logic
       const maxAttempts = 3
       const baseDelayMs = 1000
       let lastError: any = null
-      
+
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
           const apiResponse = await fetch(API_URL);
-          
+
           if (!apiResponse.ok) {
             // Retry on rate limit or server errors
             if ((apiResponse.status === 429 || apiResponse.status === 503) && attempt < maxAttempts) {
@@ -96,12 +96,12 @@ export async function GET(request: NextRequest) {
               await new Promise(r => setTimeout(r, delay))
               continue
             }
-            
+
             const errorText = await apiResponse.text();
             console.error("[MonthlyProduction] EnergiDataService API Error:", errorText);
             throw new Error(`API call failed: ${apiResponse.status}`);
           }
-          
+
           const data = await apiResponse.json();
           return data;
         } catch (error) {
@@ -109,28 +109,28 @@ export async function GET(request: NextRequest) {
           if (attempt === maxAttempts) throw error
         }
       }
-      
+
       throw lastError || new Error('Failed to fetch production data')
     })
-    
+
     // Cache the successful response in both memory and KV
     productionCache.set(memCacheKey, data)
-    
+
     // Store in KV with 24 hour expiry for historical production data  
     await setKvJson(cacheKey, data, 86400)
     console.log('[MonthlyProduction] Production data cached in KV')
-    
+
     // Return raw data like production (NO processing)
     return NextResponse.json(data, {
-      headers: { 
-        ...cacheHeaders({ sMaxage: 86400, swr: 172800 }),
+      headers: {
+        ...cacheHeaders({ sMaxage: 86400, swr: 172800, maxAge: 86400 }),
         'X-Cache': 'MISS'
       }
     })
-    
+
   } catch (error: any) {
     console.error('[MonthlyProduction] Unexpected error:', error)
-    
+
     // Try to return cached data on error
     const fallback = await readKvJson(cacheKey)
     if (fallback) {
@@ -141,7 +141,7 @@ export async function GET(request: NextRequest) {
         }
       })
     }
-    
+
     return NextResponse.json(
       { error: 'Failed to fetch monthly production data.', details: error.message },
       { status: 500 }

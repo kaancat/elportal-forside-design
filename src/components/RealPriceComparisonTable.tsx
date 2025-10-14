@@ -58,7 +58,7 @@ const isDarkTheme = (theme?: string) => {
 
 const getThemeTextColors = (theme?: string) => {
   const themeType = theme || 'default';
-  
+
   switch (themeType) {
     case 'dark':
       return {
@@ -159,7 +159,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
       console.log('[RealPriceComparisonTable] mounted');
     }
   }, []);
-  
+
   // Get theme colors based on settings
   const themeColors = getThemeTextColors(settings?.theme);
   const theme = settings?.theme || 'default';
@@ -201,25 +201,25 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
         console.error('Error fetching spot price:', error);
       }
     };
-    
+
     fetchSpotPrice();
   }, [isClient, location?.region]);
 
   useEffect(() => {
     if (!isClient) return;
-    
+
     const fetchProviders = async () => {
       try {
         const providers = await SanityService.getAllProviders();
         setAllProviders(providers);
         console.log('[RealPriceComparisonTable] providers loaded', providers.length);
-        
+
         // Auto-select first two providers if available
         if (providers.length > 0) {
           // Try to find Vindstød first
           const vindstod = providers.find(p => p.isVindstoedProduct);
           const others = providers.filter(p => !p.isVindstoedProduct);
-          
+
           if (vindstod) {
             setSelectedProvider1(vindstod);
             if (others.length > 0) {
@@ -236,7 +236,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
         setIsLoading(false);
       }
     };
-    
+
     fetchProviders();
   }, [isClient]);
 
@@ -252,7 +252,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
 
   const getPriceDetails = (provider: ProviderProductBlock | null) => {
     if (!provider) {
-      return { 
+      return {
         spotPrice: 0,
         tillæg: 0,
         totalPerKwh: 0,
@@ -260,7 +260,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
         total: 0
       };
     }
-    
+
     // Simplified model: spotpris (måneds-gennemsnit) + tillæg; ingen net/afgifter/moms
     const spotPrice = monthlyAvgSpotPrice;
     const tillæg = provider.spotPriceMarkup !== undefined
@@ -271,10 +271,10 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
     const subscription = provider.monthlySubscription !== undefined
       ? provider.monthlySubscription
       : (provider.displayMonthlyFee || 0);
-    
+
     const total = (totalPerKwh * monthlyConsumption) + subscription;
 
-    return { 
+    return {
       spotPrice,
       tillæg,
       totalPerKwh,
@@ -285,7 +285,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
 
   const details1 = useMemo(() => getPriceDetails(selectedProvider1), [selectedProvider1, monthlyConsumption, monthlyAvgSpotPrice]);
   const details2 = useMemo(() => getPriceDetails(selectedProvider2), [selectedProvider2, monthlyConsumption, monthlyAvgSpotPrice]);
-  
+
   const isCheaper1 = details1.total < details2.total && selectedProvider1 && selectedProvider2;
   const isCheaper2 = details2.total < details1.total && selectedProvider1 && selectedProvider2;
 
@@ -300,7 +300,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
       </section>
     );
   }
-  
+
   if (!allProviders || allProviders.length === 0) {
     return (
       <section className={cn(
@@ -314,7 +314,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
   }
 
   // Provider grid selector component
-  const ProviderGrid = ({ 
+  const ProviderGrid = ({
     selectedProviderId,
     onSelectProvider,
     label
@@ -344,10 +344,12 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
             title={`${provider.providerName} - ${provider.productName}`}
           >
             {provider.logoUrl ? (
-              <img 
-                src={provider.logoUrl} 
+              <img
+                src={provider.logoUrl}
                 alt={provider.providerName}
                 className="w-full h-6 sm:h-8 object-contain"
+                loading="lazy"
+                decoding="async"
               />
             ) : (
               <span className={cn("text-xs text-center line-clamp-2", themeColors.body)}>
@@ -370,10 +372,10 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
   );
 
   // Enhanced comparison card for SaaS-style pricing
-  const EnhancedComparisonCard = ({ 
-    provider, 
-    details, 
-    isFirst, 
+  const EnhancedComparisonCard = ({
+    provider,
+    details,
+    isFirst,
     isCheaper,
     onSelectProvider
   }: {
@@ -399,13 +401,13 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
           </div>
         </div>
       )}
-      
+
       <CardContent className={cn("p-6", isCheaper && "pt-12")}>
         {/* Provider name and logo display */}
         {provider && (
           <div className="mb-6 text-center">
-            <img 
-              src={resolveProviderLogoUrl(provider?.providerName, provider?.logoUrl)} 
+            <img
+              src={resolveProviderLogoUrl(provider?.providerName, provider?.logoUrl)}
               alt={provider?.providerName || 'Leverandør'}
               className="w-16 h-16 object-contain mx-auto mb-2"
               onError={(e) => { e.currentTarget.src = '/placeholder.svg' }}
@@ -430,7 +432,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
               )}
               <span className={cn("text-sm", themeColors.body)}>Variabel pris</span>
             </div>
-            
+
             <div className="flex items-center gap-2">
               {!provider.bindingPeriod || provider.bindingPeriod === 0 ? (
                 <Check className="h-5 w-5 text-brand-green" />
@@ -438,12 +440,12 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
                 <X className="h-5 w-5 text-red-500" />
               )}
               <span className={cn("text-sm", themeColors.body)}>
-                {!provider.bindingPeriod || provider.bindingPeriod === 0 
-                  ? 'Ingen binding' 
+                {!provider.bindingPeriod || provider.bindingPeriod === 0
+                  ? 'Ingen binding'
                   : `${provider.bindingPeriod} mdr. binding`}
               </span>
             </div>
-            
+
             <div className="flex items-center gap-2">
               {!provider.signupFee || provider.signupFee === 0 ? (
                 <Check className="h-5 w-5 text-brand-green" />
@@ -451,12 +453,12 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
                 <X className="h-5 w-5 text-red-500" />
               )}
               <span className={cn("text-sm", themeColors.body)}>
-                {!provider.signupFee || provider.signupFee === 0 
-                  ? 'Gratis oprettelse' 
+                {!provider.signupFee || provider.signupFee === 0
+                  ? 'Gratis oprettelse'
                   : `Oprettelse: ${provider.signupFee} kr`}
               </span>
             </div>
-            
+
             <div className="flex items-center gap-2">
               {provider.isGreenEnergy ? (
                 <Check className="h-5 w-5 text-brand-green" />
@@ -467,7 +469,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
             </div>
           </div>
         )}
-        
+
         {/* Price display */}
         <div className={cn(
           "border-t pt-4",
@@ -483,7 +485,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
               <span className={themeColors.body}>{formatCurrency(details.subscription)}</span>
             </div>
           </div>
-          
+
           <div className={cn(
             "pt-4 border-t",
             isDarkTheme(theme) ? "border-gray-700" : "border-gray-200"
@@ -511,11 +513,11 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
             estimatedValue={parseFloat(formatMonthlyTotal(details.totalPerKwh, monthlyConsumption, details.subscription).replace(' kr.', ''))}
             className="block mt-6"
           >
-            <Button 
+            <Button
               className={cn(
                 "w-full",
-                isCheaper 
-                  ? "bg-brand-green hover:bg-brand-green-dark text-white font-bold py-3" 
+                isCheaper
+                  ? "bg-brand-green hover:bg-brand-green-dark text-white font-bold py-3"
                   : "bg-gray-100 hover:bg-gray-200 text-gray-700"
               )}
             >
@@ -524,7 +526,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
             </Button>
           </TrackedLink>
         ) : provider ? (
-          <Button 
+          <Button
             disabled
             className="w-full mt-6 bg-gray-300 text-gray-500 cursor-not-allowed"
           >
@@ -584,8 +586,8 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
             <div className="space-y-4">
               <Slider
                 id="consumption-slider"
-                min={50} 
-                max={850} 
+                min={50}
+                max={850}
                 step={10}
                 value={[monthlyConsumption]}
                 onValueChange={(value) => setMonthlyConsumption(value[0])}
@@ -619,7 +621,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
               onSelectProvider={handleSelect1}
             />
           )}
-          
+
           {/* Provider 2 selection */}
           <ProviderGrid
             selectedProviderId={selectedProvider2?.id || null}
@@ -652,7 +654,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
               label="Vælg udbyder 2"
             />
           </div>
-          
+
           {/* Cards side by side */}
           {(selectedProvider1 || selectedProvider2) && (
             <div className="grid grid-cols-2 gap-6 mb-8">
@@ -685,7 +687,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
                 Detaljeret prissammenligning
               </h3>
             </div>
-            
+
             <Table>
               <TableBody>
                 <TableRow className={themeColors.tableRowHover}>
@@ -699,7 +701,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
                     {formatCurrency(details2.spotPrice)}
                   </TableCell>
                 </TableRow>
-                
+
                 <TableRow className={themeColors.tableRowHover}>
                   <TableCell className={cn("font-semibold", themeColors.strong)}>
                     Leverandør tillæg

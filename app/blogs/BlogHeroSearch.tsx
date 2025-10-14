@@ -280,6 +280,7 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
                                         src={currentPost.imageUrl.includes('?') ? `${currentPost.imageUrl}&auto=format&fit=crop&w=900&q=80` : `${currentPost.imageUrl}?auto=format&fit=crop&w=900&q=80`}
                                         alt={currentPost.imageAlt}
                                         fill
+                                        priority
                                         sizes="(min-width: 1024px) 500px, (min-width: 640px) 448px, 100vw"
                                         className="object-cover transition-all duration-500 hover:scale-105"
                                     />

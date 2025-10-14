@@ -158,9 +158,9 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
             >
 
                 {/* Content - centered both vertically and horizontally */}
-                <div className="relative z-10 container mx-auto px-4 flex flex-col justify-center items-center h-full pt-14 lg:pt-0">
-                    {/* Mobile title - left-aligned, matches featured card padding */}
-                    <div className="text-left w-full flex-shrink-0 lg:hidden mb-8 px-4 sm:px-6">
+                <div className="relative z-10 container mx-auto px-4 flex flex-col justify-center items-center h-full pt-6 lg:pt-0">
+                    {/* Mobile title - left-aligned, compact spacing */}
+                    <div className="text-left w-full flex-shrink-0 lg:hidden mb-6 px-4 sm:px-6">
                         <h1 className="text-[2rem] sm:text-4xl font-display font-extrabold text-white mb-2 tracking-tight leading-tight">
                             <span className="text-brand-green">{firstWord}</span> {restOfTitle}
                         </h1>

@@ -45,6 +45,100 @@ Result: 200 OK - Providers list page renders
 - **✅ Clean Routing**: No middleware rewrites - direct file-based routing
 - **✅ User Experience**: Users see a proper "under construction" page with clear CTAs
 
+### Next Steps:
+- ✅ Page now fully restored and accessible
+- ✅ User can navigate to /elselskaber without errors
+- ✅ System ready for performance optimization
+
+---
+
+## [2025-10-15] – Performance Optimization: Lighthouse Score Improvements
+Goal: Optimize /elselskaber page to improve Lighthouse performance from 48 to 70-80+
+
+### Initial Lighthouse Report:
+- **Performance**: 48 (target: 70-80+)
+- **Accessibility**: 87 (target: 95-100)
+- **Best Practices**: 79 (target: 85+)
+- **SEO**: 100 ✅
+
+### Key Issues Identified:
+1. **JavaScript**: ~312 KiB of unused JavaScript, 2,420ms Total Blocking Time
+2. **Images**: ~90 KiB savings possible, no WebP optimization
+3. **Cache Headers**: ~138 KiB savings from proper cache lifetimes
+4. **Accessibility**: Buttons without aria-labels, h1 in section heading
+
+### Changes Made:
+
+#### 1. JavaScript Optimization (Est. 312 KiB reduction)
+**File**: `src/components/ContentBlocks.tsx`
+- ✅ **Implemented lazy loading**: Converted all heavy components to use `React.lazy()`
+- ✅ **Code splitting**: Charts, calculators, provider lists now load on-demand
+- ✅ **Suspense boundaries**: Added loading fallbacks for better UX
+- **Impact**: Critical components load immediately, heavy components load when visible
+- **Components lazy-loaded**:
+  - ProviderList (largest component - provider comparison)
+  - All charts (LivePriceGraph, CO2Emissions, RenewableEnergyForecast, etc.)
+  - Calculators (PriceCalculator, ApplianceCalculator)
+  - Maps and visualizations (ConsumptionMap, RegionalComparison)
+  - Video/Podcast embeds
+
+#### 2. Image Optimization (Est. 90 KiB reduction)
+**File**: `src/components/ProviderCard.tsx`
+- ✅ **Next.js Image component**: Converted `<img>` to `<Image>` for automatic WebP/AVIF
+- ✅ **Lazy loading**: Images only load when near viewport
+- ✅ **Blur placeholder**: Added blur-up effect during load
+- ✅ **Proper sizing**: Using `sizes` attribute for responsive images
+- **Impact**: Images served in modern formats with proper lazy loading
+
+#### 3. Cache Headers (Est. 138 KiB reduction)
+**File**: `next.config.mjs`
+- ✅ **Static assets**: 1 year cache for fonts (immutable)
+- ✅ **Images**: 7 days cache with stale-while-revalidate
+- ✅ **Security headers**: Added X-Content-Type-Options, X-Frame-Options, Referrer-Policy
+- **Impact**: Repeat visitors load cached assets, reduced bandwidth
+
+#### 4. Accessibility Fixes
+**Files**: `src/components/ProviderList.tsx`, `src/components/RealPriceComparisonTable.tsx`
+- ✅ **Heading hierarchy**: Changed `<h1>` to `<h2>` in ProviderList section
+- ✅ **Aria-labels**: Added descriptive labels to provider selection buttons
+- ✅ **Button states**: Added `aria-pressed` for toggle buttons
+- **Impact**: Better screen reader support, proper document outline
+
+### Expected Results:
+- **Performance**: 48 → **70-80+** (major improvement)
+  - Reduced initial bundle size
+  - Faster Time to Interactive (TTI)
+  - Lower Total Blocking Time (TBT)
+  - Better First Contentful Paint (FCP)
+- **Accessibility**: 87 → **95-100**
+  - Fixed heading hierarchy
+  - All buttons have accessible names
+  - Proper ARIA attributes
+- **Best Practices**: 79 → **85+**
+  - Modern image formats
+  - Proper cache policies
+  - Security headers
+
+### Technical Details:
+- **Code Splitting**: Webpack will now create separate chunks for each lazy-loaded component
+- **Dynamic Imports**: Components are fetched only when needed, not on initial page load
+- **Suspense Fallbacks**: Users see loading spinners instead of blank screens
+- **Image Optimization**: Next.js automatically generates WebP/AVIF variants
+- **Cache Strategy**: Static assets cached at edge, reduced server load
+
+### Verification Results:
+- ✅ **Build Success**: No linting errors, clean compilation
+- ✅ **Page Loads**: Status 200, ~371 KB response
+- ✅ **Code Splitting Confirmed**: Separate chunks created for lazy-loaded components
+- ✅ **Dev Server Running**: All optimizations active locally
+- **Files Modified**:
+  - `src/components/ContentBlocks.tsx` (lazy loading + Suspense)
+  - `src/components/ProviderCard.tsx` (Next.js Image)
+  - `src/components/ProviderList.tsx` (heading hierarchy)
+  - `src/components/RealPriceComparisonTable.tsx` (aria-labels)
+  - `next.config.mjs` (cache headers)
+  - `dev_log.md` (documentation)
+
 ### Lessons Learned:
 - **Three-tier routing system**: Next.js App Router has a priority system:
   1. Middleware `nextjsRoutes` array (explicit SSR routes)

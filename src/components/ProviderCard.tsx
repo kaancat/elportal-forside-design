@@ -1,14 +1,15 @@
 import React from 'react';
+import Image from 'next/image';
 import { ArrowRight, Check, X, ExternalLink, Info, Leaf, Wind, Calculator, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ElectricityProduct } from '@/types/product';
-import { 
-  calculatePricePerKwh, 
-  calculateMonthlyCost, 
+import {
+  calculatePricePerKwh,
+  calculateMonthlyCost,
   getPriceBreakdown,
-  PRICE_CONSTANTS 
+  PRICE_CONSTANTS
 } from '@/services/priceCalculationService';
 import { TrackedLink } from '@/components/tracking/TrackedLink';
 import { resolveProviderLogoUrl } from '@/lib/providerLogos';
@@ -29,11 +30,11 @@ interface ProviderCardProps {
   regionCode?: 'DK1' | 'DK2';
 }
 
-const ProviderCard: React.FC<ProviderCardProps> = ({ 
-  product, 
-  annualConsumption, 
-  spotPrice, 
-  networkTariff, 
+const ProviderCard: React.FC<ProviderCardProps> = ({
+  product,
+  annualConsumption,
+  spotPrice,
+  networkTariff,
   additionalFees,
   pricingMode = 'full',
   priceSourceDate,
@@ -53,8 +54,8 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   // Pricing calculations
   const baseSpotPrice = spotPrice !== null ? spotPrice : PRICE_CONSTANTS.DEFAULT_SPOT_PRICE;
   const fullPricePerKwh = calculatePricePerKwh(
-    baseSpotPrice, 
-    product.displayPrice_kWh || 0, 
+    baseSpotPrice,
+    product.displayPrice_kWh || 0,
     networkTariff,
     additionalFees
   );
@@ -62,8 +63,8 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   const breakdown = getPriceBreakdown(baseSpotPrice, product.displayPrice_kWh || 0, networkTariff, additionalFees);
 
   // Simplified mode values
-  const markupKr = typeof providerMarkupKrOverride === 'number' 
-    ? providerMarkupKrOverride 
+  const markupKr = typeof providerMarkupKrOverride === 'number'
+    ? providerMarkupKrOverride
     : (product.displayPrice_kWh || 0); // product.displayPrice_kWh is used as markup in øre in some data; ensure conversion below if needed
   // If markup is very likely in øre, convert to kr when needed
   const markupKrNormalized = markupKr > 3 ? (markupKr / 100) : markupKr; // heuristic: >3 likely øre
@@ -71,14 +72,13 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   const spotKr = typeof spotPrice === 'number' ? spotPrice : PRICE_CONSTANTS.DEFAULT_SPOT_PRICE;
   const simplifiedKrPerKwh = spotKr + markupKrNormalized;
   const simplifiedMonthly = monthlySub + (annualConsumption / 12) * simplifiedKrPerKwh;
-  
+
 
   return (
-    <div className={`rounded-xl overflow-hidden transition-all duration-200 ${
-      product.isVindstoedProduct 
-        ? 'bg-gradient-to-br from-white via-white to-brand-green/5 shadow-lg border-2 border-brand-green/20 ring-1 ring-brand-green/10 hover:shadow-xl relative' 
+    <div className={`rounded-xl overflow-hidden transition-all duration-200 ${product.isVindstoedProduct
+        ? 'bg-gradient-to-br from-white via-white to-brand-green/5 shadow-lg border-2 border-brand-green/20 ring-1 ring-brand-green/10 hover:shadow-xl relative'
         : 'bg-white shadow-sm border border-gray-100 hover:shadow-lg'
-    }`}>
+      }`}>
       {product.isVindstoedProduct && (
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand-green/60 via-brand-green to-brand-green/60"></div>
       )}
@@ -87,34 +87,36 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
           {/* Logo and company info */}
           <div className="flex flex-col space-y-4">
             <div className="flex items-center space-x-6">
-              <div className="flex-shrink-0 w-28 h-28 flex items-center justify-center p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
-                <img
-                  src={resolveProviderLogoUrl(product.supplierName, product.supplierLogoURL)}
+              <div className="flex-shrink-0 w-28 h-28 flex items-center justify-center p-3 bg-white rounded-lg border border-gray-100 shadow-sm relative">
+                <Image
+                  src={resolveProviderLogoUrl(product.supplierName, product.supplierLogoURL) || '/placeholder.svg'}
                   alt={`${product.supplierName || 'Ukendt'} logo`}
-                  className="max-w-full max-h-full object-contain"
-                  width={112}
-                  height={112}
+                  className="object-contain"
+                  fill
+                  sizes="(max-width: 768px) 96px, 112px"
                   loading="lazy"
-                  decoding="async"
+                  placeholder="blur"
+                  blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEyIiBoZWlnaHQ9IjExMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTEyIiBoZWlnaHQ9IjExMiIgZmlsbD0iI2YzZjRmNiIvPjwvc3ZnPg=="
                   onError={(e) => {
-                    e.currentTarget.src = '/placeholder.svg';
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.src = '/placeholder.svg';
                   }}
                 />
               </div>
-              
+
               <div>
                 {product.isVindstoedProduct && (
                   <Badge className="bg-brand-green text-white mb-3 font-semibold px-3 py-1">
                     ⭐ Anbefalet partner
                   </Badge>
                 )}
-                
+
                 <h3 className="font-bold text-xl text-brand-dark mb-1">{product.productName || 'Ukendt produkt'}</h3>
                 <p className="text-base text-gray-600 font-medium">{product.supplierName || 'Ukendt leverandør'}</p>
               </div>
             </div>
           </div>
-          
+
           {/* Features Section */}
           <div className="bg-gray-50 p-6 rounded-lg border-l-4 border-l-brand-green lg:flex-1">
             <h4 className="text-sm text-brand-dark uppercase font-bold mb-4 tracking-wide">Inkluderet</h4>
@@ -127,7 +129,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                 )}
                 <span className="text-brand-dark font-medium">Variabel pris</span>
               </div>
-              
+
               <div className="flex items-center text-sm">
                 {product.hasNoBinding ? (
                   <Check className="h-5 w-5 text-brand-green mr-3 flex-shrink-0" />
@@ -136,7 +138,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                 )}
                 <span className="text-brand-dark font-medium">Ingen binding</span>
               </div>
-              
+
               <div className="flex items-center text-sm">
                 {product.hasFreeSignup ? (
                   <>
@@ -152,7 +154,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                   </>
                 )}
               </div>
-              
+
               {/* Green energy indicator */}
               {product.isGreenEnergy && (
                 <div className="flex items-center text-sm">
@@ -166,7 +168,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
               )}
             </div>
           </div>
-          
+
           {/* Price and action */}
           <div className="flex flex-col items-end lg:min-w-[220px]">
             <div className="bg-gradient-to-br from-brand-dark/5 to-gray-50 px-6 py-4 rounded-lg border border-gray-100 mb-3 w-full">
@@ -183,7 +185,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                   ) : (
                     <div className="text-sm text-brand-dark font-semibold">Estimeret {fullPricePerKwh.toFixed(2)} kr/kWh</div>
                   )}
-                  
+
                   {pricingMode === 'full' && (
                     <Popover>
                       <PopoverTrigger asChild>
@@ -219,7 +221,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                       </PopoverContent>
                     </Popover>
                   )}
-                  
+
                   <div>Månedligt abonnement: {monthlySub.toFixed(0)} kr</div>
                 </div>
               </div>
@@ -239,7 +241,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                 {`Spotpris: måneds-gennemsnit ${regionCode ? `(${regionCode}) ` : ''}fra Nord Pool.`}
               </div>
             </div>
-            
+
             {product.signupLink ? (
               <TrackedLink
                 href={product.signupLink}
@@ -251,14 +253,14 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                 estimatedValue={pricingMode === 'simplified' ? simplifiedMonthly : fullEstimatedMonthly}
                 className="w-full"
               >
-                <Button 
+                <Button
                   className="bg-brand-dark hover:bg-brand-dark/90 text-white rounded-lg w-full font-semibold py-3 px-6"
                 >
                   Skift til {product.supplierName || 'denne leverandør'} <ExternalLink className="ml-2 h-4 w-4" />
                 </Button>
               </TrackedLink>
             ) : (
-              <Button 
+              <Button
                 className="bg-gray-300 text-gray-500 rounded-lg w-full font-semibold py-3 px-6 cursor-not-allowed"
                 disabled
               >
@@ -308,7 +310,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                     <p className="font-semibold">Hvorfor ser prisen sådan ud?</p>
                     <div className="space-y-2 text-gray-700">
                       <p>
-                        Din regning består overvejende af <strong>obligatoriske</strong> ting: nettariffer og afgifter til staten. 
+                        Din regning består overvejende af <strong>obligatoriske</strong> ting: nettariffer og afgifter til staten.
                         De er ens uanset leverandør og ligger <strong>uden for</strong> selskabets kontrol.
                       </p>
                       <p>Spotprisen er fælles for alle – den kan du ikke selv påvirke.</p>

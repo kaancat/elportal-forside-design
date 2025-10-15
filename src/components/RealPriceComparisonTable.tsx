@@ -342,6 +342,8 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
                   : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm"
             )}
             title={`${provider.providerName} - ${provider.productName}`}
+            aria-label={`Vælg ${provider.providerName} - ${provider.productName}`}
+            aria-pressed={selectedProviderId === provider.id}
           >
             {provider.logoUrl ? (
               <img

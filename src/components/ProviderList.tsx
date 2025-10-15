@@ -23,7 +23,7 @@ interface ProviderListProps {
 }
 
 const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
-  
+
   // --- SAFETY CHECK ---
   if (!block) {
     console.error('ProviderList: block prop is undefined');
@@ -41,20 +41,20 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
   const [spotPriceMonthlyAvg, setSpotPriceMonthlyAvg] = useState<number | null>(null); // monthly avg for calculations
   const [priceLoading, setPriceLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  
+
   // Region toggle state
   const [selectedRegion, setSelectedRegion] = useState<'DK1' | 'DK2'>('DK2');
   const [isManualRegionOverride, setIsManualRegionOverride] = useState(false);
-  
+
   // Location hook for postal code based pricing
   const { location, loading: locationLoading, updateLocation } = useLocation();
-  
+
   // Get dynamic network tariff from API
   const { averageRate: dynamicNetworkTariff, isFallback } = useNetworkTariff(
     location?.gridProvider || null,
     { enabled: !!location?.gridProvider }
   );
-  
+
   // Use providers from block.providers (from Sanity page)
   // Normalize and filter out invalid/inactive entries to avoid render crashes from bad references
   const providers = (block.providers || [])
@@ -65,7 +65,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
       id: p.id || p._id || `${p.providerName || 'unknown'}-${p.productName || 'product'}`,
       ...p,
     }));
-  
+
   // Debug logging only in development and gated by verbose flag
   if (process.env.NODE_ENV === 'development' && envBool('NEXT_PUBLIC_DEBUG_VERBOSE', false)) {
     console.log('ProviderList block:', block);
@@ -181,14 +181,14 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
     return selectedRegion === 'DK1' ? 0.25 : 0.28; // Updated based on actual API averages
   };
   const networkTariff = getNetworkTariff();
-  
+
   // Memoize expensive sorting logic to prevent re-computation on every render
   const sortedProviders = useMemo(() => {
     return [...providers].sort((a, b) => {
       // Vindstød always first
       if (a.isVindstoedProduct && !b.isVindstoedProduct) return -1;
       if (!a.isVindstoedProduct && b.isVindstoedProduct) return 1;
-      
+
       // Simplified mode: compare only subscription + markup (tillæg)
       // Get region-specific values when overridden
       let aSpotPriceMarkup = a.spotPriceMarkup;
@@ -226,7 +226,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
   }, [providers, annualConsumption, selectedRegion, isManualRegionOverride, spotPrice, spotPriceMonthlyAvg]);
 
   // JSON-LD now rendered server-side for reliability
-  
+
   // Debug logging only in development and gated by verbose flag
   if (process.env.NODE_ENV === 'development' && envBool('NEXT_PUBLIC_DEBUG_VERBOSE', false)) {
     console.log('Sorted providers:', sortedProviders.map(p => ({
@@ -242,7 +242,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
     // Check for regional pricing if manual override is active
     let spotPriceMarkup = provider.spotPriceMarkup;
     let monthlySubscription = provider.monthlySubscription;
-    
+
     if (isManualRegionOverride && provider.regionalPricing?.length > 0) {
       const regionalPrice = provider.regionalPricing.find((rp: any) => rp.region === selectedRegion);
       if (regionalPrice) {
@@ -255,18 +255,18 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
         }
       }
     }
-    
+
     return {
       id: provider.id || provider._id,
       supplierName: provider.providerName,
       productName: provider.productName,
       isVindstoedProduct: provider.isVindstoedProduct || false,
       // Keep spotPriceMarkup in øre for consistent handling in priceCalculationService
-      displayPrice_kWh: spotPriceMarkup !== undefined 
+      displayPrice_kWh: spotPriceMarkup !== undefined
         ? spotPriceMarkup  // Keep in øre/kWh - will be converted in priceCalculationService
         : (provider.displayPrice_kWh || 0),
-      displayMonthlyFee: monthlySubscription !== undefined 
-        ? monthlySubscription 
+      displayMonthlyFee: monthlySubscription !== undefined
+        ? monthlySubscription
         : (provider.displayMonthlyFee || 0),
       signupLink: provider.signupLink,
       supplierLogoURL: provider.logoUrl,
@@ -340,7 +340,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
           // Use custom, slightly slower easing for a pleasant motion
           smoothScrollTo(targetY, 900);
           // Focus after scroll completes
-          setTimeout(() => { try { (target as HTMLElement).focus?.(); } catch {} }, 950);
+          setTimeout(() => { try { (target as HTMLElement).focus?.(); } catch { } }, 950);
         }
       }
     };
@@ -352,24 +352,24 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
     <section id="provider-list" tabIndex={-1} className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="mb-12">
-          <h1 className={`text-4xl font-display font-bold ${headerAlignmentClass} mb-4 text-brand-dark`}>
+          <h2 className={`text-4xl font-display font-bold ${headerAlignmentClass} mb-4 text-brand-dark`}>
             {block.title || 'Sammenlign eludbydere'}
-          </h1>
+          </h2>
           {block.subtitle && (
             <p className={`${headerAlignmentClass} text-gray-600 text-lg mb-8`}>
               {block.subtitle}
             </p>
           )}
         </div>
-        
+
         {/* Location Selector - NEW */}
         <div className="mb-8">
-          <LocationSelector 
+          <LocationSelector
             onLocationChange={handleLocationChange}
             className=""
           />
         </div>
-        
+
         {/* Region Toggle - NEW */}
         <div className="mb-8">
           <RegionToggle
@@ -380,7 +380,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
             className=""
           />
         </div>
-        
+
         {/* Household Type Selector */}
         <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-100 p-8">
           <HouseholdTypeSelector
@@ -389,7 +389,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
             currentConsumption={annualConsumption[0]}
           />
         </div>
-        
+
         {/* Consumption Slider (client-only to avoid SSR hydration diffs from Radix internals) */}
         <div className="mb-12 bg-white rounded-xl shadow-sm border border-gray-100 p-8">
           <div className="max-w-lg mx-auto">
@@ -419,9 +419,9 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
             )}
           </div>
         </div>
-        
+
         {/* Products List */}
-        <motion.div 
+        <motion.div
           className="space-y-6"
           variants={staggerContainer}
           initial="hidden"
@@ -461,12 +461,12 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
                 </span>
               </div>
             ) : null}
-            
+
             {/* Price Calculation Info */}
             <TooltipProvider delayDuration={200}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button 
+                  <button
                     type="button"
                     className="flex items-center gap-2 px-3 py-1.5 bg-brand-green/10 text-brand-dark border border-brand-green/20 rounded-full text-sm font-medium cursor-pointer hover:bg-brand-green/20 active:bg-brand-green/30 transition-colors"
                   >
@@ -488,7 +488,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            
+
             {/* Last Updated Timestamp with Tooltip */}
             {lastUpdated && (
               <TooltipProvider delayDuration={200}>
@@ -531,13 +531,13 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
               const markupKr = (spotPriceMarkup || 0) / 100;
               const isFirst = index === 0;
               return (
-                <div 
-                  key={String(product.id)} 
+                <div
+                  key={String(product.id)}
                   data-provider-card
                   id={isFirst ? 'first-provider-card' : undefined}
                   tabIndex={isFirst ? -1 : undefined}
                 >
-                  <ProviderCard 
+                  <ProviderCard
                     product={product}
                     annualConsumption={annualConsumption[0]}
                     spotPrice={spotPriceMonthlyAvg ?? spotPrice}

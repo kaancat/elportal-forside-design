@@ -218,7 +218,7 @@ Goal: Implement mobile-specific optimizations to close the desktop/mobile perfor
   - `src/components/ProviderList.tsx` (pass priority to first 3 cards)
   - `app/blogs/BlogArchive.tsx` (priority loading for blog images)
   - `dev_log.md` (this documentation)
-- ✅ **Deployed to Production**: Commit `[to be added]`
+- ✅ **Deployed to Production**: Commit `83abd13` - "Mobile Perf: Optimize for 65-75+ mobile Lighthouse score"
 
 ### Next Steps:
 - ✅ Push to production and verify live Lighthouse scores

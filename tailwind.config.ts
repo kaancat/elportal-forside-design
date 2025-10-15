@@ -18,10 +18,11 @@ export default {
 			}
 		},
 		extend: {
-			fontFamily: {
-				sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'], // Body text
-				display: ['Geist', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'], // Headings
-			},
+            fontFamily: {
+                // Prefer next/font CSS variables for stable metrics; fall back to named families
+                sans: ['var(--font-inter)', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'], // Body text
+                display: ['var(--font-geist)', 'Geist', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'], // Headings
+            },
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',

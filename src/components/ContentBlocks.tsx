@@ -1,6 +1,7 @@
-'use client'
+"use client"
 
 import React from 'react'
+import dynamic from 'next/dynamic'
 // import { div } from 'framer-motion' // Temporarily disabled for Next.js compatibility
 import { PageSection, FAQItem, VideoSection, PodcastEpisodeBlock, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, CO2EmissionsChart, DeclarationProduction, DeclarationGridmix as DeclarationGridmixType, ConsumptionMap, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
 import PageSectionComponent from './PageSectionComponent'
@@ -9,17 +10,18 @@ import VideoSectionComponent from './VideoSectionComponent'
 import FaqGroupComponent from './FaqGroupComponent'
 import RichTextSectionComponent from './RichTextSectionComponent'
 import CallToActionSectionComponent from './CallToActionSectionComponent'
-import LivePriceGraphComponent from './LivePriceGraphComponent'
-import RealPriceComparisonTableComponent from './RealPriceComparisonTable'
-import RenewableEnergyForecastComponent from './RenewableEnergyForecast'
-import CO2EmissionsChartComponent from './CO2EmissionsChart'
-import DeclarationProductionChart from './DeclarationProductionChart'
-import DeclarationGridmix from './DeclarationGridmix'
-import ConsumptionMapComponent from './ConsumptionMap'
+// Heavy/interactive components are dynamically imported to reduce initial JS and TBT
+const LivePriceGraphComponent = dynamic(() => import('./LivePriceGraphComponent'), { ssr: false })
+const RealPriceComparisonTableComponent = dynamic(() => import('./RealPriceComparisonTable'), { ssr: false })
+const RenewableEnergyForecastComponent = dynamic(() => import('./RenewableEnergyForecast'), { ssr: false })
+const CO2EmissionsChartComponent = dynamic(() => import('./CO2EmissionsChart'), { ssr: false })
+const DeclarationProductionChart = dynamic(() => import('./DeclarationProductionChart'), { ssr: false })
+const DeclarationGridmix = dynamic(() => import('./DeclarationGridmix'), { ssr: false })
+const ConsumptionMapComponent = dynamic(() => import('./ConsumptionMap'), { ssr: false })
 import { ForbrugTracker } from './forbrugTracker/ForbrugTracker'
 import PriceCalculatorWidget from './PriceCalculatorWidget'
 import HeroSection from './HeroSection'
-import MonthlyProductionChart from './MonthlyProductionChart'
+const MonthlyProductionChart = dynamic(() => import('./MonthlyProductionChart'), { ssr: false })
 import ProviderList from './ProviderList'
 import { FeatureListComponent } from './FeatureListComponent'
 import { ValuePropositionComponent } from './ValuePropositionComponent'
@@ -27,9 +29,9 @@ import HeroComponent from './HeroComponent'
 import { ApplianceCalculatorSection } from './ApplianceCalculatorSection'
 import { EnergyTipsSection } from './EnergyTipsSection'
 import ChargingBoxShowcase, { ChargingBoxShowcaseBlock } from './ChargingBoxShowcase'
-import RegionalComparison from './RegionalComparison'
-import PricingComparison from './PricingComparison'
-import DailyPriceTimeline from './DailyPriceTimeline'
+const RegionalComparison = dynamic(() => import('./RegionalComparison'), { ssr: false })
+const PricingComparison = dynamic(() => import('./PricingComparison'), { ssr: false })
+const DailyPriceTimeline = dynamic(() => import('./DailyPriceTimeline'), { ssr: false })
 import InfoCardsSection from './InfoCardsSection'
 import PodcastEpisode from './PodcastEpisode'
 // import { ForbrugTracker } from './forbrugTracker/ForbrugTracker' // TODO: Add to ContentBlock type

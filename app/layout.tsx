@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import Script from 'next/script'
 import { Inter } from 'next/font/google'
+import localFont from 'next/font/local'
 import { SITE_URL, SITE_NAME } from '@/lib/url-helpers'
 import { PerformanceMonitor } from '@/components/PerformanceMonitor'
 import './globals.css'
@@ -9,6 +10,16 @@ import './globals.css'
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
+  display: 'swap',
+  preload: true,
+})
+
+// Self-hosted Geist variable font via next/font for stable metrics and preloading
+const geist = localFont({
+  src: [
+    { path: '../public/fonts/Geist-VariableFont_wght.ttf', weight: '100 900', style: 'normal' },
+  ],
+  variable: '--font-geist',
   display: 'swap',
   preload: true,
 })
@@ -122,7 +133,7 @@ export default function RootLayout({
   }
 
   return (
-    <html lang="da" className={inter.variable}>
+    <html lang="da" className={`${inter.variable} ${geist.variable}`}>
       <head>
         {/* Organization schema in head, once only */}
         <script

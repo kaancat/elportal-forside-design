@@ -154,14 +154,14 @@ const RenewableEnergyForecast: React.FC<RenewableEnergyForecastProps> = ({ block
         
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 p-4 bg-gray-50 rounded-lg border">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => setSelectedDate(d => { const n = new Date(d); n.setDate(d.getDate() - 1); return n; })}> <ChevronLeft size={18} /> </Button>
+            <Button variant="ghost" size="icon" aria-label="Forrige dag" onClick={() => setSelectedDate(d => { const n = new Date(d); n.setDate(d.getDate() - 1); return n; })}> <ChevronLeft size={18} /> </Button>
             <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}><PopoverTrigger asChild><Button variant="outline" className="w-[200px] justify-start text-left font-normal"><CalendarDays className="mr-2 h-4 w-4" />{selectedDate.toLocaleDateString('da-DK')}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={selectedDate} onSelect={(d) => { if(d) setSelectedDate(d); setIsCalendarOpen(false); }} disabled={(date) => date > new Date()} initialFocus /></PopoverContent></Popover>
-            <Button variant="ghost" size="icon" onClick={() => setSelectedDate(d => { const n = new Date(d); n.setDate(d.getDate() + 1); return n; })} disabled={isFuture}> <ChevronRight size={18} /> </Button>
+            <Button variant="ghost" size="icon" aria-label="Næste dag" onClick={() => setSelectedDate(d => { const n = new Date(d); n.setDate(d.getDate() + 1); return n; })} disabled={isFuture}> <ChevronRight size={18} /> </Button>
           </div>
-          <div className="flex items-center gap-2">
-            <Button onClick={() => setSelectedRegion('Danmark')} variant={selectedRegion === 'Danmark' ? 'default' : 'outline'}>Hele Danmark</Button>
-            <Button onClick={() => setSelectedRegion('DK1')} variant={selectedRegion === 'DK1' ? 'default' : 'outline'}>DK1 (Vest)</Button>
-            <Button onClick={() => setSelectedRegion('DK2')} variant={selectedRegion === 'DK2' ? 'default' : 'outline'}>DK2 (Øst)</Button>
+          <div className="flex items-center gap-2" role="group" aria-label="Vælg region for vedvarende energi">
+            <Button onClick={() => setSelectedRegion('Danmark')} aria-pressed={selectedRegion === 'Danmark'} variant={selectedRegion === 'Danmark' ? 'default' : 'outline'}>Hele Danmark</Button>
+            <Button onClick={() => setSelectedRegion('DK1')} aria-pressed={selectedRegion === 'DK1'} variant={selectedRegion === 'DK1' ? 'default' : 'outline'}>DK1 (Vest)</Button>
+            <Button onClick={() => setSelectedRegion('DK2')} aria-pressed={selectedRegion === 'DK2'} variant={selectedRegion === 'DK2' ? 'default' : 'outline'}>DK2 (Øst)</Button>
           </div>
         </div>
 

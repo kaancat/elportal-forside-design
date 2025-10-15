@@ -343,9 +343,9 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
           
           {/* RIGHT SIDE: Region + Fees */}
           <div className="w-full md:w-auto flex items-center justify-between md:justify-start gap-4">
-            <div className="flex items-center gap-2 text-sm">
-                <button onClick={() => setCurrentRegion('DK1')} className={cn("px-3 py-1 rounded-full", currentRegion === 'DK1' ? 'bg-green-100 text-green-800 font-semibold' : 'text-gray-500')}>Vestdanmark</button>
-                <button onClick={() => setCurrentRegion('DK2')} className={cn("px-3 py-1 rounded-full", currentRegion === 'DK2' ? 'bg-green-100 text-green-800 font-semibold' : 'text-gray-500')}>Østdanmark</button>
+            <div className="flex items-center gap-2 text-sm" role="group" aria-label="Vælg prisregion">
+                <button onClick={() => setCurrentRegion('DK1')} aria-label="Vælg Vestdanmark (DK1)" aria-pressed={currentRegion === 'DK1'} className={cn("px-3 py-1 rounded-full", currentRegion === 'DK1' ? 'bg-green-100 text-green-800 font-semibold' : 'text-gray-500')}>Vestdanmark</button>
+                <button onClick={() => setCurrentRegion('DK2')} aria-label="Vælg Østdanmark (DK2)" aria-pressed={currentRegion === 'DK2'} className={cn("px-3 py-1 rounded-full", currentRegion === 'DK2' ? 'bg-green-100 text-green-800 font-semibold' : 'text-gray-500')}>Østdanmark</button>
             </div>
             <div className="relative" ref={popoverRef}>
                 <Button variant="outline" onClick={() => setIsPopoverOpen(!isPopoverOpen)} className="flex items-center gap-2">

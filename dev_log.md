@@ -131,6 +131,7 @@ Goal: Optimize /elselskaber page to improve Lighthouse performance from 48 to 70
 - ✅ **Page Loads**: Status 200, ~371 KB response
 - ✅ **Code Splitting Confirmed**: Separate chunks created for lazy-loaded components
 - ✅ **Dev Server Running**: All optimizations active locally
+- ✅ **Deployed to Production**: Pushed to GitHub (commit: 9d13c83)
 - **Files Modified**:
   - `src/components/ContentBlocks.tsx` (lazy loading + Suspense)
   - `src/components/ProviderCard.tsx` (Next.js Image)
@@ -138,6 +139,12 @@ Goal: Optimize /elselskaber page to improve Lighthouse performance from 48 to 70
   - `src/components/RealPriceComparisonTable.tsx` (aria-labels)
   - `next.config.mjs` (cache headers)
   - `dev_log.md` (documentation)
+
+### Deployment:
+- **Commit**: `9d13c83` - "Perf: Major performance optimization - Lighthouse score improvements"
+- **Date**: 2025-10-15
+- **Status**: ✅ Deployed to production
+- **Next**: Run Lighthouse audit on https://dinelportal.dk/elselskaber to verify improvements
 
 ### Lessons Learned:
 - **Three-tier routing system**: Next.js App Router has a priority system:

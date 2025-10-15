@@ -48,6 +48,8 @@ export function middleware(request: NextRequest) {
     '/spar-penge',
     // Blog pages
     '/blogs',
+    // Provider list page (loaded from Sanity via [slug] route)
+    '/elselskaber',
   ]
 
   // Routes that should always use React Router SPA

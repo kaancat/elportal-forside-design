@@ -42,8 +42,12 @@ const PodcastEpisode = lazy(() => import('./PodcastEpisode'))
 
 // Loading fallback component for Suspense
 // Provides visual feedback while components are being loaded
-const LoadingFallback: React.FC<{ type?: string }> = ({ type }) => (
-  <div className="w-full py-12 flex items-center justify-center">
+// Uses min-height skeleton to prevent Cumulative Layout Shift (CLS)
+const LoadingFallback: React.FC<{ type?: string; minHeight?: string }> = ({ type, minHeight = '400px' }) => (
+  <div 
+    className="w-full flex items-center justify-center animate-pulse bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg" 
+    style={{ minHeight }}
+  >
     <div className="flex flex-col items-center gap-3">
       <div className="w-8 h-8 border-4 border-brand-green/30 border-t-brand-green rounded-full animate-spin" />
       <p className="text-sm text-gray-500">Indlæser {type || 'indhold'}...</p>
@@ -149,8 +153,9 @@ const SafeContentBlock: React.FC<{
 // This function determines whether each component type should be lazy-loaded or loaded immediately
 const renderContentBlock = (block: ContentBlock) => {
   // Helper function to wrap lazy components with Suspense
-  const withSuspense = (component: React.ReactNode, fallbackType?: string) => (
-    <Suspense fallback={<LoadingFallback type={fallbackType} />}>
+  // Uses skeleton placeholders with min-height to prevent CLS (Cumulative Layout Shift)
+  const withSuspense = (component: React.ReactNode, fallbackType?: string, minHeight: string = '400px') => (
+    <Suspense fallback={<LoadingFallback type={fallbackType} minHeight={minHeight} />}>
       {component}
     </Suspense>
   );
@@ -194,34 +199,34 @@ const renderContentBlock = (block: ContentBlock) => {
       return withSuspense(<PodcastEpisode block={block as PodcastEpisodeBlock} />, 'podcast');
 
     case 'livePriceGraph':
-      return withSuspense(<LivePriceGraphComponent block={block as LivePriceGraph} />, 'prisgraf');
+      return withSuspense(<LivePriceGraphComponent block={block as LivePriceGraph} />, 'prisgraf', '500px');
 
     case 'realPriceComparisonTable':
-      return withSuspense(<RealPriceComparisonTableComponent block={block as RealPriceComparisonTable} />, 'prissammenligning');
+      return withSuspense(<RealPriceComparisonTableComponent block={block as RealPriceComparisonTable} />, 'prissammenligning', '600px');
 
     case 'renewableEnergyForecast':
-      return withSuspense(<RenewableEnergyForecastComponent block={block as RenewableEnergyForecast} />, 'energiprognose');
+      return withSuspense(<RenewableEnergyForecastComponent block={block as RenewableEnergyForecast} />, 'energiprognose', '500px');
 
     case 'co2EmissionsChart':
-      return withSuspense(<CO2EmissionsChartComponent block={block as CO2EmissionsChart} />, 'CO2-data');
+      return withSuspense(<CO2EmissionsChartComponent block={block as CO2EmissionsChart} />, 'CO2-data', '500px');
 
     case 'declarationProduction':
-      return withSuspense(<DeclarationProductionChart block={block as DeclarationProduction} />, 'produktionsdata');
+      return withSuspense(<DeclarationProductionChart block={block as DeclarationProduction} />, 'produktionsdata', '500px');
 
     case 'declarationGridmix':
-      return withSuspense(<DeclarationGridmix block={block as DeclarationGridmixType} />, 'net-data');
+      return withSuspense(<DeclarationGridmix block={block as DeclarationGridmixType} />, 'net-data', '500px');
 
     case 'priceCalculator':
-      return withSuspense(<PriceCalculatorWidget block={block as PriceCalculator} />, 'beregner');
+      return withSuspense(<PriceCalculatorWidget block={block as PriceCalculator} />, 'beregner', '650px');
 
     case 'heroWithCalculator':
-      return withSuspense(<HeroSection block={block as HeroWithCalculator} />, 'beregner');
+      return withSuspense(<HeroSection block={block as HeroWithCalculator} />, 'beregner', '700px');
 
     case 'monthlyProductionChart':
-      return withSuspense(<MonthlyProductionChart block={block as MonthlyProductionChartBlock} />, 'produktionsgraf');
+      return withSuspense(<MonthlyProductionChart block={block as MonthlyProductionChartBlock} />, 'produktionsgraf', '500px');
 
     case 'providerList':
-      return withSuspense(<ProviderList block={block as ProviderListBlock} />, 'udbyderliste');
+      return withSuspense(<ProviderList block={block as ProviderListBlock} />, 'udbyderliste', '800px');
 
     case 'featureList':
       return withSuspense(<FeatureListComponent block={block as FeatureListBlock} />, 'funktioner');

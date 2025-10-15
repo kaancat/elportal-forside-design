@@ -304,7 +304,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
             
             {/* DATE CONTROLS */}
             <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={() => handleDateChange(-1)}>
+                <Button variant="ghost" size="icon" aria-label="Forrige dag" onClick={() => handleDateChange(-1)}>
                     <ChevronLeft size={18}/>
                 </Button>
                 <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>

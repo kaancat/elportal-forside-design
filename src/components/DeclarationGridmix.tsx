@@ -535,6 +535,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
             <Button 
               variant="ghost" 
               size="icon" 
+              aria-label="Forrige dag"
               onClick={() => setSelectedDate(d => { 
                 const n = new Date(d); 
                 n.setDate(d.getDate() - 1); 
@@ -566,6 +567,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
             <Button 
               variant="ghost" 
               size="icon" 
+              aria-label="Næste dag"
               onClick={() => setSelectedDate(d => { 
                 const n = new Date(d); 
                 n.setDate(d.getDate() + 1); 

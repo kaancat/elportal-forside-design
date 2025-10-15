@@ -258,6 +258,7 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
             <Button 
               variant="ghost" 
               size="icon" 
+              aria-label="Forrige dag"
               onClick={() => setSelectedDate(d => { 
                 const n = new Date(d); 
                 n.setDate(d.getDate() - 1); 
@@ -289,6 +290,7 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
             <Button 
               variant="ghost" 
               size="icon" 
+              aria-label="Næste dag"
               onClick={() => setSelectedDate(d => { 
                 const n = new Date(d); 
                 n.setDate(d.getDate() + 1); 

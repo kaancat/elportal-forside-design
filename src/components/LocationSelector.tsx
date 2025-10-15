@@ -196,7 +196,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
           <TooltipProvider delayDuration={200}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <button type="button" className="p-0.5 hover:bg-gray-100 rounded transition-colors">
+                <button type="button" aria-label="Information om placering" className="p-0.5 hover:bg-gray-100 rounded transition-colors">
                   <Info className="h-4 w-4 text-gray-400" />
                 </button>
               </TooltipTrigger>
@@ -315,7 +315,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
                   <TooltipProvider delayDuration={200}>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <button type="button" className="p-0.5 hover:bg-gray-100 rounded transition-colors">
+                        <button type="button" aria-label="Information om nettarif" className="p-0.5 hover:bg-gray-100 rounded transition-colors">
                           <Info className="h-3 w-3 text-gray-400" />
                         </button>
                       </TooltipTrigger>

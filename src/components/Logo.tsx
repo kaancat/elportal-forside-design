@@ -1,9 +1,11 @@
 'use client'
 
 /**
- * Logo component with Next.js Image optimization
+ * Logo component with Next.js Image optimization for local images
  * Why: Eliminates Cumulative Layout Shift (CLS) by reserving space with explicit dimensions
  * Impact: Reduces CLS from 0.76 → ~0.01, improving Performance score by ~15 points
+ * 
+ * Note: Uses regular img for Sanity CDN URLs (already optimized), Next.js Image for local fallback
  */
 
 import React, { useState } from 'react';
@@ -28,6 +30,9 @@ const Logo: React.FC<LogoProps> = ({
 }) => {
   const [hasError, setHasError] = useState(false);
   const logoSrc = src || FALLBACK_LOGO;
+  
+  // Check if this is a local image or remote Sanity URL
+  const isLocalImage = logoSrc.startsWith('/');
 
   // If image fails, show text fallback
   if (hasError) {
@@ -44,21 +49,38 @@ const Logo: React.FC<LogoProps> = ({
     );
   }
 
+  // For local images (like fallback logo), use Next.js Image with explicit dimensions
+  if (isLocalImage) {
+    return (
+      <div className={cn('relative', className)} onClick={onClick}>
+        <Image
+          src={logoSrc}
+          alt={alt}
+          width={200}
+          height={40}
+          priority
+          quality={90}
+          sizes="(max-width: 640px) 128px, 160px"
+          className="w-auto h-full object-contain"
+          onError={() => setHasError(true)}
+        />
+      </div>
+    );
+  }
+
+  // For remote Sanity images, use regular img (Sanity CDN already optimizes)
   return (
-    <div className={cn('relative', className)} onClick={onClick}>
-      <Image
-        src={logoSrc}
-        alt={alt}
-        width={200}
-        height={40}
-        priority
-        quality={90}
-        sizes="(max-width: 640px) 128px, 160px"
-        className="w-auto h-full object-contain"
-        onError={() => setHasError(true)}
-        style={{ maxWidth: '100%', height: 'auto' }}
-      />
-    </div>
+    <img
+      src={logoSrc}
+      alt={alt}
+      className={cn(className, 'object-contain')}
+      onError={() => setHasError(true)}
+      onClick={onClick}
+      loading="eager"
+      decoding="async"
+      width={200}
+      height={40}
+    />
   );
 };
 

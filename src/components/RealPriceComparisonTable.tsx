@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -147,7 +147,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
   const [monthlyConsumption, setMonthlyConsumption] = useState(333); // Default ~4000 kWh/year
   const [allProviders, setAllProviders] = useState<ProviderProductBlock[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  // Spotpris: behold live til kontekst, men brug måneds-gennemsnit til beregninger
+  // Spotpris: behold live til kontekst, men brug mÃ¥neds-gennemsnit til beregninger
   const [currentSpotPrice, setCurrentSpotPrice] = useState<number>(1.5);
   const [monthlyAvgSpotPrice, setMonthlyAvgSpotPrice] = useState<number>(1.5);
   const { location } = useLocation();
@@ -185,7 +185,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
           }
         }
 
-        // Måneds-gennemsnit til beregninger
+        // MÃ¥neds-gennemsnit til beregninger
         const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
         const startStr = startOfMonth.toISOString().split('T')[0];
         const monthlyResp = await fetch(`/api/electricity-prices?region=${region}&date=${startStr}&endDate=${dateStr}`);
@@ -216,7 +216,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
 
         // Auto-select first two providers if available
         if (providers.length > 0) {
-          // Try to find Vindstød first
+          // Try to find VindstÃ¸d first
           const vindstod = providers.find(p => p.isVindstoedProduct);
           const others = providers.filter(p => !p.isVindstoedProduct);
 
@@ -254,19 +254,19 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
     if (!provider) {
       return {
         spotPrice: 0,
-        tillæg: 0,
+        tillaeg: 0,
         totalPerKwh: 0,
         subscription: 0,
         total: 0
       };
     }
 
-    // Simplified model: spotpris (måneds-gennemsnit) + tillæg; ingen net/afgifter/moms
+    // Simplified model: spotpris (mÃ¥neds-gennemsnit) + tillÃ¦g; ingen net/afgifter/moms
     const spotPrice = monthlyAvgSpotPrice;
-    const tillæg = provider.spotPriceMarkup !== undefined
+    const tillaeg = provider.spotPriceMarkup !== undefined
       ? provider.spotPriceMarkup / 100
       : (provider.displayPrice_kWh || 0);
-    const totalPerKwh = spotPrice + tillæg;
+    const totalPerKwh = spotPrice + tillaeg;
 
     const subscription = provider.monthlySubscription !== undefined
       ? provider.monthlySubscription
@@ -276,7 +276,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
 
     return {
       spotPrice,
-      tillæg,
+      tillaeg,
       totalPerKwh,
       subscription,
       total
@@ -296,7 +296,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
         getThemeClasses(settings?.theme),
         getPaddingClasses(settings?.padding)
       )}>
-        <div className={cn("text-center", themeColors.body)}>Indlæser udbydere...</div>
+        <div className={cn("text-center", themeColors.body)}>IndlÃ¦ser udbydere...</div>
       </section>
     );
   }
@@ -408,8 +408,8 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
           <div className="mb-6 text-center">
             <img
               src={resolveProviderLogoUrl(provider?.providerName, provider?.logoUrl)}
-              alt={provider?.providerName || 'Leverandør'}
-              className="w-16 h-16 object-contain mx-auto mb-2"
+              alt={provider?.providerName || 'LeverandÃ¸r'}
+              className="w-16 h-16 object-contain mx-auto mb-2" width={64} height={64} loading="lazy" decoding="async"
               onError={(e) => { e.currentTarget.src = '/placeholder.svg' }}
             />
             <h3 className={cn("font-bold text-lg", themeColors.heading)}>
@@ -465,7 +465,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
               ) : (
                 <X className="h-5 w-5 text-red-500" />
               )}
-              <span className={cn("text-sm", themeColors.body)}>100% grøn strøm</span>
+              <span className={cn("text-sm", themeColors.body)}>100% grÃ¸n strÃ¸m</span>
             </div>
           </div>
         )}
@@ -491,7 +491,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
             isDarkTheme(theme) ? "border-gray-700" : "border-gray-200"
           )}>
             <p className={cn("text-xs mb-2", themeColors.muted)}>
-              Total pr. måned ({monthlyConsumption} kWh)
+              Total pr. mÃ¥ned ({monthlyConsumption} kWh)
             </p>
             <p className={cn(
               "text-3xl font-bold",
@@ -530,7 +530,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
             disabled
             className="w-full mt-6 bg-gray-300 text-gray-500 cursor-not-allowed"
           >
-            Link ikke tilgængelig
+            Link ikke tilgÃ¦ngelig
           </Button>
         ) : null}
       </CardContent>
@@ -580,7 +580,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
                 <Zap className={cn("h-5 w-5", isDarkTheme(theme) ? "text-brand-green" : "text-brand-green")} />
               </div>
               <Label htmlFor="consumption-slider" className={cn("font-semibold text-lg", themeColors.heading)}>
-                Dit månedlige forbrug
+                Dit mÃ¥nedlige forbrug
               </Label>
             </div>
             <div className="space-y-4">
@@ -596,7 +596,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
               <div className={cn("flex items-center justify-between text-sm", themeColors.muted)}>
                 <span>50 kWh</span>
                 <span className={cn("text-lg font-bold", themeColors.heading)}>
-                  {monthlyConsumption} kWh/måned
+                  {monthlyConsumption} kWh/mÃ¥ned
                 </span>
                 <span>850 kWh</span>
               </div>
@@ -610,7 +610,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
           <ProviderGrid
             selectedProviderId={selectedProvider1?.id || null}
             onSelectProvider={handleSelect1}
-            label="Vælg udbyder 1"
+            label="VÃ¦lg udbyder 1"
           />
           {selectedProvider1 && (
             <EnhancedComparisonCard
@@ -626,7 +626,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
           <ProviderGrid
             selectedProviderId={selectedProvider2?.id || null}
             onSelectProvider={handleSelect2}
-            label="Vælg udbyder 2"
+            label="VÃ¦lg udbyder 2"
           />
           {selectedProvider2 && (
             <EnhancedComparisonCard
@@ -646,12 +646,12 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
             <ProviderGrid
               selectedProviderId={selectedProvider1?.id || null}
               onSelectProvider={handleSelect1}
-              label="Vælg udbyder 1"
+              label="VÃ¦lg udbyder 1"
             />
             <ProviderGrid
               selectedProviderId={selectedProvider2?.id || null}
               onSelectProvider={handleSelect2}
-              label="Vælg udbyder 2"
+              label="VÃ¦lg udbyder 2"
             />
           </div>
 
@@ -692,7 +692,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
               <TableBody>
                 <TableRow className={themeColors.tableRowHover}>
                   <TableCell className={cn("font-semibold", themeColors.strong)}>
-                    Spotpris (måneds‑gennemsnit)
+                    Spotpris (mÃ¥nedsâ€‘gennemsnit)
                   </TableCell>
                   <TableCell className={cn("text-center", themeColors.body)}>
                     {formatCurrency(details1.spotPrice)}
@@ -704,19 +704,19 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
 
                 <TableRow className={themeColors.tableRowHover}>
                   <TableCell className={cn("font-semibold", themeColors.strong)}>
-                    Leverandør tillæg
+                    LeverandÃ¸r tillÃ¦g
                   </TableCell>
                   <TableCell className={cn("text-center", themeColors.body)}>
-                    {formatCurrency(details1.tillæg)}
+                    {formatCurrency(details1.tillaeg)}
                   </TableCell>
                   <TableCell className={cn("text-center", themeColors.body)}>
-                    {formatCurrency(details2.tillæg)}
+                    {formatCurrency(details2.tillaeg)}
                   </TableCell>
                 </TableRow>
                 <TableRow className={cn("border-t-2", isDarkTheme(theme) ? "border-gray-600" : "border-brand-green")}
                 >
                   <TableCell className={cn("font-bold text-lg", themeColors.strong)}>
-                    Pris pr. kWh (spotpris + tillæg)
+                    Pris pr. kWh (spotpris + tillÃ¦g)
                   </TableCell>
                   <TableCell className={cn(
                     "text-center font-bold text-lg",
@@ -734,7 +734,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
 
                 <TableRow className={themeColors.tableRowHover}>
                   <TableCell className={cn("font-semibold", themeColors.strong)}>
-                    Månedligt abonnement
+                    MÃ¥nedligt abonnement
                   </TableCell>
                   <TableCell className={cn("text-center", themeColors.body)}>
                     {formatCurrency(details1.subscription)}
@@ -749,7 +749,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
                     <div className="flex items-center gap-2">
                       <TrendingDown className={cn("h-5 w-5", isDarkTheme(theme) ? "text-brand-green" : "text-brand-green")} />
                       <div>
-                        <p>Total pr. måned</p>
+                        <p>Total pr. mÃ¥ned</p>
                         <p className={cn("text-sm font-normal mt-1", themeColors.muted)}>
                           ved {monthlyConsumption} kWh forbrug
                         </p>
@@ -802,14 +802,14 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
 
         <div className="mt-8 text-center">
           <p className={cn("text-sm", themeColors.muted)}>
-            Vi viser <strong>spotpris (måneds‑gennemsnit)</strong> + <strong>elselskabets tillæg</strong> (elpris.dk) + <strong>abonnement</strong>.
+            Vi viser <strong>spotpris (mÃ¥nedsâ€‘gennemsnit)</strong> + <strong>elselskabets tillÃ¦g</strong> (elpris.dk) + <strong>abonnement</strong>.
             Nettariffer, afgifter, system/transmission og moms er ikke inkluderet.
           </p>
           <p className={cn("text-xs mt-2", themeColors.muted)}>
             {(() => {
               const formatted = new Intl.DateTimeFormat('da-DK', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
               const region = (location?.region || 'DK2');
-              return `Abonnement og tillæg fra elpris.dk d. ${formatted}. Spotpris: måneds‑gennemsnit (${region}) fra Nord Pool.`;
+              return `Abonnement og tillÃ¦g fra elpris.dk d. ${formatted}. Spotpris: mÃ¥nedsâ€‘gennemsnit (${region}) fra Nord Pool.`;
             })()}
           </p>
         </div>
@@ -819,3 +819,6 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
 };
 
 export default RealPriceComparisonTable;
+
+
+

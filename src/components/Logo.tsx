@@ -150,6 +150,9 @@ const Logo: React.FC<LogoProps> = ({
         ref={imgRef}
         src={currentSrc}
         alt={alt}
+        width={200}
+        height={40}
+        sizes="200px"
         className={cn(
           className,
           isLoading && 'opacity-0',

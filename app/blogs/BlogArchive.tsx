@@ -57,7 +57,7 @@ const BlogCard = memo(({ post }: { post: SimplePost }) => {
                             {readTime} min læsning
                         </span>
                         <span className="inline-flex items-center text-xs sm:text-sm font-semibold text-brand-green group-hover:text-brand-green-dark transition-colors">
-                            læs mere
+                            Læs mere
                             <ArrowRight className="ml-1.5 h-3 w-3 sm:h-4 sm:w-4 transition-transform group-hover:translate-x-0.5" />
                         </span>
                     </div>
@@ -172,4 +172,3 @@ export default function BlogArchive({ posts }: BlogArchiveProps) {
         </section>
     )
 }
-

@@ -20,7 +20,7 @@ interface BlogArchiveProps {
     posts: SimplePost[]
 }
 
-const BlogCard = memo(({ post }: { post: SimplePost }) => {
+const BlogCard = memo(({ post, priority = false }: { post: SimplePost; priority?: boolean }) => {
     // Use provided read time or calculate from title + description
     const readTime = post.readTime || (() => {
         const wordCount = (post.title + ' ' + post.description).split(' ').length
@@ -37,7 +37,8 @@ const BlogCard = memo(({ post }: { post: SimplePost }) => {
                         fill
                         sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                         className="object-cover"
-                        loading="lazy"
+                        priority={priority}
+                        loading={priority ? undefined : "lazy"}
                     />
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition group-hover:opacity-20" />
                     {/* Type badge */}
@@ -159,7 +160,7 @@ export default function BlogArchive({ posts }: BlogArchiveProps) {
             {/* Archive grid */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredPosts.map((post, i) => (
-                    <BlogCard key={i} post={post} />
+                    <BlogCard key={i} post={post} priority={i < 3} />
                 ))}
             </div>
 

@@ -28,6 +28,7 @@ interface ProviderCardProps {
   providerMarkupKrOverride?: number; // in kr/kWh (simplified mode)
   monthlySubscriptionOverride?: number; // in kr (simplified mode)
   regionCode?: 'DK1' | 'DK2';
+  priority?: boolean; // Mobile optimization: eager load first few cards
 }
 
 const ProviderCard: React.FC<ProviderCardProps> = ({
@@ -41,6 +42,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   providerMarkupKrOverride,
   monthlySubscriptionOverride,
   regionCode,
+  priority = false, // Default to lazy loading
 }) => {
   // Add safety checks
   if (!product) {
@@ -94,7 +96,8 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                   className="object-contain"
                   fill
                   sizes="(max-width: 768px) 96px, 112px"
-                  loading="lazy"
+                  priority={priority}
+                  loading={priority ? undefined : "lazy"}
                   placeholder="blur"
                   blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEyIiBoZWlnaHQ9IjExMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTEyIiBoZWlnaHQ9IjExMiIgZmlsbD0iI2YzZjRmNiIvPjwvc3ZnPg=="
                   onError={(e) => {

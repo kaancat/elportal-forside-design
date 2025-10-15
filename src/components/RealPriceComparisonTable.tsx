@@ -588,6 +588,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
             <div className="space-y-4">
               <Slider
                 id="consumption-slider"
+                aria-label="Juster månedligt forbrug"
                 min={50}
                 max={850}
                 step={10}

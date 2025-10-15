@@ -192,7 +192,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                   {pricingMode === 'full' && (
                     <Popover>
                       <PopoverTrigger asChild>
-                        <button className="text-xs text-brand-green hover:underline mt-1 inline-flex items-center gap-1">
+                        <button aria-label="Se prisdetaljer" className="text-xs text-brand-green hover:underline mt-1 inline-flex items-center gap-1">
                           Se prisdetaljer <Info size={14} />
                         </button>
                       </PopoverTrigger>

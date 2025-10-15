@@ -551,6 +551,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
                       greenCertificates: provider.greenCertificateFee,
                       tradingCosts: provider.tradingCosts
                     }}
+                    priority={index < 3}
                   />
                 </div>
               );

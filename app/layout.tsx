@@ -134,12 +134,18 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebSite) }}
         />
-        {/* Preconnect to external domains for faster resource loading */}
+        {/* Preconnect to external domains for faster resource loading (mobile optimization) */}
         <link rel="preconnect" href="https://cdn.sanity.io" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
-        {/* Ensure no stray preload for external GPT scripts */}
+        <link rel="preconnect" href="https://api.energidataservice.dk" />
+        <link rel="preconnect" href="https://api.dataforsyningen.dk" />
+        <link rel="preconnect" href="https://api.elnet.greenpowerdenmark.dk" />
+        {/* DNS prefetch for external domains as fallback */}
         <link rel="dns-prefetch" href="https://cdn.sanity.io" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
+        <link rel="dns-prefetch" href="https://api.energidataservice.dk" />
+        <link rel="dns-prefetch" href="https://api.dataforsyningen.dk" />
+        <link rel="dns-prefetch" href="https://api.elnet.greenpowerdenmark.dk" />
         {/* Safari pinned tab */}
         <link rel="mask-icon" href="/favicon.svg" color="#6BC52D" />
       </head>

@@ -105,9 +105,11 @@ export default function BlogArchive({ posts }: BlogArchiveProps) {
             {/* Filter controls */}
             <div className="flex flex-col gap-4 mb-6">
                 {/* Type filters */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2" role="group" aria-label="Filtrer indlæg efter type">
                     <button
                         onClick={() => setTypeFilter('All')}
+                        aria-label="Vis alle indlæg"
+                        aria-pressed={typeFilter === 'All'}
                         className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${typeFilter === 'All'
                             ? 'bg-brand-dark text-white shadow-md'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -117,6 +119,8 @@ export default function BlogArchive({ posts }: BlogArchiveProps) {
                     </button>
                     <button
                         onClick={() => setTypeFilter('Blog')}
+                        aria-label="Vis kun blog indlæg"
+                        aria-pressed={typeFilter === 'Blog'}
                         className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${typeFilter === 'Blog'
                             ? 'bg-brand-green text-white shadow-md'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -126,6 +130,8 @@ export default function BlogArchive({ posts }: BlogArchiveProps) {
                     </button>
                     <button
                         onClick={() => setTypeFilter('Guide')}
+                        aria-label="Vis kun guide indlæg"
+                        aria-pressed={typeFilter === 'Guide'}
                         className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${typeFilter === 'Guide'
                             ? 'bg-brand-green-dark text-white shadow-md'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'

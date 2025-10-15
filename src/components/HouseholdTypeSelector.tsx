@@ -103,6 +103,8 @@ const HouseholdTypeSelector: React.FC<HouseholdTypeSelectorProps> = ({
             <button
               key={type.id}
               onClick={() => handleTypeClick(type)}
+              aria-label={`Vælg ${type.label}${type.id !== 'custom' ? ` - ${type.kWh} kWh` : ''}`}
+              aria-pressed={isActive}
               className={`
                 flex flex-col items-center p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md
                 ${isActive 

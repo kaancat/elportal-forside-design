@@ -30,7 +30,7 @@ export const RegionToggle: React.FC<RegionToggleProps> = ({
           <TooltipProvider delayDuration={200}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <button type="button" className="p-0.5 hover:bg-gray-100 rounded transition-colors">
+                <button type="button" aria-label="Vis information om regionvalg" className="p-0.5 hover:bg-gray-100 rounded transition-colors">
                   <Info className="h-4 w-4 text-gray-400" />
                 </button>
               </TooltipTrigger>

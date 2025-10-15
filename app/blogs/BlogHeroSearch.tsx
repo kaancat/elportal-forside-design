@@ -243,7 +243,7 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
                                 <h3 className="text-white text-lg font-display font-bold mb-3 leading-tight">
                                     Populære emner
                                 </h3>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex flex-wrap gap-2" role="group" aria-label="Populære emner">
                                     {popularTopics.map((topic, index) => (
                                         <button
                                             key={index}
@@ -251,6 +251,7 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
                                                 setSearchQuery(topic)
                                                 handleSearch(topic)
                                             }}
+                                            aria-label={`Søg efter ${topic}`}
                                             className="px-3 py-1.5 text-sm bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-full border border-white/20 transition-all duration-200 hover:scale-105"
                                         >
                                             {topic}

@@ -222,7 +222,7 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
             {/* Step 1 */}
             {currentStep === 1 && (
                 <div className="mt-8">
-                    <h3 className="text-lg font-bold text-gray-800 mb-1">Se om du kan spare penge</h3>
+                    <h2 className="text-lg font-bold text-gray-800 mb-1">Se om du kan spare penge</h2>
                     <p className="font-bold text-gray-800 text-xl mb-4">Prøv vores beregner</p>
                     <p className="text-gray-600 text-sm mb-6">Få estimerede og tilpassede priser på elaftaler, som tager udgangspunkt i dit forbrug.</p>
                     <ul className="space-y-2 mb-8 text-sm">

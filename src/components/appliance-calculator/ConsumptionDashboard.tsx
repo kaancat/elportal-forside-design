@@ -321,9 +321,9 @@ export function ConsumptionDashboard({
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
             <ShoppingCart className="h-8 w-8 text-gray-400" />
           </div>
-          <h3 className="text-lg font-display font-semibold text-gray-900 mb-2">
+          <h2 className="text-lg font-display font-semibold text-gray-900 mb-2">
             Ingen apparater tilføjet endnu
-          </h3>
+          </h2>
           <p className="text-gray-600 max-w-sm mx-auto">
             Tilføj dine elektriske apparater for at se dit strømforbrug og
             potentielle besparelser.

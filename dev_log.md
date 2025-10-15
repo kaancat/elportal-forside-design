@@ -1,6 +1,48 @@
 # Dev Log
 
-## [2025-10-15] – Performance Optimization: Desktop Lighthouse Fixes
+## [2025-10-15] – Performance Optimization Round 2: Accessibility & CLS Fixes
+Goal: Fix remaining accessibility issues and reduce CLS from web fonts
+
+### Issues Identified from Second Lighthouse Report (after initial fixes):
+- **Performance**: 71 → 79 (+8) ✅
+- **CLS**: 0.76 → 0.385 (50% improvement, but still needs work)
+  - Main culprits: div.mb-0 (0.358), web fonts (Inter/Geist)
+- **ARIA Slider**: Consumption slider missing aria-label
+- **Heading Hierarchy**: H3s without preceding H2s
+
+### Changes Made (Round 2):
+- ✅ **Slider ARIA Fix**: Added `aria-label="Juster månedligt forbrug"` to consumption slider in `RealPriceComparisonTable.tsx`
+- ✅ **Heading Hierarchy Fixes**:
+  - Changed H3 → H2 in `PriceCalculatorWidget.tsx` ("Se om du kan spare penge")
+  - Changed H3 → H2 in `ConsumptionDashboard.tsx` ("Ingen apparater tilføjet endnu")
+- ✅ **Browserslist Database Updated**: Updated caniuse-lite to latest version
+- ✅ **Logo Component Fixed**: Hybrid approach - Next.js Image for local, regular img with dimensions for Sanity CDN
+
+### Files Modified (Round 2):
+- `src/components/RealPriceComparisonTable.tsx` - Added slider aria-label
+- `src/components/PriceCalculatorWidget.tsx` - Fixed heading hierarchy
+- `src/components/appliance-calculator/ConsumptionDashboard.tsx` - Fixed heading hierarchy
+- `src/components/Logo.tsx` - Fixed internal server error with hybrid image approach
+
+### Remaining CLS Issue (0.385):
+The remaining CLS is primarily from:
+1. **Web font loading** (Inter/Geist variable fonts)
+2. **Content blocks shifting** as fonts apply
+
+**Potential future fixes**:
+- Add fallback font metrics (size-adjust, ascent-override) to match variable fonts
+- Consider font-display: optional for critical text
+- Preload critical fonts in layout
+
+### Current Desktop Lighthouse Scores:
+- **Performance**: 79/100 (+8 from original 71)
+- **Accessibility**: 92/100 (on track for improvement)
+- **Best Practices**: 78/100
+- **SEO**: 100/100 ✅
+
+---
+
+## [2025-10-15] – Performance Optimization Round 1: Desktop Lighthouse Fixes
 Goal: Optimize desktop performance focusing on CLS, legacy JavaScript, and accessibility
 
 ### Issues Identified from Lighthouse Report:
@@ -9,31 +51,24 @@ Goal: Optimize desktop performance focusing on CLS, legacy JavaScript, and acces
 3. **Legacy JavaScript (23 KiB)**: Unnecessary polyfills for modern browsers
 4. **ARIA Input Fields**: Search input missing accessible name
 
-### Changes Made:
-- ✅ **Logo CLS Fix**: Converted `Logo.tsx` from `<img>` to Next.js `<Image>` with explicit dimensions (200x40)
-  - Added `priority` prop for above-the-fold loading
-  - Used `sizes` for responsive image optimization
-  - **Expected Impact**: CLS reduction from 0.76 → ~0.01 (+15 Performance score)
+### Changes Made (Round 1):
+- ✅ **Logo CLS Fix**: Converted `Logo.tsx` to use Next.js `<Image>` for local images
+  - Added explicit dimensions (200x40) to prevent layout shift
+  - Hybrid approach: Next.js Image for local, regular img for Sanity CDN
+  - **Actual Impact**: CLS reduced from 0.76 → 0.385 (50% improvement)
   
 - ✅ **Browserslist Configuration**: Added modern browser targets to `package.json`
   - Chrome >= 87, Edge >= 88, Firefox >= 78, Safari >= 14
   - **Expected Impact**: -23 KiB legacy JavaScript removed
   
 - ✅ **ARIA Accessibility**: Added `aria-label="Søg efter blog indlæg"` to search input in `BlogHeroSearch.tsx`
-  - **Expected Impact**: +8 Accessibility score
   
 - ✅ **Server Response Verified**: ISR revalidation already set to 300s (5 minutes) in production
 
-### Files Modified:
-- `src/components/Logo.tsx` - Converted to Next.js Image component
+### Files Modified (Round 1):
+- `src/components/Logo.tsx` - Hybrid image component
 - `package.json` - Added browserslist configuration
 - `app/blogs/BlogHeroSearch.tsx` - Added aria-label to search input
-
-### Expected Desktop Lighthouse Improvements:
-- **Performance**: 71 → ~85+ (CLS fix is major)
-- **Accessibility**: 92 → ~97+ (ARIA fix)
-- **Best Practices**: 78 → 82+ (reduced legacy JS)
-- **SEO**: 100 (already perfect)
 
 ---
 

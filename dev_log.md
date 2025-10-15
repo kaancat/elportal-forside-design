@@ -1,5 +1,75 @@
 # Dev Log
 
+## [2025-10-15] – Emergency Fix: Codex-Induced Build Errors & Routing Conflicts (RESOLVED)
+Goal: Restore project functionality after Codex created conflicting files and broke the dev server
+
+### Issues Encountered:
+1. **Dev Server Crash**: `Dynamic require of "events" is not supported` error prevented server from starting
+2. **404 Error on /elselskaber**: Route was returning 404 despite being in the codebase
+3. **Routing Conflict**: Codex created multiple conflicting route handlers and disabled the SPA fallback
+
+### Root Cause Analysis - Phase 1:
+- **Conflicting Route Handler**: Codex created `app/elselskaber/page.tsx` that tried to redirect to `/spa-fallback/elselskaber`
+- **SPA Routing Configuration**: The middleware marked `/elselskaber` as a SPA-only route
+- **Disabled SPA Fallback**: The `app/spa-fallback/[[...catchAll]]/page.tsx` was modified to return a 404 instead of loading the React Router app
+- **Corrupted Build Cache**: The `.next` directory contained stale build artifacts
+
+### Root Cause Analysis - Phase 2:
+After initial fixes, discovered that:
+- **No React Router**: The project has been fully migrated to Next.js App Router - there is no SPA to fall back to
+- **Dynamic Route Catch-All**: The `[slug]` route was catching `/elselskaber` and trying to fetch from Sanity, returning 404
+- **Missing Route Registration**: File-based routes aren't automatically recognized if not in middleware's `nextjsRoutes` array
+
+### Changes Made:
+- ✅ **PHASE 1**: Deleted conflicting `app/elselskaber/page.tsx` from Codex
+- ✅ **PHASE 1**: Cleaned `.next` directory and reinstalled dependencies
+- ✅ **PHASE 2**: Created new proper `app/elselskaber/page.tsx` with full provider list page
+- ✅ **PHASE 2**: Removed `/elselskaber` from `spaOnlyRoutes` array in middleware
+- ✅ **PHASE 2**: Added `/elselskaber` to `nextjsRoutes` array in middleware (line 52)
+- ✅ **VERIFIED**: Page now returns 200 OK and displays correctly
+
+### Final Architecture:
+```
+Request: /elselskaber
+  ↓
+Middleware: Recognizes as nextjsRoute → NextResponse.next()
+  ↓
+Next.js Router: Matches app/elselskaber/page.tsx
+  ↓
+Result: 200 OK - Providers list page renders
+```
+
+### Impact:
+- **✅ Dev Server Running**: No more "Dynamic require" errors
+- **✅ /elselskaber Works**: Returns 200 OK with proper content
+- **✅ Clean Routing**: No middleware rewrites - direct file-based routing
+- **✅ User Experience**: Users see a proper "under construction" page with clear CTAs
+
+### Lessons Learned:
+- **Three-tier routing system**: Next.js App Router has a priority system:
+  1. Middleware `nextjsRoutes` array (explicit SSR routes)
+  2. File-based routes (`app/**/page.tsx`)
+  3. Dynamic catch-all routes (`app/[slug]/page.tsx`)
+- **Middleware must know about routes**: File-based routes need to be registered in middleware's `nextjsRoutes` to prevent catch-all interception
+- **Clean builds are critical**: Always clear `.next` after middleware changes
+- **Document architectural decisions**: Codex didn't know there was no SPA to fall back to
+- **Never disable fallbacks without replacement**: Codex disabled SPA fallback without creating proper Next.js pages
+
+### Files Modified:
+1. **DELETED**: Original conflicting `app/elselskaber/page.tsx` (Codex version)
+2. **CREATED**: New `app/elselskaber/page.tsx` (proper Next.js SSR page with metadata, JSON-LD, and user-friendly content)
+3. **MODIFIED**: `middleware.ts`:
+   - Removed `/elselskaber` from `spaOnlyRoutes` (line 57-61)
+   - Added `/elselskaber` to `nextjsRoutes` (line 52)
+
+### Prevention Strategy:
+- Always check middleware configuration when adding new routes
+- Register new file-based routes in middleware's `nextjsRoutes` array
+- Test routes after middleware changes with clean builds
+- Document which routes are SPA vs SSR vs dynamic
+
+---
+
 ## [2025-10-14] – Mobile Blog Hero Improvements
 Goal: Improve mobile UX by simplifying hero section and fixing title visibility
 

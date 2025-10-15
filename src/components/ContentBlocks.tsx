@@ -1,41 +1,55 @@
 'use client'
 
-import React from 'react'
+import React, { Suspense, lazy } from 'react'
 // import { div } from 'framer-motion' // Temporarily disabled for Next.js compatibility
 import { PageSection, FAQItem, VideoSection, PodcastEpisodeBlock, FaqGroup, RichTextSection, CallToActionSection, LivePriceGraph, RealPriceComparisonTable, RenewableEnergyForecast, CO2EmissionsChart, DeclarationProduction, DeclarationGridmix as DeclarationGridmixType, ConsumptionMap, PriceCalculator, HeroWithCalculator, ContentBlock, MonthlyProductionChartBlock, ProviderListBlock, FeatureListBlock, ValuePropositionBlock } from '@/types/sanity'
+// Critical components - loaded immediately
 import PageSectionComponent from './PageSectionComponent'
 import FAQItemComponent from './FAQItemComponent'
-import VideoSectionComponent from './VideoSectionComponent'
 import FaqGroupComponent from './FaqGroupComponent'
 import RichTextSectionComponent from './RichTextSectionComponent'
 import CallToActionSectionComponent from './CallToActionSectionComponent'
-import LivePriceGraphComponent from './LivePriceGraphComponent'
-import RealPriceComparisonTableComponent from './RealPriceComparisonTable'
-import RenewableEnergyForecastComponent from './RenewableEnergyForecast'
-import CO2EmissionsChartComponent from './CO2EmissionsChart'
-import DeclarationProductionChart from './DeclarationProductionChart'
-import DeclarationGridmix from './DeclarationGridmix'
-import ConsumptionMapComponent from './ConsumptionMap'
-import { ForbrugTracker } from './forbrugTracker/ForbrugTracker'
-import PriceCalculatorWidget from './PriceCalculatorWidget'
-import HeroSection from './HeroSection'
-import MonthlyProductionChart from './MonthlyProductionChart'
-import ProviderList from './ProviderList'
-import { FeatureListComponent } from './FeatureListComponent'
-import { ValuePropositionComponent } from './ValuePropositionComponent'
 import HeroComponent from './HeroComponent'
-import { ApplianceCalculatorSection } from './ApplianceCalculatorSection'
-import { EnergyTipsSection } from './EnergyTipsSection'
-import ChargingBoxShowcase, { ChargingBoxShowcaseBlock } from './ChargingBoxShowcase'
-import RegionalComparison from './RegionalComparison'
-import PricingComparison from './PricingComparison'
-import DailyPriceTimeline from './DailyPriceTimeline'
-import InfoCardsSection from './InfoCardsSection'
-import PodcastEpisode from './PodcastEpisode'
-// import { ForbrugTracker } from './forbrugTracker/ForbrugTracker' // TODO: Add to ContentBlock type
 import ErrorBoundary from './ErrorBoundary'
 import { ContentErrorFallback, ChartErrorFallback, CalculatorErrorFallback } from './ErrorFallbacks'
 import { reportError } from '@/lib/errorReporting'
+
+// Heavy components - lazy loaded for better performance
+// These components are code-split and only loaded when needed
+const VideoSectionComponent = lazy(() => import('./VideoSectionComponent'))
+const LivePriceGraphComponent = lazy(() => import('./LivePriceGraphComponent'))
+const RealPriceComparisonTableComponent = lazy(() => import('./RealPriceComparisonTable'))
+const RenewableEnergyForecastComponent = lazy(() => import('./RenewableEnergyForecast'))
+const CO2EmissionsChartComponent = lazy(() => import('./CO2EmissionsChart'))
+const DeclarationProductionChart = lazy(() => import('./DeclarationProductionChart'))
+const DeclarationGridmix = lazy(() => import('./DeclarationGridmix'))
+const ConsumptionMapComponent = lazy(() => import('./ConsumptionMap'))
+const ForbrugTracker = lazy(() => import('./forbrugTracker/ForbrugTracker').then(m => ({ default: m.ForbrugTracker })))
+const PriceCalculatorWidget = lazy(() => import('./PriceCalculatorWidget'))
+const HeroSection = lazy(() => import('./HeroSection'))
+const MonthlyProductionChart = lazy(() => import('./MonthlyProductionChart'))
+const ProviderList = lazy(() => import('./ProviderList').then(m => ({ default: m.ProviderList })))
+const FeatureListComponent = lazy(() => import('./FeatureListComponent').then(m => ({ default: m.FeatureListComponent })))
+const ValuePropositionComponent = lazy(() => import('./ValuePropositionComponent').then(m => ({ default: m.ValuePropositionComponent })))
+const ApplianceCalculatorSection = lazy(() => import('./ApplianceCalculatorSection').then(m => ({ default: m.ApplianceCalculatorSection })))
+const EnergyTipsSection = lazy(() => import('./EnergyTipsSection').then(m => ({ default: m.EnergyTipsSection })))
+const ChargingBoxShowcase = lazy(() => import('./ChargingBoxShowcase'))
+const RegionalComparison = lazy(() => import('./RegionalComparison'))
+const PricingComparison = lazy(() => import('./PricingComparison'))
+const DailyPriceTimeline = lazy(() => import('./DailyPriceTimeline'))
+const InfoCardsSection = lazy(() => import('./InfoCardsSection'))
+const PodcastEpisode = lazy(() => import('./PodcastEpisode'))
+
+// Loading fallback component for Suspense
+// Provides visual feedback while components are being loaded
+const LoadingFallback: React.FC<{ type?: string }> = ({ type }) => (
+  <div className="w-full py-12 flex items-center justify-center">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-8 h-8 border-4 border-brand-green/30 border-t-brand-green rounded-full animate-spin" />
+      <p className="text-sm text-gray-500">Indlæser {type || 'indhold'}...</p>
+    </div>
+  </div>
+)
 
 interface ContentBlocksProps {
   blocks: ContentBlock[]
@@ -51,9 +65,9 @@ const SafeContentBlock: React.FC<{
     reportError(error, {
       component: 'ContentBlock',
       action: 'render',
-      props: { 
+      props: {
         blockType: Array.isArray(block) ? 'faqGroup' : block._type,
-        blockIndex: index 
+        blockIndex: index
       }
     });
   };
@@ -69,21 +83,21 @@ const SafeContentBlock: React.FC<{
       case 'declarationGridmix':
       case 'monthlyProductionChart':
       case 'consumptionMap':
-        return <ChartErrorFallback 
-          onRetry={() => window.location.reload()} 
+        return <ChartErrorFallback
+          onRetry={() => window.location.reload()}
           title="Diagram kunne ikke indlæses"
         />;
-      
+
       case 'priceCalculator':
       case 'heroWithCalculator':
       case 'applianceCalculator':
-        return <CalculatorErrorFallback 
+        return <CalculatorErrorFallback
           onRetry={() => window.location.reload()}
           onReset={() => window.location.reload()}
         />;
-      
+
       default:
-        return <ContentErrorFallback 
+        return <ContentErrorFallback
           onRetry={() => window.location.reload()}
           message="Dette indhold kunne ikke vises"
         />;
@@ -131,112 +145,119 @@ const SafeContentBlock: React.FC<{
   );
 };
 
-// Render individual content block
+// Render individual content block with Suspense wrapper for lazy-loaded components
+// This function determines whether each component type should be lazy-loaded or loaded immediately
 const renderContentBlock = (block: ContentBlock) => {
+  // Helper function to wrap lazy components with Suspense
+  const withSuspense = (component: React.ReactNode, fallbackType?: string) => (
+    <Suspense fallback={<LoadingFallback type={fallbackType} />}>
+      {component}
+    </Suspense>
+  );
+
   // Temporary type guard until all schema unions are fully aligned in TS
   if ((block as any)?._type === 'forbrugTracker') {
     const anyBlock: any = block as any
     const description = Array.isArray(anyBlock?.description) ? '' : anyBlock?.description
-    return (
-      <ForbrugTracker 
+    return withSuspense(
+      <ForbrugTracker
         title={(block as any).title}
         description={description}
         headerAlignment={(block as any).headerAlignment}
-      />
+      />,
+      'forbrugsdata'
     )
   }
+
   switch (block._type) {
+    // Critical components - loaded immediately without Suspense
     case 'faqGroup':
       return <FaqGroupComponent block={block as FaqGroup} />;
-    
-    case 'videoSection':
-      return <VideoSectionComponent block={block as VideoSection} />;
 
-    case 'podcastEpisode':
-      return <PodcastEpisode block={block as PodcastEpisodeBlock} />;
-    
     case 'richTextSection':
       return <RichTextSectionComponent block={block as RichTextSection} />;
-    
+
     case 'callToActionSection':
       return <CallToActionSectionComponent block={block as CallToActionSection} />;
-    
-    case 'livePriceGraph':
-      return <LivePriceGraphComponent block={block as LivePriceGraph} />;
-    
-    case 'realPriceComparisonTable':
-      return <RealPriceComparisonTableComponent block={block as RealPriceComparisonTable} />;
-    
-    case 'renewableEnergyForecast':
-      return <RenewableEnergyForecastComponent block={block as RenewableEnergyForecast} />;
-    
-    case 'co2EmissionsChart':
-      return <CO2EmissionsChartComponent block={block as CO2EmissionsChart} />;
-    
-    case 'declarationProduction':
-      return <DeclarationProductionChart block={block as DeclarationProduction} />;
-    
-    case 'declarationGridmix':
-      return <DeclarationGridmix block={block as DeclarationGridmixType} />;
-    
-    case 'priceCalculator':
-      return <PriceCalculatorWidget block={block as PriceCalculator} />;
-    
-    case 'heroWithCalculator':
-      return <HeroSection block={block as HeroWithCalculator} />;
-    
+
     case 'hero':
       return <HeroComponent block={block} />;
-    
-    case 'monthlyProductionChart':
-      return <MonthlyProductionChart block={block as MonthlyProductionChartBlock} />;
-    
-    case 'providerList':
-      return <ProviderList block={block as ProviderListBlock} />;
-    
-    case 'featureList':
-      return <FeatureListComponent block={block as FeatureListBlock} />;
-    
-    case 'valueProposition':
-      return <ValuePropositionComponent block={block as ValuePropositionBlock} />;
-    
-    case 'consumptionMap':
-      return <ConsumptionMapComponent block={block as ConsumptionMap} />;
-    
-    
+
     case 'pageSection':
       return <PageSectionComponent section={block as PageSection} />;
-    
+
+    // Heavy components - lazy loaded with Suspense for code splitting
+    case 'videoSection':
+      return withSuspense(<VideoSectionComponent block={block as VideoSection} />, 'video');
+
+    case 'podcastEpisode':
+      return withSuspense(<PodcastEpisode block={block as PodcastEpisodeBlock} />, 'podcast');
+
+    case 'livePriceGraph':
+      return withSuspense(<LivePriceGraphComponent block={block as LivePriceGraph} />, 'prisgraf');
+
+    case 'realPriceComparisonTable':
+      return withSuspense(<RealPriceComparisonTableComponent block={block as RealPriceComparisonTable} />, 'prissammenligning');
+
+    case 'renewableEnergyForecast':
+      return withSuspense(<RenewableEnergyForecastComponent block={block as RenewableEnergyForecast} />, 'energiprognose');
+
+    case 'co2EmissionsChart':
+      return withSuspense(<CO2EmissionsChartComponent block={block as CO2EmissionsChart} />, 'CO2-data');
+
+    case 'declarationProduction':
+      return withSuspense(<DeclarationProductionChart block={block as DeclarationProduction} />, 'produktionsdata');
+
+    case 'declarationGridmix':
+      return withSuspense(<DeclarationGridmix block={block as DeclarationGridmixType} />, 'net-data');
+
+    case 'priceCalculator':
+      return withSuspense(<PriceCalculatorWidget block={block as PriceCalculator} />, 'beregner');
+
+    case 'heroWithCalculator':
+      return withSuspense(<HeroSection block={block as HeroWithCalculator} />, 'beregner');
+
+    case 'monthlyProductionChart':
+      return withSuspense(<MonthlyProductionChart block={block as MonthlyProductionChartBlock} />, 'produktionsgraf');
+
+    case 'providerList':
+      return withSuspense(<ProviderList block={block as ProviderListBlock} />, 'udbyderliste');
+
+    case 'featureList':
+      return withSuspense(<FeatureListComponent block={block as FeatureListBlock} />, 'funktioner');
+
+    case 'valueProposition':
+      return withSuspense(<ValuePropositionComponent block={block as ValuePropositionBlock} />, 'værditilbud');
+
+    case 'consumptionMap':
+      return withSuspense(<ConsumptionMapComponent block={block as ConsumptionMap} />, 'forbrugskort');
+
     case 'applianceCalculator':
-      return <ApplianceCalculatorSection block={block} />;
-    
+      return withSuspense(<ApplianceCalculatorSection block={block} />, 'apparatberegner');
+
     case 'energyTipsSection':
-      return <EnergyTipsSection block={block} />;
-    
+      return withSuspense(<EnergyTipsSection block={block} />, 'energitips');
+
     case 'chargingBoxShowcase':
-      return <ChargingBoxShowcase block={block as ChargingBoxShowcaseBlock} />;
-    
+      return withSuspense(<ChargingBoxShowcase block={block as ChargingBoxShowcaseBlock} />, 'ladeboks');
+
     case 'regionalComparison':
-      return <RegionalComparison block={block} />;
-    
+      return withSuspense(<RegionalComparison block={block} />, 'regional sammenligning');
+
     case 'pricingComparison':
-      return <PricingComparison block={block} />;
-    
+      return withSuspense(<PricingComparison block={block} />, 'prissammenligning');
+
     case 'dailyPriceTimeline':
-      return <DailyPriceTimeline block={block} />;
-    
+      return withSuspense(<DailyPriceTimeline block={block} />, 'daglige priser');
+
     case 'infoCardsSection':
-      return <InfoCardsSection block={block} />;
-    
-    // TODO: Add forbrugTracker to ContentBlock type union in sanity.ts
-    // case 'forbrugTracker':
-    //   return <ForbrugTracker {...(block as any)} />;
-    
+      return withSuspense(<InfoCardsSection block={block} />, 'info');
+
     default:
       // Handle unknown block types
       const unknownBlock = block as any;
       console.warn('Unknown content block type:', unknownBlock._type);
-      
+
       return (
         <div className="p-4 border border-yellow-300 rounded-lg bg-yellow-50 text-center">
           <p className="text-yellow-800 font-medium">Ukendt indholdstype</p>
@@ -266,7 +287,7 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
 
   // Filter out null/undefined blocks first
   const validBlocks = blocks.filter(Boolean);
-  
+
   validBlocks.forEach((block, index) => {
     if (block._type === 'faqItem') {
       currentFAQGroup.push(block as FAQItem);
@@ -300,7 +321,7 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
         onError={handleContentError}
         fallback={
           <div className="container mx-auto px-4 py-8 text-center">
-            <ContentErrorFallback 
+            <ContentErrorFallback
               onRetry={() => window.location.reload()}
               message="Siden kunne ikke indlæses korrekt"
             />
@@ -314,16 +335,16 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
             const isDataVisualization = !Array.isArray(block) && ['livePriceGraph', 'co2EmissionsChart', 'renewableEnergyForecast', 'monthlyProductionChart', 'realPriceComparisonTable'].includes(block._type);
             const nextIsDataVisualization = nextBlock && !Array.isArray(nextBlock) && ['livePriceGraph', 'co2EmissionsChart', 'renewableEnergyForecast', 'monthlyProductionChart', 'realPriceComparisonTable'].includes(nextBlock._type);
             const isPageSection = !Array.isArray(block) && block._type === 'pageSection';
-            
+
             // Remove spacing between components to prevent gaps when backgrounds are used
             // Components handle their own internal padding
             const spacingClass = 'mb-0';
-            
+
             // Generate unique layoutId for each block to prevent remounting
-            const layoutId = Array.isArray(block) 
-              ? `faq-group-${index}` 
+            const layoutId = Array.isArray(block)
+              ? `faq-group-${index}`
               : `${block._type}-${block._key || index}`;
-            
+
             return (
               <div
                 key={layoutId}
@@ -333,9 +354,9 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
                   'data-block-key': (block as any)._key || String(index),
                 })}
               >
-                <SafeContentBlock 
-                  block={block} 
-                  index={index} 
+                <SafeContentBlock
+                  block={block}
+                  index={index}
                 />
               </div>
             );
@@ -354,16 +375,16 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
         const isDataVisualization = !Array.isArray(block) && ['livePriceGraph', 'co2EmissionsChart', 'renewableEnergyForecast', 'monthlyProductionChart', 'realPriceComparisonTable'].includes(block._type);
         const nextIsDataVisualization = nextBlock && !Array.isArray(nextBlock) && ['livePriceGraph', 'co2EmissionsChart', 'renewableEnergyForecast', 'monthlyProductionChart', 'realPriceComparisonTable'].includes(nextBlock._type);
         const isPageSection = !Array.isArray(block) && block._type === 'pageSection';
-        
+
         // Remove spacing between components to prevent gaps when backgrounds are used
         // Components handle their own internal padding
         const spacingClass = 'mb-0';
-        
+
         // Generate unique layoutId for each block to prevent remounting
-        const layoutId = Array.isArray(block) 
-          ? `faq-group-${index}` 
+        const layoutId = Array.isArray(block)
+          ? `faq-group-${index}`
           : `${block._type}-${block._key || index}`;
-        
+
         return (
           <div
             key={layoutId}

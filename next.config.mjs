@@ -8,17 +8,17 @@ const __dirname = path.dirname(__filename);
 const nextConfig = {
   // Using standard build (not static export) for SPA with client-side routing
   // output: 'export', // Removed for client component compatibility
-  
+
   // Use default Next.js dist directory
   // distDir: '.next',
-  
+
   // Phase 2: Use only App Router
   // Removed pageExtensions restriction to allow robots.ts and sitemap.ts
   // pageExtensions: ['page.tsx', 'page.ts', 'page.jsx', 'page.js', 'api.ts', 'api.js'],
-  
+
   // Transpile problematic packages
   transpilePackages: ['react-denmark-map'],
-  
+
   // Image configuration for Sanity and Unsplash (Phase 8 optimization)
   images: {
     // Enable modern image formats for optimal performance (Codex-recommended)
@@ -48,7 +48,7 @@ const nextConfig = {
       },
     ],
   },
-  
+
   // Fix legacy slug: redirect /sammenlign -> /leverandoer-sammenligning (permanent)
   async redirects() {
     return [
@@ -68,13 +68,13 @@ const nextConfig = {
       },
     ]
   },
-  
+
   // Trailing slash handling (matching current behavior)
   trailingSlash: false,
-  
+
   // Enable strict mode for better development experience
   reactStrictMode: true,
-  
+
   // TypeScript and ESLint
   typescript: {
     // During migration, allow builds to succeed with TypeScript errors
@@ -84,7 +84,7 @@ const nextConfig = {
     // During migration, allow builds to succeed with ESLint errors
     ignoreDuringBuilds: true,
   },
-  
+
   // Webpack configuration
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
     // Preserve path alias from Vite config
@@ -92,7 +92,7 @@ const nextConfig = {
       ...config.resolve.alias,
       '@': path.resolve(__dirname, './src'),
     };
-    
+
     // Handle react-denmark-map ES module issue
     if (!isServer) {
       config.resolve.fallback = {
@@ -101,13 +101,13 @@ const nextConfig = {
         path: false,
       };
     }
-    
+
     // Let Next.js handle optimizations for Phase 1
     // Custom optimizations can be added in Phase 2 if needed
-    
+
     return config;
   },
-  
+
   // Experimental features for gradual adoption
   experimental: {
     // Optimize package imports
@@ -125,8 +125,52 @@ const nextConfig = {
       '@portabletext/react',
     ],
   },
-  
-  
+
+
+  // Custom headers for better caching and performance
+  async headers() {
+    return [
+      {
+        // Cache static assets (fonts, images, etc.) for 1 year
+        source: '/fonts/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        // Cache images for 7 days
+        source: '/:path*.{jpg,jpeg,png,gif,webp,svg,ico}',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=604800, stale-while-revalidate=86400',
+          },
+        ],
+      },
+      {
+        // Security headers
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+        ],
+      },
+    ];
+  },
+
   // Environment variable validation
   env: {
     // Single source of truth for absolute URLs

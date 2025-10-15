@@ -1,5 +1,42 @@
 # Dev Log
 
+## [2025-10-15] – Performance Optimization: Desktop Lighthouse Fixes
+Goal: Optimize desktop performance focusing on CLS, legacy JavaScript, and accessibility
+
+### Issues Identified from Lighthouse Report:
+1. **Critical CLS (0.76)**: Logo image causing massive layout shift (0.759 out of 0.76 total)
+2. **Server Response Time (918ms)**: Slow initial response affecting FCP and LCP
+3. **Legacy JavaScript (23 KiB)**: Unnecessary polyfills for modern browsers
+4. **ARIA Input Fields**: Search input missing accessible name
+
+### Changes Made:
+- ✅ **Logo CLS Fix**: Converted `Logo.tsx` from `<img>` to Next.js `<Image>` with explicit dimensions (200x40)
+  - Added `priority` prop for above-the-fold loading
+  - Used `sizes` for responsive image optimization
+  - **Expected Impact**: CLS reduction from 0.76 → ~0.01 (+15 Performance score)
+  
+- ✅ **Browserslist Configuration**: Added modern browser targets to `package.json`
+  - Chrome >= 87, Edge >= 88, Firefox >= 78, Safari >= 14
+  - **Expected Impact**: -23 KiB legacy JavaScript removed
+  
+- ✅ **ARIA Accessibility**: Added `aria-label="Søg efter blog indlæg"` to search input in `BlogHeroSearch.tsx`
+  - **Expected Impact**: +8 Accessibility score
+  
+- ✅ **Server Response Verified**: ISR revalidation already set to 300s (5 minutes) in production
+
+### Files Modified:
+- `src/components/Logo.tsx` - Converted to Next.js Image component
+- `package.json` - Added browserslist configuration
+- `app/blogs/BlogHeroSearch.tsx` - Added aria-label to search input
+
+### Expected Desktop Lighthouse Improvements:
+- **Performance**: 71 → ~85+ (CLS fix is major)
+- **Accessibility**: 92 → ~97+ (ARIA fix)
+- **Best Practices**: 78 → 82+ (reduced legacy JS)
+- **SEO**: 100 (already perfect)
+
+---
+
 ## [2025-10-15] – Emergency Fix: Codex-Induced Build Errors & Routing Conflicts (RESOLVED)
 Goal: Restore project functionality after Codex created conflicting files and broke the dev server
 

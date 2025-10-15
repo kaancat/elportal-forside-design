@@ -215,6 +215,7 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
                                 <div className="relative shadow-xl rounded-xl md:rounded-2xl border-2 border-white/20 bg-white overflow-hidden">
                                     <input
                                         type="text"
+                                        aria-label="Søg efter blog indlæg"
                                         placeholder="Skriv emne eller nøgleord..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}

@@ -150,7 +150,7 @@ const Navigation = ({ initialSettings }: NavigationProps) => {
     const blogLink: LinkType = {
       _key: 'local-blog-link',
       _type: 'link',
-      title: 'Blog',
+      title: 'Nyheder',
       linkType: 'internal',
       internalLink: { slug: 'blogs', _type: 'page' },
       isButton: false,

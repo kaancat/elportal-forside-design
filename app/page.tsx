@@ -96,6 +96,8 @@ export default async function HomePage() {
     getCachedHomePage(),
     getSiteSettings()
   ])
+  // If no homepage exists in the current dataset, render 404 (do not redirect)
+  if (!page) return notFound()
 
   // Generate WebSite JSON-LD (Organization already in layout)
   const jsonLdWebSite = {

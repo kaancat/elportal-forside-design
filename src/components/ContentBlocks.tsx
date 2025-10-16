@@ -357,6 +357,7 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
               && (block as any)._type !== 'richTextSection'
               && (block as any)._type !== 'hero'
               && (block as any)._type !== 'heroWithCalculator'
+              && (block as any)._type !== 'providerList'
               && !!blogFullBleedExceptRich;
 
             return (
@@ -405,6 +406,7 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
           && (block as any)._type !== 'richTextSection'
           && (block as any)._type !== 'hero'
           && (block as any)._type !== 'heroWithCalculator'
+          && (block as any)._type !== 'providerList'
           && !!blogFullBleedExceptRich;
 
         return (

@@ -80,6 +80,47 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
 
     const matchingPosts = filteredPosts.length > 0 ? filteredPosts : defaultFeaturedPosts
 
+    // Build topics by matching to a controlled set of domain categories
+    const popularTopics = useMemo(() => {
+        type Cat = { label: string; patterns: RegExp[] }
+        const categories: Cat[] = [
+            { label: 'Elpriser', patterns: [/\belpris/i, /\belpriser/i, /\bspotpris/i, /\bspotpriser/i, /\bfastpris/i] },
+            { label: 'Tariffer', patterns: [/\btarif/i, /\btariffer/i, /\bnettarif/i, /transporttarif/i] },
+            { label: 'Afgifter', patterns: [/\bafgift/i, /\belafgift/i] },
+            { label: 'CO2', patterns: [/\bco2\b/i, /udledning/i] },
+            { label: 'Vind', patterns: [/\bvind\b/i, /havvind/i, /vindm[øo]lle/i] },
+            { label: 'Solceller', patterns: [/solcelle/i, /solceller/i, /\bsol\b/i] },
+            { label: 'Elbiler', patterns: [/\belbil/i, /elbiler/i, /oplad/i] },
+            { label: 'Varmepumper', patterns: [/varmepumpe/i, /varmepumper/i] },
+            { label: 'El-net', patterns: [/(el-?net|netudbyg|get|transmissions|balancering|kabler|netkapacitet)/i] },
+            { label: 'Batterier', patterns: [/batteri/i, /lagring/i, /energilagring/i] },
+            { label: 'Power-to-X', patterns: [/power ?to ?x/i, /\bptx\b/i] },
+            { label: 'Forbrug', patterns: [/\bforbrug/i, /elforbrug/i] },
+            { label: 'Prissikring', patterns: [/fastpris/i, /prisloft/i, /indk[øo]bsaftale/i] },
+        ]
+        const counts: Record<string, number> = {}
+        const textOf = (p: any) => `${p.title || ''} ${p.description || ''}`.toLowerCase()
+        // Prefer stored primaryTopic when present; otherwise infer via categories
+        for (const post of allBlogPosts) {
+            const pt = (post as any).primaryTopic as string | undefined
+            if (pt && pt.length > 0) {
+                counts[pt] = (counts[pt] || 0) + 1
+                continue
+            }
+            const txt = textOf(post)
+            for (const cat of categories) {
+                if (cat.patterns.some(rx => rx.test(txt))) {
+                    counts[cat.label] = (counts[cat.label] || 0) + 1
+                    break
+                }
+            }
+        }
+        return Object.entries(counts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 6)
+            .map(([label]) => label)
+    }, [allBlogPosts])
+
     const handleSearch = useCallback((topic?: string) => {
         const query = topic || searchQuery
         if (query.trim()) {
@@ -130,35 +171,6 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
     const currentPost = matchingPosts[currentIndex] || defaultFeaturedPosts[0]
     const showCarousel = matchingPosts.length > 1
     const isFeaturedPost = !isSearchActive && defaultFeaturedPosts.includes(currentPost)
-
-    // Extract popular topics dynamically from all posts
-    const popularTopics = useMemo(() => {
-        const topicCounts: Record<string, number> = {}
-
-        // Keywords to extract from titles
-        const keywords = ['elpriser', 'solceller', 'elbil', 'varmepumpe', 'besparelse', 'grøn energi',
-            'spotpris', 'fastpris', 'smart-home', 'energi', 'guide', 'intropris']
-
-        allBlogPosts.forEach(post => {
-            const titleLower = post.title.toLowerCase()
-            keywords.forEach(keyword => {
-                if (titleLower.includes(keyword)) {
-                    // Capitalize first letter for display
-                    const displayName = keyword === 'elbil' ? 'Elbiler' :
-                        keyword === 'grøn energi' ? 'Grøn energi' :
-                            keyword === 'smart-home' ? 'Smart-home' :
-                                keyword.charAt(0).toUpperCase() + keyword.slice(1)
-                    topicCounts[displayName] = (topicCounts[displayName] || 0) + 1
-                }
-            })
-        })
-
-        // Sort by count and return top 6
-        return Object.entries(topicCounts)
-            .sort(([, a], [, b]) => b - a)
-            .slice(0, 6)
-            .map(([topic]) => topic)
-    }, [allBlogPosts])
 
     // Safety check - if no current post, don't render
     if (!currentPost) return null

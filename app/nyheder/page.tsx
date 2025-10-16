@@ -1,5 +1,5 @@
 /**
- * /blogs page route
+ * /nyheder page route
  * What: Blog archive layout fetching real content from Sanity CMS
  * Why: Dynamic blog page with CMS-managed content
  */
@@ -10,6 +10,7 @@ import { SanityService } from '@/services/sanityService'
 import BlogArchive from './BlogArchive'
 import BlogHeroSearch from './BlogHeroSearch'
 import type { BlogPost } from '@/types/sanity'
+import { getUnsplashImage, getHashedFallbackImage } from '@/server/unsplash'
 
 interface SimplePost {
     date: string
@@ -20,12 +21,13 @@ interface SimplePost {
     type: 'Blog' | 'Guide'
     slug: string
     readTime?: number  // Optional reading time in minutes
+    primaryTopic?: string
 }
 
 /**
  * Transform Sanity BlogPost to SimplePost format for components
  */
-function transformBlogPost(post: BlogPost): SimplePost {
+async function transformBlogPost(post: BlogPost): Promise<SimplePost> {
     // Format date to match parseDate format in BlogArchive: "Marts 01, 2025"
     const date = new Date(post.publishedDate)
     const months = [
@@ -38,9 +40,13 @@ function transformBlogPost(post: BlogPost): SimplePost {
     const formattedDate = `${month} ${day}, ${year}`
 
     // Get image URL from Sanity asset (handle union type)
-    const imageUrl = (post.featuredImage?.asset && 'url' in post.featuredImage.asset && post.featuredImage.asset.url)
+    let imageUrl = (post.featuredImage?.asset && 'url' in post.featuredImage.asset && post.featuredImage.asset.url)
         ? post.featuredImage.asset.url
-        : 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?ixlib=rb-4.0.3'
+        : ''
+    if (!imageUrl) {
+        const unsplash = await getUnsplashImage(`${post.title} energi elpriser Danmark`, post.slug.current)
+        imageUrl = unsplash || getHashedFallbackImage(post.slug.current)
+    }
     const imageAlt = post.featuredImage?.alt || post.title
 
     // Calculate reading time from content blocks if not set in CMS
@@ -80,7 +86,8 @@ function transformBlogPost(post: BlogPost): SimplePost {
         imageAlt,
         type: post.type,
         slug: post.slug.current,
-        readTime: calculateReadTime()
+        readTime: calculateReadTime(),
+        primaryTopic: (post as any).primaryTopic
     }
 }
 
@@ -94,7 +101,7 @@ export default async function BlogsPage() {
     ])
 
     // Transform all blog posts to SimplePost format
-    const allPostsTransformed = allBlogPosts.map(transformBlogPost)
+    const allPostsTransformed = await Promise.all(allBlogPosts.map(transformBlogPost))
 
     // Determine featured posts
     let featuredPostsTransformed: SimplePost[] = []

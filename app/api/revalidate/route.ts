@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
             // Specific blog post cache
             revalidateTag(`blogPost:${payload.slug.current}`);
             revalidatedTags.push(`blogPost:${payload.slug.current}`);
-            // Specific blog post path
+            // Specific blog post path (Blogs)
             revalidatePath(`/blogs/${payload.slug.current}`);
             revalidatedPaths.push(`/blogs/${payload.slug.current}`);
           }

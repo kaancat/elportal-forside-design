@@ -44,7 +44,6 @@ export async function getHomePage() {
         },
       }
     )
-    
     return page
   } catch (error) {
     console.error('[Server] Failed to fetch homepage:', error)
@@ -69,7 +68,6 @@ export async function getPageBySlug(slug: string) {
         },
       }
     )
-    
     if (!page && process.env.NODE_ENV !== 'production') {
       console.warn(`[Sanity] No page found for slug`, { slug })
     }

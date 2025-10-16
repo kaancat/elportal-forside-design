@@ -139,20 +139,20 @@ const Navigation = ({ initialSettings }: NavigationProps) => {
     });
   }
 
-  // Inject local "Blog" link between "Leverandører" and "Lær mere om" (non-destructive; does not mutate CMS)
+  // Inject local "Nyheder" link between "Leverandører" and "Lær mere om" (non-destructive; does not mutate CMS)
   const displayItems: (LinkType | MegaMenu)[] = (() => {
     const copy = [...navItems];
 
     // Prevent duplicate if already present
-    const alreadyHasBlog = copy.some(it => it._type === 'link' && (it as LinkType).internalLink?.slug === 'blogs');
-    if (alreadyHasBlog) return copy;
+    const alreadyHasNyheder = copy.some(it => it._type === 'link' && (it as LinkType).internalLink?.slug === 'nyheder');
+    if (alreadyHasNyheder) return copy;
 
-    const blogLink: LinkType = {
-      _key: 'local-blog-link',
+    const nyhedLink: LinkType = {
+      _key: 'local-nyheder-link',
       _type: 'link',
       title: 'Nyheder',
       linkType: 'internal',
-      internalLink: { slug: 'blogs', _type: 'page' },
+      internalLink: { slug: 'nyheder', _type: 'page' },
       isButton: false,
     } as LinkType;
 
@@ -165,7 +165,7 @@ const Navigation = ({ initialSettings }: NavigationProps) => {
     if (learnIndex >= 0) insertIndex = learnIndex; // just before mega menu
     else if (leverIndex >= 0) insertIndex = leverIndex + 1; // after Leverandører
 
-    copy.splice(Math.max(0, Math.min(insertIndex, copy.length)), 0, blogLink);
+    copy.splice(Math.max(0, Math.min(insertIndex, copy.length)), 0, nyhedLink);
     return copy;
   })();
 

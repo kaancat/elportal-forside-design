@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft, Clock } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import ContentBlocks from '@/components/ContentBlocks'
+import { getProviders } from '@/server/sanity'
+import type { ProviderListBlock } from '@/types/sanity'
 
 interface BlogPostPageProps {
     params: Promise<{ slug: string }>
@@ -230,6 +232,26 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     // Get content blocks from the blog post
     const contentBlocks = post.contentBlocks || []
 
+    // Append Provider Comparison List to the bottom of every blog post
+    // Populate with current electricity providers from Sanity
+    let providers: any[] = []
+    try {
+        providers = await getProviders()
+    } catch (e) {
+        console.error('[Blog] Failed to fetch providers for comparison list:', e)
+    }
+
+    const providerListBlock: ProviderListBlock = {
+        _type: 'providerList',
+        _key: 'blog-provider-list',
+        title: 'Sammenlign populære elselskaber',
+        subtitle: 'Se aktuelle elaftaler og priser',
+        headerAlignment: 'left',
+        providers: Array.isArray(providers) ? providers : []
+    }
+
+    const augmentedBlocks = [...contentBlocks, providerListBlock]
+
     // Calculate reading time dynamically based on content length
     const calculateReadTime = (blocks: any[]): number => {
         let totalWords = 0
@@ -322,8 +344,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 {/* Article content - render content blocks from Sanity */}
                 <div className="container mx-auto px-4 py-16">
                     <div className="max-w-4xl mx-auto">
-                        {contentBlocks.length > 0 ? (
-                            <ContentBlocks blocks={contentBlocks} />
+                        {augmentedBlocks.length > 0 ? (
+                            <ContentBlocks blocks={augmentedBlocks} blogFullBleedExceptRich />
                         ) : (
                             <div className="prose prose-lg max-w-none">
                                 <p className="text-gray-700 leading-relaxed mb-6">

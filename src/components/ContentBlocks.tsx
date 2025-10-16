@@ -44,8 +44,8 @@ const PodcastEpisode = lazy(() => import('./PodcastEpisode'))
 // Provides visual feedback while components are being loaded
 // Uses min-height skeleton to prevent Cumulative Layout Shift (CLS)
 const LoadingFallback: React.FC<{ type?: string; minHeight?: string }> = ({ type, minHeight = '400px' }) => (
-  <div 
-    className="w-full flex items-center justify-center animate-pulse bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg" 
+  <div
+    className="w-full flex items-center justify-center animate-pulse bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg"
     style={{ minHeight }}
   >
     <div className="flex flex-col items-center gap-3">
@@ -58,6 +58,8 @@ const LoadingFallback: React.FC<{ type?: string; minHeight?: string }> = ({ type
 interface ContentBlocksProps {
   blocks: ContentBlock[]
   enableErrorBoundaries?: boolean
+  // Blog-only option: render all non-rich text blocks full-bleed
+  blogFullBleedExceptRich?: boolean
 }
 
 // Component wrapper with error boundary for different content types
@@ -284,7 +286,7 @@ const renderContentBlock = (block: ContentBlock) => {
   }
 };
 
-const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBoundaries = false }) => {
+const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBoundaries = false, blogFullBleedExceptRich = false }) => {
 
   // Group consecutive FAQ items together
   const groupedBlocks: Array<ContentBlock | FAQItem[]> = [];
@@ -350,10 +352,18 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
               ? `faq-group-${index}`
               : `${block._type}-${block._key || index}`;
 
+            // Blog-specific full-bleed layout: make non-richTextSection blocks full width on blog pages only
+            const isFullBleed = !Array.isArray(block)
+              && (block as any)._type !== 'richTextSection'
+              && (block as any)._type !== 'hero'
+              && (block as any)._type !== 'heroWithCalculator'
+              && !!blogFullBleedExceptRich;
+
             return (
               <div
                 key={layoutId}
                 className={spacingClass}
+                style={isFullBleed ? { width: '100vw', marginLeft: 'calc(50% - 50vw)', marginRight: 'calc(50% - 50vw)' } : undefined}
                 {...(!Array.isArray(block) && {
                   'data-block-type': (block as any)._type,
                   'data-block-key': (block as any)._key || String(index),
@@ -390,10 +400,18 @@ const ContentBlocks: React.FC<ContentBlocksProps> = ({ blocks, enableErrorBounda
           ? `faq-group-${index}`
           : `${block._type}-${block._key || index}`;
 
+        // Blog-specific full-bleed layout: make non-richTextSection blocks full width on blog pages only
+        const isFullBleed = !Array.isArray(block)
+          && (block as any)._type !== 'richTextSection'
+          && (block as any)._type !== 'hero'
+          && (block as any)._type !== 'heroWithCalculator'
+          && !!blogFullBleedExceptRich;
+
         return (
           <div
             key={layoutId}
             className={spacingClass}
+            style={isFullBleed ? { width: '100vw', marginLeft: 'calc(50% - 50vw)', marginRight: 'calc(50% - 50vw)' } : undefined}
             {...(!Array.isArray(block) && {
               'data-block-type': (block as any)._type,
               'data-block-key': (block as any)._key || String(index),

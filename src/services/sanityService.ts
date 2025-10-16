@@ -27,11 +27,18 @@ export class SanityService {
       publishedDate,
       featured,
       readTime,
+      primaryTopic,
       tags,
       seoMetaTitle,
       seoMetaDescription,
       seoMetaKeywords,
-      seoOpenGraphImage
+      seoOpenGraphImage,
+      // Include only rich text blocks needed to estimate read time when readTime is missing
+      "contentBlocks": coalesce(contentBlocks[_type == 'richTextSection']{
+        _type,
+        _key,
+        content
+      }, [])
     }`
 
     try {

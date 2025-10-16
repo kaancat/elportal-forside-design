@@ -525,6 +525,7 @@ export interface BlogPost {
   publishedDate: string
   featured?: boolean
   readTime?: number
+  primaryTopic?: string
   tags?: string[]
   seoMetaTitle?: string
   seoMetaDescription?: string

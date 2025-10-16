@@ -46,8 +46,8 @@ export function middleware(request: NextRequest) {
     '/groen-energi',
     '/vindstod',
     '/spar-penge',
-    // Blog pages
-    '/blogs',
+    // News pages
+    '/nyheder',
     // Provider list page (loaded from Sanity via [slug] route)
     '/elselskaber',
   ]

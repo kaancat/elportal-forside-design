@@ -538,6 +538,16 @@ export interface BlogPageSettings {
   heroTitle: string
   heroSubtitle?: string
   heroBackgroundImage?: SanityImage
+  backgroundStyle?:
+    | 'default'
+    | 'lightGray'
+    | 'gradientGreenMist'
+    | 'gradientOceanBreeze'
+    | 'gradientSunriseGlow'
+    | 'gradientNordicSky'
+    | 'gradientClassic'
+    | 'solidGreen'
+    | 'solidDark'
   featuredPosts?: BlogPost[]
   seoMetaTitle?: string
   seoMetaDescription?: string

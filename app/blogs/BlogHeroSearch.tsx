@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { BlogPageSettings } from '@/types/sanity'
+import { getBackgroundStyle, getTextColorClass, isLightText } from '@/lib/backgroundStyles'
 
 interface SimplePost {
     date: string
@@ -171,13 +172,18 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
     const firstWord = titleWords[0]
     const restOfTitle = titleWords.slice(1).join(' ')
 
+    // Determine background style and text color from settings
+    const selectedBackgroundStyle = blogSettings?.backgroundStyle || 'gradientClassic'
+    const containerStyle = getBackgroundStyle({ backgroundStyle: selectedBackgroundStyle }) as React.CSSProperties
+    const textColorClass = getTextColorClass({ backgroundStyle: selectedBackgroundStyle })
+
     return (
         <div className="md:p-4">
             <section
                 className="relative md:rounded-2xl overflow-hidden"
                 style={{
                     height: '87.5vh',
-                    background: 'linear-gradient(to bottom right, #001a12, rgba(132, 219, 65, 0.8))'
+                    ...(containerStyle || {})
                 }}
             >
 
@@ -185,10 +191,10 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
                 <div className="relative z-10 container mx-auto px-4 flex flex-col justify-center items-center h-full pt-6 lg:pt-0">
                     {/* Mobile title - left-aligned, compact spacing */}
                     <div className="text-left w-full flex-shrink-0 lg:hidden mb-6 px-4 sm:px-6">
-                        <h1 className="text-[2rem] sm:text-4xl font-display font-extrabold text-white mb-2 tracking-tight leading-tight">
+                        <h1 className={`text-[2rem] sm:text-4xl font-display font-extrabold ${textColorClass} mb-2 tracking-tight leading-tight`}>
                             <span className="text-brand-green">{firstWord}</span> {restOfTitle}
                         </h1>
-                        <p className="text-lg sm:text-lg text-white/90 leading-snug">
+                        <p className={`text-lg sm:text-lg ${isLightText(textColorClass) ? 'text-white/90' : 'text-gray-700'} leading-snug`}>
                             {heroSubtitle}
                         </p>
                     </div>
@@ -199,10 +205,10 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
                         <div className="hidden lg:flex lg:flex-col lg:gap-6 lg:max-w-xl">
                             {/* Title + Subheading */}
                             <div className="text-left w-full">
-                                <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-extrabold text-white mb-3 tracking-tight leading-tight">
+                                <h1 className={`text-4xl md:text-5xl lg:text-6xl font-display font-extrabold ${textColorClass} mb-3 tracking-tight leading-tight`}>
                                     <span className="text-brand-green">{firstWord}</span> {restOfTitle}
                                 </h1>
-                                <p className="text-base md:text-lg text-white/90 leading-relaxed">
+                                <p className={`text-base md:text-lg ${isLightText(textColorClass) ? 'text-white/90' : 'text-gray-700'} leading-relaxed`}>
                                     {heroSubtitle}
                                 </p>
                             </div>

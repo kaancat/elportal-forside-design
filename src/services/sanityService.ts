@@ -119,6 +119,7 @@ export class SanityService {
       _type,
       heroTitle,
       heroSubtitle,
+      backgroundStyle,
       heroBackgroundImage{
         asset->{
           _id,

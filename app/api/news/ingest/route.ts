@@ -180,23 +180,61 @@ DU SKAL inkludere kildelink NATURLIGT:
 ✓ "Det fremgår af [energiministrenes beslutning](${sourceUrl}), at..."
 ✗ ALDRIG: "Kilde: [https://...]"
 
-STRUKTUR (minimum ${minWords} ord):
-1. **Overblik** (2-3 linjer): Hvad er nyheden, hvorfor er den vigtig?
-2. **Hvad sker der?**: Beskriv ændringen/nyheden konkret - INKLUDER kilde-link her naturligt
-3. **Betydning for dig**: Direkte konsekvenser for forbrugerens elregning
-4. **Handlingsråd**: 3-5 konkrete ting forbrugeren kan gøre NU - INKLUDER interne links
-5. **Perspektiv**: Hvad betyder det fremadrettet?
+STRUKTUR (MINIMUM ${minWords} ORD - DETTE ER KRITISK!):
+Du SKAL skrive mindst ${minWords} ord. Hver sektion skal være UDFØRLIG:
 
-RETURNER KUN JSON (links er OBLIGATORISKE!):
+1. **Overblik** (100-150 ord): Hvad er nyheden? Hvorfor er den vigtig? Hvad betyder det overordnet for danske elforbrugere?
+
+2. **Hvad sker der?** (150-200 ord): 
+   - Beskriv ændringen/nyheden i DETALJER
+   - SKAL inkludere kildelink naturligt: "Ifølge [beslutningen](URL)..."
+   - Forklar baggrunden og konteksten
+   - Hvad er de konkrete tiltag?
+
+3. **Hvad betyder det for din elregning?** (150-200 ord):
+   - Direkte konsekvenser for forbrugerens elregning
+   - Tal konkrete tal (kr/måned, % stigning/fald)
+   - Hvornår træder ændringerne i kraft?
+   - Kort og lang sigt perspektiv
+
+4. **Det kan du gøre** (200-250 ord):
+   - 5-7 KONKRETE handlingsråd med forklaringer
+   - SKAL inkludere: "Tjek [aktuelle elpriser](/elpriser) dagligt..."
+   - SKAL inkludere: "Sammenlign [danske eludbydere](/el-udbydere)..."
+   - Giv specifikke tidsbesparende tips
+   - Forklar HVORDAN forbrugeren gør det
+
+5. **Fremtidsudsigter** (100-150 ord):
+   - Hvad kan vi forvente fremadrettet?
+   - Påvirker det energipolitikken?
+   - Hvad skal forbrugere være opmærksomme på?
+
+RETURNER KUN JSON - HUSK ${minWords}+ ORD TOTALT!
+Hver paragraph skal være LANG (50-100 ord hver):
 {
   "title": "SEO-titel (max 60 tegn)",
   "description": "Meta description (maks 160 tegn)",
   "sections": [
-    {"heading": "Overblik", "paragraphs": ["Dette kan påvirke din elregning betydeligt..."]},
-    {"heading": "Hvad sker der?", "paragraphs": ["Ifølge [energiministrenes beslutning](${sourceUrl}) skal EU...", "Dette vil påvirke [elpriserne](/elpriser) i Danmark..."]},
-    {"heading": "Hvad betyder det for din elregning?", "paragraphs": ["Danske forbrugere kan se ændringer i [deres elregning](/elpriser) allerede næste måned..."]},
-    {"heading": "Det kan du gøre", "paragraphs": ["Tjek [de aktuelle timepriser](/elpriser) dagligt for at spare penge...", "Sammenlign [danske eludbydere](/el-udbydere) for at finde det bedste tilbud..."]},
-    {"heading": "Fremtidsudsigter", "paragraphs": ["Fremover vil [prisdannelsen](/elpriser) blive mere stabil..."]}
+    {"heading": "Overblik", "paragraphs": [
+      "Lang paragraph (100-150 ord) der forklarer nyheden grundigt. Dette kan påvirke din elregning betydeligt fordi... [fortsæt med detaljer, konsekvenser, og hvorfor det er vigtigt for danske elforbrugere]"
+    ]},
+    {"heading": "Hvad sker der?", "paragraphs": [
+      "Ifølge [energiministrenes beslutning](${sourceUrl}) skal EU stoppe importen af russisk gas senest i 2027. Dette er en historisk beslutning fordi... [forklar baggrunden i 80-100 ord]",
+      "Beslutningen betyder at Danmark skal... Dette vil påvirke [elpriserne](/elpriser) i Danmark fordi... [forklar konsekvenserne i 70-100 ord]"
+    ]},
+    {"heading": "Hvad betyder det for din elregning?", "paragraphs": [
+      "Danske forbrugere kan se ændringer i [deres elregning](/elpriser) allerede næste måned. Konkret kan en gennemsnitlig familie forvente... [forklar med tal og detaljer i 80-100 ord]",
+      "På længere sigt forventes... [fortsæt med fremtidsperspektiv i 70-100 ord]"
+    ]},
+    {"heading": "Det kan du gøre", "paragraphs": [
+      "1. Tjek [de aktuelle timepriser](/elpriser) dagligt for at spare penge. Du kan bruge apps fra dit elselskab til at se, hvornår strømmen er billigst, og planlægge dit forbrug derefter. Dette kan spare dig op til 30% på elregningen hvis du har fleksibelt forbrug. [fortsæt med 3-4 flere konkrete råd, hver med forklaring - 200+ ord total]",
+      "2. Sammenlign [danske eludbydere](/el-udbydere) for at finde det bedste tilbud til dit forbrugsmønster...",
+      "3. Overvej at investere i energibesparende tiltag...",
+      "4. Hold øje med markedsudviklingen..."
+    ]},
+    {"heading": "Fremtidsudsigter", "paragraphs": [
+      "Fremover vil [prisdannelsen](/elpriser) blive mere stabil, da Danmark... [forklar fremtidsperspektivet grundigt i 100-150 ord med detaljer om energipolitik, forventninger til prisudvikling, og hvad forbrugere skal være opmærksomme på]"
+    ]}
   ]
 }`
 
@@ -245,6 +283,8 @@ Hvis IKKE alle 4 er JA, tilføj links NU!`
       })
       responseText = completion.choices[0]?.message?.content || ''
       console.log('[OpenAI] Generated response length:', responseText.length, 'chars')
+      console.log('[OpenAI] First 500 chars:', responseText.slice(0, 500))
+      console.log('[OpenAI] Contains markdown links?', responseText.includes('[') && responseText.includes(']('))
     } else {
       // Use Anthropic Claude (fallback)
       const message = await client.messages.create({
@@ -271,6 +311,18 @@ Hvis IKKE alle 4 er JA, tilføj links NU!`
     // Log the parsed structure for debugging
     console.log('[AI] Parsed sections count:', parsed.sections?.length || 0)
     console.log('[AI] First section:', JSON.stringify(parsed.sections?.[0]).slice(0, 200))
+    
+    // Count total words in all sections
+    let totalWords = 0
+    for (const section of parsed.sections || []) {
+      for (const para of section.paragraphs || []) {
+        totalWords += para.split(/\s+/).length
+      }
+    }
+    console.log(`[AI] Total word count in generated content: ${totalWords} words`)
+    if (totalWords < minWords) {
+      console.log(`[AI] WARNING: Generated only ${totalWords} words, required ${minWords}!`)
+    }
 
     // Convert Claude's structured output to Sanity Portable Text blocks
     const blocks: any[] = []
@@ -754,9 +806,9 @@ async function ingestOnce(options?: { force?: boolean; titleContains?: string; s
       const t = (item.title || '').toLowerCase().replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$|/g, '')
       if (!t.includes(options.slug.toLowerCase())) continue
     }
-    // Basic dedupe by GUID/link
+    // Basic dedupe by GUID/link (skip if force=true for testing single articles)
     const key = item.guid || item.link
-    if (!key || seen.has(key)) {
+    if (!options?.force && (!key || seen.has(key))) {
       results.push({ skipped: true, reason: 'duplicate', title: item.title })
       continue
     }

@@ -1,0 +1,36 @@
+name: RSS Feed Ingestion
+
+on:
+  schedule:
+    # Runs every hour at minute 0
+    - cron: '0 * * * *'
+  
+  # Allow manual triggering from GitHub Actions tab
+  workflow_dispatch:
+
+jobs:
+  ingest-rss:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Trigger RSS Feed Ingestion
+        run: |
+          response=$(curl -s -w "\n%{http_code}" -X GET "${{ secrets.RSS_INGEST_URL }}")
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | head -n-1)
+          
+          echo "HTTP Status: $http_code"
+          echo "Response: $body"
+          
+          if [ "$http_code" -ne 200 ]; then
+            echo "❌ RSS ingestion failed with status $http_code"
+            exit 1
+          fi
+          
+          echo "✅ RSS ingestion completed successfully"
+
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "⚠️ RSS feed ingestion workflow failed. Check the logs above for details."
+

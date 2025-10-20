@@ -170,32 +170,43 @@ EKSTERNE LINKS:
 
 STRUKTUR (minimum ${minWords} ord):
 1. **Overblik** (2-3 linjer): Hvad er nyheden, hvorfor er den vigtig?
-2. **Hvad sker der?**: Beskriv ændringen/nyheden konkret
+2. **Hvad sker der?**: Beskriv ændringen/nyheden konkret - INKLUDER kilde-link her naturligt
 3. **Betydning for dig**: Direkte konsekvenser for forbrugerens elregning
-4. **Handlingsråd**: 3-5 konkrete ting forbrugeren kan gøre NU
+4. **Handlingsråd**: 3-5 konkrete ting forbrugeren kan gøre NU - INKLUDER interne links
 5. **Perspektiv**: Hvad betyder det fremadrettet?
 
-RETURNER KUN JSON:
+RETURNER KUN JSON (INGEN "Kilder" sektion!):
 {
   "title": "SEO-titel (max 60 tegn, inkluder nøgleord som 'elregning', 'elpris', 'spare')",
   "description": "Meta description (maks 160 tegn)",
   "sections": [
     {"heading": "Overblik", "paragraphs": ["..."]},
-    {"heading": "Hvad sker der?", "paragraphs": ["... ifølge [aftalen](${sourceUrl}) ..."]},
+    {"heading": "Hvad sker der?", "paragraphs": ["Ifølge [den nye aftale](${sourceUrl}) vil danskerne...", "Det betyder konkret at..."]},
     {"heading": "Hvad betyder det for din elregning?", "paragraphs": ["..."]},
-    {"heading": "Det kan du gøre", "paragraphs": ["Tjek [timepriserne](/elpriser) dagligt...", "Sammenlign [eludbydere](/el-udbydere) for..."]},
+    {"heading": "Det kan du gøre", "paragraphs": ["Tjek [de aktuelle timepriser](/elpriser) dagligt og planlæg...", "Sammenlign [danske eludbydere](/el-udbydere) for at finde..."]},
     {"heading": "Fremtidsudsigter", "paragraphs": ["..."]}
   ]
 }`
 
-  const userPrompt = `Nyhedskilde: ${sourceName}
+  const userPrompt = `NYHED:
 Titel: ${sourceTitle}
-URL: ${sourceUrl}
+Kilde-URL: ${sourceUrl}
 Publiceret: ${opts.publishedAt || 'Dags dato'}
 
-${extractedText ? `Kildetekst (til kontekst - PARAFRASE IKKE DIREKTE):\n${extractedText.slice(0, 3000)}` : ''}
+${extractedText ? `Kontekst fra kilden (brug KUN til forståelse, parafrasér aldrig direkte):\n${extractedText.slice(0, 3000)}\n` : ''}
 
-Skriv en original, forbruger-fokuseret artikel på minimum ${minWords} ord der fortolker denne nyhed for danske elforbrugere.`
+VIGTIGT - LINK-EKSEMPLER:
+✓ KORREKT: "Ifølge [den nye aftale](${sourceUrl}) vil danskerne..."
+✓ KORREKT: "Det fremgår af [regeringens udmelding](${sourceUrl}), at..."
+✗ FORKERT: "Kilde: Ritzau, [https://www.kefm.dk/...](https://www.kefm.dk/...)"
+✗ FORKERT: Nævn ALDRIG "Ritzau", "KEFM", "Forsyningsministeriet" direkte
+
+INTERNE LINKS - EKSEMPLER:
+✓ "Tjek [de aktuelle timepriser](/elpriser) for at..."
+✓ "Sammenlign [danske eludbydere](/el-udbydere) og find..."
+✓ "Se [elpriserne](/elpriser) i dag"
+
+Skriv nu en ${minWords}+ ord artikel der fortolker nyheden for danske elforbrugere.`
 
   try {
     const anthropic = getAnthropicClient()
@@ -490,8 +501,8 @@ function buildOriginalDraft(opts: {
   let tipIndex = 0
   while (approx < targetWords * 0.85 && tipIndex < contentTemplates.tips.length * 3) {
     const tip = contentTemplates.tips[(seed + tipIndex) % contentTemplates.tips.length]
-    paragraphs.push(tip)
-    approx += tip.split(/\s+/).length
+      paragraphs.push(tip)
+      approx += tip.split(/\s+/).length
     tipIndex++
   }
 
@@ -660,9 +671,9 @@ async function createDraftFromFeedItem(item: any, opts?: { force?: boolean; minW
         seen.add(canonical || guid)
         return { updatedId: existing._id, slug }
       } else {
-        seen.add(canonical || guid)
-        return { skipped: true, reason: 'exists', slug }
-      }
+      seen.add(canonical || guid)
+      return { skipped: true, reason: 'exists', slug }
+    }
     }
   } catch { }
   // Create as draft for manual publishing workflow

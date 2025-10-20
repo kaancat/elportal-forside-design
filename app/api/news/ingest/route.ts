@@ -200,7 +200,7 @@ Skriv en original, forbruger-fokuseret artikel på minimum ${minWords} ord der f
   try {
     const anthropic = getAnthropicClient()
     const message = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20250220',
+      model: 'claude-3-5-sonnet-20241022',
       max_tokens: 4096,
       temperature: 0.7,
       system: systemPrompt,

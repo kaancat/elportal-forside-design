@@ -19,13 +19,14 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft, Clock } from 'lucide-react'
 import type { BlogPost, ProviderListBlock } from '@/types/sanity'
 
-// Cache blog post fetches
+// Cache blog post fetches (use false to disable in dev for instant updates)
+const REVALIDATE_SECS = process.env.NODE_ENV === 'development' ? false : 3600
 const getCachedBlogPost = async (slug: string) =>
     await unstable_cache(
         async () => SanityService.getBlogPostBySlug(slug),
         ['blogPost', slug],
         {
-            revalidate: 3600, // 1 hour
+            revalidate: REVALIDATE_SECS, // false in dev (no cache), 1h otherwise
             tags: ['blogPost', `blogPost:${slug}`],
         }
     )()
@@ -95,8 +96,8 @@ export async function generateStaticParams() {
     }
 }
 
-// Revalidate every hour
-export const revalidate = 3600
+// Revalidate: false in dev (no cache), 1h otherwise
+export const revalidate = REVALIDATE_SECS
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params

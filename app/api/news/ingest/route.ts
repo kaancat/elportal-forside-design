@@ -131,7 +131,7 @@ function getTopicSpecificAdvice(topic: string, seed: number): string | null {
 function getAIClient(): { type: 'openai' | 'anthropic'; client: any } {
   const openaiKey = process.env.OPENAI_API_KEY
   const anthropicKey = process.env.ANTHROPIC_API_KEY
-  
+
   if (openaiKey) {
     return { type: 'openai', client: new OpenAI({ apiKey: openaiKey }) }
   } else if (anthropicKey) {
@@ -241,9 +241,10 @@ Hvis IKKE alle 4 er JA, tilføj links NU!`
           { role: 'user', content: userPrompt },
         ],
         temperature: 0.7,
-        max_tokens: 4096,
+        max_tokens: 8192, // Increased to allow for longer articles
       })
       responseText = completion.choices[0]?.message?.content || ''
+      console.log('[OpenAI] Generated response length:', responseText.length, 'chars')
     } else {
       // Use Anthropic Claude (fallback)
       const message = await client.messages.create({
@@ -266,6 +267,10 @@ Hvis IKKE alle 4 er JA, tilføj links NU!`
     const jsonText = jsonMatch ? jsonMatch[1] : responseText
 
     const parsed = JSON.parse(jsonText.trim())
+
+    // Log the parsed structure for debugging
+    console.log('[AI] Parsed sections count:', parsed.sections?.length || 0)
+    console.log('[AI] First section:', JSON.stringify(parsed.sections?.[0]).slice(0, 200))
 
     // Convert Claude's structured output to Sanity Portable Text blocks
     const blocks: any[] = []
@@ -295,7 +300,7 @@ Hvis IKKE alle 4 er JA, tilføj links NU!`
         while ((match = linkRegex.exec(para)) !== null) {
           const linkText = match[1]
           const linkUrl = match[2]
-          
+
           // Add text before link
           if (match.index > lastIndex) {
             const textBefore = para.slice(lastIndex, match.index)
@@ -311,7 +316,7 @@ Hvis IKKE alle 4 er JA, tilføj links NU!`
 
           // Create unique mark key for this link
           const markKey = Math.random().toString(36).slice(2)
-          
+
           // Add link definition to markDefs
           blockMarkDefs.push({
             _key: markKey,
@@ -536,8 +541,8 @@ function buildOriginalDraft(opts: {
   let tipIndex = 0
   while (approx < targetWords * 0.85 && tipIndex < contentTemplates.tips.length * 3) {
     const tip = contentTemplates.tips[(seed + tipIndex) % contentTemplates.tips.length]
-      paragraphs.push(tip)
-      approx += tip.split(/\s+/).length
+    paragraphs.push(tip)
+    approx += tip.split(/\s+/).length
     tipIndex++
   }
 
@@ -706,9 +711,9 @@ async function createDraftFromFeedItem(item: any, opts?: { force?: boolean; minW
         seen.add(canonical || guid)
         return { updatedId: existing._id, slug }
       } else {
-      seen.add(canonical || guid)
-      return { skipped: true, reason: 'exists', slug }
-    }
+        seen.add(canonical || guid)
+        return { skipped: true, reason: 'exists', slug }
+      }
     }
   } catch { }
   // Create as draft for manual publishing workflow

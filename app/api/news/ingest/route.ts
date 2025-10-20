@@ -162,19 +162,23 @@ TONE & STIL:
 - Ingen AI-slop eller generiske fraser
 - Brug aktivt sprog og konkrete eksempler
 
-INTERNE LINKS (VIGTIGT!):
-Brug disse links NATURLIGT i teksten med relevant ankertekst:
-- "/elpriser" → når du nævner timepriser, spotpriser, prisudvikling
-  Eksempel: "Tjek [aktuelle timepriser](/elpriser) før du..."
-- "/el-udbydere" → når du nævner sammenligning, skift af selskab
-  Eksempel: "Sammenlign [danske eludbydere](/el-udbydere) for at..."
-- Brug ALDRIG rå URLs som ankertekst
+🚨 KRITISK: LINKS ER OBLIGATORISKE! 🚨
+DU SKAL inkludere MINIMUM 3-5 links i HVER artikel!
 
-EKSTERNE LINKS:
-- Kilde-link SKAL være i en naturlig sætning
-- Eksempel: "Ifølge [den nye aftale](URL) vil danskerne..."
-- ALDRIG skrive kildens navn direkte (ingen "Ritzau", "KEFM" osv)
-- Brug i stedet "ifølge aftalen", "det fremgår", "rapporten viser"
+INTERNE LINKS (SKAL bruges!):
+DU SKAL inkludere mindst 2-3 interne links:
+- "/elpriser" → NÅR du nævner priser, timepriser, spotpriser
+  ✓ "Tjek [aktuelle elpriser](/elpriser) for at se..."
+  ✓ "Se [dagens timepriser](/elpriser) her"
+- "/el-udbydere" → NÅR du nævner selskaber, skift, sammenligning
+  ✓ "Sammenlign [danske eludbydere](/el-udbydere) for at..."
+  ✓ "Find [det bedste tilbud](/el-udbydere) til dit forbrug"
+
+EKSTERNE LINKS (SKAL bruges!):
+DU SKAL inkludere kildelink NATURLIGT:
+✓ "Ifølge [den nye aftale](${sourceUrl}) vil..."
+✓ "Det fremgår af [energiministrenes beslutning](${sourceUrl}), at..."
+✗ ALDRIG: "Kilde: [https://...]"
 
 STRUKTUR (minimum ${minWords} ord):
 1. **Overblik** (2-3 linjer): Hvad er nyheden, hvorfor er den vigtig?
@@ -183,16 +187,16 @@ STRUKTUR (minimum ${minWords} ord):
 4. **Handlingsråd**: 3-5 konkrete ting forbrugeren kan gøre NU - INKLUDER interne links
 5. **Perspektiv**: Hvad betyder det fremadrettet?
 
-RETURNER KUN JSON (INGEN "Kilder" sektion!):
+RETURNER KUN JSON (links er OBLIGATORISKE!):
 {
-  "title": "SEO-titel (max 60 tegn, inkluder nøgleord som 'elregning', 'elpris', 'spare')",
+  "title": "SEO-titel (max 60 tegn)",
   "description": "Meta description (maks 160 tegn)",
   "sections": [
-    {"heading": "Overblik", "paragraphs": ["..."]},
-    {"heading": "Hvad sker der?", "paragraphs": ["Ifølge [den nye aftale](${sourceUrl}) vil danskerne...", "Det betyder konkret at..."]},
-    {"heading": "Hvad betyder det for din elregning?", "paragraphs": ["..."]},
-    {"heading": "Det kan du gøre", "paragraphs": ["Tjek [de aktuelle timepriser](/elpriser) dagligt og planlæg...", "Sammenlign [danske eludbydere](/el-udbydere) for at finde..."]},
-    {"heading": "Fremtidsudsigter", "paragraphs": ["..."]}
+    {"heading": "Overblik", "paragraphs": ["Dette kan påvirke din elregning betydeligt..."]},
+    {"heading": "Hvad sker der?", "paragraphs": ["Ifølge [energiministrenes beslutning](${sourceUrl}) skal EU...", "Dette vil påvirke [elpriserne](/elpriser) i Danmark..."]},
+    {"heading": "Hvad betyder det for din elregning?", "paragraphs": ["Danske forbrugere kan se ændringer i [deres elregning](/elpriser) allerede næste måned..."]},
+    {"heading": "Det kan du gøre", "paragraphs": ["Tjek [de aktuelle timepriser](/elpriser) dagligt for at spare penge...", "Sammenlign [danske eludbydere](/el-udbydere) for at finde det bedste tilbud..."]},
+    {"heading": "Fremtidsudsigter", "paragraphs": ["Fremover vil [prisdannelsen](/elpriser) blive mere stabil..."]}
   ]
 }`
 
@@ -214,7 +218,15 @@ INTERNE LINKS - EKSEMPLER:
 ✓ "Sammenlign [danske eludbydere](/el-udbydere) og find..."
 ✓ "Se [elpriserne](/elpriser) i dag"
 
-Skriv nu en ${minWords}+ ord artikel der fortolker nyheden for danske elforbrugere.`
+Skriv nu en ${minWords}+ ord artikel der fortolker nyheden for danske elforbrugere.
+
+🔴 FINAL CHECK FØR DU SVARER:
+1. Har jeg inkluderet kildelink i [markdown format](url)? ✓
+2. Har jeg inkluderet mindst 2 links til /elpriser? ✓
+3. Har jeg inkluderet mindst 1 link til /el-udbydere? ✓
+4. Er alle links i [tekst](url) format? ✓
+
+Hvis IKKE alle 4 er JA, tilføj links NU!`
 
   try {
     const { type, client } = getAIClient()

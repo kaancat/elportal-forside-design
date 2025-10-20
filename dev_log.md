@@ -1,5 +1,52 @@
 # Dev Log
 
+## 2025-10-20 – Claude AI Integration for News Articles
+Goal: Replace template-based content generation with Anthropic Claude for intelligent, human-like Danish news interpretation.
+
+### What Changed:
+- **Installed @anthropic-ai/sdk** (3 packages added)
+- **Added `generateClaudeContent()` function** (lines 129-291 in `route.ts`):
+  - Uses Claude 3.5 Sonnet (claude-3-5-sonnet-20241022)
+  - Implements full Danish news interpretation system prompt
+  - Generates 700+ word articles with SEO-optimized titles and descriptions
+  - Structured output: JSON with sections (Overblik, Nyhedsresumé, Hvad betyder det for dig?, Praktiske råd, Kilder)
+  - Converts Claude's response to Sanity Portable Text blocks
+  - Handles markdown links for source attribution
+- **Updated `createDraftFromFeedItem()`**:
+  - Replaced `buildOriginalDraft()` with `await generateClaudeContent()`
+  - Changed document ID from `blogPost_${slug}` to `drafts.blogPost_${slug}` for **manual publishing workflow**
+  - Updated dedupe query to check both draft (`drafts.blogPost_${slug}`) and published (`blogPost_${slug}`) versions
+- **Updated GET handler**: Added support for `minWords`, `titleContains`, and `slug` query parameters
+- **Environment setup**: Created `.env.local` with `ANTHROPIC_API_KEY`
+
+### Why This Matters:
+- **Original content**: Claude interprets news rather than paraphrasing, avoiding plagiarism
+- **Consumer focus**: Every article explains impact on Danish electricity consumers
+- **SEO optimized**: Dynamic titles, descriptions, and structured content
+- **Quality control**: Manual publishing workflow allows review before articles go live
+- **Cost effective**: ~€0.025 per article (~€1/month for 40 articles)
+
+### Manual Publishing Workflow:
+1. RSS feed ingested hourly (GitHub Actions)
+2. Articles created as **drafts** in Sanity Studio
+3. Editor reviews draft articles
+4. Editor manually publishes approved articles
+5. Published articles appear on site immediately
+
+### Technical Details:
+- Model: `claude-3-5-sonnet-20241022` (200K context, excellent Danish)
+- Temperature: 0.7 (creative but consistent)
+- Max tokens: 4096 (supports 1000+ word articles)
+- Cost: $3/1M input tokens, $15/1M output tokens
+
+TODO: 
+- Add SANITY_API_TOKEN to .env.local for testing
+- Test full workflow: ingest → draft → manual publish
+- Monitor Claude usage in Anthropic dashboard
+- Update GitHub Actions secrets with ANTHROPIC_API_KEY
+
+---
+
 ## 2025-10-20 – Session Start
 Goal: Implement Danish news interpretation prompt for RSS ingestion; fix dev runtime error.
 

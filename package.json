@@ -20,6 +20,7 @@
     "sitemap:generate": "tsx scripts/generate-sitemap.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.67.0",
     "@hookform/resolvers": "^3.9.0",
     "@mozilla/readability": "^0.6.0",
     "@portabletext/react": "^3.2.1",

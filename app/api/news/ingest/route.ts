@@ -144,35 +144,47 @@ async function generateClaudeContent(opts: {
 }): Promise<{ title: string; description: string; blocks: any[] }> {
   const { sourceTitle, sourceUrl, sourceName = 'Ritzau', extractedText = '', minWords = 700 } = opts
 
-  const systemPrompt = `Du er en AI-journalist, der skriver originale, værdiskabende blogindlæg til Din Elportal – et uafhængigt informationssite, der hjælper danske el-forbrugere med at forstå energipolitik, strømpriser og udbydervalg.
+  const systemPrompt = `Du er en professionel dansk journalist for Din Elportal – Danmarks uafhængige el-guide.
 
-Dit mål er at fortolke nyheder fra officielle kilder (f.eks. Forsyningsministeriet, Energistyrelsen, Energinet) på en måde, der forklarer relevansen for den almindelige danske forbruger og samtidig skaber værdi for SEO og intern trafik.
+DIT MÅL: Fortolk energi-nyheder og forklar, hvad de betyder for danske husholdningers elregning og forbrug.
 
-OUTPUTKRAV:
-1. Original vinkel: Skriv aldrig blot en parafrase af kildeteksten. Forklar hvorfor det betyder noget for forbrugerne.
-2. Brug neutralt, sagligt sprog — ingen holdninger, kun analyse og formidling.
-3. Minimum ${minWords} ord (eksklusiv kilder).
-4. Struktur:
-   - Titel: SEO-optimeret, klar og aktuel
-   - Intro (2-3 linjer): Hurtig opsummering og relevans
-   - Afsnit 1: Kort opsummering med tydelig kildehenvisning (fx "Ifølge ${sourceName}…")
-   - Afsnit 2: Forklaring af betydning for forbrugere og markedet
-   - Afsnit 3: Hvad kan du gøre som forbruger? (konkrete råd)
-   - Afsnit 4: Kilde- og linksektion
-5. Inkludér call-to-action og interne links naturligt (fx "Sammenlign eludbydere her")
-6. Angiv altid kilden tydeligt med aktivt link
-7. Brug danske diakritiske tegn korrekt (æ, ø, å)
+TONE & STIL:
+- Professionel og neutral (som Børsen eller Finans)
+- Konkret og handlingsorienteret
+- Ingen AI-slop eller generiske fraser
+- Brug aktivt sprog og konkrete eksempler
 
-RETURNER KUN JSON i følgende format:
+INTERNE LINKS (VIGTIGT!):
+Brug disse links NATURLIGT i teksten med relevant ankertekst:
+- "/elpriser" → når du nævner timepriser, spotpriser, prisudvikling
+  Eksempel: "Tjek [aktuelle timepriser](/elpriser) før du..."
+- "/el-udbydere" → når du nævner sammenligning, skift af selskab
+  Eksempel: "Sammenlign [danske eludbydere](/el-udbydere) for at..."
+- Brug ALDRIG rå URLs som ankertekst
+
+EKSTERNE LINKS:
+- Kilde-link SKAL være i en naturlig sætning
+- Eksempel: "Ifølge [den nye aftale](URL) vil danskerne..."
+- ALDRIG skrive kildens navn direkte (ingen "Ritzau", "KEFM" osv)
+- Brug i stedet "ifølge aftalen", "det fremgår", "rapporten viser"
+
+STRUKTUR (minimum ${minWords} ord):
+1. **Overblik** (2-3 linjer): Hvad er nyheden, hvorfor er den vigtig?
+2. **Hvad sker der?**: Beskriv ændringen/nyheden konkret
+3. **Betydning for dig**: Direkte konsekvenser for forbrugerens elregning
+4. **Handlingsråd**: 3-5 konkrete ting forbrugeren kan gøre NU
+5. **Perspektiv**: Hvad betyder det fremadrettet?
+
+RETURNER KUN JSON:
 {
-  "title": "SEO-optimeret titel",
+  "title": "SEO-titel (max 60 tegn, inkluder nøgleord som 'elregning', 'elpris', 'spare')",
   "description": "Meta description (maks 160 tegn)",
   "sections": [
-    {"heading": "Overblik", "paragraphs": ["tekst...", "tekst..."]},
-    {"heading": "Nyhedsresumé", "paragraphs": ["tekst..."]},
-    {"heading": "Hvad betyder det for dig?", "paragraphs": ["tekst..."]},
-    {"heading": "Praktiske råd", "paragraphs": ["tekst..."]},
-    {"heading": "Kilder", "paragraphs": ["Kilde: ${sourceName}, [${sourceUrl}](${sourceUrl}). Artiklen gengiver ikke kildens tekst, men er DinElPortals selvstændige analyse og formidling."]}
+    {"heading": "Overblik", "paragraphs": ["..."]},
+    {"heading": "Hvad sker der?", "paragraphs": ["... ifølge [aftalen](${sourceUrl}) ..."]},
+    {"heading": "Hvad betyder det for din elregning?", "paragraphs": ["..."]},
+    {"heading": "Det kan du gøre", "paragraphs": ["Tjek [timepriserne](/elpriser) dagligt...", "Sammenlign [eludbydere](/el-udbydere) for..."]},
+    {"heading": "Fremtidsudsigter", "paragraphs": ["..."]}
   ]
 }`
 
@@ -211,6 +223,7 @@ Skriv en original, forbruger-fokuseret artikel på minimum ${minWords} ord der f
 
     // Convert Claude's structured output to Sanity Portable Text blocks
     const blocks: any[] = []
+    const markDefs: any[] = []
 
     for (const section of parsed.sections || []) {
       // Add heading
@@ -220,6 +233,7 @@ Skriv en original, forbruger-fokuseret artikel på minimum ${minWords} ord der f
           _key: Math.random().toString(36).slice(2),
           style: 'h2',
           children: [{ _type: 'span', _key: Math.random().toString(36).slice(2), text: section.heading }],
+          markDefs: [],
         })
       }
 
@@ -227,26 +241,44 @@ Skriv en original, forbruger-fokuseret artikel på minimum ${minWords} ord der f
       for (const para of section.paragraphs || []) {
         // Parse markdown links in paragraphs
         const children: any[] = []
+        const blockMarkDefs: any[] = []
         const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
         let lastIndex = 0
         let match
 
         while ((match = linkRegex.exec(para)) !== null) {
+          const linkText = match[1]
+          const linkUrl = match[2]
+          
           // Add text before link
           if (match.index > lastIndex) {
-            children.push({
-              _type: 'span',
-              _key: Math.random().toString(36).slice(2),
-              text: para.slice(lastIndex, match.index),
-            })
+            const textBefore = para.slice(lastIndex, match.index)
+            if (textBefore) {
+              children.push({
+                _type: 'span',
+                _key: Math.random().toString(36).slice(2),
+                text: textBefore,
+                marks: [],
+              })
+            }
           }
 
-          // Add link
+          // Create unique mark key for this link
+          const markKey = Math.random().toString(36).slice(2)
+          
+          // Add link definition to markDefs
+          blockMarkDefs.push({
+            _key: markKey,
+            _type: 'link',
+            href: linkUrl,
+          })
+
+          // Add link span with mark reference
           children.push({
             _type: 'span',
             _key: Math.random().toString(36).slice(2),
-            text: match[1],
-            marks: [Math.random().toString(36).slice(2)],
+            text: linkText,
+            marks: [markKey],
           })
 
           lastIndex = match.index + match[0].length
@@ -254,20 +286,27 @@ Skriv en original, forbruger-fokuseret artikel på minimum ${minWords} ord der f
 
         // Add remaining text
         if (lastIndex < para.length) {
-          children.push({
-            _type: 'span',
-            _key: Math.random().toString(36).slice(2),
-            text: para.slice(lastIndex),
-          })
+          const remainingText = para.slice(lastIndex)
+          if (remainingText) {
+            children.push({
+              _type: 'span',
+              _key: Math.random().toString(36).slice(2),
+              text: remainingText,
+              marks: [],
+            })
+          }
         }
 
-        blocks.push({
-          _type: 'block',
-          _key: Math.random().toString(36).slice(2),
-          children: children.length > 0 ? children : [
-            { _type: 'span', _key: Math.random().toString(36).slice(2), text: para }
-          ],
-        })
+        // Only add block if we have children
+        if (children.length > 0) {
+          blocks.push({
+            _type: 'block',
+            _key: Math.random().toString(36).slice(2),
+            style: 'normal',
+            children,
+            markDefs: blockMarkDefs,
+          })
+        }
       }
     }
 

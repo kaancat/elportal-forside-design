@@ -13,9 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Trigger RSS Feed Ingestion
+      - name: Trigger RSS Feed Ingestion with AI Generation
         run: |
-          response=$(curl -s -w "\n%{http_code}" -X GET "${{ secrets.RSS_INGEST_URL }}")
+          # Generate new articles with professional AI content (700+ words)
+          # Only processes new articles (existing ones are skipped unless force=1)
+          response=$(curl -s -w "\n%{http_code}" -X GET "${{ secrets.RSS_INGEST_URL }}?minWords=700")
           http_code=$(echo "$response" | tail -n1)
           body=$(echo "$response" | head -n-1)
           
@@ -27,7 +29,7 @@ jobs:
             exit 1
           fi
           
-          echo "✅ RSS ingestion completed successfully"
+          echo "✅ RSS ingestion with AI regeneration completed successfully"
 
       - name: Notify on Failure
         if: failure()

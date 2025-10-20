@@ -6,6 +6,7 @@ import sanitizeHtml from 'sanitize-html'
 import { Readability } from '@mozilla/readability'
 import { createClient } from '@sanity/client'
 import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 
 const FEED_URL = 'https://www.kefm.dk/handlers/DynamicRss.ashx?id=76163fac-6c0a-4edb-8e6e-86a4dcf36bd4'
 
@@ -126,11 +127,18 @@ function getTopicSpecificAdvice(topic: string, seed: number): string | null {
   return advice[seed % advice.length]
 }
 
-// Initialize Anthropic client
-function getAnthropicClient() {
-  const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) throw new Error('ANTHROPIC_API_KEY is not configured')
-  return new Anthropic({ apiKey })
+// Initialize AI client (OpenAI preferred, falls back to Anthropic)
+function getAIClient(): { type: 'openai' | 'anthropic'; client: any } {
+  const openaiKey = process.env.OPENAI_API_KEY
+  const anthropicKey = process.env.ANTHROPIC_API_KEY
+  
+  if (openaiKey) {
+    return { type: 'openai', client: new OpenAI({ apiKey: openaiKey }) }
+  } else if (anthropicKey) {
+    return { type: 'anthropic', client: new Anthropic({ apiKey: anthropicKey }) }
+  } else {
+    throw new Error('Neither OPENAI_API_KEY nor ANTHROPIC_API_KEY is configured')
+  }
 }
 
 // Generate AI-powered content using Claude following the Danish news interpretation prompt
@@ -209,22 +217,37 @@ INTERNE LINKS - EKSEMPLER:
 Skriv nu en ${minWords}+ ord artikel der fortolker nyheden for danske elforbrugere.`
 
   try {
-    const anthropic = getAnthropicClient()
-    const message = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 4096,
-      temperature: 0.7,
-      system: systemPrompt,
-      messages: [
-        {
-          role: 'user',
-          content: userPrompt,
-        },
-      ],
-    })
+    const { type, client } = getAIClient()
+    let responseText = ''
 
-    // Extract JSON from Claude's response
-    const responseText = message.content[0].type === 'text' ? message.content[0].text : ''
+    if (type === 'openai') {
+      // Use OpenAI GPT-4o (faster and cheaper than Claude)
+      const completion = await client.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        temperature: 0.7,
+        max_tokens: 4096,
+      })
+      responseText = completion.choices[0]?.message?.content || ''
+    } else {
+      // Use Anthropic Claude (fallback)
+      const message = await client.messages.create({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 4096,
+        temperature: 0.7,
+        system: systemPrompt,
+        messages: [
+          {
+            role: 'user',
+            content: userPrompt,
+          },
+        ],
+      })
+      responseText = message.content[0].type === 'text' ? message.content[0].text : ''
+    }
 
     // Try to extract JSON from code blocks or raw text
     let jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/) || responseText.match(/```\s*([\s\S]*?)\s*```/)

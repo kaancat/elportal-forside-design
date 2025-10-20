@@ -323,7 +323,7 @@ export default function BlogHeroSearch({ allBlogPosts, blogSettings }: BlogHeroS
                                     <div className="flex items-center justify-between pt-3 border-t border-neutral-100 gap-3">
                                         <p className="text-xs text-neutral-400 transition-opacity duration-200">{currentPost.date}</p>
                                         <Button asChild size="sm" className="bg-brand-green-dark text-white hover:bg-brand-green shadow-sm flex-shrink-0 transition-all duration-200">
-                                            <Link href={`/blogs/${currentPost.slug}`} className="inline-flex items-center gap-1.5 text-sm font-semibold whitespace-nowrap">
+                                            <Link href={`/nyheder/${currentPost.slug}`} className="inline-flex items-center gap-1.5 text-sm font-semibold whitespace-nowrap">
                                                 Læs mere
                                                 <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
                                             </Link>

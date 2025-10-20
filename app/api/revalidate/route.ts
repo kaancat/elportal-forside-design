@@ -36,7 +36,7 @@ const SANITY_WEBHOOK_SECRET = process.env.SANITY_WEBHOOK_SECRET;
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
-  
+
   // 1. Security: Check if webhook secret is configured
   if (!SANITY_WEBHOOK_SECRET) {
     const error: RevalidationError = {
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     // 2. Security-first approach: Get signature and body as raw text (Codex-recommended)
     const signature = request.headers.get(SIGNATURE_HEADER_NAME);
     const body = await request.text();
-    
+
     if (!signature) {
       const error: RevalidationError = {
         code: 'MISSING_SIGNATURE',
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
     // 6. Production-grade revalidation with granular cache control
     const revalidatedTags: string[] = [];
     const revalidatedPaths: string[] = [];
-    
+
     try {
       // Enhanced revalidation logic with comprehensive coverage (Codex-optimized)
       switch (payload._type) {
@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
           revalidatedPaths.push('/');
           console.log('[Revalidation] Homepage cache invalidated');
           break;
-          
+
         case 'page':
           // Page changes: invalidate specific page + general page lists
           if (payload.slug?.current) {
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
             // Specific page path
             revalidatePath(`/${payload.slug.current}`);
             revalidatedPaths.push(`/${payload.slug.current}`);
-            
+
             // Check if this is a homepage being edited
             if (payload.isHomepage) {
               revalidateTag('homepage');
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
           revalidatedTags.push('page');
           console.log(`[Revalidation] Page cache invalidated: ${payload.slug?.current || payload._id}`);
           break;
-          
+
         case 'provider':
           // Provider changes affect multiple pages with provider data
           revalidateTag('providers');
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
           }
           console.log('[Revalidation] Provider cache invalidated');
           break;
-          
+
         case 'siteSettings':
           // Site settings affect entire site (navigation, footer, global settings)
           revalidateTag('siteSettings');
@@ -166,25 +166,25 @@ export async function POST(request: NextRequest) {
           }
           console.log('[Revalidation] Site settings cache invalidated');
           break;
-          
+
         case 'blogPost':
           // Blog post changes: invalidate specific post + blog archive
           if (payload.slug?.current) {
             // Specific blog post cache
             revalidateTag(`blogPost:${payload.slug.current}`);
             revalidatedTags.push(`blogPost:${payload.slug.current}`);
-            // Specific blog post path (Blogs)
-            revalidatePath(`/blogs/${payload.slug.current}`);
-            revalidatedPaths.push(`/blogs/${payload.slug.current}`);
+            // Specific blog post path (Nyheder)
+            revalidatePath(`/nyheder/${payload.slug.current}`);
+            revalidatedPaths.push(`/nyheder/${payload.slug.current}`);
           }
           // Blog archive page (shows all posts)
           revalidateTag('blogPosts');
           revalidatedTags.push('blogPosts');
-          revalidatePath('/blogs');
-          revalidatedPaths.push('/blogs');
+          revalidatePath('/nyheder');
+          revalidatedPaths.push('/nyheder');
           console.log(`[Revalidation] Blog post cache invalidated: ${payload.slug?.current || payload._id}`);
           break;
-          
+
         case 'blogPageSettings':
           // Blog page settings affect blog landing page
           revalidateTag('blogPageSettings');
@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
           revalidatedPaths.push('/blogs');
           console.log('[Revalidation] Blog page settings cache invalidated');
           break;
-          
+
         default:
           // Enhanced fallback with logging for debugging new content types
           console.warn(`[Revalidation] Unhandled document type: ${payload._type}`);
@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
           revalidatedPaths.push('/');
           console.log('[Revalidation] Fallback cache invalidation applied');
       }
-      
+
       // 7. Enhanced performance tracking and success logging
       const processingTime = Date.now() - startTime;
       console.log('[Revalidation] Cache invalidation completed:', {
@@ -216,7 +216,7 @@ export async function POST(request: NextRequest) {
         processingTime: `${processingTime}ms`,
         timestamp: new Date().toISOString()
       });
-      
+
     } catch (revalidateError) {
       // Enhanced error handling with structured error response (Codex pattern)
       const error: RevalidationError = {
@@ -227,11 +227,11 @@ export async function POST(request: NextRequest) {
         timestamp: new Date().toISOString()
       };
       console.error('[Revalidation] Cache revalidation error:', error, revalidateError);
-      
+
       // Signal to Sanity that webhook failed and should be retried (Codex resilience pattern)
       return NextResponse.json(error, { status: 500 });
     }
-    
+
     // 8. Production-grade success response with comprehensive metadata
     const processingTime = Date.now() - startTime;
     return NextResponse.json({
@@ -266,7 +266,7 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString()
     };
     console.error('[Revalidation] Critical webhook processing error:', revalidationError, error);
-    
+
     // Return 500 to signal Sanity to retry the webhook
     return NextResponse.json(revalidationError, { status: 500 });
   }
@@ -275,7 +275,7 @@ export async function POST(request: NextRequest) {
 // Enhanced GET method for webhook health checking and diagnostics
 export async function GET(request: NextRequest) {
   const timestamp = new Date().toISOString();
-  
+
   // Health check endpoint for webhook monitoring
   return NextResponse.json({
     service: 'Sanity Webhook Revalidation',

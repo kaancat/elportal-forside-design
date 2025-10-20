@@ -126,36 +126,37 @@ function getTopicSpecificAdvice(topic: string, seed: number): string | null {
 }
 
 function createConsumerTitle(sourceTitle: string, topic: string | null): string | null {
+  // SEO-optimized titles following the Danish news interpretation prompt
   const titleTemplates: { [key: string]: string[] } = {
     'Elpriser': [
-      `Hvordan påvirker ${sourceTitle.toLowerCase()} din elregning?`,
-      `Din elregning og ${sourceTitle.toLowerCase()}: Hvad betyder det for dig?`,
-      `${sourceTitle} - Sådan påvirker det din elregning`
+      `Regeringen ændrer støtteordning – hvad betyder det for din elregning?`,
+      `Nye elprisregler: Sådan påvirker det din elregning`,
+      `Elprisændringer: Hvad betyder det for dig som forbruger?`
     ],
     'Vind': [
-      `Vindkraft og din elregning: Hvad betyder ${sourceTitle.toLowerCase()}?`,
-      `${sourceTitle} - Sådan påvirker vindkraft din elregning`,
-      `Billigere strøm fra vindkraft: Hvad betyder ${sourceTitle.toLowerCase()}?`
+      `Vindkraftudvikling: Sådan påvirker det din elregning`,
+      `Nye vindkraftprojekter – hvad betyder det for din elregning?`,
+      `Vindkraft og elpriser: Hvad betyder det for dig?`
     ],
     'Solceller': [
-      `Solceller og din elregning: Hvad betyder ${sourceTitle.toLowerCase()}?`,
-      `${sourceTitle} - Sådan kan solceller påvirke din elregning`,
-      `Spar penge med solceller: Hvad betyder ${sourceTitle.toLowerCase()}?`
+      `Solcelleudvikling: Sådan påvirker det din elregning`,
+      `Nye solcelleprojekter – hvad betyder det for din elregning?`,
+      `Solceller og elpriser: Hvad betyder det for dig?`
     ],
     'Elbiler': [
-      `Elbiler og din elregning: Hvad betyder ${sourceTitle.toLowerCase()}?`,
-      `${sourceTitle} - Sådan påvirker det dit elforbrug`,
-      `Elbiler og billigere strøm: Hvad betyder ${sourceTitle.toLowerCase()}?`
+      `Elbiludvikling: Sådan påvirker det din elregning`,
+      `Nye elbilregler – hvad betyder det for din elregning?`,
+      `Elbiler og elpriser: Hvad betyder det for dig?`
     ],
     'Varmepumper': [
-      `Varmepumper og din elregning: Hvad betyder ${sourceTitle.toLowerCase()}?`,
-      `${sourceTitle} - Sådan påvirker det dine opvarmningsomkostninger`,
-      `Billigere opvarmning: Hvad betyder ${sourceTitle.toLowerCase()}?`
+      `Varmepumpeudvikling: Sådan påvirker det din elregning`,
+      `Nye varmepumpeprojekter – hvad betyder det for din elregning?`,
+      `Varmepumper og elpriser: Hvad betyder det for dig?`
     ],
     'CO2': [
-      `Grøn strøm og din elregning: Hvad betyder ${sourceTitle.toLowerCase()}?`,
-      `${sourceTitle} - Sådan påvirker det din elregning`,
-      `Miljøvenlig strøm: Hvad betyder ${sourceTitle.toLowerCase()}?`
+      `CO2-udvikling: Sådan påvirker det din elregning`,
+      `Nye CO2-regler – hvad betyder det for din elregning?`,
+      `CO2 og elpriser: Hvad betyder det for dig?`
     ]
   }
 
@@ -190,25 +191,25 @@ function buildOriginalDraft(opts: {
     : Math.round(650 + rand01 * 450)               // 650–1100 if no text extracted
   const targetWords = Math.max(350, Math.min(1300, baseTarget))
 
-  // Consumer-focused content templates (natural, conversational tone)
+  // Content generation using the new Danish news interpretation prompt
   const contentTemplates = {
-    // Opening hooks based on news type
+    // Opening hooks - consumer-focused news interpretation
     openings: [
-      `Hvad betyder det egentlig for din elregning, når ${sourceTitle.toLowerCase()}?`,
-      `Du har sikkert hørt om ${sourceTitle.toLowerCase()}, men hvad påvirker det din hverdag?`,
-      `Nyheden om ${sourceTitle.toLowerCase()} kan faktisk påvirke din elregning mere end du tror.`,
-      `Som dansk elforbruger er det vigtigt at forstå, hvordan ${sourceTitle.toLowerCase()} påvirker dig.`
+      `Som dansk elforbruger er det vigtigt at forstå, hvordan ${sourceTitle.toLowerCase()} påvirker dig og din elregning.`,
+      `For alle danske husholdninger er det relevant at vide, hvad ${sourceTitle.toLowerCase()} betyder for elpriserne og dit forbrug.`,
+      `Hvis du betaler for strøm i Danmark, påvirker ${sourceTitle.toLowerCase()} dig direkte - her er hvad du skal vide.`,
+      `Som dansk elforbruger er det vigtigt at forstå, hvordan ${sourceTitle.toLowerCase()} påvirker dig og dine muligheder.`
     ],
 
-    // Consumer impact explanations
+    // Consumer impact explanations - what it means for consumers
     impacts: [
-      `For en typisk dansk familie betyder det, at din elregning kan ændre sig.`,
-      `Det kan direkte påvirke, hvor meget du betaler for strøm hver måned.`,
-      `Som forbruger betyder det, at du kan spare penge på din elregning.`,
-      `Det kan give dig mulighed for at optimere dit elforbrug og spare penge.`
+      `For en typisk dansk familie betyder det, at din elregning kan ændre sig, og du skal muligvis justere dit forbrug.`,
+      `Det kan direkte påvirke, hvor meget du betaler for strøm hver måned, og hvilke muligheder du har som forbruger.`,
+      `Som forbruger betyder det, at du kan spare penge på din elregning ved at forstå de nye forhold.`,
+      `Det kan give dig mulighed for at optimere dit elforbrug og spare penge, hvis du handler klogt.`
     ],
 
-    // Practical savings advice
+    // Practical savings advice - actionable consumer tips
     savings: [
       `Du kan spare penge ved at følge timepriserne og flytte dit forbrug til billigere timer.`,
       `Med smarte vaner kan du reducere din elregning med flere hundrede kroner om året.`,
@@ -216,20 +217,30 @@ function buildOriginalDraft(opts: {
       `Små ændringer i dine vaner kan betyde store besparelser på din elregning.`
     ],
 
-    // Practical tips
+    // Practical tips - what consumers can do
     tips: [
       `Tjek timepriserne dagligt og planlæg energitunge aktiviteter til billige timer.`,
       `Brug timer-funktioner på dine hvidevarer til at optimere dit forbrug.`,
       `Oplad din elbil i off-peak timer for at spare penge.`,
-      `Sluk standby-forbrug og spar op til 500 kr. årligt.`
+      `Sluk standby-forbrug og spar op til 500 kr. årligt.`,
+      `Sammenlign eludbydere regelmæssigt for at sikre dig den bedste pris.`,
+      `Overvej at skifte til en eludbyder, der matcher dine forbrugsvaner.`
     ],
 
-    // Future outlook
+    // Future outlook - what to expect
     outlooks: [
       `Fremadrettet kan det betyde mere stabile elpriser for danske forbrugere.`,
       `Det kan give dig bedre muligheder for at spare på din elregning.`,
       `Som forbruger kan du forvente mere forudsigelige elpriser.`,
       `Det kan åbne nye muligheder for at optimere dit elforbrug.`
+    ],
+
+    // Call-to-action templates for internal linking
+    ctas: [
+      `Vil du se, hvordan ændringen påvirker priserne? Se vores opdaterede sammenligning af eludbydere her.`,
+      `Få overblik over de bedste eludbydere og find den aftale, der passer til dit forbrug.`,
+      `Sammenlign eludbydere og find den mest fordelagtige aftale til dit hjem.`,
+      `Tjek vores opdaterede oversigt over eludbydere og find den bedste pris til dig.`
     ]
   }
 
@@ -245,26 +256,31 @@ function buildOriginalDraft(opts: {
     }
   }
 
-  // Build natural, consumer-focused content
+  // Build content following the new Danish news interpretation prompt structure
   const paragraphs: string[] = []
   let approx = 0
 
-  // Start with engaging hook
-  const opening = contentTemplates.openings[seed % contentTemplates.openings.length]
-  paragraphs.push(opening)
-  approx += opening.split(/\s+/).length
+  // Section 1: Intro (2-3 lines) - Quick summary and relevance
+  const intro = contentTemplates.openings[seed % contentTemplates.openings.length]
+  paragraphs.push(intro)
+  approx += intro.split(/\s+/).length
 
-  // Add impact explanation
-  const impact = contentTemplates.impacts[seed % contentTemplates.impacts.length]
-  paragraphs.push(impact)
-  approx += impact.split(/\s+/).length
+  // Section 2: Short summary with source reference
+  const summary = `Ifølge ${sourceName} ${sourceTitle.toLowerCase()}. ${contentTemplates.impacts[seed % contentTemplates.impacts.length]}`
+  paragraphs.push(summary)
+  approx += summary.split(/\s+/).length
+
+  // Section 3: What it means for consumers and the market
+  const consumerImpact = contentTemplates.impacts[(seed + 1) % contentTemplates.impacts.length]
+  paragraphs.push(consumerImpact)
+  approx += consumerImpact.split(/\s+/).length
 
   // Add practical savings advice
   const savings = contentTemplates.savings[seed % contentTemplates.savings.length]
   paragraphs.push(savings)
   approx += savings.split(/\s+/).length
 
-  // Add specific tips (2-3 tips)
+  // Section 4: What consumers can do (2-3 actionable tips)
   const numTips = 2 + (seed % 2) // 2-3 tips
   for (let i = 0; i < numTips && approx < targetWords * 0.8; i++) {
     const tip = contentTemplates.tips[(seed + i) % contentTemplates.tips.length]
@@ -277,6 +293,11 @@ function buildOriginalDraft(opts: {
   paragraphs.push(outlook)
   approx += outlook.split(/\s+/).length
 
+  // Add call-to-action with internal linking
+  const cta = contentTemplates.ctas[seed % contentTemplates.ctas.length]
+  paragraphs.push(cta)
+  approx += cta.split(/\s+/).length
+
   // Add specific consumer advice based on topic
   const topic = classifyTopic(`${sourceTitle} ${extractedText}`)
   if (topic) {
@@ -287,17 +308,17 @@ function buildOriginalDraft(opts: {
     }
   }
 
-  // Attribution and optional quote at the end
+  // Section 5: Source and attribution with proper linking
   if (quote) paragraphs.splice(Math.min(2, paragraphs.length), 0, quote)
   paragraphs.push(
-    `Kilde og attribution: Baseret på “${sourceTitle}” (${sourceName}). Læs originalen: ${sourceUrl}. ` +
+    `Kilde: ${sourceName}, [${sourceUrl}](${sourceUrl}). ` +
     `Artiklen gengiver ikke kildens tekst, men er DinElPortals selvstændige analyse og formidling.`
   )
 
   // Create consumer-friendly title
   const consumerTitle = createConsumerTitle(sourceTitle, topic)
   const title = consumerTitle || sourceTitle.replace(/^(Pressemeddelelse:|Press release:)/i, '').trim() || 'Nyhed om el og energi'
-  const description = 'Praktisk guide til, hvordan nyheden påvirker din elregning og muligheder for at spare penge.'
+  const description = `Praktisk guide til, hvordan ${sourceTitle.toLowerCase()} påvirker din elregning og muligheder for at spare penge. Læs vores analyse og få råd til at optimere dit elforbrug.`
 
   const blocks = [
     {
@@ -308,8 +329,8 @@ function buildOriginalDraft(opts: {
         const h = (text: string) => ({ _type: 'block', style: 'h2', _key: Math.random().toString(36).slice(2), children: [{ _type: 'span', text, _key: Math.random().toString(36).slice(2) }] })
         const pBlock = (text: string) => ({ _type: 'block', _key: Math.random().toString(36).slice(2), children: [{ _type: 'span', text, _key: Math.random().toString(36).slice(2) }] })
         const content: any[] = []
-        // Insert headings at natural breakpoints
-        const headings = ['Overblik', 'Resumé og baggrund', 'Analyse', 'Praktiske råd', 'Marked og klima', 'Konklusion']
+        // Insert headings following the Danish news interpretation prompt structure
+        const headings = ['Overblik', 'Nyhedsresumé', 'Hvad betyder det for dig?', 'Praktiske råd', 'Fremtidsudsigter', 'Kilder']
         let section = 0
         content.push(h(headings[section++] || 'Overblik'))
         paragraphs.forEach((para, idx) => {

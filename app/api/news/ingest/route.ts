@@ -311,7 +311,7 @@ Hvis IKKE alle 4 er JA, tilføj links NU!`
     // Log the parsed structure for debugging
     console.log('[AI] Parsed sections count:', parsed.sections?.length || 0)
     console.log('[AI] First section:', JSON.stringify(parsed.sections?.[0]).slice(0, 200))
-    
+
     // Count total words in all sections
     let totalWords = 0
     for (const section of parsed.sections || []) {
@@ -320,8 +320,96 @@ Hvis IKKE alle 4 er JA, tilføj links NU!`
       }
     }
     console.log(`[AI] Total word count in generated content: ${totalWords} words`)
-    if (totalWords < minWords) {
-      console.log(`[AI] WARNING: Generated only ${totalWords} words, required ${minWords}!`)
+
+    // Count links in the content
+    let linkCount = 0
+    let hasElpriserLink = false
+    let hasElUdbydereLink = false
+    let hasSourceLink = false
+    for (const section of parsed.sections || []) {
+      for (const para of section.paragraphs || []) {
+        const links = para.match(/\[([^\]]+)\]\(([^)]+)\)/g) || []
+        linkCount += links.length
+        if (para.includes('](/elpriser)')) hasElpriserLink = true
+        if (para.includes('](/el-udbydere)')) hasElUdbydereLink = true
+        if (para.includes(`](${sourceUrl})`)) hasSourceLink = true
+      }
+    }
+    console.log(`[AI] Link count: ${linkCount} (elpriser: ${hasElpriserLink}, el-udbydere: ${hasElUdbydereLink}, source: ${hasSourceLink})`)
+
+    const needsRetry = totalWords < minWords || linkCount < 3 || !hasElpriserLink || !hasElUdbydereLink || !hasSourceLink
+
+    if (needsRetry) {
+      const reasons = []
+      if (totalWords < minWords) reasons.push(`only ${totalWords} words (need ${minWords})`)
+      if (linkCount < 3) reasons.push(`only ${linkCount} links (need 3+)`)
+      if (!hasElpriserLink) reasons.push('missing /elpriser link')
+      if (!hasElUdbydereLink) reasons.push('missing /el-udbydere link')
+      if (!hasSourceLink) reasons.push('missing source link')
+
+      console.log(`[AI] ❌ QUALITY CHECK FAILED: ${reasons.join(', ')}. RETRYING...`)
+
+      // Retry with even MORE aggressive prompt
+      const retryPrompt = `🚨 DIT SVAR BLEV AFVIST! 🚨
+
+PROBLEMER med dit svar:
+${reasons.map(r => `❌ ${r}`).join('\n')}
+
+CRITICAL REQUIREMENTS DU SKAL FØLGE:
+
+1. WORD COUNT: Minimum ${minWords} ord total
+   - Hver paragraph: 80-120 ord
+   - Tilføj flere detaljer, eksempler, konkrete tal
+
+2. LINKS ER OBLIGATORISKE (du glemte dem!):
+   ${!hasSourceLink ? `❌ DU SKAL INKLUDERE: "Ifølge [beslutningen](${sourceUrl}) vil..."` : ''}
+   ${!hasElpriserLink ? `❌ DU SKAL INKLUDERE: "Tjek [aktuelle elpriser](/elpriser) for at..."` : ''}
+   ${!hasElpriserLink ? `❌ DU SKAL INKLUDERE: "Se [dagens priser](/elpriser) her"` : ''}
+   ${!hasElUdbydereLink ? `❌ DU SKAL INKLUDERE: "Sammenlign [danske eludbydere](/el-udbydere) og..."` : ''}
+   - ALLE links skal være i [tekst](url) format
+   - Minimum 5 links i alt
+
+PRØV IGEN NU - og GLEM IKKE LINKS!
+
+${userPrompt}`
+
+      const retryCompletion = await client.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: retryPrompt },
+        ],
+        temperature: 0.8, // Slightly higher for more variation
+        max_tokens: 8192,
+      })
+
+      const retryResponse = retryCompletion.choices[0]?.message?.content || ''
+      console.log('[AI] RETRY - Response length:', retryResponse.length, 'chars')
+
+      // Parse retry response
+      const retryJsonMatch = retryResponse.match(/```json\s*([\s\S]*?)\s*```/) || retryResponse.match(/```\s*([\s\S]*?)\s*```/)
+      const retryJsonText = retryJsonMatch ? retryJsonMatch[1] : retryResponse
+      const retryParsed = JSON.parse(retryJsonText.trim())
+
+      // Count retry words
+      let retryTotalWords = 0
+      for (const section of retryParsed.sections || []) {
+        for (const para of section.paragraphs || []) {
+          retryTotalWords += para.split(/\s+/).length
+        }
+      }
+      console.log(`[AI] RETRY - Total word count: ${retryTotalWords} words`)
+
+      if (retryTotalWords >= minWords) {
+        console.log('[AI] ✓ RETRY SUCCESS - Using retry content')
+        // Use retry content
+        responseText = retryResponse
+        parsed = retryParsed
+        totalWords = retryTotalWords
+      } else {
+        console.log(`[AI] ✗ RETRY FAILED - Still only ${retryTotalWords} words, using original`)
+        // Keep original even if short
+      }
     }
 
     // Convert Claude's structured output to Sanity Portable Text blocks

@@ -1,5 +1,24 @@
 # Dev Log
 
+## 2025-10-20 – Session Start
+Goal: Implement Danish news interpretation prompt for RSS ingestion; fix dev runtime error.
+
+- Updated `app/api/news/ingest/route.ts` to generate consumer-focused Danish articles:
+  - New openings, impacts, tips, outlooks, and CTA templates reflecting the prompt.
+  - Structured content builder aligning with sections: Overblik, Nyhedsresumé, Hvad betyder det for dig?, Praktiske råd, Fremtidsudsigter, Kilder.
+  - SEO: improved `createConsumerTitle` options and richer meta description.
+- Fixed dev runtime error "Cannot find module './vendor-chunks/lucide-react.js'":
+  - Removed `lucide-react` from `optimizePackageImports` in `next.config.mjs` to avoid broken vendor chunk generation in dev/SSR.
+- Verified local server on port 3001; `/api/health` OK; `/nyheder/[slug]` loads.
+
+Decisions made:
+- Keep `lucide-react` as a normal import path to ensure reliability in dev; optimization via experimental vendor-chunking is not critical.
+- Deduplication on ingestion remains; existing articles will be skipped.
+
+TODO: Validate rendered article sections visually and refine CTA/link placement. Confirm production env vars for Sanity are set.
+
+---
+
 ## [2025-10-15] – Performance Optimization Round 3: Skeleton Placeholders for CLS
 Goal: Eliminate forced reflows and CLS from lazy-loaded components
 

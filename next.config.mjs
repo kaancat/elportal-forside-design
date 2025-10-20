@@ -119,7 +119,6 @@ const nextConfig = {
       '@radix-ui/react-tabs',
       '@radix-ui/react-toast',
       '@radix-ui/react-tooltip',
-      'lucide-react',
       'recharts',
       '@sanity/client',
       '@portabletext/react',

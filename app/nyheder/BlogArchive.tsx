@@ -28,7 +28,7 @@ const BlogCard = memo(({ post, priority = false }: { post: SimplePost; priority?
     })()
 
     return (
-        <Link href={`/blogs/${post.slug}`} className="group block h-full">
+        <Link href={`/nyheder/${post.slug}`} className="group block h-full">
             <article className="flex flex-col overflow-hidden rounded-xl md:rounded-2xl border border-neutral-200/50 bg-white shadow-sm transition hover:shadow-md h-full cursor-pointer">
                 <div className="relative h-40 sm:h-44 md:h-48 w-full flex-shrink-0">
                     <Image

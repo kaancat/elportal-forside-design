@@ -14,6 +14,7 @@ interface HouseholdTypeSelectorProps {
   selectedType: string | null;
   onTypeSelect: (type: HouseholdType | null) => void;
   currentConsumption: number;
+  variant?: 'default' | 'compact';
 }
 
 const householdTypes: HouseholdType[] = [
@@ -64,7 +65,8 @@ const householdTypes: HouseholdType[] = [
 const HouseholdTypeSelector: React.FC<HouseholdTypeSelectorProps> = ({
   selectedType,
   onTypeSelect,
-  currentConsumption
+  currentConsumption,
+  variant = 'default'
 }) => {
   const handleTypeClick = (type: HouseholdType) => {
     if (type.id === 'custom') {
@@ -91,11 +93,13 @@ const HouseholdTypeSelector: React.FC<HouseholdTypeSelectorProps> = ({
 
   return (
     <div className="mb-6">
-      <h3 className="text-sm font-medium text-brand-dark mb-4 text-center">
+      <h3 className={`${variant === 'compact' ? 'text-xs mb-3' : 'text-sm mb-4'} font-medium text-brand-dark text-center`}>
         Vælg din boligtype for at få et hurtigt estimat:
       </h3>
       
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className={variant === 'compact'
+        ? 'flex gap-2 overflow-x-auto pb-1 -mx-1 px-1'
+        : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3'}>
         {householdTypes.map((type) => {
           const isActive = activeType === type.id;
           
@@ -106,7 +110,7 @@ const HouseholdTypeSelector: React.FC<HouseholdTypeSelectorProps> = ({
               aria-label={`Vælg ${type.label}${type.id !== 'custom' ? ` - ${type.kWh} kWh` : ''}`}
               aria-pressed={isActive}
               className={`
-                flex flex-col items-center p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md
+                flex flex-col items-center ${variant === 'compact' ? 'p-3 min-w-[110px]' : 'p-4'} rounded-lg border-2 transition-all duration-200 hover:shadow-md
                 ${isActive 
                   ? 'border-brand-green bg-brand-green/5 shadow-sm' 
                   : 'border-gray-200 bg-white hover:border-gray-300'
@@ -122,17 +126,17 @@ const HouseholdTypeSelector: React.FC<HouseholdTypeSelectorProps> = ({
               
               <div className="text-center">
                 <div className={`
-                  text-xs font-medium transition-colors duration-200
+                  ${variant === 'compact' ? 'text-[11px]' : 'text-xs'} font-medium transition-colors duration-200
                   ${isActive ? 'text-brand-green' : 'text-brand-dark'}
                 `}>
                   {type.label}
                 </div>
-                <div className="text-xs text-gray-500 mt-1">
+                <div className={`${variant === 'compact' ? 'text-[11px]' : 'text-xs'} text-gray-500 mt-1`}>
                   {type.description}
                 </div>
                 {type.id !== 'custom' && (
                   <div className={`
-                    text-xs font-semibold mt-1 transition-colors duration-200
+                    ${variant === 'compact' ? 'text-[11px]' : 'text-xs'} font-semibold mt-1 transition-colors duration-200
                     ${isActive ? 'text-brand-green' : 'text-gray-600'}
                   `}>
                     {type.kWh.toLocaleString('da-DK')} kWh

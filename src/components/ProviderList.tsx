@@ -390,6 +390,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block, variant = '
             selectedType={selectedHouseholdType}
             onTypeSelect={handleHouseholdTypeSelect}
             currentConsumption={annualConsumption[0]}
+            variant={isSidebar ? 'compact' : 'default'}
           />
         </div>
 

@@ -347,8 +347,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                             {/* Sticky sidebar with providers (desktop only) */}
                             <aside className="hidden lg:block lg:col-span-4 xl:col-span-4">
                                 <div className="sticky top-24">
-                                    {/* Render the standard ProviderList component unchanged, but visually scaled to fit sidebar */}
-                                    <ProviderListClientWrapper block={providerListBlock} variant="sidebar" />
+                                    <div className="max-h-[calc(100vh-5rem)] rounded-2xl border border-gray-100 bg-white shadow-lg">
+                                        <div className="max-h-[calc(100vh-5rem)] overflow-y-auto pr-2">
+                                            <ProviderListClientWrapper block={providerListBlock} variant="sidebar" className="px-4 pt-4" />
+                                        </div>
+                                    </div>
                                 </div>
                             </aside>
                         </div>

@@ -779,19 +779,22 @@ async function createDraftFromFeedItem(item: any, opts?: { force?: boolean; minW
     extracted = { contentText: '' }
   }
 
-  // Generate AI-powered content using Claude (700+ words), Danish, with attribution
-  const draft = await generateClaudeContent({
-    sourceTitle: item.title || 'Nyhed',
+  // Generate article using shared pipeline (non‑templated, guideline‑driven)
+  const pipelineOut = await runSourcePipeline({
+    title: item.title || 'Nyhed',
     sourceUrl: item.link,
-    sourceName: 'Ritzau',
-    publishedAt: item.isoDate,
     extractedText: extracted?.contentText || '',
     minWords: opts?.minWords || 700,
+    prefer: 'openai'
   })
 
-  // Compute consistent read time (both archive and article will use this)
-  const wordCount = countWordsFromBlocks(draft.blocks)
-  const readTime = Math.max(1, Math.ceil((wordCount || 750) / 200))
+  const draft = {
+    title: pipelineOut.draft.title || (item.title || 'Nyhed'),
+    description: pipelineOut.draft.description || `Guide til ${(item.title || 'nyhed')}`,
+    blocks: pipelineOut.contentBlocks,
+  }
+
+  const readTime = pipelineOut.readTime
 
   const canonical = normalizeUrl((item.link as string) || (item.guid as string)) || (item.isoDate as string) || (item.title as string) || 'nyhed'
   const stable = simpleHash(canonical).toString(36)

@@ -20,9 +20,10 @@ import { FloatingConsumptionHelper } from './FloatingConsumptionHelper';
 
 interface ProviderListProps {
   block: ProviderListBlock;
+  variant?: 'default' | 'sidebar';
 }
 
-const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
+const ProviderListComponent: React.FC<ProviderListProps> = ({ block, variant = 'default' }) => {
 
   // --- SAFETY CHECK ---
   if (!block) {
@@ -348,22 +349,24 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
     return () => window.removeEventListener('elportal:calculatorSubmit', handler as EventListener);
   }, []);
 
+  const isSidebar = variant === 'sidebar'
+
   return (
-    <section id="provider-list" tabIndex={-1} className="py-16 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <div className="mb-12">
-          <h2 className={`text-4xl font-display font-bold ${headerAlignmentClass} mb-4 text-brand-dark`}>
+    <section id="provider-list" tabIndex={-1} className={`${isSidebar ? 'py-6' : 'py-16'} bg-gray-50`}>
+      <div className={`container mx-auto ${isSidebar ? 'px-0' : 'px-4'}`}>
+        <div className={isSidebar ? 'mb-6' : 'mb-12'}>
+          <h2 className={`${isSidebar ? 'text-2xl' : 'text-4xl'} font-display font-bold ${headerAlignmentClass} mb-4 text-brand-dark`}>
             {block.title || 'Sammenlign eludbydere'}
           </h2>
           {block.subtitle && (
-            <p className={`${headerAlignmentClass} text-gray-600 text-lg mb-8`}>
+            <p className={`${headerAlignmentClass} text-gray-600 ${isSidebar ? 'text-sm mb-4' : 'text-lg mb-8'}`}>
               {block.subtitle}
             </p>
           )}
         </div>
 
         {/* Location Selector - NEW */}
-        <div className="mb-8">
+        <div className={isSidebar ? 'mb-4' : 'mb-8'}>
           <LocationSelector
             onLocationChange={handleLocationChange}
             className=""
@@ -371,7 +374,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
         </div>
 
         {/* Region Toggle - NEW */}
-        <div className="mb-8">
+        <div className={isSidebar ? 'mb-4' : 'mb-8'}>
           <RegionToggle
             selectedRegion={selectedRegion}
             onRegionChange={handleRegionChange}
@@ -382,7 +385,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
         </div>
 
         {/* Household Type Selector */}
-        <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+        <div className={`${isSidebar ? 'mb-4 p-4' : 'mb-8 p-8'} bg-white rounded-xl shadow-sm border border-gray-100`}>
           <HouseholdTypeSelector
             selectedType={selectedHouseholdType}
             onTypeSelect={handleHouseholdTypeSelect}
@@ -391,12 +394,12 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
         </div>
 
         {/* Consumption Slider (client-only to avoid SSR hydration diffs from Radix internals) */}
-        <div className="mb-12 bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+        <div className={`${isSidebar ? 'mb-6 p-4' : 'mb-12 p-8'} bg-white rounded-xl shadow-sm border border-gray-100`}>
           <div className="max-w-lg mx-auto">
-            <h2 className="text-lg font-display font-semibold text-brand-dark mb-6 text-center">
+            <h2 className={`${isSidebar ? 'text-base mb-4' : 'text-lg mb-6'} font-display font-semibold text-brand-dark text-center`}>
               Præcis årligt forbrug
             </h2>
-            <label className="block text-sm font-medium text-brand-dark mb-4 text-center">
+            <label className={`block ${isSidebar ? 'text-xs mb-3' : 'text-sm mb-4'} font-medium text-brand-dark text-center`}>
               Forventet årligt kWh-forbrug: <span className="font-bold text-brand-green relative inline-block">{annualConsumption[0].toLocaleString('da-DK')} kWh<FloatingConsumptionHelper variant="neon" /></span>
             </label>
             {isMounted ? (
@@ -407,15 +410,15 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
                   min={500}
                   max={10000}
                   step={100}
-                  className="w-full mb-4"
+                  className={`w-full ${isSidebar ? 'mb-2' : 'mb-4'}`}
                 />
-                <div className="flex justify-between text-xs text-gray-500">
+                <div className="flex justify-between text-[11px] text-gray-500">
                   <span>500 kWh</span>
                   <span>10.000 kWh</span>
                 </div>
               </>
             ) : (
-              <div className="w-full h-3 md:h-2 rounded-full bg-gray-100 animate-pulse" />
+              <div className="w-full h-2 md:h-2 rounded-full bg-gray-100 animate-pulse" />
             )}
           </div>
         </div>
@@ -428,7 +431,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
         >
-          <h2 className="text-2xl font-display font-bold text-center text-brand-dark mb-6">
+          <h2 className={`${isSidebar ? 'text-xl mb-4' : 'text-2xl mb-6'} font-display font-bold text-center text-brand-dark`}>
             Aktuelle tilbud
             {(priceLoading || locationLoading) && (
               <span className="text-sm text-gray-500 ml-2">(Henter priser...)</span>
@@ -436,7 +439,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
           </h2>
 
           {/* Location and Price Info */}
-          <div className="flex flex-col items-center justify-center gap-3 mb-8 px-4">
+          <div className={`flex flex-col items-center justify-center gap-3 ${isSidebar ? 'mb-4' : 'mb-8'} ${isSidebar ? 'px-0' : 'px-4'}`}>
             {(location && !isManualRegionOverride) ? (
               <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-sm text-gray-600 text-center sm:text-left">
                 <div className="flex items-center gap-2">
@@ -468,7 +471,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
                 <TooltipTrigger asChild>
                   <button
                     type="button"
-                    className="flex items-center gap-2 px-3 py-1.5 bg-brand-green/10 text-brand-dark border border-brand-green/20 rounded-full text-sm font-medium cursor-pointer hover:bg-brand-green/20 active:bg-brand-green/30 transition-colors"
+                    className={`flex items-center gap-2 px-3 ${isSidebar ? 'py-1 text-xs' : 'py-1.5 text-sm'} bg-brand-green/10 text-brand-dark border border-brand-green/20 rounded-full font-medium cursor-pointer hover:bg-brand-green/20 active:bg-brand-green/30 transition-colors`}
                   >
                     <Calculator className="h-4 w-4" />
                     <span>Sådan beregner vi priserne</span>
@@ -516,7 +519,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
               <p className="text-gray-500">Ingen leverandører tilgængelige</p>
             </div>
           ) : (
-            sortedProviders.map((provider, index) => {
+            (isSidebar ? sortedProviders.slice(0,3) : sortedProviders).map((provider, index) => {
               const product = convertToElectricityProduct(provider);
               // Simplified mode: derive region-adjusted markup and subscription
               let spotPriceMarkup = provider.spotPriceMarkup;
@@ -547,6 +550,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block }) => {
                     regionCode={selectedRegion}
                     providerMarkupKrOverride={markupKr}
                     monthlySubscriptionOverride={monthlySubscription || 0}
+                    density={isSidebar ? 'compact' : 'default'}
                     additionalFees={{
                       greenCertificates: provider.greenCertificateFee,
                       tradingCosts: provider.tradingCosts

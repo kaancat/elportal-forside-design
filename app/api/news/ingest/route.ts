@@ -891,11 +891,13 @@ async function ingestOnce(options?: { force?: boolean; titleContains?: string; s
 
 // Temporarily disabled to prevent unintended content creation
 export async function GET(req: NextRequest) {
-  // Safety guard: never ingest into production dataset unless explicitly allowed
-  // TEMPORARILY BYPASSED FOR LOCAL TESTING
+  // Safety guard: Production runs require either env override or admin secret header
   const allowLocalTest = process.env.NODE_ENV === 'development'
-  if (!allowLocalTest && (process.env.NEXT_PUBLIC_SANITY_DATASET || 'production') === 'production' && process.env.INGEST_ALLOW_PROD !== 'true') {
-    return NextResponse.json({ disabled: true, message: 'Ingestion blocked on production dataset. Set INGEST_ALLOW_PROD=true to override.' }, { status: 403 })
+  const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production'
+  const hasAdmin = req.headers.get('x-admin-secret') === (process.env.ADMIN_SECRET || '')
+  const allowProdEnv = process.env.INGEST_ALLOW_PROD === 'true'
+  if (!allowLocalTest && dataset === 'production' && !allowProdEnv && !hasAdmin) {
+    return NextResponse.json({ disabled: true, message: 'Ingestion blocked on production dataset. Provide x-admin-secret or set INGEST_ALLOW_PROD=true.' }, { status: 403 })
   }
   try {
     const force = req.nextUrl.searchParams.get('force') === '1' || req.nextUrl.searchParams.get('force') === 'true'

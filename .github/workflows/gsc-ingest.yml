@@ -1,35 +1,21 @@
-name: GSC Keyword Ingestion
+name: GSC Ingest (Daily)
 
 on:
   schedule:
-    # Run daily at 03:15 UTC
-    - cron: '15 3 * * *'
+    - cron: '5 5 * * *' # 06:05 CET/CEST approx
   workflow_dispatch:
 
 jobs:
-  ingest-gsc:
+  run:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger GSC Keyword Ingestion
+      - name: Trigger GSC ingest (limit=1)
+        env:
+          ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
+          BASE_URL: ${{ secrets.INGEST_BASE_URL || 'https://dinelportal.dk' }}
         run: |
-          # Requires secrets:
-          # - GSC_INGEST_URL (e.g., https://<your-domain>/api/news/gsc-ingest?limit=3&minWords=900)
-          # - ADMIN_SECRET (header used by the API route)
-          response=$(curl -s -w "\n%{http_code}" -X GET \
-            -H "x-admin-secret: ${{ secrets.ADMIN_SECRET }}" \
-            "${{ secrets.GSC_INGEST_URL }}")
-          http_code=$(echo "$response" | tail -n1)
-          body=$(echo "$response" | head -n-1)
-          echo "HTTP Status: $http_code"
-          echo "Response: $body"
-          if [ "$http_code" -ne 200 ]; then
-            echo "❌ GSC ingestion failed with status $http_code"
-            exit 1
-          fi
-          echo "✅ GSC ingestion completed successfully"
-
-      - name: Notify on Failure
-        if: failure()
-        run: |
-          echo "⚠️ GSC ingestion workflow failed. Check logs."
+          set -euo pipefail
+          URL="$BASE_URL/api/news/gsc-ingest?limit=1&minWords=1200&llm=openai"
+          echo "Calling: $URL"
+          curl -fsS -H "x-admin-secret: $ADMIN_SECRET" "$URL"
 

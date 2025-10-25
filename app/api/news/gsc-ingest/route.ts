@@ -6,6 +6,7 @@ import { getSearchConsoleAccessToken } from '@/server/google'
 import { env as appEnv } from '@/lib/env'
 import { getUnsplashImage, getHashedFallbackImage } from '@/server/unsplash'
 import { sectionsToPortableText, estimateReadTimeFromBlocks, computeStats } from '@/server/newsFormatter'
+import { buildGuidelinePrompt } from '@/server/newsGuidelines'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'

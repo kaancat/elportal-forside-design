@@ -431,8 +431,10 @@ export async function GET(req: NextRequest) {
         const existing = await sanity.fetch(`*[_type=="blogPost" && slug.current==$slug][0]{ _id, featuredImage, seoOpenGraphImage }`, { slug })
         if (existing?._id) {
           const patch: any = {}
-          if (!existing.featuredImage && uploadedImage) patch.featuredImage = { ...uploadedImage, alt: altText }
-          if (!existing.seoOpenGraphImage && uploadedImage) patch.seoOpenGraphImage = { ...uploadedImage, alt: altText }
+          const needsFI = !existing.featuredImage || !existing.featuredImage.asset || !existing.featuredImage.asset._ref
+          const needsOG = !existing.seoOpenGraphImage || !existing.seoOpenGraphImage.asset || !existing.seoOpenGraphImage.asset._ref
+          if (needsFI && uploadedImage) patch.featuredImage = { ...uploadedImage, alt: altText }
+          if (needsOG && uploadedImage) patch.seoOpenGraphImage = { ...uploadedImage, alt: altText }
           if (Object.keys(patch).length) {
             await sanity.patch(existing._id).set(patch).commit()
           }

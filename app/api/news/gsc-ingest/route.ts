@@ -197,19 +197,37 @@ Returner KUN JSON:
 }
 
 function safeParseJson(raw: string): any {
-  try {
-    return JSON.parse(String(raw).trim())
-  } catch {}
-  // Try extract first balanced JSON object
   const s = String(raw)
+  // First, direct parse
+  try { return JSON.parse(s.trim()) } catch {}
+  // Second, balanced object extraction
   const start = s.indexOf('{')
-  const end = s.lastIndexOf('}')
-  if (start >= 0 && end > start) {
-    const candidate = s.slice(start, end + 1)
-    try { return JSON.parse(candidate) } catch {}
+  if (start >= 0) {
+    let depth = 0
+    let inStr: string | null = null
+    let esc = false
+    for (let i = start; i < s.length; i++) {
+      const ch = s[i]
+      if (inStr) {
+        if (esc) { esc = false }
+        else if (ch === '\\') { esc = true }
+        else if (ch === inStr) { inStr = null }
+      } else {
+        if (ch === '"' || ch === '\'') inStr = ch
+        else if (ch === '{') depth++
+        else if (ch === '}') {
+          depth--
+          if (depth === 0) {
+            const candidate = s.slice(start, i + 1)
+            try { return JSON.parse(candidate) } catch {}
+            break
+          }
+        }
+      }
+    }
   }
-  // Try code block stripping artifacts
-  const cleaned = s.replace(/^```json/i, '').replace(/```$/i, '').trim()
+  // Third, strip code fences
+  const cleaned = s.replace(/^```json/i, '').replace(/^```/i, '').replace(/```$/i, '').trim()
   try { return JSON.parse(cleaned) } catch (e) {
     throw new Error((e as Error).message || 'Failed to parse JSON')
   }

@@ -137,8 +137,7 @@ KRAV:
     outlineText = r.content[0].type === 'text' ? r.content[0].text : ''
   }
 
-  const outlineJsonMatch = outlineText.match(/\{[\s\S]*\}$/)
-  const outline = outlineJsonMatch ? JSON.parse(outlineJsonMatch[0]) : JSON.parse(outlineText)
+  const outline = safeParseJson(outlineText)
 
   // Step 2: Expand content with flexible structure and guardrails
   const expandUser = `Skriv en dansk artikel baseret på denne plan:
@@ -175,7 +174,7 @@ Returner KUN JSON:
 
   const codeBlock = expandedText.match(/```json\s*([\s\S]*?)\s*```/) || expandedText.match(/```\s*([\s\S]*?)\s*```/)
   const jsonText = codeBlock ? codeBlock[1] : expandedText
-  const parsed = JSON.parse(jsonText)
+  const parsed = safeParseJson(jsonText)
 
   // Quality checks
   let totalWords = 0
@@ -195,6 +194,25 @@ Returner KUN JSON:
 
   // Keep raw sections; block conversion happens after polishing
   return { ok, totalWords, linkCount, hasElpriser, hasUdbydere, title: parsed.title, description: parsed.description, sections: parsed.sections }
+}
+
+function safeParseJson(raw: string): any {
+  try {
+    return JSON.parse(String(raw).trim())
+  } catch {}
+  // Try extract first balanced JSON object
+  const s = String(raw)
+  const start = s.indexOf('{')
+  const end = s.lastIndexOf('}')
+  if (start >= 0 && end > start) {
+    const candidate = s.slice(start, end + 1)
+    try { return JSON.parse(candidate) } catch {}
+  }
+  // Try code block stripping artifacts
+  const cleaned = s.replace(/^```json/i, '').replace(/```$/i, '').trim()
+  try { return JSON.parse(cleaned) } catch (e) {
+    throw new Error((e as Error).message || 'Failed to parse JSON')
+  }
 }
 
 // Post-processing step: SEO polish, CTA/link enforcement, length guards (formatting step)

@@ -177,64 +177,33 @@ DU SKAL inkludere mindst 2-3 interne links:
 EKSTERNE LINKS (SKAL bruges!):
 DU SKAL inkludere kildelink NATURLIGT:
 ✓ "Ifølge [den nye aftale](${sourceUrl}) vil..."
-✓ "Det fremgår af [energiministrenes beslutning](${sourceUrl}), at..."
-✗ ALDRIG: "Kilde: [https://...]"
+  ✓ "Det fremgår af [energiministrenes beslutning](${sourceUrl}), at..."
+  ✓ Det er OK at tilføje en afsluttende "Kilde:"-linje med link
 
-STRUKTUR (MINIMUM ${minWords} ORD - DETTE ER KRITISK!):
-Du SKAL skrive mindst ${minWords} ord. Hver sektion skal være UDFØRLIG:
+  STRUKTUR (MINIMUM ${minWords} ORD):
+  Skriv frit i 3–6 sektioner med klart forbrugerfokus. Forslag:
 
-1. **Overblik** (100-150 ord): Hvad er nyheden? Hvorfor er den vigtig? Hvad betyder det overordnet for danske elforbrugere?
+  - **Overblik**: Hvad er nyheden? Hvorfor er den vigtig for husholdninger?
 
-2. **Hvad sker der?** (150-200 ord): 
-   - Beskriv ændringen/nyheden i DETALJER
-   - SKAL inkludere kildelink naturligt: "Ifølge [beslutningen](URL)..."
-   - Forklar baggrunden og konteksten
-   - Hvad er de konkrete tiltag?
+  - **Hvad sker der?**: Opsummer beslutning/ændring, inkluder naturligt kildelink
 
-3. **Hvad betyder det for din elregning?** (150-200 ord):
-   - Direkte konsekvenser for forbrugerens elregning
-   - Tal konkrete tal (kr/måned, % stigning/fald)
-   - Hvornår træder ændringerne i kraft?
-   - Kort og lang sigt perspektiv
+  - **Hvad betyder det for din elregning?**: Konkrete konsekvenser (tal hvor muligt)
 
-4. **Det kan du gøre** (200-250 ord):
-   - 5-7 KONKRETE handlingsråd med forklaringer
-   - SKAL inkludere: "Tjek [aktuelle elpriser](/elpriser) dagligt..."
-   - SKAL inkludere: "Sammenlign [danske eludbydere](/el-udbydere)..."
-   - Giv specifikke tidsbesparende tips
-   - Forklar HVORDAN forbrugeren gør det
+  - **Det kan du gøre**: Praktiske råd, inkl. links til /elpriser og /el-udbydere
 
-5. **Fremtidsudsigter** (100-150 ord):
-   - Hvad kan vi forvente fremadrettet?
-   - Påvirker det energipolitikken?
-   - Hvad skal forbrugere være opmærksomme på?
+  - **Kilde & links**: Kilde: [myndighed](${sourceUrl}) og evt. relaterede links
 
 RETURNER KUN JSON - HUSK ${minWords}+ ORD TOTALT!
-Hver paragraph skal være LANG (50-100 ord hver):
+  Afsnit kan variere i længde for naturlig læsbarhed:
 {
   "title": "SEO-titel (max 60 tegn)",
   "description": "Meta description (maks 160 tegn)",
   "sections": [
-    {"heading": "Overblik", "paragraphs": [
-      "Lang paragraph (100-150 ord) der forklarer nyheden grundigt. Dette kan påvirke din elregning betydeligt fordi... [fortsæt med detaljer, konsekvenser, og hvorfor det er vigtigt for danske elforbrugere]"
-    ]},
-    {"heading": "Hvad sker der?", "paragraphs": [
-      "Ifølge [energiministrenes beslutning](${sourceUrl}) skal EU stoppe importen af russisk gas senest i 2027. Dette er en historisk beslutning fordi... [forklar baggrunden i 80-100 ord]",
-      "Beslutningen betyder at Danmark skal... Dette vil påvirke [elpriserne](/elpriser) i Danmark fordi... [forklar konsekvenserne i 70-100 ord]"
-    ]},
-    {"heading": "Hvad betyder det for din elregning?", "paragraphs": [
-      "Danske forbrugere kan se ændringer i [deres elregning](/elpriser) allerede næste måned. Konkret kan en gennemsnitlig familie forvente... [forklar med tal og detaljer i 80-100 ord]",
-      "På længere sigt forventes... [fortsæt med fremtidsperspektiv i 70-100 ord]"
-    ]},
-    {"heading": "Det kan du gøre", "paragraphs": [
-      "1. Tjek [de aktuelle timepriser](/elpriser) dagligt for at spare penge. Du kan bruge apps fra dit elselskab til at se, hvornår strømmen er billigst, og planlægge dit forbrug derefter. Dette kan spare dig op til 30% på elregningen hvis du har fleksibelt forbrug. [fortsæt med 3-4 flere konkrete råd, hver med forklaring - 200+ ord total]",
-      "2. Sammenlign [danske eludbydere](/el-udbydere) for at finde det bedste tilbud til dit forbrugsmønster...",
-      "3. Overvej at investere i energibesparende tiltag...",
-      "4. Hold øje med markedsudviklingen..."
-    ]},
-    {"heading": "Fremtidsudsigter", "paragraphs": [
-      "Fremover vil [prisdannelsen](/elpriser) blive mere stabil, da Danmark... [forklar fremtidsperspektivet grundigt i 100-150 ord med detaljer om energipolitik, forventninger til prisudvikling, og hvad forbrugere skal være opmærksomme på]"
-    ]}
+    {"heading": "Overblik", "paragraphs": ["Kort intro om hvorfor nyheden er relevant for danske husholdninger."]},
+    {"heading": "Hvad sker der?", "paragraphs": ["Ifølge [kilden](${sourceUrl})... Beslutningen betyder at..." ]},
+    {"heading": "Hvad betyder det for din elregning?", "paragraphs": ["Konkrete konsekvenser (kr/måned, % hvor muligt)." ]},
+    {"heading": "Det kan du gøre", "paragraphs": ["Tjek [de aktuelle timepriser](/elpriser) ... Sammenlign [danske eludbydere](/el-udbydere) ..." ]},
+    {"heading": "Kilde & links", "paragraphs": ["Kilde: [officiel kilde](${sourceUrl})" ]}
   ]
 }`
 
@@ -248,8 +217,8 @@ ${extractedText ? `Kontekst fra kilden (brug KUN til forståelse, parafrasér al
 VIGTIGT - LINK-EKSEMPLER:
 ✓ KORREKT: "Ifølge [den nye aftale](${sourceUrl}) vil danskerne..."
 ✓ KORREKT: "Det fremgår af [regeringens udmelding](${sourceUrl}), at..."
-✗ FORKERT: "Kilde: Ritzau, [https://www.kefm.dk/...](https://www.kefm.dk/...)"
-✗ FORKERT: Nævn ALDRIG "Ritzau", "KEFM", "Forsyningsministeriet" direkte
+  ✓ Det er OK at skrive en afsluttende "Kilde:"-linje
+  ✓ Det er OK at nævne myndigheden ved navn
 
 INTERNE LINKS - EKSEMPLER:
 ✓ "Tjek [de aktuelle timepriser](/elpriser) for at..."
@@ -938,4 +907,3 @@ function simpleHash(str: string): number {
   for (let i = 0; i < str.length; i++) h = ((h << 5) - h) + str.charCodeAt(i) | 0
   return Math.abs(h)
 }
-

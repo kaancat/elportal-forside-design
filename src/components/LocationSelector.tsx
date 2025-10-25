@@ -23,14 +23,17 @@ import type { GridProvider } from '@/data/gridProviders';
 interface LocationSelectorProps {
   onLocationChange: (location: LocationData) => void;
   className?: string;
+  variant?: 'default' | 'sidebar';
 }
 
 export const LocationSelector: React.FC<LocationSelectorProps> = ({ 
   onLocationChange, 
-  className = '' 
+  className = '',
+  variant = 'default'
 }) => {
   // Feature flag: hide nettarif line in UI (kept in code for future use)
   const SHOW_TARIFF_LINE = false;
+  const isSidebar = variant === 'sidebar';
   const [inputValue, setInputValue] = useState<string>('');
   const [location, setLocation] = useState<LocationData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -185,43 +188,47 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
   };
 
   return (
-    <div className={`bg-white rounded-xl shadow-sm border border-gray-100 p-6 ${className}`}>
-      <div className="space-y-4">
+    <div className={`bg-white rounded-xl shadow-sm border border-gray-100 ${isSidebar ? 'p-3' : 'p-6'} ${className}`}>
+      <div className={isSidebar ? 'space-y-2' : 'space-y-4'}>
         {/* Header */}
-        <div className="flex items-center gap-2 mb-4">
-          <MapPin className="h-5 w-5 text-brand-green" />
-          <h3 className="text-lg font-display font-semibold text-brand-dark">
-            Din placering
+        <div className={`flex items-center gap-${isSidebar ? '1.5' : '2'} ${isSidebar ? 'mb-2' : 'mb-4'}`}>
+          <MapPin className={`${isSidebar ? 'h-4 w-4' : 'h-5 w-5'} text-brand-green`} />
+          <h3 className={`${isSidebar ? 'text-sm' : 'text-lg'} font-display font-semibold text-brand-dark`}>
+            {isSidebar ? 'Placering' : 'Din placering'}
           </h3>
-          <TooltipProvider delayDuration={200}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" aria-label="Information om placering" className="p-0.5 hover:bg-gray-100 rounded transition-colors">
-                  <Info className="h-4 w-4 text-gray-400" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent sideOffset={5}>
-                <p className="max-w-xs">
-                  Dit postnummer bestemmer dit netselskab og prisområde (DK1/DK2), 
-                  hvilket påvirker din elpris.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          {!isSidebar && (
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" aria-label="Information om placering" className="p-0.5 hover:bg-gray-100 rounded transition-colors">
+                    <Info className="h-4 w-4 text-gray-400" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent sideOffset={5}>
+                  <p className="max-w-xs">
+                    Dit postnummer bestemmer dit netselskab og prisområde (DK1/DK2), 
+                    hvilket påvirker din elpris.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
 
         {/* Location Input */}
         <div>
-          <Label htmlFor="location-input" className="text-sm font-medium text-gray-700">
-            Adresse eller postnummer
-          </Label>
-          <div className="mt-1">
+          {!isSidebar && (
+            <Label htmlFor="location-input" className="text-sm font-medium text-gray-700">
+              Adresse eller postnummer
+            </Label>
+          )}
+          <div className={isSidebar ? '' : 'mt-1'}>
             {useAutocomplete ? (
               <AddressAutocomplete
                 value={inputValue}
                 onChange={handleInputChange}
                 onAddressSelect={handleAddressSelect}
-                placeholder="F.eks. Birkevej 7 eller 2200"
+                placeholder={isSidebar ? '2200' : "F.eks. Birkevej 7 eller 2200"}
                 disabled={loading}
               />
             ) : (
@@ -231,8 +238,8 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
                   type="text"
                   value={inputValue}
                   onChange={(e) => handleInputChange(e.target.value)}
-                  placeholder="F.eks. 2100"
-                  className="pr-10"
+                  placeholder={isSidebar ? '2200' : "F.eks. 2100"}
+                  className={`pr-10 ${isSidebar ? 'h-9 text-sm' : ''}`}
                   maxLength={4}
                 />
                 {loading && (
@@ -242,23 +249,25 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
             )}
           </div>
           
-          {/* Toggle between autocomplete and manual input */}
-          <button
-            type="button"
-            onClick={() => {
-              setUseAutocomplete(!useAutocomplete);
-              setInputValue('');
-              setLocation(null);
-              setError(null);
-            }}
-            className="mt-2 text-xs text-blue-600 hover:text-blue-700 underline"
-          >
-            {useAutocomplete ? 'Indtast kun postnummer' : 'Brug adressesøgning'}
-          </button>
+          {/* Toggle between autocomplete and manual input - hidden in sidebar */}
+          {!isSidebar && (
+            <button
+              type="button"
+              onClick={() => {
+                setUseAutocomplete(!useAutocomplete);
+                setInputValue('');
+                setLocation(null);
+                setError(null);
+              }}
+              className="mt-2 text-xs text-blue-600 hover:text-blue-700 underline"
+            >
+              {useAutocomplete ? 'Indtast kun postnummer' : 'Brug adressesøgning'}
+            </button>
+          )}
 
           {error && (
-            <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" />
+            <p className={`${isSidebar ? 'mt-1' : 'mt-1'} ${isSidebar ? 'text-xs' : 'text-sm'} text-red-600 flex items-center gap-1`}>
+              <AlertCircle className={`${isSidebar ? 'h-3 w-3' : 'h-3 w-3'}`} />
               {error}
             </p>
           )}
@@ -266,22 +275,22 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
 
         {/* Location Details */}
         {location && !loading && (
-          <div className="space-y-3 pt-3 border-t border-gray-100">
+          <div className={`${isSidebar ? 'space-y-1.5 pt-2' : 'space-y-3 pt-3'} border-t border-gray-100`}>
             {/* Municipality */}
-            <div className="flex justify-between items-center text-sm">
+            <div className={`flex justify-between items-center ${isSidebar ? 'text-xs' : 'text-sm'}`}>
               <span className="text-gray-600">Kommune:</span>
-              <span className="font-medium text-brand-dark">{location.municipality.name}</span>
+              <span className={`font-medium text-brand-dark ${isSidebar ? 'text-[11px]' : ''}`}>{location.municipality.name}</span>
             </div>
 
             {/* Grid Provider - with selector if multiple */}
-            <div className="flex justify-between items-center text-sm">
+            <div className={`flex justify-between items-center ${isSidebar ? 'text-xs' : 'text-sm'}`}>
               <span className="text-gray-600">Netselskab:</span>
               {multipleProviders.length > 1 ? (
                 <Select
                   value={selectedProvider?.code}
                   onValueChange={handleProviderChange}
                 >
-                  <SelectTrigger className="w-[200px] h-8 text-sm">
+                  <SelectTrigger className={`${isSidebar ? 'w-[140px] h-7 text-xs' : 'w-[200px] h-8 text-sm'}`}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -293,16 +302,16 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
                   </SelectContent>
                 </Select>
               ) : (
-                <span className="font-medium text-brand-dark">
+                <span className={`font-medium text-brand-dark ${isSidebar ? 'text-[11px]' : ''}`}>
                   {location.gridProvider.name}
                 </span>
               )}
             </div>
 
             {/* Region */}
-            <div className="flex justify-between items-center text-sm">
+            <div className={`flex justify-between items-center ${isSidebar ? 'text-xs' : 'text-sm'}`}>
               <span className="text-gray-600">Prisområde:</span>
-              <span className="font-medium text-brand-dark">
+              <span className={`font-medium text-brand-dark ${isSidebar ? 'text-[11px]' : ''}`}>
                 {getRegionDisplay(location.region)} ({location.region})
               </span>
             </div>
@@ -339,7 +348,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
         )}
 
         {/* Default location hint */}
-        {!location && !loading && !error && inputValue.length === 0 && (
+        {!location && !loading && !error && inputValue.length === 0 && !isSidebar && (
           <p className="text-xs text-gray-500 italic">
             Indtast din adresse eller postnummer for at se priser for dit område
           </p>

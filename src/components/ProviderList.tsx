@@ -352,40 +352,59 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block, variant = '
   const isSidebar = variant === 'sidebar'
 
   return (
-    <section id="provider-list" tabIndex={-1} className={`${isSidebar ? 'py-6' : 'py-16'} bg-gray-50`}>
-      <div className={`container mx-auto ${isSidebar ? 'px-0' : 'px-4'}`}>
-        <div className={isSidebar ? 'mb-6' : 'mb-12'}>
-          <h2 className={`${isSidebar ? 'text-2xl' : 'text-4xl'} font-display font-bold ${headerAlignmentClass} mb-4 text-brand-dark`}>
-            {block.title || 'Sammenlign eludbydere'}
-          </h2>
-          {block.subtitle && (
-            <p className={`${headerAlignmentClass} text-gray-600 ${isSidebar ? 'text-sm mb-4' : 'text-lg mb-8'}`}>
-              {block.subtitle}
-            </p>
-          )}
-        </div>
+    <section id="provider-list" tabIndex={-1} className={`${isSidebar ? 'py-0' : 'py-16'} ${isSidebar ? '' : 'bg-gray-50'}`}>
+      <div className={`${isSidebar ? '' : 'container mx-auto px-4'}`}>
+        {/* Header - only show in default variant */}
+        {!isSidebar && (
+          <div className="mb-12">
+            <h2 className={`text-4xl font-display font-bold ${headerAlignmentClass} mb-4 text-brand-dark`}>
+              {block.title || 'Sammenlign eludbydere'}
+            </h2>
+            {block.subtitle && (
+              <p className={`${headerAlignmentClass} text-gray-600 text-lg mb-8`}>
+                {block.subtitle}
+              </p>
+            )}
+          </div>
+        )}
 
-        {/* Location Selector - NEW */}
-        <div className={isSidebar ? 'mb-4' : 'mb-8'}>
+        {/* Sidebar: Compact vertical header */}
+        {isSidebar && (
+          <div className="mb-4 pb-4 border-b border-gray-100">
+            <h2 className="text-lg font-display font-bold text-brand-dark mb-1">
+              {block.title || 'Sammenlign priser'}
+            </h2>
+            {block.subtitle && (
+              <p className="text-xs text-gray-600">
+                {block.subtitle}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Location Selector */}
+        <div className={isSidebar ? 'mb-3' : 'mb-8'}>
           <LocationSelector
             onLocationChange={handleLocationChange}
             className=""
+            variant={isSidebar ? 'sidebar' : 'default'}
           />
         </div>
 
-        {/* Region Toggle - NEW */}
-        <div className={isSidebar ? 'mb-4' : 'mb-8'}>
+        {/* Region Toggle */}
+        <div className={isSidebar ? 'mb-3' : 'mb-8'}>
           <RegionToggle
             selectedRegion={selectedRegion}
             onRegionChange={handleRegionChange}
             isManualOverride={isManualRegionOverride}
             hasLocation={!!location}
             className=""
+            variant={isSidebar ? 'sidebar' : 'default'}
           />
         </div>
 
         {/* Household Type Selector */}
-        <div className={`${isSidebar ? 'mb-4 p-4' : 'mb-8 p-8'} bg-white rounded-xl shadow-sm border border-gray-100`}>
+        <div className={`${isSidebar ? 'mb-3 p-3' : 'mb-8 p-8'} bg-white rounded-xl shadow-sm border border-gray-100`}>
           <HouseholdTypeSelector
             selectedType={selectedHouseholdType}
             onTypeSelect={handleHouseholdTypeSelect}
@@ -395,13 +414,14 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block, variant = '
         </div>
 
         {/* Consumption Slider (client-only to avoid SSR hydration diffs from Radix internals) */}
-        <div className={`${isSidebar ? 'mb-6 p-4' : 'mb-12 p-8'} bg-white rounded-xl shadow-sm border border-gray-100`}>
-          <div className="max-w-lg mx-auto">
-            <h2 className={`${isSidebar ? 'text-base mb-4' : 'text-lg mb-6'} font-display font-semibold text-brand-dark text-center`}>
-              Præcis årligt forbrug
+        <div className={`${isSidebar ? 'mb-3 p-3' : 'mb-12 p-8'} bg-white rounded-xl shadow-sm border border-gray-100`}>
+          <div className={isSidebar ? '' : 'max-w-lg mx-auto'}>
+            <h2 className={`${isSidebar ? 'text-sm mb-2' : 'text-lg mb-6'} font-display font-semibold text-brand-dark ${isSidebar ? 'text-left' : 'text-center'}`}>
+              {isSidebar ? 'Årligt forbrug:' : 'Præcis årligt forbrug'}
             </h2>
-            <label className={`block ${isSidebar ? 'text-xs mb-3' : 'text-sm mb-4'} font-medium text-brand-dark text-center`}>
-              Forventet årligt kWh-forbrug: <span className="font-bold text-brand-green relative inline-block">{annualConsumption[0].toLocaleString('da-DK')} kWh<FloatingConsumptionHelper variant="neon" /></span>
+            <label className={`block ${isSidebar ? 'text-xs mb-2' : 'text-sm mb-4'} font-medium text-brand-dark ${isSidebar ? 'text-left' : 'text-center'}`}>
+              {!isSidebar && 'Forventet årligt kWh-forbrug: '}
+              <span className="font-bold text-brand-green relative inline-block">{annualConsumption[0].toLocaleString('da-DK')} kWh{!isSidebar && <FloatingConsumptionHelper variant="neon" />}</span>
             </label>
             {isMounted ? (
               <>
@@ -411,9 +431,9 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block, variant = '
                   min={500}
                   max={10000}
                   step={100}
-                  className={`w-full ${isSidebar ? 'mb-2' : 'mb-4'}`}
+                  className={`w-full ${isSidebar ? 'mb-1.5' : 'mb-4'}`}
                 />
-                <div className="flex justify-between text-[11px] text-gray-500">
+                <div className={`flex justify-between ${isSidebar ? 'text-[10px]' : 'text-[11px]'} text-gray-500`}>
                   <span>500 kWh</span>
                   <span>10.000 kWh</span>
                 </div>
@@ -426,93 +446,117 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block, variant = '
 
         {/* Products List */}
         <motion.div
-          className="space-y-6"
+          className={isSidebar ? 'space-y-3' : 'space-y-6'}
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
         >
-          <h2 className={`${isSidebar ? 'text-xl mb-4' : 'text-2xl mb-6'} font-display font-bold text-center text-brand-dark`}>
-            Aktuelle tilbud
-            {(priceLoading || locationLoading) && (
-              <span className="text-sm text-gray-500 ml-2">(Henter priser...)</span>
-            )}
-          </h2>
+          {/* Sidebar: Compact header */}
+          {isSidebar ? (
+            <div className="pb-3 border-b border-gray-100">
+              <h2 className="text-base font-display font-bold text-brand-dark mb-1">
+                Aktuelle tilbud
+              </h2>
+              {(location && !isManualRegionOverride) ? (
+                <p className="text-[10px] text-gray-600">
+                  {location.municipality.name} ({location.region})
+                </p>
+              ) : isManualRegionOverride ? (
+                <p className="text-[10px] text-gray-600">
+                  {selectedRegion === 'DK1' ? 'Vestdanmark' : 'Østdanmark'} ({selectedRegion})
+                </p>
+              ) : null}
+              {(priceLoading || locationLoading) && (
+                <span className="text-[10px] text-gray-500">(Henter priser...)</span>
+              )}
+            </div>
+          ) : (
+            /* Default: Full header with all info */
+            <>
+              <h2 className="text-2xl mb-6 font-display font-bold text-center text-brand-dark">
+                Aktuelle tilbud
+                {(priceLoading || locationLoading) && (
+                  <span className="text-sm text-gray-500 ml-2">(Henter priser...)</span>
+                )}
+              </h2>
 
-          {/* Location and Price Info */}
-          <div className={`flex flex-col items-center justify-center gap-3 ${isSidebar ? 'mb-4' : 'mb-8'} ${isSidebar ? 'px-0' : 'px-4'}`}>
-            {(location && !isManualRegionOverride) ? (
-              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-sm text-gray-600 text-center sm:text-left">
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 flex-shrink-0" />
-                  <span>Priser for {location.municipality.name} ({location.region})</span>
-                </div>
-                <span className="hidden sm:inline">-</span>
-                <span>Netselskab: {location.gridProvider.name}</span>
-              </div>
-            ) : isManualRegionOverride ? (
-              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-sm text-gray-600 text-center sm:text-left">
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 flex-shrink-0" />
-                  <span>Priser for {selectedRegion === 'DK1' ? 'Vestdanmark' : 'Østdanmark'} ({selectedRegion})</span>
-                </div>
-                <span className="hidden sm:inline">-</span>
-                <span className="flex items-center gap-1">
-                  Gennemsnitlig nettarif: {networkTariff.toFixed(2)} kr/kWh
-                  {!isFallback && dynamicNetworkTariff && (
-                    <span className="text-xs text-green-600 ml-1">✓ Live data</span>
-                  )}
-                </span>
-              </div>
-            ) : null}
+              {/* Location and Price Info */}
+              <div className="flex flex-col items-center justify-center gap-3 mb-8 px-4">
+                {(location && !isManualRegionOverride) ? (
+                  <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-sm text-gray-600 text-center sm:text-left">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 flex-shrink-0" />
+                      <span>Priser for {location.municipality.name} ({location.region})</span>
+                    </div>
+                    <span className="hidden sm:inline">-</span>
+                    <span>Netselskab: {location.gridProvider.name}</span>
+                  </div>
+                ) : isManualRegionOverride ? (
+                  <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-sm text-gray-600 text-center sm:text-left">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 flex-shrink-0" />
+                      <span>Priser for {selectedRegion === 'DK1' ? 'Vestdanmark' : 'Østdanmark'} ({selectedRegion})</span>
+                    </div>
+                    <span className="hidden sm:inline">-</span>
+                    <span className="flex items-center gap-1">
+                      Gennemsnitlig nettarif: {networkTariff.toFixed(2)} kr/kWh
+                      {!isFallback && dynamicNetworkTariff && (
+                        <span className="text-xs text-green-600 ml-1">✓ Live data</span>
+                      )}
+                    </span>
+                  </div>
+                ) : null}
 
-            {/* Price Calculation Info */}
+                {/* Price Calculation Info */}
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        className="flex items-center gap-2 px-3 py-1.5 text-sm bg-brand-green/10 text-brand-dark border border-brand-green/20 rounded-full font-medium cursor-pointer hover:bg-brand-green/20 active:bg-brand-green/30 transition-colors"
+                      >
+                        <Calculator className="h-4 w-4" />
+                        <span>Sådan beregner vi priserne</span>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-sm" sideOffset={5}>
+                      <div className="space-y-2">
+                        <p className="text-sm">
+                          Vi viser <strong>spotpris (måneds-gennemsnit)</strong> + <strong>elselskabets tillæg</strong> (elpris.dk) + <strong>abonnement</strong>.
+                          Obligatoriske ydelser (nettarif, afgifter, system/transmission, moms) er <strong>ikke</strong> inkluderet.
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Bemærk: Teksten "Spotpris opdateret" over listen viser den <em>aktuelle</em> timepris for kontekst — beregninger bruger måneds-gennemsnit.
+                        </p>
+                        <p className="text-xs text-gray-500">Kilder: Nord Pool (spotpris) og elpris.dk (tillæg/abonnement)</p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </>
+          )}
+
+          {/* Last Updated Timestamp with Tooltip - only show for default layout */}
+          {!isSidebar && lastUpdated && (
             <TooltipProvider delayDuration={200}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
                     type="button"
-                    className={`flex items-center gap-2 px-3 ${isSidebar ? 'py-1 text-xs' : 'py-1.5 text-sm'} bg-brand-green/10 text-brand-dark border border-brand-green/20 rounded-full font-medium cursor-pointer hover:bg-brand-green/20 active:bg-brand-green/30 transition-colors`}
+                    className="text-sm text-gray-500 cursor-pointer flex items-center justify-center gap-1 hover:text-gray-700 transition-colors"
                   >
-                    <Calculator className="h-4 w-4" />
-                    <span>Sådan beregner vi priserne</span>
+                    Spotpris opdateret: {lastUpdated.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                    <Info size={14} />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent className="max-w-sm" sideOffset={5}>
-                  <div className="space-y-2">
-                    <p className="text-sm">
-                      Vi viser <strong>spotpris (måneds-gennemsnit)</strong> + <strong>elselskabets tillæg</strong> (elpris.dk) + <strong>abonnement</strong>.
-                      Obligatoriske ydelser (nettarif, afgifter, system/transmission, moms) er <strong>ikke</strong> inkluderet.
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Bemærk: Teksten “Spotpris opdateret” over listen viser den <em>aktuelle</em> timepris for kontekst — beregninger bruger måneds-gennemsnit.
-                    </p>
-                    <p className="text-xs text-gray-500">Kilder: Nord Pool (spotpris) og elpris.dk (tillæg/abonnement)</p>
-                  </div>
+                <TooltipContent sideOffset={5}>
+                  <p>De viste priser er estimater baseret på live spotpriser, <br /> som opdateres hver time.</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-
-            {/* Last Updated Timestamp with Tooltip */}
-            {lastUpdated && (
-              <TooltipProvider delayDuration={200}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      type="button"
-                      className="text-sm text-gray-500 cursor-pointer flex items-center justify-center gap-1 hover:text-gray-700 transition-colors"
-                    >
-                      Spotpris opdateret: {lastUpdated.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit', hour12: false })}
-                      <Info size={14} />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent sideOffset={5}>
-                    <p>De viste priser er estimater baseret på live spotpriser, <br /> som opdateres hver time.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-          </div>
+          )}
 
           {/* Provider Cards */}
           {sortedProviders.length === 0 ? (
@@ -551,7 +595,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block, variant = '
                     regionCode={selectedRegion}
                     providerMarkupKrOverride={markupKr}
                     monthlySubscriptionOverride={monthlySubscription || 0}
-                    density={isSidebar ? 'compact' : 'default'}
+                    density={isSidebar ? 'sidebar' : 'default'}
                     additionalFees={{
                       greenCertificates: provider.greenCertificateFee,
                       tradingCosts: provider.tradingCosts

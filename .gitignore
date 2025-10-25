@@ -38,3 +38,9 @@ docs/specs/example-feature-specification.md
 # Next.js build output
 .next/
 out/
+# Local diagnostics (ingest tests)
+gsc.json
+gsc2.json
+rss.json
+rss2.json
+gsc_page.html

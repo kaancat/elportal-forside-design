@@ -5,6 +5,7 @@ import OpenAI from 'openai'
 import { getSearchConsoleAccessToken } from '@/server/google'
 import { env as appEnv } from '@/lib/env'
 import { getUnsplashImage, getHashedFallbackImage } from '@/server/unsplash'
+import { sectionsToPortableText, estimateReadTimeFromBlocks, computeStats } from '@/server/newsFormatter'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -62,6 +63,24 @@ function classifyTopic(text: string): string | null {
   ]
   for (const c of cats) if (c.patterns.some(rx => rx.test(text))) return c.label
   return null
+}
+
+// Suggest official external sources per topic for credible outbound links
+function getExternalSources(topicOrKeyword: string): Array<{ name: string; url: string }> {
+  const lower = topicOrKeyword.toLowerCase()
+  const list: Array<{ name: string; url: string }> = []
+  if (/elpris|elpriser|spot|fastpris|kwh|forbrug/.test(lower)) {
+    list.push(
+      { name: 'Energistyrelsen (ens.dk)', url: 'https://ens.dk/' },
+      { name: 'Energinet (energinet.dk)', url: 'https://energinet.dk/' },
+    )
+  }
+  if (/tarif|nettarif|net/.test(lower)) list.push({ name: 'Green Power Denmark', url: 'https://greenpowerdenmark.dk/' })
+  if (/co2|udledning/.test(lower)) list.push({ name: 'Klimaministeriet', url: 'https://kefm.dk/' })
+  if (/vind/.test(lower)) list.push({ name: 'Energistyrelsen – vind', url: 'https://ens.dk/ansvarsomraader/vindenergi' })
+  if (/sol/.test(lower)) list.push({ name: 'Energistyrelsen – sol', url: 'https://ens.dk/ansvarsomraader/solenergi' })
+  if (list.length === 0) list.push({ name: 'Energistyrelsen', url: 'https://ens.dk/' })
+  return list
 }
 
 function getAIClient(prefer?: 'openai' | 'anthropic'): { type: 'openai' | 'anthropic'; client: any } {
@@ -146,16 +165,18 @@ KRAV:
 
   const outline = safeParseJson(outlineText)
 
-  // Step 2: Expand content with flexible structure and guardrails
+  // Step 2: Expand content with flexible structure, headings and guardrails
   const expandUser = `Skriv en dansk artikel baseret på denne plan:
 ${JSON.stringify(outline)}
 
 KRAV:
-- Minimum ${minWords} ord totalt (samlet)
-- 3–6 afsnit med 1–3 naturligt lange afsnit hver (ingen faste ordtal)
+- ${buildGuidelinePrompt({ minWords })}
+- Minimum ${minWords} ord i alt.
+- Brug meningsfulde H2-overskrifter hvor det giver mening (ingen faste labels).
 - Indsæt links i markdown-format (naturligt i teksten):
   - Mindst 2 links til [de aktuelle elpriser](/elpriser)
   - Mindst 1 link til [sammenlign danske eludbydere](/el-udbydere)
+- Indsæt mindst 2 eksterne kilder (officielle domæner) i Kilder-sektionen, fx: ${getExternalSources(keyword).map(s=>`[${s.name}](${s.url})`).join(', ')}
 - Undgå kategoriske påstande uden forbehold (brug “kan”, “typisk”, “afhænger af …”)
 - Brug neutralt, forklarende sprog; fokus på forbrugerens perspektiv
 Returner KUN JSON:
@@ -181,23 +202,34 @@ Returner KUN JSON:
 
   const codeBlock = expandedText.match(/```json\s*([\s\S]*?)\s*```/) || expandedText.match(/```\s*([\s\S]*?)\s*```/)
   const jsonText = codeBlock ? codeBlock[1] : expandedText
-  const parsed = safeParseJson(jsonText)
+  let parsed = safeParseJson(jsonText)
 
   // Quality checks
-  let totalWords = 0
-  let linkCount = 0
-  let hasElpriser = false
-  let hasUdbydere = false
-  for (const s of parsed.sections || []) {
-    for (const p of s.paragraphs || []) {
-      totalWords += String(p).split(/\s+/).length
-      const links = String(p).match(/\[[^\]]+\]\([^\)]+\)/g) || []
-      linkCount += links.length
-      if (String(p).includes('](/elpriser)')) hasElpriser = true
-      if (String(p).includes('](/el-udbydere)')) hasUdbydere = true
+  let { totalWords, linkCount, hasElpriser, hasUdbydere } = computeStats(parsed)
+  let ok = totalWords >= minWords && linkCount >= 3 && hasElpriser && hasUdbydere
+
+  // Length top-up: ask model to extend content with "Historik & Baggrund" and more examples if short
+  if (!ok && totalWords < minWords) {
+    const topupUser = `FORLÆNG artiklen nedenfor, behold tone og struktur. Uddyb baggrund og konsekvenser for forbrugere med konkrete eksempler og fakta. Sørg for at inkludere mindst 2 officielle eksterne kilder naturligt i teksten eller som afsluttende kildeangivelse. Brug H2-overskrifter hvor det giver mening. Returner KUN JSON i samme struktur.
+${JSON.stringify(parsed)}`
+    if (type === 'openai') {
+      const r2 = await client.chat.completions.create({ model: 'gpt-4o', temperature: 0.6, response_format: { type: 'json_object' }, messages: [
+        { role: 'system', content: sys },
+        { role: 'user', content: topupUser }
+      ], max_tokens: 8192 })
+      const txt = r2.choices[0]?.message?.content || ''
+      parsed = safeParseJson(txt)
+    } else {
+      const r2 = await client.messages.create({ model: 'claude-3-5-sonnet-20241022', temperature: 0.6, max_tokens: 4096, messages: [
+        { role: 'user', content: topupUser }
+      ]})
+      const txt = r2.content[0].type === 'text' ? r2.content[0].text : ''
+      parsed = safeParseJson(txt)
     }
+    const stats2 = computeStats(parsed)
+    totalWords = stats2.totalWords; linkCount = stats2.linkCount; hasElpriser = stats2.hasElpriser; hasUdbydere = stats2.hasUdbydere
+    ok = totalWords >= minWords && linkCount >= 3 && hasElpriser && hasUdbydere
   }
-  const ok = totalWords >= minWords && linkCount >= 3 && hasElpriser && hasUdbydere
 
   // Keep raw sections; block conversion happens after polishing
   return { ok, totalWords, linkCount, hasElpriser, hasUdbydere, title: parsed.title, description: parsed.description, sections: parsed.sections, llmType }
@@ -273,6 +305,24 @@ function polishArticle(keyword: string, data: { title?: string; description?: st
     if (ctaLines.length) sections.push({ heading: 'Kom i gang i dag', paragraphs: [ctaLines.join(' ')] })
   }
   ensureCta()
+
+  // Ensure der er mindst 2 eksterne kilder i teksten; hvis ikke, tilføj en enkel kilde-linje som sidste afsnit (uden fast overskrift)
+  const ensureSources = () => {
+    const topic = classifyTopic(keyword) || keyword
+    const sources = getExternalSources(topic)
+    const links = sources.slice(0, 3).map(s => `[${s.name}](${s.url})`)
+    const para = `Kilder: ${links.join(', ')}`
+    const hasExternal = sections.some(s => (s.paragraphs||[]).some((p:string)=>/https?:\/\//i.test(p)))
+    if (!hasExternal) {
+      if (sections.length > 0) {
+        const last = sections[sections.length - 1]
+        last.paragraphs = [...(last.paragraphs||[]), para]
+      } else {
+        sections.push({ paragraphs: [para] })
+      }
+    }
+  }
+  ensureSources()
 
   // Add soft disclaimer paragraph to reduce aggressive claims
   const disclaimer = 'Bemærk: Råd og estimater er vejledende. Dine faktiske priser afhænger af forbrug, netområde og valg af elaftale.'
@@ -398,12 +448,8 @@ export async function GET(req: NextRequest) {
         const polished = polishArticle(kw, { title: gen.title, description: gen.description, sections: (gen as any).sections })
         const title = polished.title || kw
         const slug = slugify(title || kw)
-        const blocks = paragraphsToPortableText((polished.sections || []).flatMap((s: any) => Array.isArray(s.paragraphs) ? s.paragraphs : []))
-        // Also provide classic Portable Text body so editors see content in the visible "Body" field
-        const bodyBlocks = Array.isArray(blocks)
-          ? blocks.flatMap((b: any) => Array.isArray(b?.content) ? b.content : [])
-          : []
-        const readTime = Math.max(1, Math.ceil((title.split(/\s+/).length + (polished.description || '').split(/\s+/).length + (blocks?.[0]?.content || []).reduce((acc: number, b: any) => acc + (b.children || []).reduce((a: number, c: any) => a + String(c.text||'').split(/\s+/).length, 0), 0)) / 200))
+        const { contentBlocks: blocks, body: bodyBlocks } = sectionsToPortableText({ title, description: polished.description, sections: polished.sections })
+        const readTime = estimateReadTimeFromBlocks(bodyBlocks)
 
         // Image selection (Unsplash → fallback)
         const ogImageUrl = (await getUnsplashImage(`${kw} energi elpriser Danmark`, slug)) || getHashedFallbackImage(slug)
@@ -460,9 +506,8 @@ export async function GET(req: NextRequest) {
             `Vil du følge udviklingen i priser? Se [de aktuelle timepriser](/elpriser) og planlæg forbruget i de billigste timer.`,
             `Overvejer du at skifte elaftale? Sammenlign [danske eludbydere](/el-udbydere) for at finde en aftale der passer til dit forbrug.`,
           ]
-          const blocks = paragraphsToPortableText(paras)
-          const bodyBlocks = blocks.flatMap((b: any) => Array.isArray(b?.content) ? b.content : [])
-          const readTime = Math.max(1, Math.ceil((title.split(/\s+/).length + paras.join(' ').split(/\s+/).length) / 200))
+          const { contentBlocks: blocks, body: bodyBlocks } = sectionsToPortableText({ title, description: `Kort guide om ${kw}`, sections: [{ heading: 'Overblik', paragraphs: paras }] })
+          const readTime = estimateReadTimeFromBlocks(bodyBlocks)
           const ogImageUrl = (await getUnsplashImage(`${kw} energi elpriser Danmark`, slug)) || getHashedFallbackImage(slug)
           const altText = `Illustration: ${title} – elpriser i Danmark`
           const uploadedImage = await uploadImageToSanity(sanity, ogImageUrl, `${slug}.jpg`)

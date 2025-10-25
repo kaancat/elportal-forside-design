@@ -110,8 +110,8 @@ export async function runSourcePipeline(input: { title: string; sourceUrl: strin
   }
   let draft: ArticleDraft = JSON.parse(text)
   draft = addCtaAndSources(input.title, draft)
-  // Ensure strong sourcing footprint (aim 8–12 external links distributed across sections)
-  draft = distributeExternalLinks(input.title, draft, Math.max(8, Math.min(12, (draft.sections?.length || 6))))
+  // Ensure light sourcing footprint (aim 1–2 external links distributed across sections)
+  draft = distributeExternalLinks(input.title, draft, Math.min(2, Math.max(1, (draft.sections?.length || 1))))
   draft = await topUpIfShort(draft, input.minWords, input.prefer)
   const stats = computeStats(draft)
   const { contentBlocks, body } = sectionsToPortableText(draft)

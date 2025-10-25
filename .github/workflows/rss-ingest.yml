@@ -1,37 +1,22 @@
-name: RSS Feed Ingestion
+name: RSS Ingest (Twice Daily)
 
 on:
   schedule:
-    # Runs every hour at minute 0
-    - cron: '0 * * * *'
-  
-  # Allow manual triggering from GitHub Actions tab
+    - cron: '35 9 * * *'  # 10:35 CET/CEST approx
+    - cron: '35 17 * * *' # 18:35 CET/CEST approx
   workflow_dispatch:
 
 jobs:
-  ingest-rss:
+  run:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Trigger RSS Feed Ingestion with AI Generation
+      - name: Trigger RSS ingest (limit=1)
+        env:
+          ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
+          BASE_URL: ${{ secrets.INGEST_BASE_URL || 'https://dinelportal.dk' }}
         run: |
-          # Generate new articles with professional AI content (700+ words)
-          # Only processes new articles (existing ones are skipped unless force=1)
-          response=$(curl -s -w "\n%{http_code}" -X GET "${{ secrets.RSS_INGEST_URL }}?minWords=1200")
-          http_code=$(echo "$response" | tail -n1)
-          body=$(echo "$response" | head -n-1)
-          
-          echo "HTTP Status: $http_code"
-          echo "Response: $body"
-          
-          if [ "$http_code" -ne 200 ]; then
-            echo "❌ RSS ingestion failed with status $http_code"
-            exit 1
-          fi
-          
-          echo "✅ RSS ingestion with AI regeneration completed successfully"
+          set -euo pipefail
+          URL="$BASE_URL/api/news/ingest?limit=1&minWords=1200&llm=openai"
+          echo "Calling: $URL"
+          curl -fsS -H "x-admin-secret: $ADMIN_SECRET" "$URL"
 
-      - name: Notify on Failure
-        if: failure()
-        run: |
-          echo "⚠️ RSS feed ingestion workflow failed. Check the logs above for details."

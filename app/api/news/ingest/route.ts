@@ -309,7 +309,7 @@ Hvis IKKE alle 4 er JA, tilføj links NU!`
     const needsRetry = totalWords < minWords || linkCount < 3 || !hasElpriserLink || !hasElUdbydereLink || !hasSourceLink
 
     if (needsRetry) {
-      const reasons = []
+      const reasons: string[] = []
       if (totalWords < minWords) reasons.push(`only ${totalWords} words (need ${minWords})`)
       if (linkCount < 3) reasons.push(`only ${linkCount} links (need 3+)`)
       if (!hasElpriserLink) reasons.push('missing /elpriser link')

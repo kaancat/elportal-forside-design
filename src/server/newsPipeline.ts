@@ -33,10 +33,10 @@ function addCtaAndSources(keywordOrTopic: string, draft: ArticleDraft): ArticleD
   const sections = Array.isArray(draft.sections) ? [...draft.sections] : []
   // Ensure CTA
   const hasElpriser = sections.some(s => (s.paragraphs||[]).some(p => p.includes('](/elpriser)')))
-  const hasUdbydere = sections.some(s => (s.paragraphs||[]).some(p => p.includes('](/el-udbydere)')))
+  const hasUdbydere = sections.some(s => (s.paragraphs||[]).some(p => /\]\(\/(el-udbydere|sammenlign)\)/i.test(p)))
   const cta: string[] = []
   if (!hasElpriser) cta.push('Tjek [de aktuelle timepriser](/elpriser) og planlæg de energitunge opgaver i de billigste timer.')
-  if (!hasUdbydere) cta.push('Sammenlign [danske eludbydere](/el-udbydere) og find en aftale, der passer til dit forbrug.')
+  if (!hasUdbydere) cta.push('Sammenlign [danske eludbydere](/sammenlign) og find en aftale, der passer til dit forbrug.')
   if (cta.length) {
     if (sections.length > 0) {
       const last = sections[sections.length - 1]

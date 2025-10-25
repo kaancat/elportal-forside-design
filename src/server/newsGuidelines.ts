@@ -17,7 +17,7 @@ Redaktionelle principper
 • Sigt efter velafbalancerede afsnit; minimum ${minWords} ord i alt.
 
 3) CTA & interne links
-• Indsæt naturlige opfordringer, fx: Tjek [aktuelle elpriser](/elpriser) … Sammenlign [danske eludbydere](/el-udbydere) …
+• Indsæt naturlige opfordringer, fx: Tjek [aktuelle elpriser](/elpriser) … Sammenlign [danske eludbydere](/sammenlign) …
 
 4) SEO & metadata
 • Skriv en præcis titel (<=60 tegn) og meta‑beskrivelse (<=160 tegn).
@@ -29,4 +29,3 @@ Etiske krav
 • Artiklen skal kunne stå selvstændigt — ikke en kopi.
 `
 }
-

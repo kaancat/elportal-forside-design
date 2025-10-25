@@ -17,7 +17,7 @@ jobs:
         run: |
           # Generate new articles with professional AI content (700+ words)
           # Only processes new articles (existing ones are skipped unless force=1)
-          response=$(curl -s -w "\n%{http_code}" -X GET "${{ secrets.RSS_INGEST_URL }}?minWords=700")
+          response=$(curl -s -w "\n%{http_code}" -X GET "${{ secrets.RSS_INGEST_URL }}?minWords=1200")
           http_code=$(echo "$response" | tail -n1)
           body=$(echo "$response" | head -n-1)
           
@@ -35,4 +35,3 @@ jobs:
         if: failure()
         run: |
           echo "⚠️ RSS feed ingestion workflow failed. Check the logs above for details."
-

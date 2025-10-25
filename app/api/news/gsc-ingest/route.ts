@@ -399,6 +399,10 @@ export async function GET(req: NextRequest) {
         const title = polished.title || kw
         const slug = slugify(title || kw)
         const blocks = paragraphsToPortableText((polished.sections || []).flatMap((s: any) => Array.isArray(s.paragraphs) ? s.paragraphs : []))
+        // Also provide classic Portable Text body so editors see content in the visible "Body" field
+        const bodyBlocks = Array.isArray(blocks)
+          ? blocks.flatMap((b: any) => Array.isArray(b?.content) ? b.content : [])
+          : []
         const readTime = Math.max(1, Math.ceil((title.split(/\s+/).length + (polished.description || '').split(/\s+/).length + (blocks?.[0]?.content || []).reduce((acc: number, b: any) => acc + (b.children || []).reduce((a: number, c: any) => a + String(c.text||'').split(/\s+/).length, 0), 0)) / 200))
 
         // Image selection (Unsplash → fallback)
@@ -414,6 +418,7 @@ export async function GET(req: NextRequest) {
           type: 'Guide',
           description: polished.description || `Guide til ${kw}`,
           contentBlocks: blocks,
+          body: bodyBlocks,
           publishedDate: new Date().toISOString(),
           featured: false,
           readTime,
@@ -428,16 +433,19 @@ export async function GET(req: NextRequest) {
         }
 
         // Upsert: if a draft already exists, patch missing image/SEO fields
-        const existing = await sanity.fetch(`*[_type=="blogPost" && slug.current==$slug][0]{ _id, featuredImage, seoOpenGraphImage }`, { slug })
+        const existing = await sanity.fetch(`*[_type=="blogPost" && slug.current==$slug][0]{ _id, featuredImage, seoOpenGraphImage, contentBlocks, body }`, { slug })
         if (existing?._id) {
           const patch: any = {}
           const needsFI = !existing.featuredImage || !existing.featuredImage.asset || !existing.featuredImage.asset._ref
           const needsOG = !existing.seoOpenGraphImage || !existing.seoOpenGraphImage.asset || !existing.seoOpenGraphImage.asset._ref
+          const needsBlocks = !Array.isArray((existing as any).contentBlocks) || (existing as any).contentBlocks.length === 0
+          const needsBody = !Array.isArray((existing as any).body) || (existing as any).body.length === 0
           if (needsFI && uploadedImage) patch.featuredImage = { ...uploadedImage, alt: altText }
           if (needsOG && uploadedImage) patch.seoOpenGraphImage = { ...uploadedImage, alt: altText }
-          if (Object.keys(patch).length) {
-            await sanity.patch(existing._id).set(patch).commit()
-          }
+          // Only fill content if missing to avoid clobbering manual edits
+          if (needsBlocks) patch.contentBlocks = blocks
+          if (needsBody) patch.body = bodyBlocks
+          if (Object.keys(patch).length) await sanity.patch(existing._id).set(patch).commit()
         } else {
           await sanity.createIfNotExists(doc as any)
         }
@@ -453,6 +461,7 @@ export async function GET(req: NextRequest) {
             `Overvejer du at skifte elaftale? Sammenlign [danske eludbydere](/el-udbydere) for at finde en aftale der passer til dit forbrug.`,
           ]
           const blocks = paragraphsToPortableText(paras)
+          const bodyBlocks = blocks.flatMap((b: any) => Array.isArray(b?.content) ? b.content : [])
           const readTime = Math.max(1, Math.ceil((title.split(/\s+/).length + paras.join(' ').split(/\s+/).length) / 200))
           const ogImageUrl = (await getUnsplashImage(`${kw} energi elpriser Danmark`, slug)) || getHashedFallbackImage(slug)
           const altText = `Illustration: ${title} – elpriser i Danmark`
@@ -461,7 +470,7 @@ export async function GET(req: NextRequest) {
             _type: 'blogPost', _id: `drafts.blogPost_${slug}`, title,
             slug: { _type: 'slug', current: slug }, type: 'Guide',
             description: `Kort guide om ${kw} og elpriser i Danmark.`,
-            contentBlocks: blocks, publishedDate: new Date().toISOString(),
+            contentBlocks: blocks, body: bodyBlocks, publishedDate: new Date().toISOString(),
             featured: false, readTime, primaryTopic: classifyTopic(kw) || undefined,
             sourceUrl: `gsc:query:${kw}`, tags: ['SEO', 'Keyword Research'],
             seoMetaTitle: title, seoMetaDescription: `Kort guide om ${kw}.`,

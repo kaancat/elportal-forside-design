@@ -87,7 +87,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   const priceText = isSidebar ? 'text-xl' : (density === 'compact' ? 'text-2xl' : 'text-3xl')
   const btnPad = isSidebar ? 'py-1.5 px-3 text-xs' : (density === 'compact' ? 'py-2 px-4 text-sm' : 'py-3 px-6')
 
-  // Sidebar: Ultra-compact vertical layout
+  // Sidebar: Ultra-compact horizontal layout
   if (isSidebar) {
     return (
       <div className={`rounded-lg overflow-hidden transition-all duration-200 ${product.isVindstoedProduct
@@ -98,52 +98,110 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
           <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-brand-green/60 via-brand-green to-brand-green/60"></div>
         )}
         <div className={pad}>
-          {/* Logo and title - horizontal */}
-          <div className="flex items-center gap-3 mb-2">
-            <div className={`flex-shrink-0 ${logoBox} flex items-center justify-center p-1.5 bg-white rounded-md border border-gray-100 shadow-sm relative`}>
-              <Image
-                src={resolveProviderLogoUrl(product.supplierName, product.supplierLogoURL) || '/placeholder.svg'}
-                alt={`${product.supplierName || 'Ukendt'} logo`}
-                className="object-contain"
-                fill
-                sizes="48px"
-                priority={priority}
-                loading={priority ? undefined : "lazy"}
-                placeholder="blur"
-                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjZjNmNGY2Ii8+PC9zdmc+"
-                onError={(e) => {
-                  const target = e.currentTarget as HTMLImageElement;
-                  target.src = '/placeholder.svg';
-                }}
-              />
+          {/* Header: Logo, title, and info buttons */}
+          <div className="flex items-start justify-between mb-2">
+            <div className="flex items-center gap-2.5 flex-1 min-w-0">
+              <div className={`flex-shrink-0 ${logoBox} flex items-center justify-center p-1.5 bg-white rounded-md border border-gray-100 shadow-sm relative`}>
+                <Image
+                  src={resolveProviderLogoUrl(product.supplierName, product.supplierLogoURL) || '/placeholder.svg'}
+                  alt={`${product.supplierName || 'Ukendt'} logo`}
+                  className="object-contain"
+                  fill
+                  sizes="48px"
+                  priority={priority}
+                  loading={priority ? undefined : "lazy"}
+                  placeholder="blur"
+                  blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjZjNmNGY2Ii8+PC9zdmc+"
+                  onError={(e) => {
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.src = '/placeholder.svg';
+                  }}
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                {product.isVindstoedProduct && (
+                  <Badge className="bg-brand-green text-white mb-1 font-semibold px-1.5 py-0 text-[9px]">
+                    ⭐ Anbefalet
+                  </Badge>
+                )}
+                <h3 className={`font-bold ${titleSize} text-brand-dark leading-tight`}>{product.productName || 'Ukendt produkt'}</h3>
+                <p className="text-[10px] text-gray-600 font-medium truncate">{product.supplierName || 'Ukendt leverandør'}</p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              {product.isVindstoedProduct && (
-                <Badge className="bg-brand-green text-white mb-1 font-semibold px-2 py-0 text-[10px]">
-                  ⭐ Anbefalet
-                </Badge>
-              )}
-              <h3 className={`font-bold ${titleSize} text-brand-dark leading-tight`}>{product.productName || 'Ukendt produkt'}</h3>
-              <p className="text-xs text-gray-600 font-medium truncate">{product.supplierName || 'Ukendt leverandør'}</p>
+            
+            {/* Info buttons in upper right */}
+            <div className="flex gap-1 ml-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="Beregning"
+                    className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-brand-green/10 text-brand-dark border border-brand-green/20 hover:bg-brand-green/20 transition-colors"
+                  >
+                    <Calculator className="h-3 w-3" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent sideOffset={8} align="end" className="max-w-xs text-sm">
+                  <div className="space-y-2">
+                    <p className="font-medium">Sådan beregner vi prisen</p>
+                    <ul className="list-disc pl-5 space-y-1 text-gray-700 text-xs">
+                      <li>Spotpris: måneds-gennemsnit {regionCode ? `(${regionCode}) ` : ''}fra Nord Pool</li>
+                      <li>Tillæg og abonnement: elpris.dk</li>
+                      <li>Beløb ekskl. nettariffer, afgifter, system/transmission og moms</li>
+                    </ul>
+                    <p className="text-[10px] text-gray-500">Priserne er estimater baseret på dit valgte forbrug.</p>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="Hvorfor viser vi disse priser?"
+                    className="inline-flex items-center justify-center h-6 w-6 rounded-full border border-[#a5e96d]/30 text-brand-dark bg-[#a5e96d]/20 hover:bg-[#a5e96d]/30 transition-colors"
+                  >
+                    <HelpCircle className="h-3 w-3" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent sideOffset={8} align="end" className="max-w-xs text-sm">
+                  <div className="space-y-2">
+                    <p className="font-semibold text-xs">Hvorfor ser prisen sådan ud?</p>
+                    <div className="space-y-1 text-gray-700 text-xs">
+                      <p>Din regning består overvejende af <strong>obligatoriske</strong> ting: nettariffer og afgifter til staten.</p>
+                      <p>Derfor sammenligner vi kun det, du kan påvirke ved at vælge leverandør:</p>
+                      <ul className="list-disc pl-4 space-y-0.5">
+                        <li>Elselskabets tillæg til spotpris</li>
+                        <li>Månedligt abonnement</li>
+                      </ul>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
-          {/* Price box */}
-          <div className={`bg-gradient-to-br from-brand-dark/5 to-gray-50 ${priceBoxPad} rounded-lg border border-gray-100 mb-2`}>
-            <div className="text-center">
-              <div className={`${priceText} font-bold text-brand-green mb-0.5`}>
-                {(pricingMode === 'simplified' ? simplifiedMonthly : fullEstimatedMonthly).toFixed(0)} kr
+          {/* Horizontal pricing layout */}
+          <div className="flex items-center justify-between gap-3 mb-2">
+            {/* Monthly price - left side */}
+            <div className="flex-1">
+              <div className="text-center bg-gradient-to-br from-brand-dark/5 to-gray-50 rounded-lg border border-gray-100 px-3 py-2">
+                <div className={`${priceText} font-bold text-brand-green mb-0.5`}>
+                  {(pricingMode === 'simplified' ? simplifiedMonthly : fullEstimatedMonthly).toFixed(0)} kr
+                </div>
+                <div className="text-[9px] text-gray-600">pr. måned</div>
               </div>
-              <div className="text-[10px] text-gray-600 mb-0.5">
-                pr. måned
-              </div>
-              <div className="text-[10px] text-brand-dark font-semibold">
-                {pricingMode === 'simplified' 
-                  ? `${simplifiedKrPerKwh.toFixed(2)} kr/kWh` 
-                  : `${fullPricePerKwh.toFixed(2)} kr/kWh`}
-              </div>
-              <div className="text-[9px] text-gray-500 mt-0.5">
-                Abonnement: {monthlySub.toFixed(0)} kr
+            </div>
+
+            {/* Price per kWh - right side */}
+            <div className="flex-1">
+              <div className="text-center bg-gradient-to-br from-brand-dark/5 to-gray-50 rounded-lg border border-gray-100 px-3 py-2">
+                <div className="text-sm font-bold text-brand-dark mb-0.5">
+                  {pricingMode === 'simplified' 
+                    ? `${simplifiedKrPerKwh.toFixed(2)} kr/kWh` 
+                    : `${fullPricePerKwh.toFixed(2)} kr/kWh`}
+                </div>
+                <div className="text-[9px] text-gray-600">Abonnement: {monthlySub.toFixed(0)} kr</div>
               </div>
             </div>
           </div>
@@ -175,8 +233,8 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
             </Button>
           )}
 
-          {/* Minimal source disclaimer */}
-          <div className="text-[9px] text-gray-500 leading-tight mt-1.5 text-center">
+          {/* Compact source disclaimer */}
+          <div className="text-[8px] text-gray-500 leading-tight mt-1 text-center">
             Kilde: elpris.dk & Nord Pool
           </div>
         </div>

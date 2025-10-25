@@ -275,7 +275,7 @@ Hvis IKKE alle 4 er JA, tilføj links NU!`
     let jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/) || responseText.match(/```\s*([\s\S]*?)\s*```/)
     const jsonText = jsonMatch ? jsonMatch[1] : responseText
 
-    const parsed = JSON.parse(jsonText.trim())
+    let parsed = JSON.parse(jsonText.trim())
 
     // Log the parsed structure for debugging
     console.log('[AI] Parsed sections count:', parsed.sections?.length || 0)

@@ -170,8 +170,9 @@ KRAV:
 ${JSON.stringify(outline)}
 
 KRAV:
-- Minimum ${minWords} ord totalt (samlet) og brug meningsfulde H2-overskrifter (ikke generiske) for hver sektion
-- 4–8 sektioner med 1–3 naturligt lange afsnit hver (ingen faste ordtal)
+- ${buildGuidelinePrompt({ minWords })}
+- Minimum ${minWords} ord i alt.
+- Brug meningsfulde H2-overskrifter hvor det giver mening (ingen faste labels).
 - Indsæt links i markdown-format (naturligt i teksten):
   - Mindst 2 links til [de aktuelle elpriser](/elpriser)
   - Mindst 1 link til [sammenlign danske eludbydere](/el-udbydere)
@@ -209,7 +210,7 @@ Returner KUN JSON:
 
   // Length top-up: ask model to extend content with "Historik & Baggrund" and more examples if short
   if (!ok && totalWords < minWords) {
-    const topupUser = `FORLÆNG artiklen nedenfor, behold samme struktur og stil. Læg særligt vægt på at tilføje en H2-sektion "Historik & baggrund" med 1–2 afsnit og uddybe med konkrete eksempler. Sørg for mindst 2 eksterne officielle kilder i Kilder-sektionen. Returner KUN JSON i samme struktur.
+    const topupUser = `FORLÆNG artiklen nedenfor, behold tone og struktur. Uddyb baggrund og konsekvenser for forbrugere med konkrete eksempler og fakta. Sørg for at inkludere mindst 2 officielle eksterne kilder naturligt i teksten eller som afsluttende kildeangivelse. Brug H2-overskrifter hvor det giver mening. Returner KUN JSON i samme struktur.
 ${JSON.stringify(parsed)}`
     if (type === 'openai') {
       const r2 = await client.chat.completions.create({ model: 'gpt-4o', temperature: 0.6, response_format: { type: 'json_object' }, messages: [
@@ -305,18 +306,20 @@ function polishArticle(keyword: string, data: { title?: string; description?: st
   }
   ensureCta()
 
-  // Ensure there is a sources section with at least 2 external links
+  // Ensure der er mindst 2 eksterne kilder i teksten; hvis ikke, tilføj en enkel kilde-linje som sidste afsnit (uden fast overskrift)
   const ensureSources = () => {
     const topic = classifyTopic(keyword) || keyword
     const sources = getExternalSources(topic)
-    const existing = sections.find(s => /kilde|kilder/i.test(String(s.heading||'')))
     const links = sources.slice(0, 3).map(s => `[${s.name}](${s.url})`)
     const para = `Kilder: ${links.join(', ')}`
-    if (existing) {
-      const hasAny = (existing.paragraphs||[]).some((p:string)=>/\]\(http/i.test(p))
-      if (!hasAny) existing.paragraphs = [...(existing.paragraphs||[]), para]
-    } else {
-      sections.push({ heading: 'Kilder & links', paragraphs: [para] })
+    const hasExternal = sections.some(s => (s.paragraphs||[]).some((p:string)=>/https?:\/\//i.test(p)))
+    if (!hasExternal) {
+      if (sections.length > 0) {
+        const last = sections[sections.length - 1]
+        last.paragraphs = [...(last.paragraphs||[]), para]
+      } else {
+        sections.push({ paragraphs: [para] })
+      }
     }
   }
   ensureSources()

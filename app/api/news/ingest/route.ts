@@ -8,6 +8,7 @@ import { createClient } from '@sanity/client'
 import Anthropic from '@anthropic-ai/sdk'
 import OpenAI from 'openai'
 import { runSourcePipeline } from '@/server/newsPipeline'
+import { formatTitleSentenceCase } from '@/server/newsFormatter'
 
 const FEED_URL = 'https://www.kefm.dk/handlers/DynamicRss.ashx?id=76163fac-6c0a-4edb-8e6e-86a4dcf36bd4'
 
@@ -790,7 +791,7 @@ async function createDraftFromFeedItem(item: any, opts?: { force?: boolean; minW
   })
 
   const draft = {
-    title: pipelineOut.draft.title || (item.title || 'Nyhed'),
+    title: formatTitleSentenceCase(pipelineOut.draft.title || (item.title || 'Nyhed')),
     description: pipelineOut.draft.description || `Guide til ${(item.title || 'nyhed')}`,
     blocks: pipelineOut.contentBlocks,
   }
@@ -834,7 +835,7 @@ async function createDraftFromFeedItem(item: any, opts?: { force?: boolean; minW
   // Create as draft for manual publishing workflow
   const doc = {
     _type: 'blogPost',
-    _id: `drafts.blogPost_${slug}`,
+    _id: `blogPost_${slug}`,
     title: draft.title,
     slug: { _type: 'slug', current: slug },
     type: 'Blog',
@@ -851,7 +852,7 @@ async function createDraftFromFeedItem(item: any, opts?: { force?: boolean; minW
     seoMetaDescription: draft.description,
   }
 
-  const created = await sanity.createIfNotExists(doc as any)
+  const created = await sanity.createOrReplace(doc as any)
   seen.add(canonical || guid)
   return { createdId: created._id, slug }
 }

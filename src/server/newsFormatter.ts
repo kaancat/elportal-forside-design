@@ -70,3 +70,19 @@ export function estimateReadTimeFromBlocks(bodyBlocks: any[]): number {
   const words = bodyBlocks.reduce((sum, b) => sum + (Array.isArray(b?.children) ? b.children.reduce((s: number, c: any) => s + (c?.text ? String(c.text).split(/\s+/).filter(Boolean).length : 0), 0) : 0), 0);
   return Math.max(1, Math.ceil(words / 200));
 }
+
+// Format titles so only the first letter is capitalized (sentence case),
+// while preserving common uppercase abbreviations (EU, DK1/DK2, CO2, kWh, etc.).
+export function formatTitleSentenceCase(input?: string): string {
+  if (!input) return ''
+  const keepUpper = new Set(['EU', 'DK1', 'DK2', 'CO2', 'kWh', 'kW', 'MW', 'MWh', 'GWh', 'PtX', 'EV', 'V2G'])
+  // Trim and collapse spaces
+  let s = input.trim().replace(/\s+/g, ' ')
+  // Make sentence case naive baseline
+  s = s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
+  // Restore known uppercase tokens
+  s = s.split(/(\b)/).map(tok => keepUpper.has(tok.toUpperCase()) ? tok.toUpperCase() : tok).join('')
+  // Preserve all-caps alphanumerics with digits (e.g., DK1, 2025) and tokens >=3
+  s = s.replace(/\b([A-Z]{2,}\d*|\d+[A-Z]+)\b/gi, (m) => m.toUpperCase())
+  return s
+}

@@ -331,18 +331,29 @@ export async function GET(req: NextRequest) {
     const startDate = start.toISOString().slice(0, 10)
     const endDate = end.toISOString().slice(0, 10)
 
-    const rows = await fetchGSCQueries(siteUrl, startDate, endDate, 200)
-
-    // Heuristics: high impressions, opportunity on CTR/position, informational intent
-    const EXCLUDE = [/vindst[øo]d/i, /dinelportal/i]
-    const isInfo = (q: string) => /hvordan|hvad|hvorfor|guide|råd|tips|elpris|elpriser|kwh|afgift|tarif|vind|sol|co2/i.test(q)
-
-    const candidates = rows
-      .filter(r => r.query && r.impressions >= 80 && r.position <= 20 && r.ctr <= 0.06)
-      .filter(r => !EXCLUDE.some(rx => rx.test(r.query)))
-      .filter(r => isInfo(r.query))
-      .sort((a, b) => (b.impressions * (1 - b.ctr)) - (a.impressions * (1 - a.ctr)))
-      .slice(0, 50)
+    let candidates: Array<{ query: string; impressions?: number; ctr?: number; position?: number }> = []
+    try {
+      const rows = await fetchGSCQueries(siteUrl, startDate, endDate, 200)
+      const EXCLUDE = [/vindst[øo]d/i, /dinelportal/i]
+      const isInfo = (q: string) => /hvordan|hvad|hvorfor|guide|råd|tips|elpris|elpriser|kwh|afgift|tarif|vind|sol|co2/i.test(q)
+      candidates = rows
+        .filter(r => r.query && r.impressions >= 80 && r.position <= 20 && r.ctr <= 0.06)
+        .filter(r => !EXCLUDE.some(rx => rx.test(r.query)))
+        .filter(r => isInfo(r.query))
+        .sort((a, b) => (b.impressions * (1 - b.ctr)) - (a.impressions * (1 - a.ctr)))
+        .slice(0, 50)
+    } catch (err: any) {
+      // Fallback when GSC is not authorized/available
+      console.warn('[GSC] Fallback to curated seeds:', err?.message || String(err))
+      const seeds = [
+        'elpriser i dag',
+        'nettariffer 2025',
+        'vindenergi i danmark',
+        'solceller og elregning',
+        'grøn strøm betydning for priser',
+      ]
+      candidates = seeds.map(s => ({ query: s }))
+    }
 
     const sanity = getSanityClient()
     const existing: Array<{ title: string; slug: string }> = await sanity.fetch(`*[_type=="blogPost"]{ title, "slug": slug.current }`)

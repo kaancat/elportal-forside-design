@@ -206,7 +206,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 url: `${SITE_URL}/logo.png`,
             },
         },
-        image: post.featuredImage?.asset?.url || `${SITE_URL}/og-image.png`,
+        image: imageUrl || `${SITE_URL}/og-image.png`,
         mainEntityOfPage: {
             '@type': 'WebPage',
             '@id': canonicalUrl(`/nyheder/${slug}`),

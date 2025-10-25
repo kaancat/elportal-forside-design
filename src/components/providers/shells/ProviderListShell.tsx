@@ -10,9 +10,11 @@ import { formatCurrency } from '@/utils/date-formatter'
 interface ProviderListShellProps {
   block: ProviderListBlock
   fallbackSpotPrice?: number
+  variant?: 'default' | 'sidebar'
+  className?: string
 }
 
-export function ProviderListShell({ block, fallbackSpotPrice }: ProviderListShellProps) {
+export function ProviderListShell({ block, fallbackSpotPrice, variant = 'default', className = '' }: ProviderListShellProps) {
   // Safety check
   if (!block || !block.providers) {
     return (
@@ -32,17 +34,31 @@ export function ProviderListShell({ block, fallbackSpotPrice }: ProviderListShel
   const title = block.title || 'Sammenlign elselskaber'
   const subtitle = block.subtitle || 'Find det bedste elselskab til din bolig'
 
+  const containerCls = variant === 'sidebar'
+    ? `w-full ${className}`
+    : `max-w-6xl mx-auto px-4 py-8 ${className}`
+
   return (
-    <section className="max-w-6xl mx-auto px-4 py-8">
+    <section className={containerCls}>
       {/* SEO-friendly header */}
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900">{title}</h2>
-        {subtitle && (
-          <p className="text-lg text-gray-600 mt-2">{subtitle}</p>
-        )}
-      </div>
+      {variant === 'default' ? (
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-900">{title}</h2>
+          {subtitle && (
+            <p className="text-lg text-gray-600 mt-2">{subtitle}</p>
+          )}
+        </div>
+      ) : (
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+          {subtitle && (
+            <p className="text-sm text-gray-600 mt-1">{subtitle}</p>
+          )}
+        </div>
+      )}
 
       {/* Provider count and region info */}
+      {variant === 'default' && (
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
         <p className="text-sm text-blue-900">
           Vi sammenligner {providers.length} elselskaber for dig. 
@@ -54,27 +70,28 @@ export function ProviderListShell({ block, fallbackSpotPrice }: ProviderListShel
           </p>
         )}
       </div>
+      )}
 
       {/* Static provider list for SEO */}
       <div className="space-y-4">
-        {providers.slice(0, 5).map((provider: any, index: number) => (
+        {providers.slice(0, variant === 'sidebar' ? 3 : 5).map((provider: any, index: number) => (
           <article 
             key={provider.id || provider._id || index}
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+            className={`bg-white rounded-lg shadow-sm border border-gray-200 ${variant === 'sidebar' ? 'p-4' : 'p-6'}`}
             itemScope
             itemType="https://schema.org/Product"
           >
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
               <div className="flex-1">
-                <h3 className="text-xl font-semibold text-gray-900" itemProp="name">
+                <h3 className={`${variant === 'sidebar' ? 'text-base' : 'text-xl'} font-semibold text-gray-900`} itemProp="name">
                   {provider.providerName || 'Ukendt udbyder'}
                 </h3>
                 {provider.productName && (
-                  <p className="text-gray-600 mt-1">{provider.productName}</p>
+                  <p className={`${variant === 'sidebar' ? 'text-xs' : 'text-gray-600'} mt-1`}>{provider.productName}</p>
                 )}
                 
                 {/* Product features */}
-                <div className="flex flex-wrap gap-2 mt-3">
+                <div className={`flex flex-wrap gap-2 mt-3 ${variant === 'sidebar' ? 'text-xs' : ''}`}>
                   {provider.isGreen && (
                     <span className="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
                       100% Grøn energi
@@ -99,7 +116,7 @@ export function ProviderListShell({ block, fallbackSpotPrice }: ProviderListShel
                   {provider.monthlyFee !== undefined && (
                     <div className="mb-2">
                       <span className="text-sm text-gray-500">Abonnement:</span>
-                      <span className="ml-2 text-lg font-semibold" itemProp="price">
+                      <span className={`ml-2 ${variant === 'sidebar' ? 'text-base' : 'text-lg'} font-semibold`} itemProp="price">
                         {formatCurrency(provider.monthlyFee)}/md
                       </span>
                       <meta itemProp="priceCurrency" content="DKK" />
@@ -108,7 +125,7 @@ export function ProviderListShell({ block, fallbackSpotPrice }: ProviderListShel
                   {provider.spotPriceFee !== undefined && (
                     <div>
                       <span className="text-sm text-gray-500">Tillæg:</span>
-                      <span className="ml-2 text-lg font-semibold">
+                      <span className={`ml-2 ${variant === 'sidebar' ? 'text-base' : 'text-lg'} font-semibold`}>
                         {(provider.spotPriceFee * 100).toFixed(2)} øre/kWh
                       </span>
                     </div>
@@ -117,7 +134,7 @@ export function ProviderListShell({ block, fallbackSpotPrice }: ProviderListShel
                 
                 {/* CTA button placeholder */}
                 <div className="mt-3">
-                  <div className="inline-block px-4 py-2 bg-brand-green text-white font-medium rounded-lg">
+                  <div className={`inline-block ${variant === 'sidebar' ? 'px-3 py-1.5 text-sm' : 'px-4 py-2'} bg-brand-green text-white font-medium rounded-lg`}>
                     Se mere →
                   </div>
                 </div>
@@ -138,7 +155,7 @@ export function ProviderListShell({ block, fallbackSpotPrice }: ProviderListShel
       </div>
 
       {/* Show more providers message */}
-      {providers.length > 5 && (
+      {variant === 'default' && providers.length > 5 && (
         <div className="text-center mt-6">
           <p className="text-gray-600">
             + {providers.length - 5} flere elselskaber tilgængelige
@@ -147,6 +164,7 @@ export function ProviderListShell({ block, fallbackSpotPrice }: ProviderListShel
       )}
 
       {/* SEO-friendly footer content */}
+      {variant === 'default' && (
       <div className="mt-8 p-6 bg-gray-50 rounded-lg">
         <h3 className="text-lg font-semibold mb-3">Om vores sammenligning</h3>
         <div className="space-y-2 text-sm text-gray-600">
@@ -164,6 +182,7 @@ export function ProviderListShell({ block, fallbackSpotPrice }: ProviderListShel
           </p>
         </div>
       </div>
+      )}
 
       {/* Structured data for SEO */}
       <script
@@ -175,7 +194,7 @@ export function ProviderListShell({ block, fallbackSpotPrice }: ProviderListShel
             name: title,
             description: subtitle,
             numberOfItems: providers.length,
-            itemListElement: providers.slice(0, 5).map((provider: any, index: number) => ({
+            itemListElement: providers.slice(0, variant === 'sidebar' ? 3 : 5).map((provider: any, index: number) => ({
               '@type': 'ListItem',
               position: index + 1,
               item: {

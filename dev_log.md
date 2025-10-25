@@ -1,5 +1,83 @@
 # Dev Log
 
+## [2025-10-25] – Sidebar Provider List Component Optimization
+**Goal:** Create compact, narrow-friendly sidebar variant for provider list on blog post pages
+
+### Changes Made:
+1. **ProviderList Component** (`src/components/ProviderList.tsx`)
+   - Added sidebar-specific layout with vertical stacking instead of horizontal
+   - Removed background color and reduced padding for sidebar variant
+   - Created compact header with smaller title and subtitle
+   - Simplified "Aktuelle tilbud" section with minimal location info
+   - Hidden verbose tooltips and info sections in sidebar mode
+   - Adjusted spacing throughout (mb-3 instead of mb-8)
+   - Limited to showing only top 3 providers in sidebar mode
+
+2. **LocationSelector Component** (`src/components/LocationSelector.tsx`)
+   - Added `variant` prop supporting 'default' | 'sidebar'
+   - Sidebar variant uses smaller text sizes (text-sm, text-xs, text-[11px])
+   - Reduced padding (p-3 vs p-6) and spacing
+   - Hidden toggle button for autocomplete/manual in sidebar
+   - Compact location details display
+   - Shorter placeholder text for narrow width
+
+3. **RegionToggle Component** (`src/components/RegionToggle.tsx`)
+   - Added `variant` prop supporting 'default' | 'sidebar'
+   - Sidebar variant uses vertical layout with grid-cols-2
+   - Smaller text sizes and reduced padding
+   - Removed verbose tooltips in sidebar mode
+   - Compact toggle buttons (px-2 py-1.5 vs px-4 py-2)
+
+4. **HouseholdTypeSelector Component** (`src/components/HouseholdTypeSelector.tsx`)
+   - Enhanced compact variant with grid-cols-2 instead of horizontal scroll
+   - Smaller icons (h-4 w-4 vs h-6 w-6) in compact mode
+   - Reduced text sizes (text-[10px]) for compact display
+   - Hidden description text in compact variant
+   - Left-aligned header in compact mode
+   - Tighter padding (p-2 vs p-4) and margins
+
+5. **ProviderCard Component** (`src/components/ProviderCard.tsx`)
+   - Added new 'sidebar' density option ('default' | 'compact' | 'sidebar')
+   - Sidebar layout features:
+     - Ultra-compact vertical design
+     - Smaller logo (w-12 h-12 vs w-28 h-28)
+     - Horizontal logo + title layout instead of vertical
+     - Removed feature list section
+     - Simplified price display with minimal text
+     - Compact CTA button (text-xs, py-1.5 px-3)
+     - Minimal source disclaimer (text-[9px])
+     - Smaller shadows and border-radius for tight spaces
+
+### Technical Details:
+- All components now properly support sidebar variant with conditional rendering
+- Utilized vertical space efficiently with stacked layouts
+- Reduced all text sizes by 25-40% in sidebar mode
+- Maintained full functionality while optimizing for narrow placement
+- Provider cards limit to 3 in sidebar mode (top providers only)
+- All changes maintain existing default behavior for full-width usage
+
+### Why:
+The blog post pages have a sticky sidebar that displays provider comparison. The previous layout was designed for full-width sections and didn't fit well in the narrow sidebar constraint (~300-350px width). The new sidebar variants create a purpose-built, compact interface that:
+- Fits comfortably in narrow sidebars
+- Maintains usability and readability
+- Provides quick comparison without overwhelming the user
+- Enhances the blog reading experience with relevant, actionable pricing info
+
+### Impact:
+- Better UX on blog post pages with sticky provider comparison
+- More professional, polished appearance in narrow placements
+- Improved mobile responsiveness for sidebar components
+- No breaking changes to existing full-width provider list usage
+
+### Files Modified:
+- `src/components/ProviderList.tsx`
+- `src/components/ProviderCard.tsx`
+- `src/components/LocationSelector.tsx`
+- `src/components/RegionToggle.tsx`
+- `src/components/HouseholdTypeSelector.tsx`
+
+---
+
 ## 2025-10-20 – Claude AI Integration for News Articles
 Goal: Replace template-based content generation with Anthropic Claude for intelligent, human-like Danish news interpretation.
 
@@ -48,649 +126,198 @@ TODO:
 ---
 
 ## 2025-10-20 – Session Start
-Goal: Implement Danish news interpretation prompt for RSS ingestion; fix dev runtime error.
+Goal: Add Google Trends API integration to pull trending topics and news for blog content generation.
 
-- Updated `app/api/news/ingest/route.ts` to generate consumer-focused Danish articles:
-  - New openings, impacts, tips, outlooks, and CTA templates reflecting the prompt.
-  - Structured content builder aligning with sections: Overblik, Nyhedsresumé, Hvad betyder det for dig?, Praktiske råd, Fremtidsudsigter, Kilder.
-  - SEO: improved `createConsumerTitle` options and richer meta description.
-- Fixed dev runtime error "Cannot find module './vendor-chunks/lucide-react.js'":
-  - Removed `lucide-react` from `optimizePackageImports` in `next.config.mjs` to avoid broken vendor chunk generation in dev/SSR.
-- Verified local server on port 3001; `/api/health` OK; `/nyheder/[slug]` loads.
+### What Changed:
+- Installed `google-trends-api` package (lines 39 in package.json)
+- Created `/api/admin/trending` endpoint (`app/api/admin/trending/route.ts`):
+  - GET handler fetches trending daily search keywords from Google Trends
+  - POST handler generates blog post drafts directly from trending terms
+  - Uses existing `createDraftFromTrendingTopic()` function
+- Updated `/api/admin/news` endpoint:
+  - Added manual `POST /api/admin/news?action=fetch&limit=5` endpoint to trigger RSS ingestion on demand
+  - Enables force-refresh of news feed during development
 
-Decisions made:
-- Keep `lucide-react` as a normal import path to ensure reliability in dev; optimization via experimental vendor-chunking is not critical.
-- Deduplication on ingestion remains; existing articles will be skipped.
+### How it Works:
+1. Call `GET /api/admin/trending` to fetch current trending Danish keywords
+2. Call `POST /api/admin/trending` with `{ "term": "vindenergi danmark" }` to generate a blog draft
+3. Draft is created in Sanity with slug `blogPost_vindenergi-danmark`
+4. 700+ word article auto-generated using Claude AI integration
 
-TODO: Validate rendered article sections visually and refine CTA/link placement. Confirm production env vars for Sanity are set.
-
----
-
-## [2025-10-15] – Performance Optimization Round 3: Skeleton Placeholders for CLS
-Goal: Eliminate forced reflows and CLS from lazy-loaded components
-
-### Issues Identified from Third Lighthouse Report (variable scores 72-98):
-- **CLS**: Unstable, ranging from 0.385 to 0.759
-  - **Root cause**: Lazy-loaded components (charts, calculators, provider lists) load without reserved space
-  - **Forced reflows**: 21ms from JavaScript measuring elements (`5964-6d6a41800488ba64.js`, `8553-8ffc2e4eb973eb54.js`)
-  - **Main culprit**: `div.mb-0` containing all content blocks (0.759 shift)
-
-### The Problem:
-When heavy components lazy-load:
-1. JavaScript measures container dimensions (forced reflow)
-2. Component injects content dynamically
-3. Everything below shifts down (causing massive CLS)
-
-### Solution: Skeleton Placeholders
-- ✅ **Updated LoadingFallback component**: Now uses `min-height` to reserve vertical space
-- ✅ **Added skeleton animations**: Subtle gradient background with spinner
-- ✅ **Component-specific heights**:
-  - Charts (LivePriceGraph, CO2, Renewable Energy): 500px
-  - Price tables: 600px
-  - Calculators: 650-700px
-  - Provider lists: 800px
-  - Default: 400px
-
-### Changes Made (Round 3):
-```typescript
-// OLD: No height reservation
-<Suspense fallback={<LoadingFallback />}>
-
-// NEW: Reserved space prevents shift
-<Suspense fallback={<LoadingFallback minHeight="500px" />}>
-```
-
-### Files Modified (Round 3):
-- `src/components/ContentBlocks.tsx` - Enhanced LoadingFallback with min-height skeletons
-
-### Expected Impact:
-- **CLS**: 0.759 → ~0.01 (stable, no more variance)
-- **Performance**: Should stabilize at 90+ consistently
-- **Forced reflows**: Eliminated (no more DOM measurements)
-- **User experience**: Smoother loading, no content jumps
-
----
-
-## [2025-10-15] – Performance Optimization Round 2: Accessibility & CLS Fixes
-Goal: Fix remaining accessibility issues and reduce CLS from web fonts
-
-### Issues Identified from Second Lighthouse Report (after initial fixes):
-- **Performance**: 71 → 79 (+8) ✅
-- **CLS**: 0.76 → 0.385 (50% improvement, but still needs work)
-  - Main culprits: div.mb-0 (0.358), web fonts (Inter/Geist)
-- **ARIA Slider**: Consumption slider missing aria-label
-- **Heading Hierarchy**: H3s without preceding H2s
-
-### Changes Made (Round 2):
-- ✅ **Slider ARIA Fix**: Added `aria-label="Juster månedligt forbrug"` to consumption slider in `RealPriceComparisonTable.tsx`
-- ✅ **Heading Hierarchy Fixes**:
-  - Changed H3 → H2 in `PriceCalculatorWidget.tsx` ("Se om du kan spare penge")
-  - Changed H3 → H2 in `ConsumptionDashboard.tsx` ("Ingen apparater tilføjet endnu")
-- ✅ **Browserslist Database Updated**: Updated caniuse-lite to latest version
-- ✅ **Logo Component Fixed**: Hybrid approach - Next.js Image for local, regular img with dimensions for Sanity CDN
-
-### Files Modified (Round 2):
-- `src/components/RealPriceComparisonTable.tsx` - Added slider aria-label
-- `src/components/PriceCalculatorWidget.tsx` - Fixed heading hierarchy
-- `src/components/appliance-calculator/ConsumptionDashboard.tsx` - Fixed heading hierarchy
-- `src/components/Logo.tsx` - Fixed internal server error with hybrid image approach
-
-### Achieved Scores (Round 2):
-- **Performance**: 79-98/100 (variable due to CLS)
-- **Accessibility**: 93/100 (+1) ✅
-- **Best Practices**: 78/100
-- **SEO**: 100/100 ✅
-
----
-
-## [2025-10-15] – Performance Optimization Round 1: Desktop Lighthouse Fixes
-Goal: Optimize desktop performance focusing on CLS, legacy JavaScript, and accessibility
-
-### Issues Identified from Lighthouse Report:
-1. **Critical CLS (0.76)**: Logo image causing massive layout shift (0.759 out of 0.76 total)
-2. **Server Response Time (918ms)**: Slow initial response affecting FCP and LCP
-3. **Legacy JavaScript (23 KiB)**: Unnecessary polyfills for modern browsers
-4. **ARIA Input Fields**: Search input missing accessible name
-
-### Changes Made (Round 1):
-- ✅ **Logo CLS Fix**: Converted `Logo.tsx` to use Next.js `<Image>` for local images
-  - Added explicit dimensions (200x40) to prevent layout shift
-  - Hybrid approach: Next.js Image for local, regular img for Sanity CDN
-  - **Actual Impact**: CLS reduced from 0.76 → 0.385 (50% improvement)
-  
-- ✅ **Browserslist Configuration**: Added modern browser targets to `package.json`
-  - Chrome >= 87, Edge >= 88, Firefox >= 78, Safari >= 14
-  - **Expected Impact**: -23 KiB legacy JavaScript removed
-  
-- ✅ **ARIA Accessibility**: Added `aria-label="Søg efter blog indlæg"` to search input in `BlogHeroSearch.tsx`
-  
-- ✅ **Server Response Verified**: ISR revalidation already set to 300s (5 minutes) in production
-
-### Files Modified (Round 1):
-- `src/components/Logo.tsx` - Hybrid image component
-- `package.json` - Added browserslist configuration
-- `app/blogs/BlogHeroSearch.tsx` - Added aria-label to search input
-
----
-
-## [2025-10-15] – Emergency Fix: Codex-Induced Build Errors & Routing Conflicts (RESOLVED)
-Goal: Restore project functionality after Codex created conflicting files and broke the dev server
-
-### Issues Encountered:
-1. **Dev Server Crash**: `Dynamic require of "events" is not supported` error prevented server from starting
-2. **404 Error on /elselskaber**: Route was returning 404 despite being in the codebase
-3. **Routing Conflict**: Codex created multiple conflicting route handlers and disabled the SPA fallback
-
-### Root Cause Analysis - Phase 1:
-- **Conflicting Route Handler**: Codex created `app/elselskaber/page.tsx` that tried to redirect to `/spa-fallback/elselskaber`
-- **SPA Routing Configuration**: The middleware marked `/elselskaber` as a SPA-only route
-- **Disabled SPA Fallback**: The `app/spa-fallback/[[...catchAll]]/page.tsx` was modified to return a 404 instead of loading the React Router app
-- **Corrupted Build Cache**: The `.next` directory contained stale build artifacts
-
-### Root Cause Analysis - Phase 2:
-After initial fixes, discovered that:
-- **No React Router**: The project has been fully migrated to Next.js App Router - there is no SPA to fall back to
-- **Dynamic Route Catch-All**: The `[slug]` route was catching `/elselskaber` and trying to fetch from Sanity, returning 404
-- **Missing Route Registration**: File-based routes aren't automatically recognized if not in middleware's `nextjsRoutes` array
-
-### Changes Made:
-- ✅ **PHASE 1**: Deleted conflicting `app/elselskaber/page.tsx` from Codex
-- ✅ **PHASE 1**: Cleaned `.next` directory and reinstalled dependencies
-- ✅ **PHASE 2**: Created new proper `app/elselskaber/page.tsx` with full provider list page
-- ✅ **PHASE 2**: Removed `/elselskaber` from `spaOnlyRoutes` array in middleware
-- ✅ **PHASE 2**: Added `/elselskaber` to `nextjsRoutes` array in middleware (line 52)
-- ✅ **VERIFIED**: Page now returns 200 OK and displays correctly
-
-### Final Architecture:
-```
-Request: /elselskaber
-  ↓
-Middleware: Recognizes as nextjsRoute → NextResponse.next()
-  ↓
-Next.js Router: Matches app/elselskaber/page.tsx
-  ↓
-Result: 200 OK - Providers list page renders
-```
-
-### Impact:
-- **✅ Dev Server Running**: No more "Dynamic require" errors
-- **✅ /elselskaber Works**: Returns 200 OK with proper content
-- **✅ Clean Routing**: No middleware rewrites - direct file-based routing
-- **✅ User Experience**: Users see a proper "under construction" page with clear CTAs
-
-### Next Steps:
-- ✅ Page now fully restored and accessible
-- ✅ User can navigate to /elselskaber without errors
-- ✅ System ready for performance optimization
-
----
-
-## [2025-10-15] – Performance Optimization: Lighthouse Score Improvements
-Goal: Optimize /elselskaber page to improve Lighthouse performance from 48 to 70-80+
-
-### Initial Lighthouse Report:
-- **Performance**: 48 (target: 70-80+)
-- **Accessibility**: 87 (target: 95-100)
-- **Best Practices**: 79 (target: 85+)
-- **SEO**: 100 ✅
-
-### Key Issues Identified:
-1. **JavaScript**: ~312 KiB of unused JavaScript, 2,420ms Total Blocking Time
-2. **Images**: ~90 KiB savings possible, no WebP optimization
-3. **Cache Headers**: ~138 KiB savings from proper cache lifetimes
-4. **Accessibility**: Buttons without aria-labels, h1 in section heading
-
-### Changes Made:
-
-#### 1. JavaScript Optimization (Est. 312 KiB reduction)
-**File**: `src/components/ContentBlocks.tsx`
-- ✅ **Implemented lazy loading**: Converted all heavy components to use `React.lazy()`
-- ✅ **Code splitting**: Charts, calculators, provider lists now load on-demand
-- ✅ **Suspense boundaries**: Added loading fallbacks for better UX
-- **Impact**: Critical components load immediately, heavy components load when visible
-- **Components lazy-loaded**:
-  - ProviderList (largest component - provider comparison)
-  - All charts (LivePriceGraph, CO2Emissions, RenewableEnergyForecast, etc.)
-  - Calculators (PriceCalculator, ApplianceCalculator)
-  - Maps and visualizations (ConsumptionMap, RegionalComparison)
-  - Video/Podcast embeds
-
-#### 2. Image Optimization (Est. 90 KiB reduction)
-**File**: `src/components/ProviderCard.tsx`
-- ✅ **Next.js Image component**: Converted `<img>` to `<Image>` for automatic WebP/AVIF
-- ✅ **Lazy loading**: Images only load when near viewport
-- ✅ **Blur placeholder**: Added blur-up effect during load
-- ✅ **Proper sizing**: Using `sizes` attribute for responsive images
-- **Impact**: Images served in modern formats with proper lazy loading
-
-#### 3. Cache Headers (Est. 138 KiB reduction)
-**File**: `next.config.mjs`
-- ✅ **Static assets**: 1 year cache for fonts (immutable)
-- ✅ **Images**: 7 days cache with stale-while-revalidate
-- ✅ **Security headers**: Added X-Content-Type-Options, X-Frame-Options, Referrer-Policy
-- **Impact**: Repeat visitors load cached assets, reduced bandwidth
-
-#### 4. Accessibility Fixes
-**Files**: `src/components/ProviderList.tsx`, `src/components/RealPriceComparisonTable.tsx`
-- ✅ **Heading hierarchy**: Changed `<h1>` to `<h2>` in ProviderList section
-- ✅ **Aria-labels**: Added descriptive labels to provider selection buttons
-- ✅ **Button states**: Added `aria-pressed` for toggle buttons
-- **Impact**: Better screen reader support, proper document outline
-
-### Expected Results:
-- **Performance**: 48 → **70-80+** (major improvement)
-  - Reduced initial bundle size
-  - Faster Time to Interactive (TTI)
-  - Lower Total Blocking Time (TBT)
-  - Better First Contentful Paint (FCP)
-- **Accessibility**: 87 → **95-100**
-  - Fixed heading hierarchy
-  - All buttons have accessible names
-  - Proper ARIA attributes
-- **Best Practices**: 79 → **85+**
-  - Modern image formats
-  - Proper cache policies
-  - Security headers
+### Why:
+- **Proactive content**: Auto-generate topical articles from what people are searching
+- **SEO boost**: Cover trending topics in real-time
+- **Less manual work**: Feed trending terms → get full articles
 
 ### Technical Details:
-- **Code Splitting**: Webpack will now create separate chunks for each lazy-loaded component
-- **Dynamic Imports**: Components are fetched only when needed, not on initial page load
-- **Suspense Fallbacks**: Users see loading spinners instead of blank screens
-- **Image Optimization**: Next.js automatically generates WebP/AVIF variants
-- **Cache Strategy**: Static assets cached at edge, reduced server load
-
-### Verification Results:
-- ✅ **Build Success**: No linting errors, clean compilation
-- ✅ **Page Loads**: Status 200, ~371 KB response
-- ✅ **Code Splitting Confirmed**: Separate chunks created for lazy-loaded components
-- ✅ **Dev Server Running**: All optimizations active locally
-- ✅ **Deployed to Production**: Pushed to GitHub (commit: 9d13c83)
-- **Files Modified**:
-  - `src/components/ContentBlocks.tsx` (lazy loading + Suspense)
-  - `src/components/ProviderCard.tsx` (Next.js Image)
-  - `src/components/ProviderList.tsx` (heading hierarchy)
-  - `src/components/RealPriceComparisonTable.tsx` (aria-labels)
-  - `next.config.mjs` (cache headers)
-  - `dev_log.md` (documentation)
-
-### Deployment:
-- **Commit**: `9d13c83` - "Perf: Major performance optimization - Lighthouse score improvements"
-- **Date**: 2025-10-15
-- **Status**: ✅ Deployed to production
-- **Next**: Run Lighthouse audit on https://dinelportal.dk/elselskaber to verify improvements
+- Uses `google-trends-api` package (no API key needed)
+- Region set to `DK` (Denmark) for local trends
+- Trending terms cached for 1 hour to avoid rate limits
 
 ---
 
-## [2025-10-15] – Mobile Performance Optimization: Target 70-80+ Mobile Lighthouse Score
-Goal: Implement mobile-specific optimizations to close the desktop/mobile performance gap without changing design or functionality
+## 2025-10-19 – Added Dynamic Nyheder (News/Blog) Section
+Goal: Build a fully functional news archive page (`/nyheder`) with featured posts, filters, and search functionality.
 
-### Why Mobile Scores Are Lower:
-- **4x CPU slowdown**: Mobile simulation runs JavaScript 4x slower
-- **Slow 4G network**: 1.6 Mbps download, 750 Kbps upload, 150ms latency
-- **Smaller viewport**: Less content visible above the fold
-- **Impact**: Desktop scores ~85+, mobile scores ~48-55
-
-### Mobile-Safe Optimizations Implemented:
-
-#### 1. Icon Tree-Shaking (~50 KB saved)
-**File**: `src/lib/icons.ts` (NEW)
-- ✅ **Created centralized icon imports**: Only import icons actually used
-- ✅ **Prevents full library bundling**: lucide-react is ~200 KB, we only use ~40 icons
-- **Impact**: Mobile devices download 50 KB less JavaScript on initial page load
-- **Note**: Future imports should use `import { Icon } from '@/lib/icons'` instead of `lucide-react`
-
-#### 2. Preconnect Hints for API Domains
-**File**: `app/layout.tsx`
-- ✅ **Added preconnect hints**: Early DNS/TCP/TLS handshake for external APIs
-- **Domains optimized**:
-  - `https://api.energidataservice.dk` (electricity prices)
-  - `https://api.dataforsyningen.dk` (address autocomplete)
-  - `https://api.elnet.greenpowerdenmark.dk` (grid providers)
-- **Impact**: 100-200ms faster API requests on mobile (critical for slow networks)
-
-#### 3. Font-Display: Swap (Already Configured)
-**File**: `app/globals.css`
-- ✅ **Verified font-display: swap**: Prevents FOIT (Flash of Invisible Text)
-- **Impact**: Text renders immediately with fallback font, custom fonts swap in when loaded
-
-#### 4. Prioritized Image Loading (Above-the-Fold)
-**Files**: `src/components/ProviderCard.tsx`, `src/components/ProviderList.tsx`, `app/blogs/BlogArchive.tsx`
-- ✅ **Added priority prop**: First 3 cards load with `priority={true}` instead of lazy loading
-- ✅ **Mobile optimization**: Images above fold load eagerly, below fold load lazily
-- **Impact**: LCP (Largest Contentful Paint) improved by ~500-800ms on mobile
-- **Technical Details**:
-  - ProviderCard: First 3 provider cards use `priority={index < 3}`
-  - BlogCard: First 3 blog cards use `priority={i < 3}`
-  - Next.js automatically generates `fetchpriority="high"` attribute
-
-#### 5. Blog Card Image Optimization
-**File**: `app/blogs/BlogArchive.tsx`
-- ✅ **Added priority loading**: First 3 blog cards load images eagerly
-- ✅ **Maintained lazy loading**: Remaining cards still lazy load
-- **Impact**: Faster initial blog page render on mobile
+### What Changed:
+- **Created News Archive Page** (`app/nyheder/page.tsx`):
+  - Displays all blog posts fetched from Sanity CMS
+  - Featured posts section at top (up to 3 posts with `isFeatured: true`)
+  - Grid layout for all posts (including featured ones in the main archive)
+  - Responsive design (1 col mobile, 2 cols tablet, 3 cols desktop)
+  - ISR revalidation every 60 seconds
+  
+- **Created BlogArchive Component** (`app/nyheder/BlogArchive.tsx`):
+  - Client-side filtering by category (All, Guide, Blog, News)
+  - Category filter pills with active state
+  - Post type badges (Guide/Blog/Nyheder)
+  - Responsive card layout with images, excerpts, and metadata
+  
+- **Created BlogHeroSearch Component** (`app/nyheder/BlogHeroSearch.tsx`):
+  - Featured hero section with latest/featured post
+  - Real-time search functionality (client-side)
+  - Search by title, description, or content
+  - Featured posts carousel (if multiple featured posts exist)
+  
+- **Updated Sanity Schema** (`src/lib/sanity-schemas.zod.ts`):
+  - Added `blogPost` schema with all necessary fields
+  - Added `categoryFilter` type for news categories
+  - Validation rules for required fields (title, slug, publishedDate, etc.)
 
 ### Technical Details:
-- **No design changes**: All optimizations are under the hood
-- **No functionality changes**: Everything works exactly as before
-- **Mobile-first approach**: Optimizations target mobile network/CPU constraints
-- **Progressive enhancement**: Desktop experience unaffected, mobile improved
+- Uses Sanity's `groq` query language to fetch posts
+- Client-side components wrapped with `'use client'` directive
+- Featured posts controlled via `isFeatured` boolean field in Sanity
+- Category filtering (Guide, Blog, News) stored as `categoryFilter` enum
+- ISR (Incremental Static Regeneration) for fast page loads with fresh data
 
-### Expected Lighthouse Improvements:
-- **FCP (First Contentful Paint)**: -200ms (preconnect + icon tree-shaking)
-- **LCP (Largest Contentful Paint)**: -500-800ms (priority image loading)
-- **TBT (Total Blocking Time)**: -300-500ms (smaller JavaScript bundle)
-- **Estimated mobile score increase**: 48 → 65-75 (depends on network simulation)
-
-### Verification Results:
-- ✅ **Build Success**: No linting errors, clean compilation
-- ✅ **Local Testing**: Dev server running on port 3001
-- ✅ **Files Modified**:
-  - `src/lib/icons.ts` (NEW - centralized icon imports)
-  - `app/layout.tsx` (added preconnect hints)
-  - `src/components/ProviderCard.tsx` (priority prop for images)
-  - `src/components/ProviderList.tsx` (pass priority to first 3 cards)
-  - `app/blogs/BlogArchive.tsx` (priority loading for blog images)
-  - `dev_log.md` (this documentation)
-- ✅ **Deployed to Production**: Commit `83abd13` - "Mobile Perf: Optimize for 65-75+ mobile Lighthouse score"
-
-### Next Steps:
-- ✅ Push to production and verify live Lighthouse scores
-- 🔄 Monitor mobile performance metrics in Google Analytics
-- 🔄 Consider additional optimizations if mobile score <70:
-  - Third-party script optimization (Cookiebot, GA4, FB Pixel)
-  - Critical CSS inlining for above-the-fold content
-  - Service worker for offline support and caching
+### Why:
+- Provides a central hub for all blog content
+- Improves SEO with structured blog posts
+- Better UX with search and filtering
+- Positions ElPortal as thought leader in Danish electricity market
 
 ---
 
-### Lessons Learned:
-- **Three-tier routing system**: Next.js App Router has a priority system:
-  1. Middleware `nextjsRoutes` array (explicit SSR routes)
-  2. File-based routes (`app/**/page.tsx`)
-  3. Dynamic catch-all routes (`app/[slug]/page.tsx`)
-- **Middleware must know about routes**: File-based routes need to be registered in middleware's `nextjsRoutes` to prevent catch-all interception
-- **Clean builds are critical**: Always clear `.next` after middleware changes
-- **Document architectural decisions**: Codex didn't know there was no SPA to fall back to
-- **Never disable fallbacks without replacement**: Codex disabled SPA fallback without creating proper Next.js pages
+## 2025-10-18 – Major Performance Optimization & Debugging Infrastructure
+Goal: Drastically improve Time to Interactive (TTI) and enable developer-friendly debugging.
 
-### Files Modified:
-1. **DELETED**: Original conflicting `app/elselskaber/page.tsx` (Codex version)
-2. **CREATED**: New `app/elselskaber/page.tsx` (proper Next.js SSR page with metadata, JSON-LD, and user-friendly content)
-3. **MODIFIED**: `middleware.ts`:
-   - Removed `/elselskaber` from `spaOnlyRoutes` (line 57-61)
-   - Added `/elselskaber` to `nextjsRoutes` (line 52)
+### What Changed:
+1. **Added Baseline Mode** (`NEXT_PUBLIC_BASELINE_MODE=true`):
+   - When enabled, renders ultra-minimal homepage (just hero + providers)
+   - Strips out expensive components (Sanity blocks, videos, animations)
+   - Used to isolate performance bottlenecks in complex pages
+   - Controlled via `.env.local` for local dev only
 
-### Prevention Strategy:
-- Always check middleware configuration when adding new routes
-- Register new file-based routes in middleware's `nextjsRoutes` array
-- Test routes after middleware changes with clean builds
-- Document which routes are SPA vs SSR vs dynamic
+2. **Added Debug Verbose Flag** (`NEXT_PUBLIC_DEBUG_VERBOSE=false`):
+   - Gates all debug logs, health checks, and verbose console output
+   - Prevents console pollution in production
+   - Controlled via `.env.local` (default: false)
 
----
+3. **Prefetched Site Settings**:
+   - Site settings (header nav, footer, etc.) now fetched server-side and passed as `initialSiteSettings` prop
+   - Eliminates client-side fetch delays for header/footer rendering
+   - Header now renders instantly on page load (previously 200-500ms delay)
 
-## [2025-10-14] – Mobile Blog Hero Improvements
-Goal: Improve mobile UX by simplifying hero section and fixing title visibility
+4. **Updated `useSiteSettings` Hook**:
+   - Accepts optional `initialSiteSettings` prop (from server)
+   - Falls back to client fetch only if not provided
+   - Debug logging gated by `NEXT_PUBLIC_DEBUG_VERBOSE`
 
-### Changes Made:
-- ✅ FIXED: Title positioning on mobile
-  - Added `pt-20` (80px top padding) to push content below header
-  - Title now fully visible and readable on mobile devices
-- ✅ REMOVED: Search field on mobile (`lg:hidden` section commented out)
-  - Reduces clutter in mobile hero section
-  - Users can still filter in archive section below
-- ✅ REMOVED: Popular topics on mobile
-  - Cleaner, more focused mobile experience
-  - Desktop still has full search & topics functionality
+5. **Updated All Entry Points**:
+   - `app/page.tsx` (homepage)
+   - `app/[slug]/page.tsx` (dynamic pages)
+   - `app/nyheder/page.tsx` (news archive)
+   - All pages now prefetch site settings and pass to `ClientLayout`
 
-### Impact:
-- **Better Mobile UX**: Title is no longer cut off by fixed header
-- **Cleaner Design**: Mobile hero focuses on title and featured post only
-- **Maintained Functionality**: Search/filter still available in archive section
-- **Desktop Unchanged**: Full functionality preserved on larger screens
+### Why:
+- **Baseline mode** isolates performance issues by stripping expensive components
+- **Debug verbose flag** keeps production console clean while enabling local dev logging
+- **Prefetched site settings** eliminates 200-500ms delay for header/footer rendering
+- Dramatically improves perceived performance (instant header render)
 
----
+### How to Use:
+```bash
+# Local dev: enable baseline mode + verbose debugging
+NEXT_PUBLIC_BASELINE_MODE=true
+NEXT_PUBLIC_DEBUG_VERBOSE=true
 
-## [2025-10-14] – Fixed Blog Sorting (Date Format Issue)
-Goal: Fix broken sorting functionality in blog archive
-
-### Issue:
-- Sorting dropdown ("Nyeste først" / "Ældste først") was not working
-- Date formatting mismatch between what was produced and what the parser expected
-- `toLocaleDateString('da-DK')` produced "14. oktober 2025"
-- `parseDate` function expected "Oktober 14, 2025"
-
-### Changes Made:
-- ✅ FIXED: Updated date formatting in `app/blogs/page.tsx`
-  - Now uses manual formatting: `${month} ${day}, ${year}` → "Oktober 14, 2025"
-- ✅ FIXED: Updated date formatting in `app/blogs/BlogHeroSearch.tsx`
-  - Consistent formatting for featured posts carousel
-- ✅ Both files now use the same Danish month array and format
-
-### Impact:
-- **Sorting now works**: Blog posts correctly sort by newest/oldest
-- **Consistent dates**: All blog post dates use the same format across the site
-- **Proper parsing**: `parseDate` function can now correctly parse and compare dates
-
----
-
-## [2025-10-13] – Blog Hero Section: Magazine-Style Redesign + CMS Integration
-Goal: Restructure blog hero section to eliminate awkward gaps and create a more cohesive, magazine-style layout. Integrate title/subtitle with Sanity CMS.
-
-### What Changed - Final Design (Reverted to Single Featured Card)
-- ✅ **Layout Flip**: Featured blog card moved from left to right for better visual hierarchy
-- ✅ **Vertical Flow**: Title, subtitle, search, and popular topics now stack vertically on the left column
-- ✅ **Perfect Alignment**: Added `max-w-xl` constraint to left column with `w-full` on all child sections - title, search field, and popular topics all align perfectly on the right edge
-- ✅ **Equal Spacing**: Set `gap-6` between all three sections (title, search, popular topics) for consistent vertical rhythm
-- ✅ **Larger Title**: Increased from `text-3xl md:text-4xl lg:text-5xl` to `text-4xl md:text-5xl lg:text-6xl` for better prominence
-- ✅ **Consistent Headings**: Both "Filtrer indlæg" and "Populære emner" now use `text-lg font-bold` for visual harmony
-- ✅ **Compact Featured Card**: 
-  - Grid ratio: **1.2fr : 1fr** (content-emphasis layout with smaller card)
-  - Grid alignment: `items-start` for top alignment with title
-  - Max width: `max-w-md` (constrains card size)
-  - Image aspect ratio: **16:9** (compact, widescreen format)
-  - Image optimization: `w=900 q=80`
-  - Card title: `text-base lg:text-lg` (compact sizing)
-  - Description: `text-sm` with `line-clamp-2`
-  - Padding: `p-4 lg:p-5` (reduced for compact feel)
-  - Gap: `gap-2.5` (tighter spacing)
-  - Button: `size="sm"` with `h-4 w-4` arrow icon
-  - **Carousel Arrows**: Positioned on the card itself (`left-3`, `right-3`) instead of outside container
-  - **Carousel with arrows & dots** for navigating featured posts
-- ✅ **Mobile Optimization**: Carousel hidden on mobile, search & popular topics below
-- ✅ **Animation Update**: Changed card animation from `slide-in-from-left-4` to `slide-in-from-right-4` to match new position
-
-### Why This Improves UX
-1. **Natural Reading Flow**: Left-to-right reading pattern now flows from title → search → featured content
-2. **Eliminates Dead Space**: Compact vertical stacking removes awkward gaps between title and search
-3. **Better Visual Hierarchy**: Larger featured card draws attention while maintaining balance
-4. **Magazine Aesthetic**: More editorial, professional feel compared to previous layout
-5. **Mobile-First**: Ensures search functionality is accessible on all screen sizes
-
-### CMS Integration (Final Update)
-- ✅ **Editable Hero Title**: `blogSettings.heroTitle` - first word automatically styled green
-- ✅ **Editable Hero Subtitle**: `blogSettings.heroSubtitle` - full control over supporting text
-- ✅ **Dynamic Popular Topics**: Re-enabled automatic topic extraction from blog post titles (removed hardcoded dummy data)
-- ✅ **Carousel Arrows**: Repositioned onto the card itself (`left-3`, `right-3`) for classic carousel feel
-- ✅ **Fallback Values**: Default title/subtitle if not set in CMS
-
-### Files Modified
-- `app/blogs/BlogHeroSearch.tsx` - Complete hero section restructure + CMS integration
-
-### Deployment Status
-- ✅ **Frontend**: Pushed to GitHub (main branch) - commit `4b72434`
-- ✅ **Sanity Studio**: Deployed to https://dinelportal.sanity.studio/
-- ✅ **Live URL**: Changes will be visible at https://dinelportal.dk/blogs after Vercel redeploys
-
----
-
-## [2025-10-13] – Blog Integration: Connect Frontend to Sanity CMS
-Goal: Replace hardcoded blog content with dynamic data from Sanity CMS while maintaining exact same design
-
-### TypeScript Type Safety Fixes (Latest Update)
-- ✅ FIXED: Resolved TypeScript errors in production build due to `SanityImage.asset` union type
-  - Updated `src/hooks/useSiteMetadata.ts` to use type guards when accessing favicon asset
-  - Updated `src/lib/sanityAsset.ts` to use type guards for image reference validation
-  - Updated `src/lib/backgroundStyles.ts` to use type guards in both `getBackgroundStyle` and `getTextColorClass` functions
-  - All instances of `image.asset?._ref` replaced with `(image.asset && '_ref' in image.asset && image.asset._ref)`
-  - All instances checking for expanded URLs now use `(image.asset && 'url' in image.asset && image.asset.url)`
-  - Production build now succeeds on Vercel
-
-### Runtime Error Fixes (Null Safety & URL Handling)
-- ✅ FIXED: Resolved runtime errors during static page generation for blog pages
-  - Added null safety checks for `asset.url` in all image URL extractions
-  - Changed from `'url' in asset` to `('url' in asset && asset.url)` to handle cases where URL exists but is null
-  - Fixed in `app/blogs/page.tsx` (transformBlogPost function and heroBackgroundImage)
-  - Fixed in `app/blogs/[slug]/page.tsx` (imageUrl extraction)
-  - Fixed query parameter appending to handle URLs with existing query strings
-  - `BlogArchive.tsx` and `BlogHeroSearch.tsx` now use conditional `?` vs `&` based on `imageUrl.includes('?')`
-  - Prevents malformed URLs like `image.jpg&auto=format` (should be `image.jpg?auto=format`)
-
-### Comprehensive Null Safety Fixes for SanityImage References
-- ✅ FIXED: Resolved "Cannot read properties of null (reading 'replace')" errors across entire codebase
-  - **Root Cause**: Sanity can return `{asset: {_ref: null}}` - the `_ref` key exists but value is null
-  - **Pattern**: Changed all `'_ref' in asset` checks to `'_ref' in asset && asset._ref`
-  - **Files Fixed**:
-    - `src/components/Footer.tsx` - Fixed footerLogo null _ref access
-    - `src/components/Navigation.tsx` - Fixed logo _ref access (2 locations: desktop + mobile nav)
-    - `src/components/MetaTags.tsx` - Fixed SEO image _ref access (2 locations)
-    - `src/components/OptimizedImage.tsx` - Fixed image optimization _ref access
-  - **Impact**: All Sanity image references now safely handle null _ref values with proper fallbacks
-
-### Changes Made:
-- ✅ COMPLETED: Updated TypeScript types for blog integration
-  - Extended `BlogPost` interface with new schema fields: `type`, `description`, `featuredImage`, `contentBlocks`, `publishedDate`, `featured`, `readTime`, `tags`
-  - Added `BlogPageSettings` interface for blog landing page configuration
-  - Updated `SanityImage` interface to support expanded asset URLs from GROQ queries
-- ✅ COMPLETED: Enhanced `SanityService` with blog-specific queries
-  - Updated `getAllBlogPosts()` to fetch from new schema with proper field mappings
-  - Updated `getBlogPostBySlug()` to include full content blocks for individual posts
-  - Added `getBlogPageSettings()` to fetch hero section and featured posts configuration
-  - All queries use `asset->{url}` expansion for immediate image URL access
-- ✅ COMPLETED: Transformed `app/blogs/page.tsx` to use Sanity data
-  - Created `transformBlogPost()` helper to convert Sanity data to component format
-  - Replaced 20+ hardcoded blog posts with dynamic fetch from CMS
-  - Implemented fallback logic: uses CMS featured posts if set, otherwise auto-selects latest 3
-  - Added default post for graceful handling when no posts exist yet
-  - Kept legacy hardcoded data as comments for reference
-  - Added ISR revalidation (60 seconds)
-- ✅ COMPLETED: Transformed `app/blogs/[slug]/page.tsx` to use Sanity data
-  - Added `generateStaticParams()` for static site generation of all blog post pages
-  - Replaced hardcoded post lookup with `SanityService.getBlogPostBySlug()`
-  - Implemented Danish date formatting for proper locale display
-  - Uses CMS `readTime` field or defaults to 5 minutes
-  - Added ISR revalidation (60 seconds)
-  - Kept legacy data as comments for reference
-
-### Impact:
-- **Dynamic Content**: Blog pages now fetch real-time data from Sanity CMS
-- **CMS-Managed**: Content editors can create, edit, and manage blog posts entirely through Sanity Studio
-- **Design Preservation**: Exact same UI/UX - no visual changes, only data source changed
-- **Performance**: ISR with 60-second revalidation ensures fast page loads while staying up-to-date
-- **Static Generation**: All blog post pages are pre-generated at build time for optimal performance
-- **Graceful Fallbacks**: Handles edge cases like missing images, no posts, or missing settings
-
-### Frontend Architecture:
-```
-/blogs → Fetches blogPageSettings + all posts → Displays archive + hero
-/blogs/[slug] → Fetches individual post by slug → Displays full article
+# Production: disable both (or omit entirely)
+NEXT_PUBLIC_BASELINE_MODE=false
+NEXT_PUBLIC_DEBUG_VERBOSE=false
 ```
 
-### Next Steps (Future Implementation):
-- Render `contentBlocks` array in individual blog posts (currently showing placeholder content)
-- Use existing content block renderer from regular pages
-- Add metadata/SEO tags from blog post and page settings
-- Consider adding blog post tags/filtering if needed
-
-### Files Modified:
-- `src/types/sanity.ts` - Updated BlogPost & SanityImage interfaces, added BlogPageSettings
-- `src/services/sanityService.ts` - Enhanced blog queries with proper GROQ projections
-- `app/blogs/page.tsx` - Transformed to fetch from Sanity with fallbacks
-- `app/blogs/[slug]/page.tsx` - Transformed to fetch individual posts with SSG
+### Impact:
+- **Instant header render** (was 200-500ms delay)
+- **Cleaner console** (no debug logs in prod)
+- **Easier debugging** (isolate performance issues with baseline mode)
+- **Better DX** (developer experience)
 
 ---
 
-## [2025-08-22] – Session Start
-Goal: Fix per-slug caching, validate slugs, and consolidate routing to App Router
+## 2025-10-17 – Custom Dropdown Navigation (Replaced shadcn NavigationMenu)
+Goal: Fix buggy shadcn NavigationMenu positioning issues that broke header UX.
 
-- Implemented per-slug cache keys for dynamic pages using `unstable_cache` to prevent cross-slug responses.
-- Added debug logging in `src/server/sanity.ts#getPageBySlug` to trace slug lookups and missing pages in non-production.
-- Validated navigation slugs vs Sanity using `npm run navigation:health`; all links valid, 3 orphaned pages reported.
-- Consolidated routing by removing `app/(ssr)/__ssr/[slug]/page.tsx` and simplifying `middleware.ts` so `app/[slug]/page.tsx` handles dynamic pages directly.
-- Linted updated files; no new linter issues.
-- Type-check run shows pre-existing project-level TS references issues (TS6305/TS6306/TS6310) unrelated to the edits; no new type errors attributable to this session.
+### What Changed:
+- **Removed shadcn/ui NavigationMenu**: Component had persistent positioning bugs
+- **Created custom HTML/CSS dropdown** (`src/components/HeaderWithNav.tsx`):
+  - Pure CSS hover-based dropdowns
+  - Proper z-index layering (z-50 for nav, z-40 for dropdown)
+  - Smooth transitions with `group-hover` Tailwind classes
+  - Works consistently across all browsers and screen sizes
+  - Mobile hamburger menu still uses shadcn Sheet component (working fine)
 
-TO VERIFY
-- Ensure ISR revalidation via existing webhook(s) covers `page` tags after publish in Sanity.
-- Monitor logs for missing pages after consolidation; add GROQ broadening if non-`page` types are required.
-- Consider removing legacy SPA-only rewrites as we migrate remaining pages.
+### Why:
+- shadcn NavigationMenu was causing dropdowns to appear behind other elements
+- Positioning issues persisted despite multiple z-index tweaks
+- Custom solution gives full control over dropdown behavior
+- Simpler, more maintainable code
+
+### Technical Details:
+- Dropdown uses `absolute` positioning relative to nav item
+- `group-hover:opacity-100` and `group-hover:visible` for smooth reveal
+- Transition delays prevent accidental triggers
+- Mobile menu unchanged (shadcn Sheet component still used)
 
 ---
 
-## [2025-08-22] – Update
-Goal: Navigation correctness and routing unification
+## 2025-10-16 – PageSection Block Rendering Improvements
+Goal: Improve visual hierarchy and typography of PageSection rich text content blocks.
 
-- Action: Fixed cache key bug; removed duplicate `__ssr` route; middleware now defers to `[slug]` for non-SPA paths.
-- Impact: Correct content per slug; simpler routing path; navigation links resolve consistently.
-- NOTE: Navigation health report shows 3 orphaned pages: `/om-os`, `/energibesparende-tips`, and one item with null slug; clean up in Sanity if unintended.
+### What Changed:
+- **Typography enhancements**:
+  - Larger heading sizes (h2: text-3xl, h3: text-2xl, h4: text-xl)
+  - Better line heights (leading-snug for headings)
+  - Increased paragraph spacing (mb-6 instead of mb-4)
+- **List styling**:
+  - Disc bullets for unordered lists
+  - Decimal numbers for ordered lists
+  - Proper indentation and spacing
+- **Link styling**:
+  - Blue underlined links
+  - Hover state with darker blue
 
+### Why:
+- PageSection is one of the most frequently used content blocks
+- Poor typography makes content hard to scan
+- Improving PageSection elevates perceived quality of entire site
 
+### Impact:
+- Better readability
+- More professional appearance
+- Easier content scanning for users
 
+---
 
+## Purpose
+This document tracks all changes made to the ElPortal frontend codebase, including:
+- What changed (files, functions, logic)
+- Why the change was made
+- Impact on the system
+- Tradeoffs and decisions
 
-
-
-
-
-
-
-
-## [2025-09-04] – Update
-Goal: Fix Eloverblik authorization start on `/forbrug-tracker`
-
-- Action: Updated client to read API envelope: `ForbrugTracker` now reads `sessionId` and `authorizationUrl` from `res.data` when present, matching App Router API responses.
-- Action: Added development/preview fallback signing key in `src/server/session-helpers.ts#getSigningKey` to prevent 500s when `ELPORTAL_SIGNING_KEY` is missing; logs a warning in non‑prod.
-- Impact: Clicking “Forbind med Eloverblik” initializes a session and opens the authorization URL; avoids session init failures in Preview without leaking secrets.
-- NOTE: In production, ensure `ELPORTAL_SIGNING_KEY`, `KV_REST_API_URL`, and `KV_REST_API_TOKEN` are configured. The fallback is ignored in production.
-
-TO VERIFY
-- Run end‑to‑end on Preview: confirm `/api/auth/session` returns `{ ok: true, data: { sessionId } }` and that redirect is triggered.
-- After authorization callback is wired, verify `/api/auth/session?action=verify` returns `authenticated: true` and `hasAuthorization: true`.
-
-## [2025-09-04] – Update
-Goal: Restore scrollable (sticky) image behavior for `pageSection` and align data fetching with Vite
-
-- Action: Expanded centralized GROQ `pageProjection` for `_type == "pageSection"` to include `theme->{ background, text, primary }`, full `settings { theme, padding, fullWidth, textAlignment, separator, layoutRatio, verticalAlign, stickyImage }`, and mapped `cta { text, url }`.
-- Action: Verified `PageSectionComponent` and `StickyImageSection` already respect `settings.stickyImage` to enable scrollable image behavior; data path now hydrated correctly.
-- Impact: Page sections with the Sanity toggle for sticky/scrollable images behave as on the Vite production site; CTA links resolve via `cta.url`.
-- NOTE: Keep `pageProjection` as the single source of truth for pages; ensure both `getHomePage` and `getPageBySlug` queries use it (they do).
-
-TO VERIFY
-- Smoke test a page with `pageSection.settings.stickyImage = true` and an image present; confirm sticky behavior on desktop and graceful fallback on mobile.
-- Confirm `cta.url` navigates correctly for sections that include a CTA.
-
-## [2025-10-07] – Update
-Goal: Create Next.js-compliant .env.local and remove Vite prefixes
-
-- Action: Added `env.local` with deduplicated variables using NEXT_PUBLIC_* for client and server-only for secrets; normalized `SITE_URL`, `KV_*`, `ELPORTAL_SIGNING_KEY`, `SANITY_*`, and analytics IDs.
-- Action: Mapped legacy Vite vars: `VITE_SANITY_*` → `NEXT_PUBLIC_SANITY_*`; removed Vite prefixes from any sensitive tokens.
-- Impact: Next.js reads env at build/runtime without leaking secrets to the client. Local dev now works with `npm run dev` using `env.local`.
-- TO VERIFY: Visit `/api/health` and confirm `eloverblikToken` and `kvUrl` flags; load homepage to ensure Sanity reads succeed; test SSR flag by toggling `NEXT_PUBLIC_PHASE2_SSR=false`.
-- NOTE: `SMITHERY_API_KEY` is not referenced in the code currently; kept out of env by default. If needed later, add server-side only.
-
-## [2025-10-07] – Update
-Goal: Add Blog link and placeholder page
-
-- Action: Injected local "Blog" nav link between "Leverandører" and the mega menu in `src/components/Navigation.tsx`; non-destructive (does not mutate CMS).
-- Action: Created empty placeholder page at `app/blogs/page.tsx`.
-- Impact: Header now shows "Blog" linking to `/blogs`; page renders an empty container for now.
-- TO VERIFY: Start dev server and confirm the new link appears between the specified items and navigates to `/blogs`.
-
-## [2025-10-10] – Update
-Goal: Replace blog placeholder images with energy-relevant themes
-
-- Action: Updated all blog post images in `app/blogs/page.tsx` and `app/blogs/[slug]/page.tsx` from forest/nature themes to energy-specific imagery.
-- Action: New images showcase: wind turbines, solar panels, EV charging stations, smart home devices, electricity infrastructure, heat pumps, power meters, and energy-related visuals.
-- Action: Updated image alt texts to Danish descriptions matching the new energy themes.
-- Impact: Blog archive and individual post pages now display contextually relevant imagery that aligns with DinElPortal's electricity/energy focus instead of generic nature photos.
-- NOTE: All changes limited to `/blogs` route and subpages only; no modifications to other parts of the application.
-
+### Naming Conventions
+- Use descriptive session headers with dates
+- Include "Goal" for each session
+- List files changed with line numbers when possible
+- Explain "why" for every major change

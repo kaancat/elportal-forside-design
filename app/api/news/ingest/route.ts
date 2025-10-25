@@ -7,6 +7,7 @@ import { Readability } from '@mozilla/readability'
 import { createClient } from '@sanity/client'
 import Anthropic from '@anthropic-ai/sdk'
 import OpenAI from 'openai'
+import { runSourcePipeline } from '@/server/newsPipeline'
 
 const FEED_URL = 'https://www.kefm.dk/handlers/DynamicRss.ashx?id=76163fac-6c0a-4edb-8e6e-86a4dcf36bd4'
 

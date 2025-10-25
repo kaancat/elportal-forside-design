@@ -107,6 +107,7 @@ function paragraphsToPortableText(paragraphs: string[]) {
 async function generateKeywordArticle(keyword: string, opts?: { minWords?: number; forceLLM?: 'openai' | 'anthropic' }) {
   const minWords = Math.max(500, opts?.minWords || 800)
   const { type, client } = getAIClient(opts?.forceLLM)
+  const llmType = type
   const sys = `Du er journalist hos DinElPortal. Skriv på dansk til almindelige husholdninger. Fokus: elpriser, forbrug, grøn energi og konkrete råd.`
 
   // Step 1: Outline & metadata (flexible sections 3–6)
@@ -195,7 +196,7 @@ Returner KUN JSON:
   const ok = totalWords >= minWords && linkCount >= 3 && hasElpriser && hasUdbydere
 
   // Keep raw sections; block conversion happens after polishing
-  return { ok, totalWords, linkCount, hasElpriser, hasUdbydere, title: parsed.title, description: parsed.description, sections: parsed.sections }
+  return { ok, totalWords, linkCount, hasElpriser, hasUdbydere, title: parsed.title, description: parsed.description, sections: parsed.sections, llmType }
 }
 
 function safeParseJson(raw: string): any {
@@ -402,7 +403,7 @@ export async function GET(req: NextRequest) {
         }
 
         await sanity.createIfNotExists(doc as any)
-        results.push({ ok: true, slug, title, words: gen.totalWords, links: gen.linkCount, llm: llmPref || type })
+        results.push({ ok: true, slug, title, words: gen.totalWords, links: gen.linkCount, llm: llmPref || gen.llmType })
       } catch (e: any) {
         // Emergency fallback: create a minimal draft so the flow can be reviewed
         try {

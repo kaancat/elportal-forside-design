@@ -348,7 +348,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                             <aside className="hidden lg:block lg:col-span-4 xl:col-span-4">
                                 <div className="sticky top-24">
                                     {/* Render the standard ProviderList component unchanged, but visually scaled to fit sidebar */}
-                                    <ProviderListClientWrapper block={providerListBlock} className="origin-top scale-[0.92] xl:scale-[0.95]" />
+                                    <ProviderListClientWrapper block={providerListBlock} variant="sidebar" />
                                 </div>
                             </aside>
                         </div>

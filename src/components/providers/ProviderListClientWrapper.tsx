@@ -7,13 +7,13 @@ import type { ProviderListBlock } from '@/types/sanity'
 type Props = {
   block: ProviderListBlock
   className?: string
+  variant?: 'default' | 'sidebar'
 }
 
-export default function ProviderListClientWrapper({ block, className = '' }: Props) {
+export default function ProviderListClientWrapper({ block, className = '', variant = 'default' }: Props) {
   return (
     <div className={className}>
-      <ProviderList block={block as any} />
+      <ProviderList block={block as any} variant={variant} />
     </div>
   )
 }
-

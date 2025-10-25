@@ -24,6 +24,7 @@ interface ProviderCardProps {
     tradingCosts?: number;
   };
   pricingMode?: 'simplified' | 'full';
+  density?: 'default' | 'compact';
   priceSourceDate?: string; // from Sanity (providerList block)
   providerMarkupKrOverride?: number; // in kr/kWh (simplified mode)
   monthlySubscriptionOverride?: number; // in kr (simplified mode)
@@ -38,6 +39,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   networkTariff,
   additionalFees,
   pricingMode = 'full',
+  density = 'default',
   priceSourceDate,
   providerMarkupKrOverride,
   monthlySubscriptionOverride,
@@ -76,6 +78,14 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   const simplifiedMonthly = monthlySub + (annualConsumption / 12) * simplifiedKrPerKwh;
 
 
+  const pad = density === 'compact' ? 'p-4' : 'p-8'
+  const gap = density === 'compact' ? 'gap-4' : 'gap-8'
+  const logoBox = density === 'compact' ? 'w-16 h-16' : 'w-28 h-28'
+  const titleSize = density === 'compact' ? 'text-base' : 'text-xl'
+  const priceBoxPad = density === 'compact' ? 'px-4 py-3' : 'px-6 py-4'
+  const priceText = density === 'compact' ? 'text-2xl' : 'text-3xl'
+  const btnPad = density === 'compact' ? 'py-2 px-4 text-sm' : 'py-3 px-6'
+
   return (
     <div className={`rounded-xl overflow-hidden transition-all duration-200 ${product.isVindstoedProduct
         ? 'bg-gradient-to-br from-white via-white to-brand-green/5 shadow-lg border-2 border-brand-green/20 ring-1 ring-brand-green/10 hover:shadow-xl relative'
@@ -84,18 +94,18 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
       {product.isVindstoedProduct && (
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand-green/60 via-brand-green to-brand-green/60"></div>
       )}
-      <div className="p-8">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-8">
+      <div className={pad}>
+        <div className={`flex flex-col lg:flex-row lg:items-center ${gap}`}>
           {/* Logo and company info */}
           <div className="flex flex-col space-y-4">
             <div className="flex items-center space-x-6">
-              <div className="flex-shrink-0 w-28 h-28 flex items-center justify-center p-3 bg-white rounded-lg border border-gray-100 shadow-sm relative">
+              <div className={`flex-shrink-0 ${logoBox} flex items-center justify-center p-2 bg-white rounded-lg border border-gray-100 shadow-sm relative`}>
                 <Image
                   src={resolveProviderLogoUrl(product.supplierName, product.supplierLogoURL) || '/placeholder.svg'}
                   alt={`${product.supplierName || 'Ukendt'} logo`}
                   className="object-contain"
                   fill
-                  sizes="(max-width: 768px) 96px, 112px"
+                  sizes="(max-width: 768px) 64px, 112px"
                   priority={priority}
                   loading={priority ? undefined : "lazy"}
                   placeholder="blur"
@@ -114,13 +124,14 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                   </Badge>
                 )}
 
-                <h3 className="font-bold text-xl text-brand-dark mb-1">{product.productName || 'Ukendt produkt'}</h3>
+                <h3 className={`font-bold ${titleSize} text-brand-dark mb-1`}>{product.productName || 'Ukendt produkt'}</h3>
                 <p className="text-base text-gray-600 font-medium">{product.supplierName || 'Ukendt leverandør'}</p>
               </div>
             </div>
           </div>
 
           {/* Features Section */}
+          {density === 'compact' ? null : (
           <div className="bg-gray-50 p-6 rounded-lg border-l-4 border-l-brand-green lg:flex-1">
             <h4 className="text-sm text-brand-dark uppercase font-bold mb-4 tracking-wide">Inkluderet</h4>
             <div className="space-y-3">
@@ -171,25 +182,26 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
               )}
             </div>
           </div>
+          )}
 
           {/* Price and action */}
-          <div className="flex flex-col items-end lg:min-w-[220px]">
-            <div className="bg-gradient-to-br from-brand-dark/5 to-gray-50 px-6 py-4 rounded-lg border border-gray-100 mb-3 w-full">
+          <div className="flex flex-col items-end lg:min-w-[200px]">
+            <div className={`bg-gradient-to-br from-brand-dark/5 to-gray-50 ${priceBoxPad} rounded-lg border border-gray-100 mb-3 w-full`}>
               <div className="text-right">
-                <div className="text-3xl font-bold text-brand-green mb-1">
+                <div className={`${priceText} font-bold text-brand-green mb-1`}>
                   {(pricingMode === 'simplified' ? simplifiedMonthly : fullEstimatedMonthly).toFixed(0)} kr
                 </div>
-                <div className="text-sm text-gray-600 mb-1">
+                <div className={`${density === 'compact' ? 'text-xs' : 'text-sm'} text-gray-600 mb-1`}>
                   pr. måned
                 </div>
                 <div className="text-xs text-gray-500 space-y-1">
                   {pricingMode === 'simplified' ? (
-                    <div className="text-sm text-brand-dark font-semibold">Spotpris + tillæg: {simplifiedKrPerKwh.toFixed(2)} kr/kWh</div>
+                    <div className={`${density === 'compact' ? 'text-xs' : 'text-sm'} text-brand-dark font-semibold`}>Spotpris + tillæg: {simplifiedKrPerKwh.toFixed(2)} kr/kWh</div>
                   ) : (
-                    <div className="text-sm text-brand-dark font-semibold">Estimeret {fullPricePerKwh.toFixed(2)} kr/kWh</div>
+                    <div className={`${density === 'compact' ? 'text-xs' : 'text-sm'} text-brand-dark font-semibold`}>Estimeret {fullPricePerKwh.toFixed(2)} kr/kWh</div>
                   )}
 
-                  {pricingMode === 'full' && (
+                  {density !== 'compact' && pricingMode === 'full' && (
                     <Popover>
                       <PopoverTrigger asChild>
                         <button aria-label="Se prisdetaljer" className="text-xs text-brand-green hover:underline mt-1 inline-flex items-center gap-1">
@@ -225,12 +237,12 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                     </Popover>
                   )}
 
-                  <div>Månedligt abonnement: {monthlySub.toFixed(0)} kr</div>
+                  <div className={`${density === 'compact' ? 'text-[11px]' : ''}`}>Månedligt abonnement: {monthlySub.toFixed(0)} kr</div>
                 </div>
               </div>
             </div>
             {/* Source disclaimer */}
-            <div className="w-full text-right text-[11px] text-gray-500 leading-tight mt-3 mb-3">
+            <div className={`w-full text-right text-[11px] text-gray-500 leading-tight ${density === 'compact' ? 'mt-2 mb-2' : 'mt-3 mb-3'}`}>
               <div>
                 {(() => {
                   const fallback = new Intl.DateTimeFormat('da-DK', { day: 'numeric', month: 'long' }).format(new Date());
@@ -257,14 +269,14 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                 className="w-full"
               >
                 <Button
-                  className="bg-brand-dark hover:bg-brand-dark/90 text-white rounded-lg w-full font-semibold py-3 px-6"
+                  className={`bg-brand-dark hover:bg-brand-dark/90 text-white rounded-lg w-full font-semibold ${btnPad}`}
                 >
                   Skift til {product.supplierName || 'denne leverandør'} <ExternalLink className="ml-2 h-4 w-4" />
                 </Button>
               </TrackedLink>
             ) : (
               <Button
-                className="bg-gray-300 text-gray-500 rounded-lg w-full font-semibold py-3 px-6 cursor-not-allowed"
+                className={`bg-gray-300 text-gray-500 rounded-lg w-full font-semibold ${btnPad} cursor-not-allowed`}
                 disabled
               >
                 Link ikke tilgængelig
@@ -272,8 +284,9 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
             )}
 
             {/* Bottom-right helper icons */}
-            <div className="w-full flex justify-end gap-2 mt-3">
+            <div className={`w-full flex justify-end gap-2 ${density === 'compact' ? 'mt-2' : 'mt-3'}`}>
               {/* Pricing calc icon (green) */}
+              {density !== 'compact' && (
               <Popover>
                 <PopoverTrigger asChild>
                   <button
@@ -296,8 +309,10 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                   </div>
                 </PopoverContent>
               </Popover>
+              )}
 
               {/* Education icon (invite click): different color + subtle animated gradient */}
+              {density !== 'compact' && (
               <Popover>
                 <PopoverTrigger asChild>
                   <button
@@ -329,6 +344,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                   </div>
                 </PopoverContent>
               </Popover>
+              )}
             </div>
           </div>
         </div>

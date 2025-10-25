@@ -3,6 +3,7 @@ import { createClient } from '@sanity/client'
 import Anthropic from '@anthropic-ai/sdk'
 import OpenAI from 'openai'
 import { getSearchConsoleAccessToken } from '@/server/google'
+import { getUnsplashImage, getHashedFallbackImage } from '@/server/unsplash'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -384,6 +385,10 @@ export async function GET(req: NextRequest) {
         const blocks = paragraphsToPortableText((polished.sections || []).flatMap((s: any) => Array.isArray(s.paragraphs) ? s.paragraphs : []))
         const readTime = Math.max(1, Math.ceil((title.split(/\s+/).length + (polished.description || '').split(/\s+/).length + (blocks?.[0]?.content || []).reduce((acc: number, b: any) => acc + (b.children || []).reduce((a: number, c: any) => a + String(c.text||'').split(/\s+/).length, 0), 0)) / 200))
 
+        // Image selection (Unsplash → fallback)
+        const ogImageUrl = (await getUnsplashImage(`${kw} energi elpriser Danmark`, slug)) || getHashedFallbackImage(slug)
+        const altText = `Illustration: ${title} – elpriser i Danmark`
+
         const doc = {
           _type: 'blogPost',
           _id: `drafts.blogPost_${slug}`,
@@ -397,9 +402,20 @@ export async function GET(req: NextRequest) {
           readTime,
           primaryTopic: classifyTopic(`${kw} ${title}`) || undefined,
           sourceUrl: `gsc:query:${kw}`,
-          tags: ['SEO', 'Keyword Research'],
+          tags: Array.from(new Set(['SEO','Keyword Research', 'elpriser', 'elregning', 'Danmark', kw])).slice(0,8),
           seoMetaTitle: title,
           seoMetaDescription: polished.description || undefined,
+          // Featured image for cards and OG
+          featuredImage: {
+            _type: 'image',
+            asset: { url: ogImageUrl },
+            alt: altText,
+          },
+          seoOpenGraphImage: {
+            _type: 'image',
+            asset: { url: ogImageUrl },
+            alt: altText,
+          },
         }
 
         await sanity.createIfNotExists(doc as any)
@@ -416,6 +432,8 @@ export async function GET(req: NextRequest) {
           ]
           const blocks = paragraphsToPortableText(paras)
           const readTime = Math.max(1, Math.ceil((title.split(/\s+/).length + paras.join(' ').split(/\s+/).length) / 200))
+          const ogImageUrl = (await getUnsplashImage(`${kw} energi elpriser Danmark`, slug)) || getHashedFallbackImage(slug)
+          const altText = `Illustration: ${title} – elpriser i Danmark`
           const doc = {
             _type: 'blogPost', _id: `drafts.blogPost_${slug}`, title,
             slug: { _type: 'slug', current: slug }, type: 'Guide',
@@ -424,6 +442,8 @@ export async function GET(req: NextRequest) {
             featured: false, readTime, primaryTopic: classifyTopic(kw) || undefined,
             sourceUrl: `gsc:query:${kw}`, tags: ['SEO', 'Keyword Research'],
             seoMetaTitle: title, seoMetaDescription: `Kort guide om ${kw}.`,
+            featuredImage: { _type: 'image', asset: { url: ogImageUrl }, alt: altText },
+            seoOpenGraphImage: { _type: 'image', asset: { url: ogImageUrl }, alt: altText },
           }
           await sanity.createIfNotExists(doc as any)
           results.push({ ok: true, slug, title, fallback: true, llm: llmPref || 'openai' })

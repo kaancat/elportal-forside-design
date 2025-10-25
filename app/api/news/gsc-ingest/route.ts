@@ -404,7 +404,11 @@ export async function GET(req: NextRequest) {
     const endDate = end.toISOString().slice(0, 10)
 
     let candidates: Array<{ query: string; impressions?: number; ctr?: number; position?: number }> = []
-    try {
+    // Manual override: one or more explicit keywords via ?q=...
+    const qParams = url.searchParams.getAll('q').map(q => (q || '').trim()).filter(Boolean)
+    if (qParams.length > 0) {
+      candidates = qParams.map(q => ({ query: q }))
+    } else try {
     const rows = await fetchGSCQueries(siteUrl, startDate, endDate, 200)
       const EXCLUDE = [/vindst[øo]d/i, /dinelportal/i]
       const isInfo = (q: string) => /hvordan|hvad|hvorfor|guide|råd|tips|elpris|elpriser|kwh|afgift|tarif|vind|sol|co2/i.test(q)

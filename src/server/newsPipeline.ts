@@ -19,9 +19,17 @@ function externalSourcesFor(topicOrKeyword: string): Array<{ name: string; url: 
   const s = topicOrKeyword.toLowerCase()
   const out: Array<{ name: string; url: string }> = []
   if (/elpris|elpriser|spot|fastpris|kwh|forbrug/.test(s)) {
-    out.push({ name: 'Energistyrelsen', url: 'https://ens.dk/' }, { name: 'Energinet', url: 'https://energinet.dk/' })
+    out.push(
+      { name: 'Energistyrelsen – Forbrugerinfo', url: 'https://ens.dk/forbruger' },
+      { name: 'Energinet – Data (Elpris/Transparens)', url: 'https://energidataservice.dk/' }
+    )
   }
-  if (/tarif|nettarif|net/.test(s)) out.push({ name: 'Green Power Denmark', url: 'https://greenpowerdenmark.dk/' })
+  if (/tarif|nettarif|net/.test(s)) {
+    out.push(
+      { name: 'Green Power Denmark – Nettariffer', url: 'https://greenpowerdenmark.dk/viden-om/nettariffer' },
+      { name: 'Energistyrelsen – Nettariffer', url: 'https://ens.dk/forbruger/el/generelt-om-nettariffer' }
+    )
+  }
   if (/co2|udledning/.test(s)) out.push({ name: 'Klima-, Energi- og Forsyningsministeriet', url: 'https://kefm.dk/' })
   if (/vind/.test(s)) out.push({ name: 'Energistyrelsen – Vind', url: 'https://ens.dk/ansvarsomraader/vindenergi' })
   if (/sol/.test(s)) out.push({ name: 'Energistyrelsen – Sol', url: 'https://ens.dk/ansvarsomraader/solenergi' })
@@ -86,7 +94,7 @@ async function topUpIfShort(draft: ArticleDraft, minWords: number, prefer?: LLM)
 export async function runSourcePipeline(input: { title: string; sourceUrl: string; extractedText?: string; minWords: number; prefer?: LLM }) {
   const { type, client } = getAIClient(input.prefer)
   const sys = 'Du skriver danske forbrugerrettede artikler for Din Elportal. Returner KUN JSON.'
-  const prompt = `NYHED\nTitel: ${input.title}\nKilde: ${input.sourceUrl}\nKontekst (kun som baggrund): ${(input.extractedText||'').slice(0,2500)}\n\n${buildGuidelinePrompt({ minWords: input.minWords })}\n\nKrav til svar:\n- Minimum ${input.minWords} ord samlet.\n- Brug meningsfulde H2-overskrifter hvor det giver mening (ingen faste labels).\n- Inkludér naturlige links (mindst 2 interne og mindst 2 officielle eksterne).\n- Returner KUN JSON i formatet { "title": "...", "description": "...", "sections": [ { "heading": "...", "paragraphs": ["..."] } ] }.`
+  const prompt = `NYHED\nTitel: ${input.title}\nKilde: ${input.sourceUrl}\nKontekst (kun som baggrund): ${(input.extractedText||'').slice(0,2500)}\n\n${buildGuidelinePrompt({ minWords: input.minWords })}\n\nKrav til svar:\n- Minimum ${input.minWords} ord samlet.\n- Brug meningsfulde H2-overskrifter hvor det giver mening (ingen faste labels).\n- Inkludér naturlige links: mindst 2 interne OG mindst 8 forskellige officielle eksterne fordelt over hele artiklen (helst én pr. sektion).\n- Returner KUN JSON i formatet { "title": "...", "description": "...", "sections": [ { "heading": "...", "paragraphs": ["..."] } ] }.`
   let text = ''
   if (type === 'openai') {
     const r = await client.chat.completions.create({ model: 'gpt-4o', temperature: 0.6, response_format: { type: 'json_object' }, messages: [
@@ -102,9 +110,48 @@ export async function runSourcePipeline(input: { title: string; sourceUrl: strin
   }
   let draft: ArticleDraft = JSON.parse(text)
   draft = addCtaAndSources(input.title, draft)
+  // Ensure strong sourcing footprint (aim 8–12 external links distributed across sections)
+  draft = distributeExternalLinks(input.title, draft, Math.max(8, Math.min(12, (draft.sections?.length || 6))))
   draft = await topUpIfShort(draft, input.minWords, input.prefer)
   const stats = computeStats(draft)
   const { contentBlocks, body } = sectionsToPortableText(draft)
   const readTime = estimateReadTimeFromBlocks(body)
   return { draft, stats, contentBlocks, body, readTime }
+}
+function countExternalLinks(draft: ArticleDraft): { total: number; uniqueHosts: number } {
+  const hrefs = new Set<string>()
+  let total = 0
+  const rx = /\[[^\]]+\]\(([^)]+)\)/g
+  for (const s of draft.sections || []) {
+    for (const p of s.paragraphs || []) {
+      let m: RegExpExecArray | null
+      while ((m = rx.exec(String(p))) !== null) {
+        const href = m[1]
+        if (/^https?:\/\//i.test(href) && !/dinelportal\.dk/i.test(href)) {
+          total++
+          try { hrefs.add(new URL(href).hostname) } catch {}
+        }
+      }
+    }
+  }
+  return { total, uniqueHosts: hrefs.size }
+}
+
+function distributeExternalLinks(keywordOrTopic: string, draft: ArticleDraft, minTotal: number): ArticleDraft {
+  const sections = Array.isArray(draft.sections) ? [...draft.sections] : []
+  const { total } = countExternalLinks(draft)
+  if (total >= minTotal) return draft
+  const pool = externalSourcesFor(keywordOrTopic)
+  if (pool.length === 0 || sections.length === 0) return draft
+  let idx = 0
+  for (let i = 0; i < sections.length && countExternalLinks({ sections }).total < minTotal; i++) {
+    const sec = sections[i]
+    const paraIdx = Math.max(0, (sec.paragraphs?.length || 1) - 1)
+    const src = pool[idx % pool.length]
+    idx++
+    const line = ` Læs mere: [${src.name}](${src.url}).`
+    if (!sec.paragraphs || sec.paragraphs.length === 0) sec.paragraphs = [line.trim()]
+    else sec.paragraphs[paraIdx] = `${sec.paragraphs[paraIdx]}${line}`
+  }
+  return { ...draft, sections }
 }

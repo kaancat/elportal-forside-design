@@ -3,6 +3,7 @@ import { createClient } from '@sanity/client'
 import Anthropic from '@anthropic-ai/sdk'
 import OpenAI from 'openai'
 import { getSearchConsoleAccessToken } from '@/server/google'
+import { env as appEnv } from '@/lib/env'
 import { getUnsplashImage, getHashedFallbackImage } from '@/server/unsplash'
 
 export const runtime = 'nodejs'
@@ -32,9 +33,11 @@ function normalizeQuery(q: string): string {
 function getSanityClient() {
   const token = process.env.SANITY_API_TOKEN
   if (!token) throw new Error('SANITY_API_TOKEN is not configured')
+  const projectId = process.env.SANITY_PROJECT_ID || process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || appEnv.SANITY_PROJECT_ID
+  const dataset = process.env.SANITY_DATASET || process.env.NEXT_PUBLIC_SANITY_DATASET || appEnv.SANITY_DATASET
   return createClient({
-    projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'yxesi03x',
-    dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
+    projectId,
+    dataset,
     apiVersion: process.env.NEXT_PUBLIC_SANITY_API_VERSION || '2025-01-01',
     token,
     useCdn: false,
@@ -339,7 +342,7 @@ export async function GET(req: NextRequest) {
 
     let candidates: Array<{ query: string; impressions?: number; ctr?: number; position?: number }> = []
     try {
-      const rows = await fetchGSCQueries(siteUrl, startDate, endDate, 200)
+    const rows = await fetchGSCQueries(siteUrl, startDate, endDate, 200)
       const EXCLUDE = [/vindst[øo]d/i, /dinelportal/i]
       const isInfo = (q: string) => /hvordan|hvad|hvorfor|guide|råd|tips|elpris|elpriser|kwh|afgift|tarif|vind|sol|co2/i.test(q)
       candidates = rows
@@ -453,7 +456,9 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true, count: results.length, picked, results, llmPref: llmPref || 'auto', debug })
+    const projectId = process.env.SANITY_PROJECT_ID || process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || appEnv.SANITY_PROJECT_ID
+    const dataset = process.env.SANITY_DATASET || process.env.NEXT_PUBLIC_SANITY_DATASET || appEnv.SANITY_DATASET
+    return NextResponse.json({ success: true, count: results.length, picked, results, llmPref: llmPref || 'auto', debug, sanity: { projectId, dataset } })
   } catch (e: any) {
     return NextResponse.json({ success: false, error: e?.message || String(e) }, { status: 500 })
   }

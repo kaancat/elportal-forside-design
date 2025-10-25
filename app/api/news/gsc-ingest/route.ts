@@ -60,9 +60,11 @@ function classifyTopic(text: string): string | null {
   return null
 }
 
-function getAIClient(): { type: 'openai' | 'anthropic'; client: any } {
+function getAIClient(prefer?: 'openai' | 'anthropic'): { type: 'openai' | 'anthropic'; client: any } {
   const openaiKey = process.env.OPENAI_API_KEY
   const anthropicKey = process.env.ANTHROPIC_API_KEY
+  if (prefer === 'openai' && openaiKey) return { type: 'openai', client: new OpenAI({ apiKey: openaiKey }) }
+  if (prefer === 'anthropic' && anthropicKey) return { type: 'anthropic', client: new Anthropic({ apiKey: anthropicKey }) }
   if (openaiKey) return { type: 'openai', client: new OpenAI({ apiKey: openaiKey }) }
   if (anthropicKey) return { type: 'anthropic', client: new Anthropic({ apiKey: anthropicKey }) }
   throw new Error('Neither OPENAI_API_KEY nor ANTHROPIC_API_KEY is configured')
@@ -102,9 +104,9 @@ function paragraphsToPortableText(paragraphs: string[]) {
 // -------------------------------
 // AI: Two-step keyword article generation (flex outline → flexible expansion)
 // -------------------------------
-async function generateKeywordArticle(keyword: string, opts?: { minWords?: number }) {
+async function generateKeywordArticle(keyword: string, opts?: { minWords?: number; forceLLM?: 'openai' | 'anthropic' }) {
   const minWords = Math.max(500, opts?.minWords || 800)
-  const { type, client } = getAIClient()
+  const { type, client } = getAIClient(opts?.forceLLM)
   const sys = `Du er journalist hos DinElPortal. Skriv på dansk til almindelige husholdninger. Fokus: elpriser, forbrug, grøn energi og konkrete råd.`
 
   // Step 1: Outline & metadata (flexible sections 3–6)
@@ -325,6 +327,8 @@ export async function GET(req: NextRequest) {
     const days = Math.max(7, Math.min(90, parseInt(url.searchParams.get('days') || '28', 10)))
     const limit = Math.max(1, Math.min(10, parseInt(url.searchParams.get('limit') || '3', 10)))
     const minWords = Math.max(500, Math.min(1800, parseInt(url.searchParams.get('minWords') || '900', 10)))
+    const llmPref = (url.searchParams.get('llm') as 'openai' | 'anthropic' | null) || null
+    const debug = url.searchParams.get('debug') === '1'
 
     const end = new Date()
     const start = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
@@ -372,7 +376,7 @@ export async function GET(req: NextRequest) {
     const results: any[] = []
     for (const kw of picked) {
       try {
-        const gen = await generateKeywordArticle(kw, { minWords })
+        const gen = await generateKeywordArticle(kw, { minWords, forceLLM: llmPref || undefined })
         const polished = polishArticle(kw, { title: gen.title, description: gen.description, sections: (gen as any).sections })
         const title = polished.title || kw
         const slug = slugify(title || kw)
@@ -398,7 +402,7 @@ export async function GET(req: NextRequest) {
         }
 
         await sanity.createIfNotExists(doc as any)
-        results.push({ ok: true, slug, title, words: gen.totalWords, links: gen.linkCount })
+        results.push({ ok: true, slug, title, words: gen.totalWords, links: gen.linkCount, llm: llmPref || type })
       } catch (e: any) {
         // Emergency fallback: create a minimal draft so the flow can be reviewed
         try {
@@ -421,14 +425,14 @@ export async function GET(req: NextRequest) {
             seoMetaTitle: title, seoMetaDescription: `Kort guide om ${kw}.`,
           }
           await sanity.createIfNotExists(doc as any)
-          results.push({ ok: true, slug, title, fallback: true })
+          results.push({ ok: true, slug, title, fallback: true, llm: llmPref || 'openai' })
         } catch (inner: any) {
           results.push({ ok: false, keyword: kw, error: e?.message || String(e), fallbackError: inner?.message || String(inner) })
         }
       }
     }
 
-    return NextResponse.json({ success: true, count: results.length, picked, results })
+    return NextResponse.json({ success: true, count: results.length, picked, results, llmPref: llmPref || 'auto', debug })
   } catch (e: any) {
     return NextResponse.json({ success: false, error: e?.message || String(e) }, { status: 500 })
   }

@@ -13,9 +13,7 @@ import { SanityService } from '@/services/sanityService'
 import { SITE_URL, SITE_NAME, canonicalUrl, getRobotsDirective } from '@/lib/url-helpers'
 import ClientLayout from '../../(marketing)/ClientLayout'
 import ContentBlocks from '@/components/ContentBlocks'
-import dynamic from 'next/dynamic'
-// Load the full interactive provider list only where needed (client-only)
-const DynamicProviderList = dynamic(() => import('@/components/ProviderList').then(m => m.default as any), { ssr: false })
+import ProviderListClientWrapper from '@/components/providers/ProviderListClientWrapper'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -328,7 +326,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                                     {/* Keep the original component look; no style changes */}
                                     {/* Narrow container to feel balanced on mobile */}
                                     <div className="max-w-xl mx-auto">
-                                        <DynamicProviderList block={providerListBlock as any} />
+                                        <ProviderListClientWrapper block={providerListBlock} />
                                     </div>
                                 </div>
 
@@ -350,9 +348,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                             <aside className="hidden lg:block lg:col-span-4 xl:col-span-4">
                                 <div className="sticky top-24">
                                     {/* Render the standard ProviderList component unchanged, but visually scaled to fit sidebar */}
-                                    <div className="origin-top scale-[0.92] xl:scale-[0.95]">
-                                        <DynamicProviderList block={providerListBlock as any} />
-                                    </div>
+                                    <ProviderListClientWrapper block={providerListBlock} className="origin-top scale-[0.92] xl:scale-[0.95]" />
                                 </div>
                             </aside>
                         </div>

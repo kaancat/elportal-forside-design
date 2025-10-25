@@ -96,8 +96,8 @@ export async function generateStaticParams() {
     }
 }
 
-// Revalidate: false in dev (no cache), 1h otherwise
-export const revalidate = REVALIDATE_SECS
+// Revalidate: use a static literal so Next can statically analyze
+export const revalidate = 3600
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params
@@ -330,4 +330,3 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         </>
     )
 }
-

@@ -13,7 +13,9 @@ import { SanityService } from '@/services/sanityService'
 import { SITE_URL, SITE_NAME, canonicalUrl, getRobotsDirective } from '@/lib/url-helpers'
 import ClientLayout from '../../(marketing)/ClientLayout'
 import ContentBlocks from '@/components/ContentBlocks'
-import { ProviderListShell } from '@/components/providers/shells/ProviderListShell'
+import dynamic from 'next/dynamic'
+// Load the full interactive provider list only where needed (client-only)
+const DynamicProviderList = dynamic(() => import('@/components/ProviderList').then(m => m.default as any), { ssr: false })
 import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -321,9 +323,13 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                                     </div>
                                 )}
 
-                                {/* Mobile-only provider list (shown below content) */}
+                                {/* Mobile-only provider list (full component) */}
                                 <div className="mt-12 lg:hidden">
-                                    <ProviderListShell block={providerListBlock} />
+                                    {/* Keep the original component look; no style changes */}
+                                    {/* Narrow container to feel balanced on mobile */}
+                                    <div className="max-w-xl mx-auto">
+                                        <DynamicProviderList block={providerListBlock as any} />
+                                    </div>
                                 </div>
 
                                 {/* Call to action */}
@@ -343,7 +349,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                             {/* Sticky sidebar with providers (desktop only) */}
                             <aside className="hidden lg:block lg:col-span-4 xl:col-span-4">
                                 <div className="sticky top-24">
-                                    <ProviderListShell block={providerListBlock} variant="sidebar" />
+                                    {/* Render the standard ProviderList component unchanged, but visually scaled to fit sidebar */}
+                                    <div className="origin-top scale-[0.92] xl:scale-[0.95]">
+                                        <DynamicProviderList block={providerListBlock as any} />
+                                    </div>
                                 </div>
                             </aside>
                         </div>

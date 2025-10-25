@@ -16,7 +16,7 @@ export function computeStats(draft: ArticleDraft): ArticleStats {
       const links = String(p).match(/\[[^\]]+\]\([^\)]+\)/g) || [];
       stats.linkCount += links.length;
       if (String(p).includes('](/elpriser)')) stats.hasElpriser = true;
-      if (String(p).includes('](/el-udbydere)')) stats.hasUdbydere = true;
+      if (/\]\(\/(el-udbydere|sammenlign)\)/i.test(String(p)) || /https?:\/\/[^\s)]+\/sammenlign\)/i.test(String(p))) stats.hasUdbydere = true;
     }
   }
   return stats;
@@ -25,6 +25,25 @@ export function computeStats(draft: ArticleDraft): ArticleStats {
 // Convert sections -> Portable Text contentBlocks (richTextSection) + classic body
 export function sectionsToPortableText(draft: ArticleDraft) {
   const blocks: any[] = [];
+  const normalizeInternalLink = (href: string) => {
+    try {
+      // If absolute to our domain, take pathname
+      if (/^https?:\/\//i.test(href)) {
+        const u = new URL(href)
+        if (u.hostname.endsWith('dinelportal.dk')) href = u.pathname || '/'
+      }
+      // Map known aliases/typos to canonical routes we actually have
+      const path = href.trim()
+      const aliases: Array<[RegExp, string]> = [
+        [/^\/el[- ]?udbydere\/?$/i, '/sammenlign'],
+        [/^\/udbydere\/?$/i, '/sammenlign'],
+        [/^\/sammenlign\/?$/i, '/sammenlign'],
+        [/^\/elpriser\/?$/i, '/elpriser'],
+      ]
+      for (const [rx, to] of aliases) if (rx.test(path)) return to
+      return href
+    } catch { return href }
+  }
   for (const s of draft.sections || []) {
     // Insert section heading as an H2 block when present
     if (s.heading && String(s.heading).trim().length > 0) {
@@ -50,7 +69,8 @@ export function sectionsToPortableText(draft: ArticleDraft) {
           if (before) children.push({ _type: 'span', _key: Math.random().toString(36).slice(2), text: before, marks: [] });
         }
         const key = Math.random().toString(36).slice(2);
-        markDefs.push({ _key: key, _type: 'link', href });
+        const normHref = normalizeInternalLink(href)
+        markDefs.push({ _key: key, _type: 'link', href: normHref });
         children.push({ _type: 'span', _key: Math.random().toString(36).slice(2), text, marks: [key] });
         last = m.index + full.length;
       }

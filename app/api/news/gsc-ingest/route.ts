@@ -421,7 +421,18 @@ export async function GET(req: NextRequest) {
           },
         }
 
-        await sanity.createIfNotExists(doc as any)
+        // Upsert: if a draft already exists, patch missing image/SEO fields
+        const existing = await sanity.fetch(`*[_type=="blogPost" && slug.current==$slug][0]{ _id, featuredImage, seoOpenGraphImage }`, { slug })
+        if (existing?._id) {
+          const patch: any = {}
+          if (!existing.featuredImage) patch.featuredImage = doc.featuredImage
+          if (!existing.seoOpenGraphImage) patch.seoOpenGraphImage = doc.seoOpenGraphImage
+          if (Object.keys(patch).length) {
+            await sanity.patch(existing._id).set(patch).commit()
+          }
+        } else {
+          await sanity.createIfNotExists(doc as any)
+        }
         results.push({ ok: true, slug, title, words: gen.totalWords, links: gen.linkCount, llm: llmPref || gen.llmType })
       } catch (e: any) {
         // Emergency fallback: create a minimal draft so the flow can be reviewed

@@ -852,7 +852,9 @@ async function createDraftFromFeedItem(item: any, opts?: { force?: boolean; minW
     seoMetaDescription: draft.description,
   }
 
-  const created = await sanity.createOrReplace(doc as any)
+  // Create published doc and remove any matching draft
+  await sanity.transaction().createOrReplace(doc as any).delete(`drafts.blogPost_${slug}`).commit()
+  const created = { _id: `blogPost_${slug}` }
   seen.add(canonical || guid)
   return { createdId: created._id, slug }
 }

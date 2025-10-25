@@ -498,7 +498,12 @@ export async function GET(req: NextRequest) {
           if (needsBody) patch.body = bodyBlocks
           if (Object.keys(patch).length) await sanity.patch(existing._id).set(patch).commit()
         } else {
-          await sanity.createOrReplace(doc as any)
+          // Create published doc and clean up any stale draft
+          const draftId = `drafts.blogPost_${slug}`
+          const tx = sanity.transaction()
+          tx.createOrReplace(doc as any)
+          try { tx.delete(draftId) } catch {}
+          await tx.commit()
         }
         results.push({ ok: true, slug, title, words: gen.totalWords, links: gen.linkCount, llm: llmPref || gen.llmType })
       } catch (e: any) {

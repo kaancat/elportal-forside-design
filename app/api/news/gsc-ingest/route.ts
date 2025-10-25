@@ -125,7 +125,7 @@ KRAV:
 
   let outlineText = ''
   if (type === 'openai') {
-    const r = await client.chat.completions.create({ model: 'gpt-4o', temperature: 0.4, messages: [
+    const r = await client.chat.completions.create({ model: 'gpt-4o', temperature: 0.4, response_format: { type: 'json_object' }, messages: [
       { role: 'system', content: sys },
       { role: 'user', content: outlineUser }
     ]})
@@ -160,7 +160,7 @@ Returner KUN JSON:
 
   let expandedText = ''
   if (type === 'openai') {
-    const r = await client.chat.completions.create({ model: 'gpt-4o', temperature: 0.6, messages: [
+    const r = await client.chat.completions.create({ model: 'gpt-4o', temperature: 0.6, response_format: { type: 'json_object' }, messages: [
       { role: 'system', content: sys },
       { role: 'user', content: expandUser }
     ], max_tokens: 8192 })

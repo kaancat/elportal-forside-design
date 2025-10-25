@@ -806,12 +806,14 @@ async function createDraftFromFeedItem(item: any, opts?: { force?: boolean; minW
     if (existing?._id) {
       if (opts?.force) {
         // Update existing document with new Claude-generated content and SEO
-        await sanity
-          .patch(existing._id)
+        // Flatten richTextSection blocks to classic Portable Text for visible Body field
+        const bodyBlocks = (draft.blocks || []).flatMap((b: any) => Array.isArray(b?.content) ? b.content : [])
+        await sanity.patch(existing._id)
           .set({
             title: draft.title,
             description: draft.description,
             contentBlocks: draft.blocks,
+            body: bodyBlocks,
             readTime,
             seoMetaTitle: draft.title,
             seoMetaDescription: draft.description,
@@ -834,6 +836,7 @@ async function createDraftFromFeedItem(item: any, opts?: { force?: boolean; minW
     type: 'Blog',
     description: draft.description,
     contentBlocks: draft.blocks,
+    body: (draft.blocks || []).flatMap((b: any) => Array.isArray(b?.content) ? b.content : []),
     publishedDate: item.isoDate || new Date().toISOString(),
     featured: false,
     readTime,

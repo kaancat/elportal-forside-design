@@ -312,6 +312,19 @@ async function fetchGSCQueries(siteUrl: string, startDate: string, endDate: stri
   }))
 }
 
+async function uploadImageToSanity(sanity: any, url: string, filename: string) {
+  try {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`Image fetch failed ${res.status}`)
+    const ct = res.headers.get('content-type') || 'image/jpeg'
+    const buf = Buffer.from(await res.arrayBuffer())
+    const asset = await sanity.assets.upload('image', buf as any, { filename, contentType: ct })
+    return { _type: 'image', asset: { _type: 'reference', _ref: asset?._id } }
+  } catch (e) {
+    return null
+  }
+}
+
 // -------------------------------
 // API handlers
 // -------------------------------
@@ -391,6 +404,7 @@ export async function GET(req: NextRequest) {
         // Image selection (Unsplash → fallback)
         const ogImageUrl = (await getUnsplashImage(`${kw} energi elpriser Danmark`, slug)) || getHashedFallbackImage(slug)
         const altText = `Illustration: ${title} – elpriser i Danmark`
+        const uploadedImage = await uploadImageToSanity(sanity, ogImageUrl, `${slug}.jpg`)
 
         const doc = {
           _type: 'blogPost',
@@ -409,24 +423,16 @@ export async function GET(req: NextRequest) {
           seoMetaTitle: title,
           seoMetaDescription: polished.description || undefined,
           // Featured image for cards and OG
-          featuredImage: {
-            _type: 'image',
-            asset: { url: ogImageUrl },
-            alt: altText,
-          },
-          seoOpenGraphImage: {
-            _type: 'image',
-            asset: { url: ogImageUrl },
-            alt: altText,
-          },
+          featuredImage: uploadedImage ? { ...uploadedImage, alt: altText } : undefined,
+          seoOpenGraphImage: uploadedImage ? { ...uploadedImage, alt: altText } : undefined,
         }
 
         // Upsert: if a draft already exists, patch missing image/SEO fields
         const existing = await sanity.fetch(`*[_type=="blogPost" && slug.current==$slug][0]{ _id, featuredImage, seoOpenGraphImage }`, { slug })
         if (existing?._id) {
           const patch: any = {}
-          if (!existing.featuredImage) patch.featuredImage = doc.featuredImage
-          if (!existing.seoOpenGraphImage) patch.seoOpenGraphImage = doc.seoOpenGraphImage
+          if (!existing.featuredImage && uploadedImage) patch.featuredImage = { ...uploadedImage, alt: altText }
+          if (!existing.seoOpenGraphImage && uploadedImage) patch.seoOpenGraphImage = { ...uploadedImage, alt: altText }
           if (Object.keys(patch).length) {
             await sanity.patch(existing._id).set(patch).commit()
           }
@@ -448,6 +454,7 @@ export async function GET(req: NextRequest) {
           const readTime = Math.max(1, Math.ceil((title.split(/\s+/).length + paras.join(' ').split(/\s+/).length) / 200))
           const ogImageUrl = (await getUnsplashImage(`${kw} energi elpriser Danmark`, slug)) || getHashedFallbackImage(slug)
           const altText = `Illustration: ${title} – elpriser i Danmark`
+          const uploadedImage = await uploadImageToSanity(sanity, ogImageUrl, `${slug}.jpg`)
           const doc = {
             _type: 'blogPost', _id: `drafts.blogPost_${slug}`, title,
             slug: { _type: 'slug', current: slug }, type: 'Guide',
@@ -456,8 +463,8 @@ export async function GET(req: NextRequest) {
             featured: false, readTime, primaryTopic: classifyTopic(kw) || undefined,
             sourceUrl: `gsc:query:${kw}`, tags: ['SEO', 'Keyword Research'],
             seoMetaTitle: title, seoMetaDescription: `Kort guide om ${kw}.`,
-            featuredImage: { _type: 'image', asset: { url: ogImageUrl }, alt: altText },
-            seoOpenGraphImage: { _type: 'image', asset: { url: ogImageUrl }, alt: altText },
+            featuredImage: uploadedImage ? { ...uploadedImage, alt: altText } : undefined,
+            seoOpenGraphImage: uploadedImage ? { ...uploadedImage, alt: altText } : undefined,
           }
           await sanity.createIfNotExists(doc as any)
           results.push({ ok: true, slug, title, fallback: true, llm: llmPref || 'openai' })

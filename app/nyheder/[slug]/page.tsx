@@ -47,6 +47,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const title = post.seoMetaTitle || post.title
     const description = post.seoMetaDescription || post.description
     const keywords = post.seoMetaKeywords || []
+    const keywordsArray = Array.isArray(keywords)
+        ? keywords
+        : String(keywords)
+            .split(',')
+            .map(k => k.trim())
+            .filter(Boolean)
     // Sanity image asset can be a reference or a direct asset with url; guard accordingly
     const ogImage =
         (post.seoOpenGraphImage?.asset && 'url' in post.seoOpenGraphImage.asset
@@ -59,7 +65,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return {
         title: `${title} | ${SITE_NAME}`,
         description,
-        keywords: keywords.join(', '),
+        keywords: keywordsArray,
         openGraph: {
             title,
             description,

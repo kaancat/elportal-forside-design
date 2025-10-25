@@ -452,21 +452,51 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block, variant = '
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
         >
-          {/* Sidebar: Compact header */}
+          {/* Sidebar: Compact header with horizontal layout */}
           {isSidebar ? (
             <div className="pb-3 border-b border-gray-100">
-              <h2 className="text-base font-display font-bold text-brand-dark mb-1">
-                Aktuelle tilbud
-              </h2>
-              {(location && !isManualRegionOverride) ? (
-                <p className="text-[10px] text-gray-600">
-                  {location.municipality.name} ({location.region})
-                </p>
-              ) : isManualRegionOverride ? (
-                <p className="text-[10px] text-gray-600">
-                  {selectedRegion === 'DK1' ? 'Vestdanmark' : 'Østdanmark'} ({selectedRegion})
-                </p>
-              ) : null}
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <h2 className="text-base font-display font-bold text-brand-dark">
+                    Aktuelle tilbud
+                  </h2>
+                  {(location && !isManualRegionOverride) ? (
+                    <p className="text-[10px] text-gray-600">
+                      {location.municipality.name} ({location.region})
+                    </p>
+                  ) : isManualRegionOverride ? (
+                    <p className="text-[10px] text-gray-600">
+                      {selectedRegion === 'DK1' ? 'Vestdanmark' : 'Østdanmark'} ({selectedRegion})
+                    </p>
+                  ) : null}
+                </div>
+                
+                {/* Price calculation info button */}
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        className="flex items-center gap-1 px-2 py-1 text-[10px] bg-brand-green/10 text-brand-dark border border-brand-green/20 rounded-full font-medium cursor-pointer hover:bg-brand-green/20 transition-colors"
+                      >
+                        <Calculator className="h-3 w-3" />
+                        <span>Beregning</span>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent sideOffset={5} className="max-w-xs text-sm">
+                      <div className="space-y-2">
+                        <p className="font-medium">Sådan beregner vi priserne</p>
+                        <p className="text-xs">
+                          Vi viser <strong>spotpris (måneds-gennemsnit)</strong> + <strong>elselskabets tillæg</strong> (elpris.dk) + <strong>abonnement</strong>.
+                          Obligatoriske ydelser (nettarif, afgifter, system/transmission, moms) er <strong>ikke</strong> inkluderet.
+                        </p>
+                        <p className="text-[10px] text-gray-500">Kilder: Nord Pool (spotpris) og elpris.dk (tillæg/abonnement)</p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              
               {(priceLoading || locationLoading) && (
                 <span className="text-[10px] text-gray-500">(Henter priser...)</span>
               )}

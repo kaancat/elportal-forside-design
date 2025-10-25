@@ -24,8 +24,8 @@ Redaktionelle principper
 • Brug relevante søgeord naturligt (elpriser, udbydere, forbrug, elmarked).
 
 5) Kilder (sourcing)
-• Link løbende til officielle primærkilder tæt på udsagnene — ikke kun i bunden.
-• Fordel kilder på tværs af artiklen: mindst én ekstern kilde i hver sektion og samlet 8–12 kilder.
+• Link til officielle primærkilder tæt på de vigtigste udsagn — ikke kun i bunden.
+• Hold det let: 1–2 eksterne kilder pr. artikel (minimum 1, maksimum 2).
 • Link til specifikke relevante undersider (fx ens.dk/… eller energinet.dk/…), ikke kun forsiden.
 
 Etiske krav

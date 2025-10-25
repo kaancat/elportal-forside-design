@@ -94,7 +94,7 @@ async function topUpIfShort(draft: ArticleDraft, minWords: number, prefer?: LLM)
 export async function runSourcePipeline(input: { title: string; sourceUrl: string; extractedText?: string; minWords: number; prefer?: LLM }) {
   const { type, client } = getAIClient(input.prefer)
   const sys = 'Du skriver danske forbrugerrettede artikler for Din Elportal. Returner KUN JSON.'
-  const prompt = `NYHED\nTitel: ${input.title}\nKilde: ${input.sourceUrl}\nKontekst (kun som baggrund): ${(input.extractedText||'').slice(0,2500)}\n\n${buildGuidelinePrompt({ minWords: input.minWords })}\n\nKrav til svar:\n- Minimum ${input.minWords} ord samlet.\n- Brug meningsfulde H2-overskrifter hvor det giver mening (ingen faste labels).\n- Inkludér naturlige links: mindst 2 interne OG mindst 8 forskellige officielle eksterne fordelt over hele artiklen (helst én pr. sektion).\n- Returner KUN JSON i formatet { "title": "...", "description": "...", "sections": [ { "heading": "...", "paragraphs": ["..."] } ] }.`
+  const prompt = `NYHED\nTitel: ${input.title}\nKilde: ${input.sourceUrl}\nKontekst (kun som baggrund): ${(input.extractedText||'').slice(0,2500)}\n\n${buildGuidelinePrompt({ minWords: input.minWords })}\n\nKrav til svar:\n- Minimum ${input.minWords} ord samlet.\n- Brug meningsfulde H2-overskrifter hvor det giver mening (ingen faste labels).\n- Inkludér naturlige links: mindst 2 interne OG 1–2 officielle eksterne kilder placeret tæt på relevante udsagn.\n- Returner KUN JSON i formatet { "title": "...", "description": "...", "sections": [ { "heading": "...", "paragraphs": ["..."] } ] }.`
   let text = ''
   if (type === 'openai') {
     const r = await client.chat.completions.create({ model: 'gpt-4o', temperature: 0.6, response_format: { type: 'json_object' }, messages: [

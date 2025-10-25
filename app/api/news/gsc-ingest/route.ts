@@ -389,7 +389,31 @@ export async function GET(req: NextRequest) {
         await sanity.createIfNotExists(doc as any)
         results.push({ ok: true, slug, title, words: gen.totalWords, links: gen.linkCount })
       } catch (e: any) {
-        results.push({ ok: false, keyword: kw, error: e?.message || String(e) })
+        // Emergency fallback: create a minimal draft so the flow can be reviewed
+        try {
+          const title = `Hvad betyder ${kw} for din elregning?`
+          const slug = slugify(title)
+          const paras = [
+            `Dette indlæg forklarer kort, hvad "${kw}" betyder for danske husholdninger, og hvordan det kan påvirke elpriser og forbrug.`,
+            `Vil du følge udviklingen i priser? Se [de aktuelle timepriser](/elpriser) og planlæg forbruget i de billigste timer.`,
+            `Overvejer du at skifte elaftale? Sammenlign [danske eludbydere](/el-udbydere) for at finde en aftale der passer til dit forbrug.`,
+          ]
+          const blocks = paragraphsToPortableText(paras)
+          const readTime = Math.max(1, Math.ceil((title.split(/\s+/).length + paras.join(' ').split(/\s+/).length) / 200))
+          const doc = {
+            _type: 'blogPost', _id: `drafts.blogPost_${slug}`, title,
+            slug: { _type: 'slug', current: slug }, type: 'Guide',
+            description: `Kort guide om ${kw} og elpriser i Danmark.`,
+            contentBlocks: blocks, publishedDate: new Date().toISOString(),
+            featured: false, readTime, primaryTopic: classifyTopic(kw) || undefined,
+            sourceUrl: `gsc:query:${kw}`, tags: ['SEO', 'Keyword Research'],
+            seoMetaTitle: title, seoMetaDescription: `Kort guide om ${kw}.`,
+          }
+          await sanity.createIfNotExists(doc as any)
+          results.push({ ok: true, slug, title, fallback: true })
+        } catch (inner: any) {
+          results.push({ ok: false, keyword: kw, error: e?.message || String(e), fallbackError: inner?.message || String(inner) })
+        }
       }
     }
 

@@ -100,27 +100,28 @@ function paragraphsToPortableText(paragraphs: string[]) {
 }
 
 // -------------------------------
-// AI: Two-step keyword article generation (outline → expanded content)
+// AI: Two-step keyword article generation (flex outline → flexible expansion)
 // -------------------------------
 async function generateKeywordArticle(keyword: string, opts?: { minWords?: number }) {
   const minWords = Math.max(500, opts?.minWords || 800)
   const { type, client } = getAIClient()
   const sys = `Du er journalist hos DinElPortal. Skriv på dansk til almindelige husholdninger. Fokus: elpriser, forbrug, grøn energi og konkrete råd.`
 
-  // Step 1: Outline & metadata
-  const outlineUser = `Lav en artikel-plan for emnet: "${keyword}".
+  // Step 1: Outline & metadata (flexible sections 3–6)
+  const outlineUser = `Lav en artikelplan for emnet: "${keyword}" til danske husholdninger.
 Returner KUN JSON med:
 {
   "title": "SEO-titel (maks 60 tegn)",
   "meta": "Meta description (maks 160 tegn)",
-  "h2": ["Sektion 1", "Sektion 2", "Sektion 3", "Sektion 4"],
-  "bullets": {
-    "Sektion 1": ["punkt", "punkt"],
-    "Sektion 2": ["punkt", "punkt"],
-    "Sektion 3": ["punkt", "punkt"],
-    "Sektion 4": ["punkt", "punkt"]
-  }
-}`
+  "sections": [
+    { "heading": "...", "purpose": "hvad dækker afsnittet" }
+  ]
+}
+
+KRAV:
+- 3–6 sektioner (ikke fast skabelon)
+- Forbrugerfokus (hvad betyder det for elregning/valg/forbrug)
+- Neutral, faktuel tone`
 
   let outlineText = ''
   if (type === 'openai') {
@@ -139,22 +140,23 @@ Returner KUN JSON med:
   const outlineJsonMatch = outlineText.match(/\{[\s\S]*\}$/)
   const outline = outlineJsonMatch ? JSON.parse(outlineJsonMatch[0]) : JSON.parse(outlineText)
 
-  // Step 2: Expand content with strict internal links and word target
+  // Step 2: Expand content with flexible structure and guardrails
   const expandUser = `Skriv en dansk artikel baseret på denne plan:
 ${JSON.stringify(outline)}
 
 KRAV:
-- Minimum ${minWords} ord totalt
-- Brug lange afsnit (70-120 ord) for hver H2
-- Indsæt links i markdown-format:
+- Minimum ${minWords} ord totalt (samlet)
+- 3–6 afsnit med 1–3 naturligt lange afsnit hver (ingen faste ordtal)
+- Indsæt links i markdown-format (naturligt i teksten):
   - Mindst 2 links til [de aktuelle elpriser](/elpriser)
   - Mindst 1 link til [sammenlign danske eludbydere](/el-udbydere)
-- Ingen "Kilde:"-etiketter. Ingen overdrevne påstande uden forbehold.
+- Undgå kategoriske påstande uden forbehold (brug “kan”, “typisk”, “afhænger af …”)
+- Brug neutralt, forklarende sprog; fokus på forbrugerens perspektiv
 Returner KUN JSON:
 {
   "title": "...",
   "description": "...",
-  "sections": [ { "heading": "H2-overskrift", "paragraphs": ["langt afsnit", "langt afsnit"] } ]
+  "sections": [ { "heading": "...", "paragraphs": ["...", "..."] } ]
 }`
 
   let expandedText = ''

@@ -5,7 +5,7 @@ import OpenAI from 'openai'
 import { getSearchConsoleAccessToken } from '@/server/google'
 import { env as appEnv } from '@/lib/env'
 import { getUnsplashImage, getHashedFallbackImage } from '@/server/unsplash'
-import { sectionsToPortableText, estimateReadTimeFromBlocks, computeStats } from '@/server/newsFormatter'
+import { sectionsToPortableText, estimateReadTimeFromBlocks, computeStats, formatTitleSentenceCase } from '@/server/newsFormatter'
 import { buildGuidelinePrompt } from '@/server/newsGuidelines'
 
 export const runtime = 'nodejs'
@@ -451,7 +451,7 @@ export async function GET(req: NextRequest) {
       try {
         const gen = await generateKeywordArticle(kw, { minWords, forceLLM: llmPref || undefined })
         const polished = polishArticle(kw, { title: gen.title, description: gen.description, sections: (gen as any).sections })
-        const title = polished.title || kw
+        const title = formatTitleSentenceCase(polished.title || kw)
         const slug = slugify(title || kw)
         const { contentBlocks: blocks, body: bodyBlocks } = sectionsToPortableText({ title, description: polished.description, sections: polished.sections })
         const readTime = estimateReadTimeFromBlocks(bodyBlocks)
@@ -463,7 +463,7 @@ export async function GET(req: NextRequest) {
 
         const doc = {
           _type: 'blogPost',
-          _id: `drafts.blogPost_${slug}`,
+          _id: `blogPost_${slug}`,
           title,
           slug: { _type: 'slug', current: slug },
           type: 'Guide',
@@ -498,13 +498,13 @@ export async function GET(req: NextRequest) {
           if (needsBody) patch.body = bodyBlocks
           if (Object.keys(patch).length) await sanity.patch(existing._id).set(patch).commit()
         } else {
-          await sanity.createIfNotExists(doc as any)
+          await sanity.createOrReplace(doc as any)
         }
         results.push({ ok: true, slug, title, words: gen.totalWords, links: gen.linkCount, llm: llmPref || gen.llmType })
       } catch (e: any) {
         // Emergency fallback: create a minimal draft so the flow can be reviewed
         try {
-          const title = `Hvad betyder ${kw} for din elregning?`
+          const title = formatTitleSentenceCase(`Hvad betyder ${kw} for din elregning?`)
           const slug = slugify(title)
           const paras = [
             `Dette indlæg forklarer kort, hvad "${kw}" betyder for danske husholdninger, og hvordan det kan påvirke elpriser og forbrug.`,
@@ -517,7 +517,7 @@ export async function GET(req: NextRequest) {
           const altText = `Illustration: ${title} – elpriser i Danmark`
           const uploadedImage = await uploadImageToSanity(sanity, ogImageUrl, `${slug}.jpg`)
           const doc = {
-            _type: 'blogPost', _id: `drafts.blogPost_${slug}`, title,
+            _type: 'blogPost', _id: `blogPost_${slug}`, title,
             slug: { _type: 'slug', current: slug }, type: 'Guide',
             description: `Kort guide om ${kw} og elpriser i Danmark.`,
             contentBlocks: blocks, body: bodyBlocks, publishedDate: new Date().toISOString(),
@@ -527,7 +527,7 @@ export async function GET(req: NextRequest) {
             featuredImage: uploadedImage ? { ...uploadedImage, alt: altText } : undefined,
             seoOpenGraphImage: uploadedImage ? { ...uploadedImage, alt: altText } : undefined,
           }
-          await sanity.createIfNotExists(doc as any)
+          await sanity.createOrReplace(doc as any)
           results.push({ ok: true, slug, title, fallback: true, llm: llmPref || 'openai' })
         } catch (inner: any) {
           results.push({ ok: false, keyword: kw, error: e?.message || String(e), fallbackError: inner?.message || String(inner) })

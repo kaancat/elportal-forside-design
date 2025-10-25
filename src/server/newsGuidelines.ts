@@ -23,6 +23,11 @@ Redaktionelle principper
 • Skriv en præcis titel (<=60 tegn) og meta‑beskrivelse (<=160 tegn).
 • Brug relevante søgeord naturligt (elpriser, udbydere, forbrug, elmarked).
 
+5) Kilder (sourcing)
+• Link løbende til officielle primærkilder tæt på udsagnene — ikke kun i bunden.
+• Fordel kilder på tværs af artiklen: mindst én ekstern kilde i hver sektion og samlet 8–12 kilder.
+• Link til specifikke relevante undersider (fx ens.dk/… eller energinet.dk/…), ikke kun forsiden.
+
 Etiske krav
 • Angiv altid kilden tydeligt med aktivt link.
 • Undgå at gengive hele afsnit direkte fra kilden.

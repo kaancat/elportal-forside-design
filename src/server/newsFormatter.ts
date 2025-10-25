@@ -95,14 +95,31 @@ export function estimateReadTimeFromBlocks(bodyBlocks: any[]): number {
 // while preserving common uppercase abbreviations (EU, DK1/DK2, CO2, kWh, etc.).
 export function formatTitleSentenceCase(input?: string): string {
   if (!input) return ''
-  const keepUpper = new Set(['EU', 'DK1', 'DK2', 'CO2', 'kWh', 'kW', 'MW', 'MWh', 'GWh', 'PtX', 'EV', 'V2G'])
   // Trim and collapse spaces
   let s = input.trim().replace(/\s+/g, ' ')
-  // Make sentence case naive baseline
+  // Baseline sentence case
   s = s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
-  // Restore known uppercase tokens
-  s = s.split(/(\b)/).map(tok => keepUpper.has(tok.toUpperCase()) ? tok.toUpperCase() : tok).join('')
-  // Preserve all-caps alphanumerics with digits (e.g., DK1, 2025) and tokens >=3
-  s = s.replace(/\b([A-Z]{2,}\d*|\d+[A-Z]+)\b/gi, (m) => m.toUpperCase())
+  // Restore preferred casing for known tokens and abbreviations
+  const exactCase: Record<string, string> = {
+    'eu': 'EU',
+    'dk1': 'DK1',
+    'dk2': 'DK2',
+    'co2': 'CO2',
+    'kwh': 'kWh',
+    'kw': 'kW',
+    'mw': 'MW',
+    'mwh': 'MWh',
+    'gwh': 'GWh',
+    'ptx': 'PtX',
+    'ev': 'EV',
+    'v2g': 'V2G',
+  }
+  s = s.replace(/\b([a-z0-9]+)\b/gi, (m) => {
+    const key = m.toLowerCase()
+    if (exactCase[key]) return exactCase[key]
+    // Preserve tokens that mix letters and digits (e.g., 2025Q1, 3G) as uppercase
+    if (/[a-z]/i.test(m) && /\d/.test(m)) return m.toUpperCase()
+    return m
+  })
   return s
 }

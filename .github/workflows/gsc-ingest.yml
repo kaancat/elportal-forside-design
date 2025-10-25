@@ -1,0 +1,35 @@
+name: GSC Keyword Ingestion
+
+on:
+  schedule:
+    # Run daily at 03:15 UTC
+    - cron: '15 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  ingest-gsc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger GSC Keyword Ingestion
+        run: |
+          # Requires secrets:
+          # - GSC_INGEST_URL (e.g., https://<your-domain>/api/news/gsc-ingest?limit=3&minWords=900)
+          # - ADMIN_SECRET (header used by the API route)
+          response=$(curl -s -w "\n%{http_code}" -X GET \
+            -H "x-admin-secret: ${{ secrets.ADMIN_SECRET }}" \
+            "${{ secrets.GSC_INGEST_URL }}")
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | head -n-1)
+          echo "HTTP Status: $http_code"
+          echo "Response: $body"
+          if [ "$http_code" -ne 200 ]; then
+            echo "❌ GSC ingestion failed with status $http_code"
+            exit 1
+          fi
+          echo "✅ GSC ingestion completed successfully"
+
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "⚠️ GSC ingestion workflow failed. Check logs."
+

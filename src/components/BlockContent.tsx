@@ -12,21 +12,43 @@ const BlockContent: React.FC<BlockContentProps> = ({ content, className = '' }) 
     if (block._type !== 'block') return null
 
     const style = block.style || 'normal'
-    const children = block.children?.map((child, index) => {
-      if (child._type === 'span') {
-        let element = <span key={index}>{child.text}</span>
-        
-        // Apply marks (bold, italic, etc.)
-        if (child.marks?.includes('strong')) {
-          element = <strong key={index}>{child.text}</strong>
-        }
-        if (child.marks?.includes('em')) {
-          element = <em key={index}>{child.text}</em>
-        }
-        
-        return element
+    const linkMap: Record<string, string> = {}
+    ;(block.markDefs || []).forEach(def => {
+      if (def._type === 'link' && def._key && typeof def.href === 'string') {
+        linkMap[def._key] = def.href
       }
-      return null
+    })
+
+    const children = block.children?.map((child, index) => {
+      if (child._type !== 'span') return null
+      const text = child.text
+      const marks = child.marks || []
+
+      const isStrong = marks.includes('strong')
+      const isEm = marks.includes('em')
+      const linkKey = marks.find(m => linkMap[m])
+
+      let el: React.ReactNode = text
+      if (isStrong) el = <strong key={`s-${index}`}>{el}</strong>
+      if (isEm) el = <em key={`e-${index}`}>{el}</em>
+
+      if (linkKey) {
+        const href = linkMap[linkKey]
+        const external = /^https?:\/\//i.test(href) && !href.startsWith('/')
+        el = (
+          <a
+            key={`a-${index}`}
+            href={href}
+            target={external ? '_blank' : undefined}
+            rel={external ? 'nofollow noopener' : undefined}
+            className="text-brand-green hover:text-brand-green-dark underline underline-offset-2"
+          >
+            {el}
+          </a>
+        )
+      }
+
+      return <span key={index}>{el}</span>
     })
 
     // Render based on style

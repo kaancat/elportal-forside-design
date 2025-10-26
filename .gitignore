@@ -24,12 +24,16 @@ dist-ssr
 *.sw?
 .env
 scripts/.env
+# Ignore all dot-env variants except the public template
+.env.*
+!.env.example
 
 # Claude files with sensitive patterns
 .claude/
 docs/specs/example-feature-specification.md
 
 .vercel
+# Legacy specific rules (covered by .env.* above, kept for clarity)
 .env*.local
 .env.local.backup*
 .env.vercel

@@ -9,13 +9,51 @@ jobs:
   run:
     runs-on: ubuntu-latest
     steps:
+      - name: Validate inputs
+        env:
+          ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
+          BASE_URL: ${{ secrets.INGEST_BASE_URL || 'https://dinelportal.dk' }}
+          GSC_INGEST_URL: ${{ secrets.GSC_INGEST_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ADMIN_SECRET:-}" ]; then
+            echo "Missing GitHub secret ADMIN_SECRET. Set it in repo or org secrets to match the production Vercel env var ADMIN_SECRET." >&2
+            exit 1
+          fi
+          if [ -z "${BASE_URL:-}" ]; then
+            echo "BASE_URL is empty; set secrets.INGEST_BASE_URL or rely on default." >&2
+            exit 1
+          fi
+
       - name: Trigger GSC ingest (limit=1)
         env:
           ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
           BASE_URL: ${{ secrets.INGEST_BASE_URL || 'https://dinelportal.dk' }}
+          GSC_INGEST_URL: ${{ secrets.GSC_INGEST_URL }}
         run: |
           set -euo pipefail
-          URL="$BASE_URL/api/news/gsc-ingest?limit=1&minWords=1200&llm=openai"
+          if [ -n "${GSC_INGEST_URL:-}" ]; then
+            URL="$GSC_INGEST_URL"
+          else
+            URL="$BASE_URL/api/news/gsc-ingest?limit=1&minWords=1200&llm=openai"
+          fi
           echo "Calling: $URL"
-          curl -fsS -H "x-admin-secret: $ADMIN_SECRET" "$URL"
-
+          # Perform request with retries, capture body + status for diagnostics
+          TMP_RESP="$(mktemp)"
+          STATUS=$(curl -sS \
+            --retry 3 --retry-delay 5 --max-time 120 \
+            -H "x-admin-secret: $ADMIN_SECRET" \
+            -H "User-Agent: gha-gsc-ingest/1.0" \
+            -o "$TMP_RESP" -w "%{http_code}" \
+            "$URL" || true)
+          echo "HTTP $STATUS"
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 300 ]; then
+            cat "$TMP_RESP"
+            exit 0
+          fi
+          echo "Request failed. Response body:" >&2
+          cat "$TMP_RESP" >&2 || true
+          if [ "$STATUS" = "403" ]; then
+            echo "Hint: 403 Forbidden usually means the x-admin-secret header does not match the server's ADMIN_SECRET or production ingestion is disabled (INGEST_ALLOW_PROD!=true)." >&2
+          fi
+          exit 1

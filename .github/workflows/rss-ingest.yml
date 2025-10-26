@@ -39,10 +39,11 @@ jobs:
           else
             URL="$BASE_URL/api/news/ingest?limit=1&minWords=1200&llm=openai"
           fi
+          FALLBACK_URL="$BASE_URL/api/news/ingest?limit=1&minWords=1200&llm=openai"
           echo "Calling: $URL"
           TMP_RESP="$(mktemp)"
           STATUS=$(curl -sS \
-            --retry 3 --retry-delay 5 --max-time 120 \
+            --retry 3 --retry-delay 5 --max-time 300 \
             -H "x-admin-secret: $ADMIN_SECRET" \
             -H "User-Agent: gha-rss-ingest/1.0" \
             -o "$TMP_RESP" -w "%{http_code}" \
@@ -52,9 +53,24 @@ jobs:
             cat "$TMP_RESP"
             exit 0
           fi
-          echo "Request failed. Response body:" >&2
+          echo "Primary URL failed (status=$STATUS). Response body:" >&2
           cat "$TMP_RESP" >&2 || true
-          if [ "$STATUS" = "403" ]; then
+          echo "Falling back to default endpoint: $FALLBACK_URL" >&2
+          TMP2="$(mktemp)"
+          STATUS2=$(curl -sS \
+            --retry 2 --retry-delay 5 --max-time 300 \
+            -H "x-admin-secret: $ADMIN_SECRET" \
+            -H "User-Agent: gha-rss-ingest/1.0 (fallback)" \
+            -o "$TMP2" -w "%{http_code}" \
+            "$FALLBACK_URL" || true)
+          echo "Fallback HTTP $STATUS2"
+          if [ "$STATUS2" -ge 200 ] && [ "$STATUS2" -lt 300 ]; then
+            cat "$TMP2"
+            exit 0
+          fi
+          echo "Fallback failed. Response body:" >&2
+          cat "$TMP2" >&2 || true
+          if [ "$STATUS2" = "403" ]; then
             echo "Hint: 403 Forbidden usually means the x-admin-secret header does not match the server's ADMIN_SECRET or production ingestion is disabled (INGEST_ALLOW_PROD!=true)." >&2
           fi
           exit 1

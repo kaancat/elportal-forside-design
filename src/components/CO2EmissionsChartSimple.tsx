@@ -1,11 +1,14 @@
 import React from 'react';
 
+import { cn } from '@/lib/utils';
+
 interface CO2EmissionsChartSimpleProps {
   block: {
     _type: 'co2EmissionsChart';
     _key: string;
     title?: string;
     subtitle?: string;
+    headerAlignment?: 'left' | 'center' | 'right';
     showGauge?: boolean;
   };
 }
@@ -18,10 +21,21 @@ const CO2EmissionsChartSimple: React.FC<CO2EmissionsChartSimpleProps> = ({ block
   return (
     <section className="bg-white py-16 lg:py-24">
       <div className="container mx-auto px-4">
-        <h3 className="text-2xl lg:text-3xl font-display font-bold text-gray-900 text-center mb-4">
+        <h3 className={cn(
+          "text-2xl lg:text-3xl font-display font-bold text-gray-900 mb-4",
+          block.headerAlignment === 'left' && "text-left",
+          block.headerAlignment === 'center' && "text-center",
+          block.headerAlignment === 'right' && "text-right",
+          !block.headerAlignment && "text-center" // default to center
+        )}>
           {title}
         </h3>
-        <p className="text-lg text-gray-600 text-center mb-12 max-w-3xl mx-auto">
+        <p className={cn(
+          "text-lg text-gray-600 mb-12",
+          block.headerAlignment === 'center' || !block.headerAlignment ? "max-w-3xl mx-auto text-center" : "",
+          block.headerAlignment === 'left' && "text-left",
+          block.headerAlignment === 'right' && "text-right"
+        )}>
           {subtitle}
         </p>
 

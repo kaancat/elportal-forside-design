@@ -3,12 +3,12 @@
 import React, { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import * as Icons from 'lucide-react'
-import { 
-  Lightbulb, 
-  Home, 
-  Thermometer, 
-  Zap, 
-  Shield, 
+import {
+  Lightbulb,
+  Home,
+  Thermometer,
+  Zap,
+  Shield,
   Smartphone
 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
@@ -105,10 +105,10 @@ interface EnergyTipsSectionProps {
 
 export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
   const [selectedCategory, setSelectedCategory] = useState(block.defaultCategory || 'daily_habits')
-  
+
   // Use professional animations
   const headerAnimation = useScrollAnimation({ duration: 0.6, type: 'fadeUp' });
-  
+
   // Prefer CMS tips, but only if they look valid (at least a title or description)
   const cmsTips = (block.tips || []).filter((t: any) => t && (t.title || t.shortDescription || t.category)) as CMSEnergyTip[]
   const allTipsData = cmsTips.length > 0 ? cmsTips : FALLBACK_TIPS
@@ -127,12 +127,12 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
   const { displayTips, categoryTips } = useMemo(() => {
     // Group all tips by category
     const grouped: Record<string, CMSEnergyTip[]> = {}
-    
+
     // Initialize all categories with empty arrays
     categoriesToShow.forEach(cat => {
       grouped[cat] = []
     })
-    
+
     // Populate groups with actual tips
     allTipsData.forEach(tip => {
       if (categoriesToShow.includes(tip.category)) {
@@ -142,28 +142,28 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
         grouped[tip.category].push(tip)
       }
     })
-    
+
     // Determine what to display based on selected category
     let tipsToDisplay: CMSEnergyTip[] = []
-    
+
     const activeCategory = selectedCategory && categoriesToShow.includes(selectedCategory) ? selectedCategory : 'all'
     if (activeCategory === 'all') {
       // Show all tips from all categories
-      tipsToDisplay = allTipsData.filter(tip => 
+      tipsToDisplay = allTipsData.filter(tip =>
         categoriesToShow.includes(tip.category)
       )
     } else {
       // Show tips from selected category only
       tipsToDisplay = grouped[activeCategory] || []
     }
-    
+
     // Apply max tips limit if needed
-    if (block.maxTipsPerCategory && 
-        block.maxTipsPerCategory > 0 && 
-        selectedCategory !== 'all') {
+    if (block.maxTipsPerCategory &&
+      block.maxTipsPerCategory > 0 &&
+      selectedCategory !== 'all') {
       tipsToDisplay = tipsToDisplay.slice(0, block.maxTipsPerCategory)
     }
-    
+
     // Debug logging
     if (process.env.NODE_ENV === 'development') {
       console.log('🔍 EnergyTips Debug:', {
@@ -171,29 +171,29 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
         categoriesToShow,
         allTipsCount: allTipsData.length,
         displayCount: tipsToDisplay.length,
-        categoryBreakdown: Object.entries(grouped).map(([cat, tips]) => 
+        categoryBreakdown: Object.entries(grouped).map(([cat, tips]) =>
           `${cat}: ${tips.length}`
         ).join(', ')
       })
     }
-    
-    return { 
+
+    return {
       displayTips: tipsToDisplay,
-      categoryTips: grouped 
+      categoryTips: grouped
     }
   }, [allTipsData, categoriesToShow, selectedCategory, block.maxTipsPerCategory])
 
   const renderTipCard = (tip: CMSEnergyTip, index: number) => {
-    const IconComponent = tip.icon && Icons[tip.icon as keyof typeof Icons] 
+    const IconComponent = tip.icon && Icons[tip.icon as keyof typeof Icons]
       ? (Icons[tip.icon as keyof typeof Icons] as any)
       : Lightbulb
-    
+
     return (
       <motion.div
         key={tip._id}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ 
+        transition={{
           duration: 0.5,
           delay: index * 0.08,
           ease: [0.22, 1, 0.36, 1]
@@ -207,8 +207,8 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
             </div>
             <div className="flex gap-2">
               {block.showSavingsPotential !== false && tip.savingsPotential && (
-                <Badge 
-                  variant="outline" 
+                <Badge
+                  variant="outline"
                   className={`text-xs ${savingsColors[tip.savingsPotential]}`}
                 >
                   {tip.savingsPotential === 'low' && '💰'}
@@ -223,15 +223,15 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
               )}
             </div>
           </div>
-          
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+
+          <h4 className="text-lg font-display font-semibold text-gray-900 mb-2">
             {tip.title}
-          </h3>
-          
+          </h4>
+
           <p className="text-gray-600 text-sm leading-relaxed">
             {tip.shortDescription}
           </p>
-          
+
           {tip.estimatedSavings && (
             <p className="text-sm font-medium text-green-600 mt-3">
               {tip.estimatedSavings}
@@ -243,7 +243,7 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
   }
 
   const renderContent = () => (
-    <motion.div 
+    <motion.div
       className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
       variants={staggerContainer}
       initial="hidden"
@@ -262,18 +262,16 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
       <div className="container mx-auto px-4">
         <motion.div
           {...headerAnimation}
-          className={`mb-12 ${
-            block.headerAlignment === 'center' ? 'text-center' : 
-            block.headerAlignment === 'right' ? 'text-right' : 
-            'text-left'
-          }`}
+          className={`mb-12 ${block.headerAlignment === 'center' ? 'text-center' :
+              block.headerAlignment === 'right' ? 'text-right' :
+                'text-left'
+            }`}
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <h3 className="text-2xl lg:text-3xl font-display font-bold text-gray-900 mb-4">
             {block.title || 'Praktiske energispare tips'}
-          </h2>
-          <p className={`text-lg text-gray-600 ${
-            block.headerAlignment === 'center' ? 'max-w-2xl mx-auto' : ''
-          }`}>
+          </h3>
+          <p className={`text-lg text-gray-600 ${block.headerAlignment === 'center' ? 'max-w-2xl mx-auto' : ''
+            }`}>
             {block.subtitle || 'Følg disse simple råd for at reducere dit energiforbrug og spare penge hver måned.'}
           </p>
         </motion.div>
@@ -285,11 +283,10 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 p-1 bg-gray-100 rounded-lg">
                 <button
                   onClick={() => setSelectedCategory('all')}
-                  className={`flex items-center justify-center gap-2 px-3 py-2 rounded-md transition-colors ${
-                    selectedCategory === 'all' 
-                      ? 'bg-white shadow-sm text-gray-900' 
+                  className={`flex items-center justify-center gap-2 px-3 py-2 rounded-md transition-colors ${selectedCategory === 'all'
+                      ? 'bg-white shadow-sm text-gray-900'
                       : 'text-gray-600 hover:text-gray-900'
-                  }`}
+                    }`}
                 >
                   <Zap className="h-4 w-4" />
                   <span className="hidden sm:inline">Alle tips</span>
@@ -299,16 +296,15 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
                   const category = categoryConfig[categoryKey as keyof typeof categoryConfig]
                   if (!category) return null
                   const Icon = category.icon
-                  
+
                   return (
                     <button
                       key={categoryKey}
                       onClick={() => setSelectedCategory(categoryKey as typeof selectedCategory)}
-                      className={`flex items-center justify-center gap-2 px-3 py-2 rounded-md transition-colors ${
-                        selectedCategory === categoryKey 
-                          ? 'bg-white shadow-sm text-gray-900' 
+                      className={`flex items-center justify-center gap-2 px-3 py-2 rounded-md transition-colors ${selectedCategory === categoryKey
+                          ? 'bg-white shadow-sm text-gray-900'
                           : 'text-gray-600 hover:text-gray-900'
-                      }`}
+                        }`}
                     >
                       <Icon className="h-4 w-4" />
                       <span className="hidden sm:inline">{category.label}</span>
@@ -327,7 +323,7 @@ export function EnergyTipsSection({ block }: EnergyTipsSectionProps) {
         ) : (
           renderContent()
         )}
-        
+
         {/* Debug info for development */}
         {process.env.NODE_ENV === 'development' && (
           <div className="mt-8 p-4 bg-gray-100 rounded text-xs text-gray-600">

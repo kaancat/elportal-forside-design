@@ -25,16 +25,16 @@ const VideoSectionComponent: React.FC<VideoSectionComponentProps> = ({ block }) 
       <section className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto">
           {block.title && (
-            <h2 className="text-3xl md:text-4xl font-display font-bold text-brand-dark mb-8 text-center">
+            <h3 className="text-2xl lg:text-3xl font-display font-bold text-brand-dark mb-8 text-center">
               {block.title}
-            </h2>
+            </h3>
           )}
-          
+
           <div className="relative w-full" style={{ paddingTop: '56.25%' /* 16:9 aspect ratio */ }}>
             <div className="absolute inset-0 rounded-lg overflow-hidden shadow-lg">
               {!isPlaying ? (
                 // Thumbnail View
-                <div 
+                <div
                   className="relative cursor-pointer group w-full h-full"
                   onClick={() => setIsPlaying(true)}
                 >
@@ -45,7 +45,7 @@ const VideoSectionComponent: React.FC<VideoSectionComponentProps> = ({ block }) 
                   />
                   {/* Dark overlay on hover */}
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300" />
-                  
+
                   {/* Play button */}
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="bg-brand-green bg-opacity-90 rounded-full p-6 transition-all duration-300 group-hover:bg-opacity-100 group-hover:scale-110 shadow-lg">
@@ -88,7 +88,7 @@ const VideoSectionComponent: React.FC<VideoSectionComponentProps> = ({ block }) 
             {block.title}
           </h2>
         )}
-        
+
         <div className="relative w-full" style={{ paddingTop: '56.25%' /* 16:9 aspect ratio */ }}>
           <div className="absolute inset-0 rounded-lg overflow-hidden shadow-lg">
             <ReactPlayer

@@ -545,14 +545,14 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
       getThemeClasses(settings?.theme),
       getPaddingClasses(settings?.padding)
     )}>
-      <div className="container mx-auto px-4 lg:px-8 max-w-7xl">
+      <div className="container mx-auto px-4 lg:px-8">
         {title && (
-          <h2 className={cn(
-            "text-3xl lg:text-4xl font-bold text-center mb-4 font-display",
+          <h3 className={cn(
+            "text-2xl lg:text-3xl font-display font-bold text-center mb-4",
             themeColors.heading
           )}>
             {title}
-          </h2>
+          </h3>
         )}
         {Array.isArray(description) && description.length > 0 ? (
           <div className={cn(

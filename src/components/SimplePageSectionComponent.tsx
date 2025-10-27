@@ -2,14 +2,14 @@ import React from 'react';
 
 // We'll need a proper type for this later from sanity.ts
 interface PageSectionProps {
-  block: any; 
+  block: any;
 }
 
 const SimplePageSectionComponent: React.FC<PageSectionProps> = ({ block }) => {
   // Very basic renderer for the Portable Text array
   const renderContent = (content: any[]) => {
     if (!content || !Array.isArray(content)) return null;
-    
+
     return content.map(block => {
       if (block._type === 'block' && block.children) {
         return (
@@ -34,7 +34,7 @@ const SimplePageSectionComponent: React.FC<PageSectionProps> = ({ block }) => {
   return (
     <div className="py-8 border-b border-gray-200">
       {block.title && (
-        <h2 className="text-3xl font-bold mb-6 text-gray-900">
+        <h2 className="text-3xl lg:text-4xl font-display font-bold mb-6 text-gray-900">
           {block.title}
         </h2>
       )}

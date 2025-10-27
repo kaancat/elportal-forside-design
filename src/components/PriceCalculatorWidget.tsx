@@ -16,13 +16,13 @@ import { trackEnhancedEvent } from '@/utils/tracking';
 
 // --- PROPS INTERFACE ---
 interface PriceCalculatorWidgetProps {
-  block: {
-    _type: 'priceCalculator';
-    title?: string;
-  };
-  variant?: 'standalone' | 'hero'; // Add variant prop for different use cases
-  showLivePrice?: boolean;
-  showProviderComparison?: boolean;
+    block: {
+        _type: 'priceCalculator';
+        title?: string;
+    };
+    variant?: 'standalone' | 'hero'; // Add variant prop for different use cases
+    showLivePrice?: boolean;
+    showProviderComparison?: boolean;
 }
 
 // --- TYPES & PRESETS ---
@@ -59,7 +59,7 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
     const [providerCount, setProviderCount] = useState<number | null>(null);
     const [providerListId, setProviderListId] = useState<string>('provider-list');
-    
+
     // Get network tariff from Radius (Copenhagen) as default for calculator
     // This covers a large population and provides accurate pricing
     const radiusProvider = gridProviders['791']; // Radius Elnet
@@ -72,7 +72,7 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
         setActivePreset(preset);
         setAnnualConsumption(presets[preset]);
     };
-    
+
     const handleSliderChange = (value: number[]) => {
         setAnnualConsumption(value[0]);
         setActivePreset('custom');
@@ -88,24 +88,24 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
 
     // Listen for provider list readiness to show dynamic count in hero CTA
     useEffect(() => {
-      const onReady = (e: Event) => {
-        const evt = e as CustomEvent<{ id?: string; count?: number }>;
-        if (typeof evt.detail?.count === 'number') {
-          setProviderCount(evt.detail.count);
-        }
-        if (evt.detail?.id) {
-          setProviderListId(evt.detail.id);
-        }
-        try {
-          trackEnhancedEvent('provider_list_ready', {
-            component: 'provider_list',
-            page: window.location.pathname,
-            provider_count: typeof evt.detail?.count === 'number' ? evt.detail.count : undefined,
-          });
-        } catch {}
-      };
-      window.addEventListener('elportal:providerListReady', onReady as EventListener);
-      return () => window.removeEventListener('elportal:providerListReady', onReady as EventListener);
+        const onReady = (e: Event) => {
+            const evt = e as CustomEvent<{ id?: string; count?: number }>;
+            if (typeof evt.detail?.count === 'number') {
+                setProviderCount(evt.detail.count);
+            }
+            if (evt.detail?.id) {
+                setProviderListId(evt.detail.id);
+            }
+            try {
+                trackEnhancedEvent('provider_list_ready', {
+                    component: 'provider_list',
+                    page: window.location.pathname,
+                    provider_count: typeof evt.detail?.count === 'number' ? evt.detail.count : undefined,
+                });
+            } catch { }
+        };
+        window.addEventListener('elportal:providerListReady', onReady as EventListener);
+        return () => window.removeEventListener('elportal:providerListReady', onReady as EventListener);
     }, []);
 
     // Track calculator step views (lightweight coverage)
@@ -118,7 +118,7 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
                 variant,
                 consumption_kwh: annualConsumption,
             });
-        } catch {}
+        } catch { }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentStep]);
 
@@ -129,7 +129,7 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
         try {
             // Fetch providers
             const allProviders = await SanityService.getAllProviders();
-            
+
             // Fetch current spot price
             let currentSpotPrice = PRICE_CONSTANTS.DEFAULT_SPOT_PRICE;
             try {
@@ -159,13 +159,13 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
             } catch (spotError) {
                 console.error('Failed to fetch spot price, using fallback:', spotError);
             }
-            
+
             setSpotPrice(currentSpotPrice);
-            
+
             // Rank providers according to business logic
             const rankedProviders = rankProviders(allProviders, currentSpotPrice, annualConsumption);
             setProviders(rankedProviders);
-            
+
         } catch (err) {
             console.error('Error fetching price data:', err);
             setError('Kunne ikke hente prisdata. Prøv venligst igen.');
@@ -208,7 +208,7 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
                     <React.Fragment key={step}>
                         <div className="text-center">
                             <div className={cn("mx-auto h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold mb-1", currentStep >= step ? 'bg-brand-green text-white' : 'bg-gray-200 text-gray-500')}>
-                                {currentStep > step ? <CheckCircle size={16}/> : step}
+                                {currentStep > step ? <CheckCircle size={16} /> : step}
                             </div>
                             <p className={cn("text-xs", currentStep >= step ? "text-gray-800 font-semibold" : "text-gray-400")}>
                                 {step === 1 ? 'Velkommen' : step === 2 ? 'Dit forbrug' : 'Resultat'}
@@ -222,30 +222,30 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
             {/* Step 1 */}
             {currentStep === 1 && (
                 <div className="mt-8">
-                    <h2 className="text-lg font-bold text-gray-800 mb-1">Se om du kan spare penge</h2>
+                    <h2 className="text-xl font-bold text-gray-800 mb-1">Se om du kan spare penge</h2>
                     <p className="font-bold text-gray-800 text-xl mb-4">Prøv vores beregner</p>
                     <p className="text-gray-600 text-sm mb-6">Få estimerede og tilpassede priser på elaftaler, som tager udgangspunkt i dit forbrug.</p>
                     <ul className="space-y-2 mb-8 text-sm">
-                        <li className="flex items-center text-gray-700"><CheckCircle size={16} className="text-brand-green mr-2"/>Beregn dit forbrug</li>
-                        <li className="flex items-center text-gray-700"><CheckCircle size={16} className="text-brand-green mr-2"/>Sammenlign elselskaber</li>
-                        <li className="flex items-center text-gray-700"><CheckCircle size={16} className="text-brand-green mr-2"/>Gratis og uforpligtende</li>
+                        <li className="flex items-center text-gray-700"><CheckCircle size={16} className="text-brand-green mr-2" />Beregn dit forbrug</li>
+                        <li className="flex items-center text-gray-700"><CheckCircle size={16} className="text-brand-green mr-2" />Sammenlign elselskaber</li>
+                        <li className="flex items-center text-gray-700"><CheckCircle size={16} className="text-brand-green mr-2" />Gratis og uforpligtende</li>
                     </ul>
                     <Button onClick={() => setCurrentStep(2)} className="w-full bg-brand-green hover:opacity-90">
                         Begynd <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                 </div>
             )}
-            
+
             {/* Step 2 */}
             {currentStep === 2 && (
                 <div className="mt-8 relative">
                     <div className="text-center mb-4"><h3 className="text-base font-bold text-gray-800">Vælg din boligtype for et hurtigt estimat:</h3></div>
                     <div className="grid grid-cols-3 gap-2 md:gap-4 mb-6">
-                        <PresetButton icon={<Building size={20}/>} label="Lille Lejlighed" value="< 80 m²" consumption={2000} isActive={activePreset === 'lilleLejlighed'} onClick={() => handlePresetClick('lilleLejlighed')} />
-                        <PresetButton icon={<Building2 size={20}/>} label="Stor Lejlighed" value="> 80 m²" consumption={3000} isActive={activePreset === 'storLejlighed'} onClick={() => handlePresetClick('storLejlighed')} />
-                        <PresetButton icon={<Home size={20}/>} label="Mindre Hus" value="< 130 m²" consumption={4000} isActive={activePreset === 'mindreHus'} onClick={() => handlePresetClick('mindreHus')} />
+                        <PresetButton icon={<Building size={20} />} label="Lille Lejlighed" value="< 80 m²" consumption={2000} isActive={activePreset === 'lilleLejlighed'} onClick={() => handlePresetClick('lilleLejlighed')} />
+                        <PresetButton icon={<Building2 size={20} />} label="Stor Lejlighed" value="> 80 m²" consumption={3000} isActive={activePreset === 'storLejlighed'} onClick={() => handlePresetClick('storLejlighed')} />
+                        <PresetButton icon={<Home size={20} />} label="Mindre Hus" value="< 130 m²" consumption={4000} isActive={activePreset === 'mindreHus'} onClick={() => handlePresetClick('mindreHus')} />
                         <PresetButton icon={<Home size={20} />} label="Stort Hus" value="> 130 m²" consumption={6000} isActive={activePreset === 'stortHus'} onClick={() => handlePresetClick('stortHus')} />
-                        <PresetButton icon={<Sun size={20}/>} label="Sommerhus" value="Feriebolig" consumption={2000} isActive={activePreset === 'sommerhus'} onClick={() => handlePresetClick('sommerhus')} />
+                        <PresetButton icon={<Sun size={20} />} label="Sommerhus" value="Feriebolig" consumption={2000} isActive={activePreset === 'sommerhus'} onClick={() => handlePresetClick('sommerhus')} />
                         <div className="p-4 border-2 border-transparent rounded-lg"></div>
                     </div>
                     <div className="text-center mb-2">
@@ -257,10 +257,10 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
                     <div className="py-4 px-2 -mx-2">
                         <Slider value={[annualConsumption]} onValueChange={handleSliderChange} min={500} max={15000} step={100} />
                     </div>
-                    
+
                     {/* Mobile inline helper */}
                     <FloatingConsumptionHelper variant="inline" />
-                    
+
                     <div className="flex gap-4 mt-6">
                         <Button onClick={() => setCurrentStep(1)} variant="outline" className="w-full"><ArrowLeft className="mr-2 h-4 w-4" /> Tilbage</Button>
                         <Button onClick={handleGoToResults} className="w-full bg-brand-green hover:opacity-90">Se dine priser <ArrowRight className="ml-2 h-4 w-4" /></Button>
@@ -275,9 +275,9 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
                         <div className="text-center py-8">
                             <p className="text-gray-700 mb-4 text-sm">Baseret på dine valg</p>
                             <Button onClick={handleTeaserCTA} className="w-full bg-brand-green hover:opacity-90">
-                                {typeof providerCount === 'number' 
-                                  ? `Du har ${providerCount} matchende selskaber – se listen`
-                                  : 'Se listen over selskaber'}
+                                {typeof providerCount === 'number'
+                                    ? `Du har ${providerCount} matchende selskaber – se listen`
+                                    : 'Se listen over selskaber'}
                                 <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
                             <div className="mt-4">

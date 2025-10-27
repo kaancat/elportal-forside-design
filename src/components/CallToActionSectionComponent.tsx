@@ -21,10 +21,10 @@ const CallToActionSectionComponent: React.FC<CallToActionSectionComponentProps> 
 
   // Check if this is an external partner link
   const isExternalPartnerLink = (url: string): boolean => {
-    return (url.startsWith('http') || url.startsWith('https')) && 
-           (url.includes('vindstod') || url.includes('andelenergi') || url.includes('elselskab'));
+    return (url.startsWith('http') || url.startsWith('https')) &&
+      (url.includes('vindstod') || url.includes('andelenergi') || url.includes('elselskab'));
   }
-  
+
   const handleInternalNavigation = () => {
     router.push(block.buttonUrl)
   }
@@ -32,13 +32,13 @@ const CallToActionSectionComponent: React.FC<CallToActionSectionComponentProps> 
   return (
     <section className="bg-gray-50 py-16">
       <div className="container mx-auto px-4 text-center">
-        <motion.div 
+        <motion.div
           className="max-w-2xl mx-auto"
           {...useScrollAnimation({ duration: 0.6, type: 'fadeUp' })}
         >
-          <h2 className="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-4">
+          <h3 className="text-2xl lg:text-3xl font-display font-bold text-gray-900 mb-4">
             {block.title}
-          </h2>
+          </h3>
           {block.description && (
             <p className="text-lg text-gray-600 mb-8">
               {block.description}

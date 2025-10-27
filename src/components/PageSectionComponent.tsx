@@ -73,25 +73,27 @@ const PageSectionComponent: React.FC<PageSectionProps> = ({ section }) => {
   const stickyImage = settings?.stickyImage || false;
 
   // Define custom components for Portable Text
+  // NOTE: We shift heading levels down by one for proper document hierarchy
+  // (h1 in CMS becomes h2 in HTML, h2 becomes h3, etc.)
   const customComponents = {
     block: {
       h1: ({ children }: { children?: React.ReactNode }) => (
-        <h1 className={cn(
-          "text-3xl md:text-4xl font-bold mb-6 leading-tight",
-          themeColors.heading
-        )}>{children}</h1>
-      ),
-      h2: ({ children }: { children?: React.ReactNode }) => (
         <h2 className={cn(
-          "text-2xl md:text-3xl font-bold mb-4 leading-tight",
+          "text-3xl lg:text-4xl font-display font-bold mb-6 leading-tight",
           themeColors.heading
         )}>{children}</h2>
       ),
-      h3: ({ children }: { children?: React.ReactNode }) => (
+      h2: ({ children }: { children?: React.ReactNode }) => (
         <h3 className={cn(
-          "text-xl md:text-2xl font-bold mb-3 leading-tight",
+          "text-2xl font-display font-bold mb-4 leading-tight",
           themeColors.heading
         )}>{children}</h3>
+      ),
+      h3: ({ children }: { children?: React.ReactNode }) => (
+        <h4 className={cn(
+          "text-xl font-display font-semibold mb-3 leading-tight",
+          themeColors.heading
+        )}>{children}</h4>
       ),
       blockquote: ({ children }: { children?: React.ReactNode }) => (
         <blockquote className={cn(

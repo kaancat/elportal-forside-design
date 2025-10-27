@@ -357,9 +357,9 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block, variant = '
         {/* Header - only show in default variant */}
         {!isSidebar && (
           <div className="mb-12">
-            <h2 className={`text-4xl font-display font-bold ${headerAlignmentClass} mb-4 text-brand-dark`}>
+            <h3 className={`text-2xl lg:text-3xl font-display font-bold ${headerAlignmentClass} mb-4 text-brand-dark`}>
               {block.title || 'Sammenlign eludbydere'}
-            </h2>
+            </h3>
             {block.subtitle && (
               <p className={`${headerAlignmentClass} text-gray-600 text-lg mb-8`}>
                 {block.subtitle}
@@ -371,9 +371,9 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block, variant = '
         {/* Sidebar: Compact vertical header */}
         {isSidebar && (
           <div className="mb-4 pb-4 border-b border-gray-100">
-            <h2 className="text-lg font-display font-bold text-brand-dark mb-1">
+            <h4 className="text-lg font-display font-bold text-brand-dark mb-1">
               {block.title || 'Sammenlign priser'}
-            </h2>
+            </h4>
             {block.subtitle && (
               <p className="text-xs text-gray-600">
                 {block.subtitle}
@@ -416,9 +416,9 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block, variant = '
         {/* Consumption Slider (client-only to avoid SSR hydration diffs from Radix internals) */}
         <div className={`${isSidebar ? 'mb-3 p-3' : 'mb-12 p-8'} bg-white rounded-xl shadow-sm border border-gray-100`}>
           <div className={isSidebar ? '' : 'max-w-lg mx-auto'}>
-            <h2 className={`${isSidebar ? 'text-sm mb-2' : 'text-lg mb-6'} font-display font-semibold text-brand-dark ${isSidebar ? 'text-left' : 'text-center'}`}>
+            <h4 className={`${isSidebar ? 'text-sm mb-2' : 'text-lg mb-6'} font-display font-semibold text-brand-dark ${isSidebar ? 'text-left' : 'text-center'}`}>
               {isSidebar ? 'Årligt forbrug:' : 'Præcis årligt forbrug'}
-            </h2>
+            </h4>
             <label className={`block ${isSidebar ? 'text-xs mb-2' : 'text-sm mb-4'} font-medium text-brand-dark ${isSidebar ? 'text-left' : 'text-center'}`}>
               {!isSidebar && 'Forventet årligt kWh-forbrug: '}
               <span className="font-bold text-brand-green relative inline-block">{annualConsumption[0].toLocaleString('da-DK')} kWh{!isSidebar && <FloatingConsumptionHelper variant="neon" />}</span>
@@ -457,9 +457,9 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block, variant = '
             <div className="pb-3 border-b border-gray-100">
               <div className="flex items-center justify-between mb-2">
                 <div>
-                  <h2 className="text-base font-display font-bold text-brand-dark">
+                  <h4 className="text-base font-display font-bold text-brand-dark">
                     Aktuelle tilbud
-                  </h2>
+                  </h4>
                   {(location && !isManualRegionOverride) ? (
                     <p className="text-[10px] text-gray-600">
                       {location.municipality.name} ({location.region})
@@ -504,12 +504,12 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block, variant = '
           ) : (
             /* Default: Full header with all info */
             <>
-              <h2 className="text-2xl mb-6 font-display font-bold text-center text-brand-dark">
+              <h4 className="text-lg font-display font-semibold text-center text-brand-dark mb-6">
                 Aktuelle tilbud
                 {(priceLoading || locationLoading) && (
                   <span className="text-sm text-gray-500 ml-2">(Henter priser...)</span>
                 )}
-              </h2>
+              </h4>
 
               {/* Location and Price Info */}
               <div className="flex flex-col items-center justify-center gap-3 mb-8 px-4">

@@ -257,7 +257,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
 
   return (
     <section className="container mx-auto px-4 py-16">
-      <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
 
         {/* SECTION HEADER */}
         <div className={cn(
@@ -267,7 +267,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
           block.headerAlignment === 'right' && "text-right",
           !block.headerAlignment && "text-left" // default to left for this component
         )}>
-          <h2 className="text-2xl font-display font-bold text-gray-900 mb-2">{block.title}</h2>
+          <h3 className="text-2xl lg:text-3xl font-display font-bold text-gray-900 mb-2">{block.title}</h3>
           {block.subtitle && <p className="text-gray-600">{block.subtitle}</p>}
           {isPrevDayFallback && (
             <p className="text-xs text-gray-500 mt-1">Viser priser for i går</p>

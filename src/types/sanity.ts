@@ -140,6 +140,7 @@ export interface RealPriceComparisonTable {
   _key: string
   title: string
   subtitle?: string
+  headerAlignment?: 'left' | 'center' | 'right'
   description?: Array<any> // Portable Text blocks
   region?: 'DK1' | 'DK2'
   highlightLowest?: boolean
@@ -541,15 +542,15 @@ export interface BlogPageSettings {
   heroSubtitle?: string
   heroBackgroundImage?: SanityImage
   backgroundStyle?:
-    | 'default'
-    | 'lightGray'
-    | 'gradientGreenMist'
-    | 'gradientOceanBreeze'
-    | 'gradientSunriseGlow'
-    | 'gradientNordicSky'
-    | 'gradientClassic'
-    | 'solidGreen'
-    | 'solidDark'
+  | 'default'
+  | 'lightGray'
+  | 'gradientGreenMist'
+  | 'gradientOceanBreeze'
+  | 'gradientSunriseGlow'
+  | 'gradientNordicSky'
+  | 'gradientClassic'
+  | 'solidGreen'
+  | 'solidDark'
   featuredPosts?: BlogPost[]
   seoMetaTitle?: string
   seoMetaDescription?: string

@@ -152,7 +152,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
   const [monthlyAvgSpotPrice, setMonthlyAvgSpotPrice] = useState<number>(1.5);
   const { location } = useLocation();
 
-  const { title, leadingText, settings, description } = block;
+  const { title, leadingText, settings, description, headerAlignment = 'center' } = block;
   useEffect(() => {
     if (typeof window !== 'undefined') {
       // Lightweight runtime breadcrumb to help diagnose mounting issues in preview
@@ -548,7 +548,10 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
       <div className="container mx-auto px-4 lg:px-8">
         {title && (
           <h3 className={cn(
-            "text-2xl lg:text-3xl font-display font-bold text-center mb-4",
+            "text-2xl lg:text-3xl font-display font-bold mb-4",
+            headerAlignment === 'left' && "text-left",
+            headerAlignment === 'center' && "text-center",
+            headerAlignment === 'right' && "text-right",
             themeColors.heading
           )}>
             {title}
@@ -556,7 +559,10 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
         )}
         {Array.isArray(description) && description.length > 0 ? (
           <div className={cn(
-            "prose prose-lg max-w-3xl mx-auto text-center mb-12",
+            "prose prose-lg mb-12",
+            headerAlignment === 'left' && "text-left",
+            headerAlignment === 'center' && "max-w-3xl mx-auto text-center",
+            headerAlignment === 'right' && "text-right ml-auto max-w-3xl",
             themeColors.body,
             isDarkTheme(theme) && 'prose-invert'
           )}>
@@ -564,7 +570,10 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
           </div>
         ) : leadingText ? (
           <p className={cn(
-            "text-lg text-center mb-12 max-w-3xl mx-auto",
+            "text-lg mb-12",
+            headerAlignment === 'left' && "text-left",
+            headerAlignment === 'center' && "text-center max-w-3xl mx-auto",
+            headerAlignment === 'right' && "text-right max-w-3xl ml-auto",
             themeColors.body
           )}>
             {leadingText}

@@ -126,6 +126,30 @@ export async function generateSitemapData(baseUrl: string = (process.env.SITE_UR
       });
     }
     
+    // Add blog listing route
+    urls.push({
+      loc: `${baseUrl}/nyheder`,
+      lastmod: new Date().toISOString(),
+      changefreq: 'daily',
+      priority: 0.8
+    })
+
+    // Include blog posts
+    const posts = await SanityService.getAllBlogPostSlugs();
+    if (Array.isArray(posts)) {
+      posts.forEach(post => {
+        const lastmod = post.publishedDate || post._updatedAt || new Date().toISOString();
+        if (post.slug) {
+          urls.push({
+            loc: `${baseUrl}/nyheder/${post.slug}`,
+            lastmod,
+            changefreq: 'weekly',
+            priority: 0.7
+          });
+        }
+      })
+    }
+
     // Add specific important routes if they exist
     const importantRoutes = [
       { path: '/beregner', priority: 0.9, changefreq: 'weekly' as const },

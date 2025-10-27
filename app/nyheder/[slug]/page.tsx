@@ -13,6 +13,7 @@ import { SanityService } from '@/services/sanityService'
 import { SITE_URL, SITE_NAME, canonicalUrl, getRobotsDirective } from '@/lib/url-helpers'
 import ClientLayout from '../../(marketing)/ClientLayout'
 import ContentBlocks from '@/components/ContentBlocks'
+import ProviderListClientWrapper from '@/components/providers/ProviderListClientWrapper'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -47,6 +48,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const title = post.seoMetaTitle || post.title
     const description = post.seoMetaDescription || post.description
     const keywords = post.seoMetaKeywords || []
+    const keywordsArray = Array.isArray(keywords)
+        ? keywords
+        : String(keywords)
+            .split(',')
+            .map(k => k.trim())
+            .filter(Boolean)
     // Sanity image asset can be a reference or a direct asset with url; guard accordingly
     const ogImage =
         (post.seoOpenGraphImage?.asset && 'url' in post.seoOpenGraphImage.asset
@@ -59,7 +66,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return {
         title: `${title} | ${SITE_NAME}`,
         description,
-        keywords: keywords.join(', '),
+        keywords: keywordsArray,
         openGraph: {
             title,
             description,
@@ -96,8 +103,8 @@ export async function generateStaticParams() {
     }
 }
 
-// Revalidate: false in dev (no cache), 1h otherwise
-export const revalidate = REVALIDATE_SECS
+// Revalidate: use a static literal so Next can statically analyze
+export const revalidate = 3600
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params
@@ -138,7 +145,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         providers: Array.isArray(providers) ? providers : []
     }
 
-    const augmentedBlocks = [...contentBlocks, providerListBlock]
+    // For blog posts, we render the provider list as a sticky sidebar on desktop.
+    // On mobile, we show it below the content.
 
     // Calculate reading time dynamically based on content length
     const calculateReadTime = (blocks: any[]): number => {
@@ -200,7 +208,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 url: `${SITE_URL}/logo.png`,
             },
         },
-        image: post.featuredImage?.asset?.url || `${SITE_URL}/og-image.png`,
+        image: imageUrl || `${SITE_URL}/og-image.png`,
         mainEntityOfPage: {
             '@type': 'WebPage',
             '@id': canonicalUrl(`/nyheder/${slug}`),
@@ -298,31 +306,54 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                         </div>
                     </div>
 
-                    {/* Article content - render content blocks with provider list */}
+                    {/* Article content with sticky provider sidebar (desktop) */}
                     <div className="container mx-auto px-4 py-16">
-                        <div className="max-w-4xl mx-auto">
-                            {augmentedBlocks.length > 0 ? (
-                                <ContentBlocks blocks={augmentedBlocks} blogFullBleedExceptRich />
-                            ) : (
-                                <div className="prose prose-lg max-w-none">
-                                    <p className="text-gray-700 leading-relaxed mb-6">
-                                        Intet indhold tilgængeligt endnu. Tilføj content blocks i Sanity CMS for at vise indhold her.
-                                    </p>
-                                </div>
-                            )}
+                        <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8">
+                            {/* Main content */}
+                            <div className="lg:col-span-8 xl:col-span-8">
+                                {contentBlocks.length > 0 ? (
+                                    <ContentBlocks blocks={contentBlocks} blogFullBleedExceptRich />
+                                ) : (
+                                    <div className="prose prose-lg max-w-none">
+                                        <p className="text-gray-700 leading-relaxed mb-6">
+                                            Intet indhold tilgængeligt endnu. Tilføj content blocks i Sanity CMS for at vise indhold her.
+                                        </p>
+                                    </div>
+                                )}
 
-                            {/* Call to action */}
-                            <div className="mt-16 pt-8 border-t border-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-                                <div>
-                                    <p className="text-sm text-gray-600 mb-2">Fandt du denne artikel nyttig?</p>
-                                    <p className="text-lg font-semibold text-brand-dark">Læs flere guides og blog-indlæg</p>
+                                {/* Mobile-only provider list (full component) */}
+                                <div className="mt-12 lg:hidden">
+                                    {/* Keep the original component look; no style changes */}
+                                    {/* Narrow container to feel balanced on mobile */}
+                                    <div className="max-w-xl mx-auto">
+                                        <ProviderListClientWrapper block={providerListBlock} />
+                                    </div>
                                 </div>
-                                <Button asChild className="bg-brand-green hover:bg-brand-green-hover text-white flex-shrink-0">
-                                    <Link href="/nyheder">
-                                        Se alle indlæg
-                                    </Link>
-                                </Button>
+
+                                {/* Call to action */}
+                                <div className="mt-16 pt-8 border-t border-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                                    <div>
+                                        <p className="text-sm text-gray-600 mb-2">Fandt du denne artikel nyttig?</p>
+                                        <p className="text-lg font-semibold text-brand-dark">Læs flere guides og blog-indlæg</p>
+                                    </div>
+                                    <Button asChild className="bg-brand-green hover:bg-brand-green-hover text-white flex-shrink-0">
+                                        <Link href="/nyheder">
+                                            Se alle indlæg
+                                        </Link>
+                                    </Button>
+                                </div>
                             </div>
+
+                            {/* Sticky sidebar with providers (desktop only) */}
+                            <aside className="hidden lg:block lg:col-span-4 xl:col-span-4">
+                                <div className="sticky top-24">
+                                    <div className="max-h-[calc(100vh-5rem)] rounded-2xl border border-gray-100 bg-white shadow-lg">
+                                        <div className="max-h-[calc(100vh-5rem)] overflow-y-auto pr-2">
+                                            <ProviderListClientWrapper block={providerListBlock} variant="sidebar" className="px-4 pt-4" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </aside>
                         </div>
                     </div>
                 </article>
@@ -330,4 +361,3 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         </>
     )
 }
-

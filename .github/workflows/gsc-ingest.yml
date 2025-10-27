@@ -1,9 +1,8 @@
-name: RSS Ingest (Twice Daily)
+name: GSC Ingest (Daily)
 
 on:
   schedule:
-    - cron: '35 9 * * *'  # 10:35 CET/CEST approx
-    - cron: '35 17 * * *' # 18:35 CET/CEST approx
+    - cron: '5 5 * * *' # 06:05 CET/CEST approx
   workflow_dispatch:
 
 jobs:
@@ -14,7 +13,7 @@ jobs:
         env:
           ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
           BASE_URL: ${{ secrets.INGEST_BASE_URL || 'https://dinelportal.dk' }}
-          RSS_INGEST_URL: ${{ secrets.RSS_INGEST_URL }}
+          GSC_INGEST_URL: ${{ secrets.GSC_INGEST_URL }}
         run: |
           set -euo pipefail
           if [ -z "${ADMIN_SECRET:-}" ]; then
@@ -26,26 +25,25 @@ jobs:
             exit 1
           fi
 
-      - name: Trigger RSS ingest (limit=1)
+      - name: Trigger GSC ingest (limit=1)
         env:
           ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
           BASE_URL: ${{ secrets.INGEST_BASE_URL || 'https://dinelportal.dk' }}
-          RSS_INGEST_URL: ${{ secrets.RSS_INGEST_URL }}
+          GSC_INGEST_URL: ${{ secrets.GSC_INGEST_URL }}
         run: |
           set -euo pipefail
-          # Prefer explicit RSS_INGEST_URL if present; otherwise, use BASE_URL + default path
-          if [ -n "${RSS_INGEST_URL:-}" ]; then
-            URL="$RSS_INGEST_URL"
+          if [ -n "${GSC_INGEST_URL:-}" ]; then
+            URL="$GSC_INGEST_URL"
           else
-            URL="$BASE_URL/api/news/ingest?limit=1&minWords=1200&llm=openai"
+            URL="$BASE_URL/api/news/gsc-ingest?limit=1&minWords=1200&llm=openai"
           fi
-          FALLBACK_URL="$BASE_URL/api/news/ingest?limit=1&minWords=1200&llm=openai"
           echo "Calling: $URL"
+          # Perform request with retries, capture body + status for diagnostics
           TMP_RESP="$(mktemp)"
           STATUS=$(curl -sS \
-            --retry 3 --retry-delay 5 --max-time 300 \
+            --retry 3 --retry-delay 5 --max-time 120 \
             -H "x-admin-secret: $ADMIN_SECRET" \
-            -H "User-Agent: gha-rss-ingest/1.0" \
+            -H "User-Agent: gha-gsc-ingest/1.0" \
             -o "$TMP_RESP" -w "%{http_code}" \
             "$URL" || true)
           echo "HTTP $STATUS"
@@ -53,24 +51,9 @@ jobs:
             cat "$TMP_RESP"
             exit 0
           fi
-          echo "Primary URL failed (status=$STATUS). Response body:" >&2
+          echo "Request failed. Response body:" >&2
           cat "$TMP_RESP" >&2 || true
-          echo "Falling back to default endpoint: $FALLBACK_URL" >&2
-          TMP2="$(mktemp)"
-          STATUS2=$(curl -sS \
-            --retry 2 --retry-delay 5 --max-time 300 \
-            -H "x-admin-secret: $ADMIN_SECRET" \
-            -H "User-Agent: gha-rss-ingest/1.0 (fallback)" \
-            -o "$TMP2" -w "%{http_code}" \
-            "$FALLBACK_URL" || true)
-          echo "Fallback HTTP $STATUS2"
-          if [ "$STATUS2" -ge 200 ] && [ "$STATUS2" -lt 300 ]; then
-            cat "$TMP2"
-            exit 0
-          fi
-          echo "Fallback failed. Response body:" >&2
-          cat "$TMP2" >&2 || true
-          if [ "$STATUS2" = "403" ]; then
+          if [ "$STATUS" = "403" ]; then
             echo "Hint: 403 Forbidden usually means the x-admin-secret header does not match the server's ADMIN_SECRET or production ingestion is disabled (INGEST_ALLOW_PROD!=true)." >&2
           fi
           exit 1

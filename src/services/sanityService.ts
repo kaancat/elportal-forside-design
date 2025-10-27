@@ -1091,4 +1091,20 @@ export class SanityService {
       return []
     }
   }
+
+  // Fetch all blog post slugs (for sitemap)
+  static async getAllBlogPostSlugs(): Promise<Array<{ slug: string; _updatedAt?: string; publishedDate?: string }>> {
+    const query = `*[_type == "blogPost" && defined(slug.current)]{
+      "slug": slug.current,
+      _updatedAt,
+      publishedDate
+    } | order(publishedDate desc)`
+    try {
+      const posts = await client.fetch(query)
+      return posts || []
+    } catch (error) {
+      console.error('Error fetching blog post slugs:', error)
+      return []
+    }
+  }
 }

@@ -24,6 +24,7 @@ interface ProviderCardProps {
     tradingCosts?: number;
   };
   pricingMode?: 'simplified' | 'full';
+  density?: 'default' | 'compact' | 'sidebar';
   priceSourceDate?: string; // from Sanity (providerList block)
   providerMarkupKrOverride?: number; // in kr/kWh (simplified mode)
   monthlySubscriptionOverride?: number; // in kr (simplified mode)
@@ -38,6 +39,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   networkTariff,
   additionalFees,
   pricingMode = 'full',
+  density = 'default',
   priceSourceDate,
   providerMarkupKrOverride,
   monthlySubscriptionOverride,
@@ -76,6 +78,171 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   const simplifiedMonthly = monthlySub + (annualConsumption / 12) * simplifiedKrPerKwh;
 
 
+  const isSidebar = density === 'sidebar'
+  const pad = isSidebar ? 'p-3' : (density === 'compact' ? 'p-4' : 'p-8')
+  const gap = isSidebar ? 'gap-2' : (density === 'compact' ? 'gap-4' : 'gap-8')
+  const logoBox = isSidebar ? 'w-12 h-12' : (density === 'compact' ? 'w-16 h-16' : 'w-28 h-28')
+  const titleSize = isSidebar ? 'text-sm' : (density === 'compact' ? 'text-base' : 'text-xl')
+  const priceBoxPad = isSidebar ? 'px-3 py-2' : (density === 'compact' ? 'px-4 py-3' : 'px-6 py-4')
+  const priceText = isSidebar ? 'text-xl' : (density === 'compact' ? 'text-2xl' : 'text-3xl')
+  const btnPad = isSidebar ? 'py-1.5 px-3 text-xs' : (density === 'compact' ? 'py-2 px-4 text-sm' : 'py-3 px-6')
+
+  // Sidebar: Ultra-compact horizontal layout
+  if (isSidebar) {
+    return (
+      <div className={`rounded-lg overflow-hidden transition-all duration-200 ${product.isVindstoedProduct
+          ? 'bg-gradient-to-br from-white via-white to-brand-green/5 shadow-md border-2 border-brand-green/20 hover:shadow-lg relative'
+          : 'bg-white shadow-sm border border-gray-100 hover:shadow-md'
+        }`}>
+        {product.isVindstoedProduct && (
+          <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-brand-green/60 via-brand-green to-brand-green/60"></div>
+        )}
+        <div className={pad}>
+          {/* Header: Logo, title, and info buttons */}
+          <div className="flex items-start justify-between mb-2">
+            <div className="flex items-center gap-2.5 flex-1 min-w-0">
+              <div className={`flex-shrink-0 ${logoBox} flex items-center justify-center p-1.5 bg-white rounded-md border border-gray-100 shadow-sm relative`}>
+                <Image
+                  src={resolveProviderLogoUrl(product.supplierName, product.supplierLogoURL) || '/placeholder.svg'}
+                  alt={`${product.supplierName || 'Ukendt'} logo`}
+                  className="object-contain"
+                  fill
+                  sizes="48px"
+                  priority={priority}
+                  loading={priority ? undefined : "lazy"}
+                  placeholder="blur"
+                  blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjZjNmNGY2Ii8+PC9zdmc+"
+                  onError={(e) => {
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.src = '/placeholder.svg';
+                  }}
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                {product.isVindstoedProduct && (
+                  <Badge className="bg-brand-green text-white mb-1 font-semibold px-1.5 py-0 text-[9px]">
+                    ⭐ Anbefalet
+                  </Badge>
+                )}
+                <h3 className={`font-bold ${titleSize} text-brand-dark leading-tight`}>{product.productName || 'Ukendt produkt'}</h3>
+                <p className="text-[10px] text-gray-600 font-medium truncate">{product.supplierName || 'Ukendt leverandør'}</p>
+              </div>
+            </div>
+            
+            {/* Info buttons in upper right */}
+            <div className="flex gap-1 ml-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="Beregning"
+                    className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-brand-green/10 text-brand-dark border border-brand-green/20 hover:bg-brand-green/20 transition-colors"
+                  >
+                    <Calculator className="h-3 w-3" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent sideOffset={8} align="end" className="max-w-xs text-sm">
+                  <div className="space-y-2">
+                    <p className="font-medium">Sådan beregner vi prisen</p>
+                    <ul className="list-disc pl-5 space-y-1 text-gray-700 text-xs">
+                      <li>Spotpris: måneds-gennemsnit {regionCode ? `(${regionCode}) ` : ''}fra Nord Pool</li>
+                      <li>Tillæg og abonnement: elpris.dk</li>
+                      <li>Beløb ekskl. nettariffer, afgifter, system/transmission og moms</li>
+                    </ul>
+                    <p className="text-[10px] text-gray-500">Priserne er estimater baseret på dit valgte forbrug.</p>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="Hvorfor viser vi disse priser?"
+                    className="inline-flex items-center justify-center h-6 w-6 rounded-full border border-[#a5e96d]/30 text-brand-dark bg-[#a5e96d]/20 hover:bg-[#a5e96d]/30 transition-colors"
+                  >
+                    <HelpCircle className="h-3 w-3" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent sideOffset={8} align="end" className="max-w-xs text-sm">
+                  <div className="space-y-2">
+                    <p className="font-semibold text-xs">Hvorfor ser prisen sådan ud?</p>
+                    <div className="space-y-1 text-gray-700 text-xs">
+                      <p>Din regning består overvejende af <strong>obligatoriske</strong> ting: nettariffer og afgifter til staten.</p>
+                      <p>Derfor sammenligner vi kun det, du kan påvirke ved at vælge leverandør:</p>
+                      <ul className="list-disc pl-4 space-y-0.5">
+                        <li>Elselskabets tillæg til spotpris</li>
+                        <li>Månedligt abonnement</li>
+                      </ul>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
+          {/* Horizontal pricing layout */}
+          <div className="flex items-center justify-between gap-3 mb-2">
+            {/* Monthly price - left side */}
+            <div className="flex-1">
+              <div className="text-center bg-gradient-to-br from-brand-dark/5 to-gray-50 rounded-lg border border-gray-100 px-3 py-2">
+                <div className={`${priceText} font-bold text-brand-green mb-0.5`}>
+                  {(pricingMode === 'simplified' ? simplifiedMonthly : fullEstimatedMonthly).toFixed(0)} kr
+                </div>
+                <div className="text-[9px] text-gray-600">pr. måned</div>
+              </div>
+            </div>
+
+            {/* Price per kWh - right side */}
+            <div className="flex-1">
+              <div className="text-center bg-gradient-to-br from-brand-dark/5 to-gray-50 rounded-lg border border-gray-100 px-3 py-2">
+                <div className="text-sm font-bold text-brand-dark mb-0.5">
+                  {pricingMode === 'simplified' 
+                    ? `${simplifiedKrPerKwh.toFixed(2)} kr/kWh` 
+                    : `${fullPricePerKwh.toFixed(2)} kr/kWh`}
+                </div>
+                <div className="text-[9px] text-gray-600">Abonnement: {monthlySub.toFixed(0)} kr</div>
+              </div>
+            </div>
+          </div>
+
+          {/* CTA Button */}
+          {product.signupLink ? (
+            <TrackedLink
+              href={product.signupLink}
+              partner={product.supplierName || 'unknown'}
+              component="provider_card"
+              variant={product.isVindstoedProduct ? 'featured' : 'standard'}
+              consumption={annualConsumption}
+              region={userRegion}
+              estimatedValue={pricingMode === 'simplified' ? simplifiedMonthly : fullEstimatedMonthly}
+              className="w-full"
+            >
+              <Button
+                className={`bg-brand-dark hover:bg-brand-dark/90 text-white rounded-lg w-full font-semibold ${btnPad}`}
+              >
+                Skift <ExternalLink className="ml-1 h-3 w-3 inline" />
+              </Button>
+            </TrackedLink>
+          ) : (
+            <Button
+              className={`bg-gray-300 text-gray-500 rounded-lg w-full font-semibold ${btnPad} cursor-not-allowed`}
+              disabled
+            >
+              Ikke tilgængelig
+            </Button>
+          )}
+
+          {/* Compact source disclaimer */}
+          <div className="text-[8px] text-gray-500 leading-tight mt-1 text-center">
+            Kilde: elpris.dk & Nord Pool
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Default and compact layouts
   return (
     <div className={`rounded-xl overflow-hidden transition-all duration-200 ${product.isVindstoedProduct
         ? 'bg-gradient-to-br from-white via-white to-brand-green/5 shadow-lg border-2 border-brand-green/20 ring-1 ring-brand-green/10 hover:shadow-xl relative'
@@ -84,18 +251,18 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
       {product.isVindstoedProduct && (
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand-green/60 via-brand-green to-brand-green/60"></div>
       )}
-      <div className="p-8">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-8">
+      <div className={pad}>
+        <div className={`flex flex-col lg:flex-row lg:items-center ${gap}`}>
           {/* Logo and company info */}
           <div className="flex flex-col space-y-4">
             <div className="flex items-center space-x-6">
-              <div className="flex-shrink-0 w-28 h-28 flex items-center justify-center p-3 bg-white rounded-lg border border-gray-100 shadow-sm relative">
+              <div className={`flex-shrink-0 ${logoBox} flex items-center justify-center p-2 bg-white rounded-lg border border-gray-100 shadow-sm relative`}>
                 <Image
                   src={resolveProviderLogoUrl(product.supplierName, product.supplierLogoURL) || '/placeholder.svg'}
                   alt={`${product.supplierName || 'Ukendt'} logo`}
                   className="object-contain"
                   fill
-                  sizes="(max-width: 768px) 96px, 112px"
+                  sizes="(max-width: 768px) 64px, 112px"
                   priority={priority}
                   loading={priority ? undefined : "lazy"}
                   placeholder="blur"
@@ -114,13 +281,14 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                   </Badge>
                 )}
 
-                <h3 className="font-bold text-xl text-brand-dark mb-1">{product.productName || 'Ukendt produkt'}</h3>
+                <h3 className={`font-bold ${titleSize} text-brand-dark mb-1`}>{product.productName || 'Ukendt produkt'}</h3>
                 <p className="text-base text-gray-600 font-medium">{product.supplierName || 'Ukendt leverandør'}</p>
               </div>
             </div>
           </div>
 
           {/* Features Section */}
+          {density === 'compact' ? null : (
           <div className="bg-gray-50 p-6 rounded-lg border-l-4 border-l-brand-green lg:flex-1">
             <h4 className="text-sm text-brand-dark uppercase font-bold mb-4 tracking-wide">Inkluderet</h4>
             <div className="space-y-3">
@@ -171,25 +339,26 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
               )}
             </div>
           </div>
+          )}
 
           {/* Price and action */}
-          <div className="flex flex-col items-end lg:min-w-[220px]">
-            <div className="bg-gradient-to-br from-brand-dark/5 to-gray-50 px-6 py-4 rounded-lg border border-gray-100 mb-3 w-full">
+          <div className="flex flex-col items-end lg:min-w-[200px]">
+            <div className={`bg-gradient-to-br from-brand-dark/5 to-gray-50 ${priceBoxPad} rounded-lg border border-gray-100 mb-3 w-full`}>
               <div className="text-right">
-                <div className="text-3xl font-bold text-brand-green mb-1">
+                <div className={`${priceText} font-bold text-brand-green mb-1`}>
                   {(pricingMode === 'simplified' ? simplifiedMonthly : fullEstimatedMonthly).toFixed(0)} kr
                 </div>
-                <div className="text-sm text-gray-600 mb-1">
+                <div className={`${density === 'compact' ? 'text-xs' : 'text-sm'} text-gray-600 mb-1`}>
                   pr. måned
                 </div>
                 <div className="text-xs text-gray-500 space-y-1">
                   {pricingMode === 'simplified' ? (
-                    <div className="text-sm text-brand-dark font-semibold">Spotpris + tillæg: {simplifiedKrPerKwh.toFixed(2)} kr/kWh</div>
+                    <div className={`${density === 'compact' ? 'text-xs' : 'text-sm'} text-brand-dark font-semibold`}>Spotpris + tillæg: {simplifiedKrPerKwh.toFixed(2)} kr/kWh</div>
                   ) : (
-                    <div className="text-sm text-brand-dark font-semibold">Estimeret {fullPricePerKwh.toFixed(2)} kr/kWh</div>
+                    <div className={`${density === 'compact' ? 'text-xs' : 'text-sm'} text-brand-dark font-semibold`}>Estimeret {fullPricePerKwh.toFixed(2)} kr/kWh</div>
                   )}
 
-                  {pricingMode === 'full' && (
+                  {density !== 'compact' && pricingMode === 'full' && (
                     <Popover>
                       <PopoverTrigger asChild>
                         <button aria-label="Se prisdetaljer" className="text-xs text-brand-green hover:underline mt-1 inline-flex items-center gap-1">
@@ -225,12 +394,12 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                     </Popover>
                   )}
 
-                  <div>Månedligt abonnement: {monthlySub.toFixed(0)} kr</div>
+                  <div className={`${density === 'compact' ? 'text-[11px]' : ''}`}>Månedligt abonnement: {monthlySub.toFixed(0)} kr</div>
                 </div>
               </div>
             </div>
             {/* Source disclaimer */}
-            <div className="w-full text-right text-[11px] text-gray-500 leading-tight mt-3 mb-3">
+            <div className={`w-full text-right text-[11px] text-gray-500 leading-tight ${density === 'compact' ? 'mt-2 mb-2' : 'mt-3 mb-3'}`}>
               <div>
                 {(() => {
                   const fallback = new Intl.DateTimeFormat('da-DK', { day: 'numeric', month: 'long' }).format(new Date());
@@ -257,14 +426,14 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                 className="w-full"
               >
                 <Button
-                  className="bg-brand-dark hover:bg-brand-dark/90 text-white rounded-lg w-full font-semibold py-3 px-6"
+                  className={`bg-brand-dark hover:bg-brand-dark/90 text-white rounded-lg w-full font-semibold ${btnPad}`}
                 >
                   Skift til {product.supplierName || 'denne leverandør'} <ExternalLink className="ml-2 h-4 w-4" />
                 </Button>
               </TrackedLink>
             ) : (
               <Button
-                className="bg-gray-300 text-gray-500 rounded-lg w-full font-semibold py-3 px-6 cursor-not-allowed"
+                className={`bg-gray-300 text-gray-500 rounded-lg w-full font-semibold ${btnPad} cursor-not-allowed`}
                 disabled
               >
                 Link ikke tilgængelig
@@ -272,8 +441,9 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
             )}
 
             {/* Bottom-right helper icons */}
-            <div className="w-full flex justify-end gap-2 mt-3">
+            <div className={`w-full flex justify-end gap-2 ${density === 'compact' ? 'mt-2' : 'mt-3'}`}>
               {/* Pricing calc icon (green) */}
+              {density !== 'compact' && (
               <Popover>
                 <PopoverTrigger asChild>
                   <button
@@ -296,8 +466,10 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                   </div>
                 </PopoverContent>
               </Popover>
+              )}
 
               {/* Education icon (invite click): different color + subtle animated gradient */}
+              {density !== 'compact' && (
               <Popover>
                 <PopoverTrigger asChild>
                   <button
@@ -329,6 +501,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                   </div>
                 </PopoverContent>
               </Popover>
+              )}
             </div>
           </div>
         </div>

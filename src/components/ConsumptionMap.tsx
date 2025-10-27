@@ -33,6 +33,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { PortableText } from '@portabletext/react';
+import { getPortableTextComponents } from '@/lib/portableTextConfig';
 import {
   Tooltip as UITooltip,
   TooltipContent,
@@ -41,18 +42,18 @@ import {
 } from "@/components/ui/tooltip";
 import type { ConsumptionMap } from '@/types/sanity';
 import type { MunicipalityConsumption, ConsumptionMapResponse } from '@/utils/municipality/types';
-import { 
-  getMunicipalityInfo, 
-  getConsumptionColor, 
-  getConsumptionLevel, 
-  formatConsumption, 
+import {
+  getMunicipalityInfo,
+  getConsumptionColor,
+  getConsumptionLevel,
+  formatConsumption,
   formatPercentage,
-  calculateConsumptionStats 
+  calculateConsumptionStats
 } from '@/utils/municipality/municipalityMapper';
 import { debug } from '@/utils/debug';
-import { 
-  getMunicipalityNameFromCode, 
-  getMunicipalityCodeFromName 
+import {
+  getMunicipalityNameFromCode,
+  getMunicipalityCodeFromName
 } from '@/utils/municipality/municipalityCodeMapping';
 import {
   getMunicipalityByCode,
@@ -71,6 +72,9 @@ interface ConsumptionMapProps {
 debug.component('ConsumptionMap', 'Component file loaded');
 
 const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
+  // Get shared PortableText components with link handling
+  const portableTextComponents = getPortableTextComponents();
+
   // Set default values for missing fields
   const title = block.title || 'Elforbrug per kommune';
   const subtitle = block.subtitle || 'Se elforbruget fordelt på private husholdninger og erhverv';
@@ -100,56 +104,56 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
   useEffect(() => {
     // Next.js hydration fix - only run on client
     if (!isClient) return;
-    
+
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    
+
     // Debug log all expected ASCII names once
-    
+
     return () => window.removeEventListener('resize', checkMobile);
   }, [isClient]);
 
   useEffect(() => {
     // Next.js hydration fix - only run on client
     if (!isClient) return;
-    
+
     const fetchData = async () => {
       setLoading(true);
       setError(null);
       try {
         const apiUrl = `/api/consumption-map?consumerType=${selectedConsumerType}&aggregation=${dataSource}&view=${selectedView}`;
         debug.log('Fetching consumption data from:', apiUrl);
-        
+
         const response = await fetch(apiUrl);
         if (!response.ok) {
           const errorText = await response.text();
           console.error('API Error:', response.status, errorText);
           throw new Error(`API fejl (${response.status}): ${errorText}`);
         }
-        
+
         const result: ConsumptionMapResponse = await response.json();
         debug.log('API Response:', result);
-        
+
         if (result.statistics?.totalConsumption > 0) {
           debug.log(`Loaded data for ${result.data?.length} municipalities, total consumption: ${result.statistics.totalConsumption.toFixed(0)} MWh`);
         }
-        
+
         if (!result.data || result.data.length === 0) {
           console.warn('No consumption data received from API');
           setData([]);
           return;
         }
-        
+
         // Debug logging for data
-        
+
         setData(result.data);
-        
+
         // Debug: Log all municipality codes and names from API
-        
+
         // Set date range from metadata
         if (result.metadata?.startDate && result.metadata?.endDate) {
           setDateRange({
@@ -164,14 +168,14 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, [isClient, selectedConsumerType, dataSource, selectedView]);
 
   // Calculate color scale based on selected consumer type
   const colorScale = useMemo(() => {
     if (data.length === 0) return null;
-    
+
     // Use different consumption values based on selected filter
     let consumptionValues: number[];
     switch (selectedConsumerType) {
@@ -184,10 +188,10 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
       default:
         consumptionValues = data.map(d => d.totalConsumption);
     }
-    
+
     const maxConsumption = Math.max(...consumptionValues);
     const minConsumption = Math.min(...consumptionValues);
-    
+
     // Use different color schemes for different consumer types
     let interpolator;
     if (selectedConsumerType === 'private') {
@@ -217,7 +221,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
           };
       }
     }
-    
+
     return scaleSequential(interpolator).domain([minConsumption, maxConsumption]);
   }, [data, colorScheme, selectedConsumerType]);
 
@@ -248,7 +252,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
       mapping = getMunicipalityByDanishName(area.name);
     }
     if (!mapping) return null;
-    
+
     const municipalityData = data.find(d => d.municipalityCode === mapping.code);
     if (!municipalityData || !showTooltips) return null;
 
@@ -259,13 +263,13 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
             <div className="font-bold text-base">{municipalityData.municipalityName}</div>
             <div className="text-xs text-gray-500">Kommune</div>
           </div>
-          
+
           <div className="border-t pt-3 space-y-2">
             <div>
               <div className="text-xs text-gray-600">Total forbrug</div>
               <div className="font-semibold">{formatConsumption(municipalityData.totalConsumption)}</div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <div className="text-xs text-gray-600">Private</div>
@@ -282,7 +286,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
                 <div className="text-xs text-orange-600">({formatPercentage(municipalityData.industryShare)})</div>
               </div>
             </div>
-            
+
             <div className="text-xs text-gray-500 pt-2 border-t">
               Forbrugsniveau: <span className="font-medium">{getConsumptionLevel(municipalityData.totalConsumption, statistics?.maxConsumption || 1)}</span>
             </div>
@@ -298,29 +302,29 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
 
     // municipality.name is actually the lowercase Danish name from react-denmark-map
     let mapping = getMunicipalityByAsciiName(municipality.name);
-    
+
     if (!mapping) {
       // Try to find by Danish name (case insensitive)
       mapping = getMunicipalityByDanishName(municipality.name);
-      
+
       if (!mapping) {
-        
+
         return { style: { fill: '#e5e7eb' } };
       }
     }
-    
-    
+
+
     if (!colorScale) {
       return undefined;
     }
-    
+
     const consumption = data.find(d => d.municipalityCode === mapping.code);
-    
+
     if (!consumption) {
       return { style: { fill: '#e5e7eb' } };
     }
-    
-    
+
+
     // Get consumption value based on selected filter
     let value: number;
     switch (selectedConsumerType) {
@@ -333,11 +337,11 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
       default:
         value = consumption.totalConsumption;
     }
-    
+
     const color = String(colorScale(value));
     const isSelected = mapping.code === selectedMunicipality;
-    
-    
+
+
     return {
       style: {
         fill: color,
@@ -351,16 +355,16 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
   // Format date range for display
   const formatDateRange = () => {
     if (!dateRange) return null;
-    
+
     const formatDate = (dateStr: string) => {
       const date = new Date(dateStr);
-      return date.toLocaleDateString('da-DK', { 
-        day: 'numeric', 
+      return date.toLocaleDateString('da-DK', {
+        day: 'numeric',
         month: 'short',
         year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
       });
     };
-    
+
     return `${formatDate(dateRange.start)} - ${formatDate(dateRange.end)}`;
   };
 
@@ -373,7 +377,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
   const renderMap = () => {
     return (
       <div className="w-full relative rounded-lg overflow-hidden">
-        <Municipalities 
+        <Municipalities
           customTooltip={CustomTooltip}
           customizeAreas={customizeMunicipalities}
           onClick={handleMunicipalityClick}
@@ -399,7 +403,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
     };
 
     // Sort municipalities by the selected consumption type
-    const sortedData = [...data].sort((a, b) => 
+    const sortedData = [...data].sort((a, b) =>
       getConsumptionForSort(b) - getConsumptionForSort(a)
     );
 
@@ -412,9 +416,9 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
             const percentage = (consumptionValue / maxValue) * 100;
             const isSelected = municipality.municipalityCode === selectedMunicipality;
             const fillColor = colorScale ? String(colorScale(consumptionValue)) : '#3b82f6';
-            
+
             return (
-              <div 
+              <div
                 key={municipality.municipalityCode}
                 className={cn(
                   "flex items-center gap-4 p-3 rounded-lg cursor-pointer transition-all duration-200",
@@ -430,9 +434,9 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
                     </div>
                   </div>
                   <div className="relative h-6 bg-gray-200 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="absolute left-0 top-0 h-full transition-all duration-300"
-                      style={{ 
+                      style={{
                         width: `${percentage}%`,
                         backgroundColor: fillColor
                       }}
@@ -467,7 +471,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {levels.map((level) => (
             <div key={level.label} className="flex items-center gap-2">
-              <div 
+              <div
                 className="w-4 h-4 rounded"
                 style={{ backgroundColor: level.color }}
               />
@@ -515,9 +519,10 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
               headerAlignment === 'center' && "max-w-4xl mx-auto"
             )}>
               <div className="prose prose-lg max-w-none">
-                <PortableText 
-                  value={leadingText} 
+                <PortableText
+                  value={leadingText}
                   components={{
+                    ...portableTextComponents,
                     block: {
                       normal: ({ children }) => <p className="mb-4 last:mb-0">{children}</p>
                     }
@@ -535,53 +540,53 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
               <Filter className="w-4 h-4 text-gray-600" />
               <span className="text-sm font-medium text-gray-700">Filtre:</span>
             </div>
-            
+
             <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full sm:w-auto">
-            <Select value={selectedView} onValueChange={(value) => setSelectedView(value as "month" | "24h" | "7d" | "30d")}>
-              <SelectTrigger className="w-full sm:w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="24h">Seneste 24 timer</SelectItem>
-                <SelectItem value="7d">Seneste 7 dage</SelectItem>
-                <SelectItem value="30d">Seneste 30 dage</SelectItem>
-                <SelectItem value="month">Denne måned</SelectItem>
-              </SelectContent>
-            </Select>
+              <Select value={selectedView} onValueChange={(value) => setSelectedView(value as "month" | "24h" | "7d" | "30d")}>
+                <SelectTrigger className="w-full sm:w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="24h">Seneste 24 timer</SelectItem>
+                  <SelectItem value="7d">Seneste 7 dage</SelectItem>
+                  <SelectItem value="30d">Seneste 30 dage</SelectItem>
+                  <SelectItem value="month">Denne måned</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Select value={selectedConsumerType} onValueChange={(value) => setSelectedConsumerType(value as "all" | "private" | "industry" | "both")}>
-              <SelectTrigger className="w-full sm:w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alle forbrugere</SelectItem>
-                <SelectItem value="private">Private</SelectItem>
-                <SelectItem value="industry">Erhverv</SelectItem>
-              </SelectContent>
-            </Select>
+              <Select value={selectedConsumerType} onValueChange={(value) => setSelectedConsumerType(value as "all" | "private" | "industry" | "both")}>
+                <SelectTrigger className="w-full sm:w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alle forbrugere</SelectItem>
+                  <SelectItem value="private">Private</SelectItem>
+                  <SelectItem value="industry">Erhverv</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Select value={mapView} onValueChange={(value: 'map' | 'list') => setMapView(value)}>
-              <SelectTrigger className="w-full sm:w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="map">Kort</SelectItem>
-                <SelectItem value="list">Liste</SelectItem>
-              </SelectContent>
-            </Select>
+              <Select value={mapView} onValueChange={(value: 'map' | 'list') => setMapView(value)}>
+                <SelectTrigger className="w-full sm:w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="map">Kort</SelectItem>
+                  <SelectItem value="list">Liste</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={resetFilters}
-              className="flex items-center gap-1"
-            >
-              <RotateCcw className="w-3 h-3" />
-              Nulstil
-            </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={resetFilters}
+                className="flex items-center gap-1"
+              >
+                <RotateCcw className="w-3 h-3" />
+                Nulstil
+              </Button>
             </div>
           </div>
-          
+
           {/* Date range display */}
           {dateRange && (
             <div className="flex items-center gap-2 text-sm text-gray-600 mt-2">
@@ -613,7 +618,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
                       <p>
-                        {mapView === 'map' 
+                        {mapView === 'map'
                           ? 'Klik på en kommune på kortet for at se detaljerede oplysninger. Farver viser forbrugsniveau fra lav (lys) til høj (mørk).'
                           : 'Klik på en kommune i listen for at se detaljerede oplysninger. Søjlerne viser forbrugsniveau.'
                         }
@@ -650,7 +655,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
               </div>
             )}
           </div>
-          
+
           {/* Stats panel - takes 4 columns on desktop */}
           <div className={cn(
             "space-y-4",
@@ -716,7 +721,7 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
                 {(() => {
                   const municipality = data.find(m => m.municipalityCode === selectedMunicipality);
                   if (!municipality) return <div>Kommune ikke fundet</div>;
-                  
+
                   return (
                     <div className="space-y-3">
                       <div>

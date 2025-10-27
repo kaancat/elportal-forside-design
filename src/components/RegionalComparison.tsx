@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { PortableText } from '@portabletext/react';
 import { cn } from '@/lib/utils';
+import { getPortableTextComponents } from '@/lib/portableTextConfig';
 // Default import approach to handle malformed package exports
 import * as DenmarkMap from 'react-denmark-map/dist/esm/index.js';
 
@@ -30,7 +31,7 @@ const Municipalities: React.FC<MunicipalityProps> = (props) => {
 
 type MunicipalityType = any; // Fallback type for denmark-map data structures
 import { getMunicipalityRegion } from '@/utils/denmarkRegions';
-import { 
+import {
   getMunicipalityByAsciiName,
   getMunicipalityByDanishName
 } from '@/utils/municipality/municipalityMappingFix';
@@ -42,6 +43,9 @@ interface RegionalComparisonProps {
 }
 
 const RegionalComparison: React.FC<RegionalComparisonProps> = ({ block }) => {
+  // Get shared PortableText components with link handling
+  const portableTextComponents = getPortableTextComponents();
+
   const {
     title = 'Regional prisforskel',
     subtitle = 'Danmark er opdelt i to elprisområder',
@@ -50,11 +54,11 @@ const RegionalComparison: React.FC<RegionalComparisonProps> = ({ block }) => {
     dk1Title = 'DK1 - Vestdanmark',
     dk1Description,
     dk1PriceIndicator = 'lower',
-    dk1Features = ['Jylland', 'Fyn', 'Bornholm'],
+    dk1Features = ['Jylland', 'Fyn'],
     dk2Title = 'DK2 - Østdanmark',
     dk2Description,
     dk2PriceIndicator = 'higher',
-    dk2Features = ['Sjælland', 'Lolland-Falster', 'Møn'],
+    dk2Features = ['Sjælland', 'Lolland-Falster', 'Møn', 'Bornholm'],
     showMap = true
   } = block;
 
@@ -79,9 +83,9 @@ const RegionalComparison: React.FC<RegionalComparisonProps> = ({ block }) => {
     if (!mapping) {
       mapping = getMunicipalityByDanishName(municipality.name);
     }
-    
+
     let region: 'DK1' | 'DK2' | null = null;
-    
+
     if (mapping) {
       // Use the Danish name from mapping to check region
       region = getMunicipalityRegion(mapping.danishName);
@@ -93,16 +97,16 @@ const RegionalComparison: React.FC<RegionalComparisonProps> = ({ block }) => {
       // Fallback to direct region check
       region = getMunicipalityRegion(municipality.name);
     }
-    
+
     if (!region) {
       // Default gray for unknown municipalities
       return { style: { fill: '#e5e7eb', stroke: '#d1d5db', strokeWidth: 0.5 } };
     }
-    
+
     // Color based on region
     const color = region === 'DK1' ? '#60a5fa' : '#a78bfa'; // Blue for DK1, Purple for DK2
     const strokeColor = region === 'DK1' ? '#2563eb' : '#7c3aed';
-    
+
     return {
       style: {
         fill: color,
@@ -146,9 +150,10 @@ const RegionalComparison: React.FC<RegionalComparisonProps> = ({ block }) => {
               headerAlignment === 'center' && "max-w-4xl mx-auto"
             )}>
               <div className="prose prose-lg max-w-none">
-                <PortableText 
-                  value={leadingText} 
+                <PortableText
+                  value={leadingText}
                   components={{
+                    ...portableTextComponents,
                     block: {
                       normal: ({ children }) => <p className="mb-4 last:mb-0">{children}</p>
                     }
@@ -159,123 +164,128 @@ const RegionalComparison: React.FC<RegionalComparisonProps> = ({ block }) => {
           )}
         </div>
 
-        {/* Denmark Map Visualization (if enabled) */}
-        {showMap && (
-          <div className="mb-12 flex justify-center">
-            <div className="relative bg-white rounded-xl shadow-lg p-8 border border-gray-200 max-w-3xl w-full">
-              <h3 className="text-center text-lg font-semibold text-gray-900 mb-6">Danmarks elprisområder</h3>
-              
-              {/* React Denmark Map */}
-              <div className="relative" style={{ pointerEvents: 'none' }}>
-                <Municipalities 
-                  customizeAreas={customizeMunicipalities}
-                  showTooltip={false}
-                  zoomable={false}
-                  className="w-full h-[400px]"
-                  style={{ cursor: 'default' }}
-                />
-              </div>
-              
-              {/* Legend */}
-              <div className="mt-6 flex justify-center gap-8">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-blue-400 rounded" />
-                  <span className="text-sm font-medium text-gray-700">DK1 - Vestdanmark</span>
+        {/* Map and Cards Layout */}
+        <div className="grid lg:grid-cols-2 gap-4 items-stretch">
+          {/* Denmark Map Visualization (if enabled) */}
+          {showMap && (
+            <div className="flex">
+              <div className="relative bg-white rounded-xl shadow-lg p-8 border border-gray-200 w-full">
+                <h3 className="text-center text-lg font-semibold text-gray-900 mb-6">Danmarks elprisområder</h3>
+
+                {/* React Denmark Map */}
+                <div className="relative" style={{ pointerEvents: 'none' }}>
+                  <Municipalities
+                    customizeAreas={customizeMunicipalities}
+                    showTooltip={false}
+                    zoomable={false}
+                    className="w-full h-[400px]"
+                    style={{ cursor: 'default' }}
+                  />
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-purple-400 rounded" />
-                  <span className="text-sm font-medium text-gray-700">DK2 - Østdanmark</span>
+
+                {/* Legend */}
+                <div className="mt-6 flex justify-center gap-8">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-blue-400 rounded" />
+                    <span className="text-sm font-medium text-gray-700">DK1 - Vestdanmark</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-purple-400 rounded" />
+                    <span className="text-sm font-medium text-gray-700">DK2 - Østdanmark</span>
+                  </div>
                 </div>
-              </div>
-              
-              {/* Map Description */}
-              <div className="mt-4 text-center">
-                <p className="text-sm text-gray-600 max-w-md mx-auto">
-                  Danmark er opdelt i to elprisområder baseret på transmissionsnettet. 
-                  Priserne kan variere mellem områderne afhængigt af udbud og efterspørgsel.
-                </p>
+
+                {/* Map Description */}
+                <div className="mt-4 text-center">
+                  <p className="text-sm text-gray-600 max-w-md mx-auto">
+                    Danmark er opdelt i to elprisområder baseret på transmissionsnettet.
+                    Priserne kan variere mellem områderne afhængigt af udbud og efterspørgsel.
+                  </p>
+                </div>
               </div>
             </div>
+          )}
+
+          {/* Regional Cards Column */}
+          <div className="flex flex-col gap-4">
+            {/* DK1 Card */}
+            <Card className="relative overflow-hidden border-2 hover:shadow-lg transition-shadow">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-bl-full" />
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold text-gray-900 flex items-center justify-between">
+                  {dk1Title}
+                  <Badge className={cn(dk1Indicator.bg, dk1Indicator.color, "border-0")}>
+                    {dk1Indicator.icon && <dk1Indicator.icon className="w-4 h-4 mr-1" />}
+                    {dk1Indicator.label}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {dk1Description && dk1Description.length > 0 && (
+                  <div className="mb-6 text-gray-700">
+                    <PortableText
+                      value={dk1Description}
+                      components={{
+                        ...portableTextComponents,
+                        block: {
+                          normal: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-gray-900">Omfatter:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {dk1Features.map((feature, index) => (
+                      <Badge key={index} variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
+                        {feature}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* DK2 Card */}
+            <Card className="relative overflow-hidden border-2 hover:shadow-lg transition-shadow">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-bl-full" />
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold text-gray-900 flex items-center justify-between">
+                  {dk2Title}
+                  <Badge className={cn(dk2Indicator.bg, dk2Indicator.color, "border-0")}>
+                    {dk2Indicator.icon && <dk2Indicator.icon className="w-4 h-4 mr-1" />}
+                    {dk2Indicator.label}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {dk2Description && dk2Description.length > 0 && (
+                  <div className="mb-6 text-gray-700">
+                    <PortableText
+                      value={dk2Description}
+                      components={{
+                        ...portableTextComponents,
+                        block: {
+                          normal: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-gray-900">Omfatter:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {dk2Features.map((feature, index) => (
+                      <Badge key={index} variant="secondary" className="bg-purple-50 text-purple-700 border-purple-200">
+                        {feature}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        )}
-
-        {/* Regional Cards */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          {/* DK1 Card */}
-          <Card className="relative overflow-hidden border-2 hover:shadow-lg transition-shadow">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-bl-full" />
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold text-gray-900 flex items-center justify-between">
-                {dk1Title}
-                <Badge className={cn(dk1Indicator.bg, dk1Indicator.color, "border-0")}>
-                  {dk1Indicator.icon && <dk1Indicator.icon className="w-4 h-4 mr-1" />}
-                  {dk1Indicator.label}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {dk1Description && dk1Description.length > 0 && (
-                <div className="mb-6 text-gray-700">
-                  <PortableText 
-                    value={dk1Description}
-                    components={{
-                      block: {
-                        normal: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>
-                      }
-                    }}
-                  />
-                </div>
-              )}
-              <div className="space-y-2">
-                <h4 className="font-semibold text-gray-900">Omfatter:</h4>
-                <div className="flex flex-wrap gap-2">
-                  {dk1Features.map((feature, index) => (
-                    <Badge key={index} variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
-                      {feature}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* DK2 Card */}
-          <Card className="relative overflow-hidden border-2 hover:shadow-lg transition-shadow">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-bl-full" />
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold text-gray-900 flex items-center justify-between">
-                {dk2Title}
-                <Badge className={cn(dk2Indicator.bg, dk2Indicator.color, "border-0")}>
-                  {dk2Indicator.icon && <dk2Indicator.icon className="w-4 h-4 mr-1" />}
-                  {dk2Indicator.label}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {dk2Description && dk2Description.length > 0 && (
-                <div className="mb-6 text-gray-700">
-                  <PortableText 
-                    value={dk2Description}
-                    components={{
-                      block: {
-                        normal: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>
-                      }
-                    }}
-                  />
-                </div>
-              )}
-              <div className="space-y-2">
-                <h4 className="font-semibold text-gray-900">Omfatter:</h4>
-                <div className="flex flex-wrap gap-2">
-                  {dk2Features.map((feature, index) => (
-                    <Badge key={index} variant="secondary" className="bg-purple-50 text-purple-700 border-purple-200">
-                      {feature}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </section>

@@ -18,6 +18,7 @@ import { useLocation } from '@/hooks/useLocation';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { TrackedLink } from '@/components/tracking/TrackedLink';
 import { resolveProviderLogoUrl } from '@/lib/providerLogos';
+import { getPortableTextComponents } from '@/lib/portableTextConfig';
 
 // Format currency with proper rounding for display
 const formatCurrency = (amount: number) => {
@@ -141,6 +142,9 @@ const getPaddingClasses = (padding?: string) => {
 };
 
 const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ block }) => {
+  // Get shared PortableText components with link handling
+  const portableTextComponents = getPortableTextComponents();
+
   const isClient = useIsClient();
   const [selectedProvider1, setSelectedProvider1] = useState<ProviderProductBlock | null>(null);
   const [selectedProvider2, setSelectedProvider2] = useState<ProviderProductBlock | null>(null);
@@ -566,7 +570,7 @@ const RealPriceComparisonTable: React.FC<RealPriceComparisonTableProps> = ({ blo
             themeColors.body,
             isDarkTheme(theme) && 'prose-invert'
           )}>
-            <PortableText value={description} />
+            <PortableText value={description} components={portableTextComponents} />
           </div>
         ) : leadingText ? (
           <p className={cn(

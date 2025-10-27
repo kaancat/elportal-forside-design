@@ -4,6 +4,7 @@ import { Check, X, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { PortableText } from '@portabletext/react';
 import { cn } from '@/lib/utils';
+import { getPortableTextComponents } from '@/lib/portableTextConfig';
 
 import type { PricingComparisonBlock } from '@/types/sanity';
 
@@ -12,6 +13,9 @@ interface PricingComparisonProps {
 }
 
 const PricingComparison: React.FC<PricingComparisonProps> = ({ block }) => {
+  // Get shared PortableText components with link handling
+  const portableTextComponents = getPortableTextComponents();
+
   const {
     title = 'Fast pris vs. variabel pris',
     subtitle = 'Hvilken pristype passer bedst til dig?',
@@ -89,9 +93,10 @@ const PricingComparison: React.FC<PricingComparisonProps> = ({ block }) => {
               headerAlignment === 'center' && "max-w-4xl mx-auto"
             )}>
               <div className="prose prose-lg max-w-none">
-                <PortableText 
-                  value={leadingText} 
+                <PortableText
+                  value={leadingText}
                   components={{
+                    ...portableTextComponents,
                     block: {
                       normal: ({ children }) => <p className="mb-4 last:mb-0">{children}</p>
                     }
@@ -120,9 +125,10 @@ const PricingComparison: React.FC<PricingComparisonProps> = ({ block }) => {
             <CardContent className="space-y-6">
               {fixedDescription && fixedDescription.length > 0 && (
                 <div className="text-gray-700">
-                  <PortableText 
+                  <PortableText
                     value={fixedDescription}
                     components={{
+                      ...portableTextComponents,
                       block: {
                         normal: ({ children }) => <p className="mb-3 last:mb-0 leading-relaxed">{children}</p>
                       }
@@ -130,7 +136,7 @@ const PricingComparison: React.FC<PricingComparisonProps> = ({ block }) => {
                   />
                 </div>
               )}
-              
+
               <div className="space-y-4">
                 <h4 className="font-bold text-gray-900 text-lg border-b border-blue-200 pb-2">Vigtigste fordele</h4>
                 <div className="grid gap-3">
@@ -182,9 +188,10 @@ const PricingComparison: React.FC<PricingComparisonProps> = ({ block }) => {
             <CardContent className="space-y-6">
               {variableDescription && variableDescription.length > 0 && (
                 <div className="text-gray-700">
-                  <PortableText 
+                  <PortableText
                     value={variableDescription}
                     components={{
+                      ...portableTextComponents,
                       block: {
                         normal: ({ children }) => <p className="mb-3 last:mb-0 leading-relaxed">{children}</p>
                       }
@@ -192,7 +199,7 @@ const PricingComparison: React.FC<PricingComparisonProps> = ({ block }) => {
                   />
                 </div>
               )}
-              
+
               <div className="space-y-4">
                 <h4 className="font-bold text-gray-900 text-lg border-b border-green-200 pb-2">Vigtigste fordele</h4>
                 <div className="grid gap-3">
@@ -324,9 +331,10 @@ const PricingComparison: React.FC<PricingComparisonProps> = ({ block }) => {
               </CardHeader>
               <CardContent>
                 <div className="prose prose-lg max-w-none text-gray-800 text-center">
-                  <PortableText 
+                  <PortableText
                     value={recommendation}
                     components={{
+                      ...portableTextComponents,
                       block: {
                         normal: ({ children }) => <p className="mb-4 last:mb-0 text-lg leading-relaxed">{children}</p>
                       }

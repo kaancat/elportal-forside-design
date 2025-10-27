@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { PortableText } from '@portabletext/react';
+import { getPortableTextComponents } from '@/lib/portableTextConfig';
 import {
   Tooltip as UITooltip,
   TooltipContent,
@@ -109,6 +110,9 @@ const CO2Tooltip = ({ active, payload, label }: any) => {
 };
 
 const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({ block }) => {
+  // Get shared PortableText components with link handling
+  const portableTextComponents = getPortableTextComponents();
+
   // Set default values for missing fields
   const title = block.title || 'Elproduktion og CO₂-udledning';
   const subtitle = block.subtitle || 'Realtids opdeling af elproduktion og CO₂-intensitet';
@@ -130,10 +134,10 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 640);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    
+
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
@@ -144,37 +148,37 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
       try {
         const apiUrl = `/api/declaration-production?region=${selectedRegion}&view=${selectedView}`;
         console.log('Fetching declaration production data from:', apiUrl);
-        
+
         const response = await fetch(apiUrl);
         if (!response.ok) {
           const errorText = await response.text();
           console.error('API Error:', response.status, errorText);
           throw new Error(`API fejl (${response.status}): ${errorText}`);
         }
-        
+
         const result = await response.json();
         console.log('API Response:', result);
-        
+
         if (!result.records || result.records.length === 0) {
           console.warn('No data received from API');
           setData([]);
           return;
         }
-        
+
         // Transform data for the charts
         const chartData = result.records.map((record: ProductionRecord) => {
           const date = new Date(record.HourDK);
           let timeFormat: string;
-          
+
           if (selectedView === '24h') {
             // For 24h view, show hour only
-            timeFormat = date.toLocaleString('da-DK', { 
+            timeFormat = date.toLocaleString('da-DK', {
               hour: '2-digit',
               minute: '2-digit'
             });
           } else if (selectedView === '7d') {
             // For 7d view, show day/month and hour for hourly data
-            timeFormat = date.toLocaleString('da-DK', { 
+            timeFormat = date.toLocaleString('da-DK', {
               day: 'numeric',
               month: 'short',
               hour: '2-digit'
@@ -183,7 +187,7 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
             // For 30d view, show day/month more concise
             timeFormat = `${date.getDate()}/${date.getMonth() + 1}`;
           }
-          
+
           const transformed: any = {
             time: timeFormat,
             timestamp: record.HourDK, // Keep original timestamp for current time marker
@@ -191,15 +195,15 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
             renewableShare: record.renewableShare,
             totalProduction: record.totalProduction
           };
-          
+
           // Add production by type
           Object.entries(record.productionByType).forEach(([type, data]) => {
             transformed[type] = data.production;
           });
-          
+
           return transformed;
         });
-        
+
         console.log('Chart data:', chartData);
         setData(chartData);
       } catch (err: any) {
@@ -209,18 +213,18 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, [selectedRegion, selectedView]);
 
   // Calculate current statistics
   const currentStats = useMemo(() => {
     if (!data || data.length === 0) return null;
-    
+
     const latest = data[data.length - 1];
     const avgCO2 = data.reduce((sum, d) => sum + d.averageCO2, 0) / data.length;
     const avgRenewable = data.reduce((sum, d) => sum + d.renewableShare, 0) / data.length;
-    
+
     // Find the time with lowest CO2 intensity
     let greenestTime = data[0];
     let greenestIndex = 0;
@@ -230,24 +234,24 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
         greenestIndex = index;
       }
     });
-    
+
     // Find current time position (if within data range)
     const now = new Date();
     let currentTimeIndex = -1;
     let currentTimeData: ProductionRecord | null = null;
-    
+
     // For 24h view, find the closest hour
     if (selectedView === '24h') {
       data.forEach((record, index) => {
         const recordTime = new Date(record.HourDK);
-        if (recordTime.getHours() === now.getHours() && 
-            recordTime.getDate() === now.getDate()) {
+        if (recordTime.getHours() === now.getHours() &&
+          recordTime.getDate() === now.getDate()) {
           currentTimeIndex = index;
           currentTimeData = record;
         }
       });
     }
-    
+
     return {
       currentCO2: latest.averageCO2,
       currentRenewable: latest.renewableShare,
@@ -322,7 +326,7 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
         return '';
       }
     }
-    
+
     return tickItem;
   };
 
@@ -359,9 +363,10 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
               headerAlignment === 'center' && "max-w-4xl mx-auto"
             )}>
               <div className="prose prose-lg max-w-none">
-                <PortableText 
-                  value={leadingText} 
+                <PortableText
+                  value={leadingText}
                   components={{
+                    ...portableTextComponents,
                     block: {
                       normal: ({ children }) => <p className="mb-4 last:mb-0">{children}</p>
                     }
@@ -379,7 +384,7 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
             Viser data frem til {currentStats?.latestDate || '...'}.
           </p>
           <p className="text-xs text-blue-700">
-            <strong>Datakilde:</strong> Energinet via EnergiDataService API. Danmark har faktisk meget høj vedvarende energi-andel - ofte over 90% pga. omfattende vindkraft. 
+            <strong>Datakilde:</strong> Energinet via EnergiDataService API. Danmark har faktisk meget høj vedvarende energi-andel - ofte over 90% pga. omfattende vindkraft.
             <a href="https://www.energidataservice.dk/tso-electricity/DeclarationProduction" className="underline ml-1" target="_blank" rel="noopener noreferrer">
               Verificér data her
             </a>
@@ -389,22 +394,22 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
         {/* Controls */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 p-4 bg-gray-50 rounded-lg border">
           <div className="flex items-center gap-2">
-            <Button 
-              onClick={() => setSelectedView('24h')} 
+            <Button
+              onClick={() => setSelectedView('24h')}
               variant={selectedView === '24h' ? 'default' : 'outline'}
               size="sm"
             >
               24 timer
             </Button>
-            <Button 
-              onClick={() => setSelectedView('7d')} 
+            <Button
+              onClick={() => setSelectedView('7d')}
               variant={selectedView === '7d' ? 'default' : 'outline'}
               size="sm"
             >
               7 dage
             </Button>
-            <Button 
-              onClick={() => setSelectedView('30d')} 
+            <Button
+              onClick={() => setSelectedView('30d')}
               variant={selectedView === '30d' ? 'default' : 'outline'}
               size="sm"
             >
@@ -412,22 +417,22 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
             </Button>
           </div>
           <div className="flex items-center gap-2">
-            <Button 
-              onClick={() => setSelectedRegion('Danmark')} 
+            <Button
+              onClick={() => setSelectedRegion('Danmark')}
               variant={selectedRegion === 'Danmark' ? 'default' : 'outline'}
               size="sm"
             >
               Hele Danmark
             </Button>
-            <Button 
-              onClick={() => setSelectedRegion('DK1')} 
+            <Button
+              onClick={() => setSelectedRegion('DK1')}
               variant={selectedRegion === 'DK1' ? 'default' : 'outline'}
               size="sm"
             >
               DK1 (Vest)
             </Button>
-            <Button 
-              onClick={() => setSelectedRegion('DK2')} 
+            <Button
+              onClick={() => setSelectedRegion('DK2')}
               variant={selectedRegion === 'DK2' ? 'default' : 'outline'}
               size="sm"
             >
@@ -441,7 +446,7 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 flex items-center justify-center gap-2">
             <Leaf className="w-5 h-5 text-green-600" />
             <p className="text-green-800 font-semibold">
-              Grønneste tidspunkt {selectedView === '24h' ? 'i dag' : selectedView === '7d' ? 'denne uge' : 'denne måned'}: 
+              Grønneste tidspunkt {selectedView === '24h' ? 'i dag' : selectedView === '7d' ? 'denne uge' : 'denne måned'}:
               <span className="font-bold ml-2">{currentStats.greenestTime}</span>
               <span className="text-green-700 ml-2">({currentStats.greenestCO2.toFixed(0)} g CO₂/kWh)</span>
             </p>
@@ -471,7 +476,7 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                 Gennemsnit: {currentStats.avgRenewable.toFixed(1)}%
               </div>
             </div>
-            
+
             <div className="bg-blue-50 rounded-lg p-6 text-center">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <TrendingDown className="w-5 h-5 text-blue-600" />
@@ -485,7 +490,7 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                   </TooltipContent>
                 </UITooltip>
               </div>
-              <div 
+              <div
                 className="text-3xl font-bold"
                 style={{ color: getCO2Color(currentStats.currentCO2) }}
               >
@@ -495,7 +500,7 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                 Gennemsnit: {currentStats.avgCO2.toFixed(0)} g/kWh
               </div>
             </div>
-            
+
             <div className="bg-gray-50 rounded-lg p-6 text-center">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Activity className="w-5 h-5 text-gray-600" />
@@ -577,8 +582,8 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 60 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      <XAxis 
-                        dataKey="time" 
+                      <XAxis
+                        dataKey="time"
                         tick={{ fontSize: isMobile ? 8 : 10 }}
                         angle={isMobile ? -90 : -45}
                         textAnchor="end"
@@ -586,83 +591,83 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                         interval={0}
                         tickFormatter={formatXAxisTick}
                       />
-                      <YAxis 
+                      <YAxis
                         tick={{ fontSize: 12 }}
-                        label={{ 
-                          value: 'MW', 
-                          angle: -90, 
+                        label={{
+                          value: 'MW',
+                          angle: -90,
                           position: 'insideLeft',
                           style: { fontSize: 12 },
                           className: 'hidden md:block'
                         }}
                       />
-                    <Tooltip content={<ProductionTooltip />} />
-                    
-                    {/* Current time marker overlay */}
-                    {selectedView === '24h' && currentStats && currentStats.currentTimeIndex !== -1 && (
-                      <Line
-                        type="monotone"
-                        dataKey="totalProduction"
-                        stroke="transparent"
-                        strokeWidth={0}
-                        isAnimationActive={false}
-                        dot={(props: any) => {
-                          const { cx, cy, index, payload } = props;
-                          if (index === currentStats.currentTimeIndex) {
-                            return (
-                              <g>
-                                {/* Animated pulse effect */}
-                                <circle cx={cx} cy={cy} r={15} fill="#3b82f6" opacity={0.2}>
-                                  <animate attributeName="r" values="10;20;10" dur="2s" repeatCount="indefinite" />
-                                  <animate attributeName="opacity" values="0.3;0.1;0.3" dur="2s" repeatCount="indefinite" />
-                                </circle>
-                                {/* Main marker */}
-                                <circle cx={cx} cy={cy} r={6} fill="#3b82f6" stroke="#fff" strokeWidth={2} />
-                                {/* Tooltip */}
-                                <foreignObject x={cx - 60} y={cy - 45} width={120} height={35}>
-                                  <div className="bg-gray-800 text-white px-2 py-1 rounded text-xs font-medium text-center shadow-lg">
-                                    Nu: {payload.time} → {payload.totalProduction.toFixed(0)} MW
-                                  </div>
-                                </foreignObject>
-                              </g>
-                            );
-                          }
-                          return <g />;
-                        }}
-                      />
-                    )}
-                    
-                    {/* Stack renewable sources first */}
-                    {Object.entries(productionTypes)
-                      .filter(([_, config]) => config.renewable)
-                      .map(([type, config]) => (
-                        <Area
-                          key={type}
+                      <Tooltip content={<ProductionTooltip />} />
+
+                      {/* Current time marker overlay */}
+                      {selectedView === '24h' && currentStats && currentStats.currentTimeIndex !== -1 && (
+                        <Line
                           type="monotone"
-                          dataKey={type}
-                          stackId="1"
-                          stroke={config.color}
-                          fill={config.color}
+                          dataKey="totalProduction"
+                          stroke="transparent"
                           strokeWidth={0}
+                          isAnimationActive={false}
+                          dot={(props: any) => {
+                            const { cx, cy, index, payload } = props;
+                            if (index === currentStats.currentTimeIndex) {
+                              return (
+                                <g>
+                                  {/* Animated pulse effect */}
+                                  <circle cx={cx} cy={cy} r={15} fill="#3b82f6" opacity={0.2}>
+                                    <animate attributeName="r" values="10;20;10" dur="2s" repeatCount="indefinite" />
+                                    <animate attributeName="opacity" values="0.3;0.1;0.3" dur="2s" repeatCount="indefinite" />
+                                  </circle>
+                                  {/* Main marker */}
+                                  <circle cx={cx} cy={cy} r={6} fill="#3b82f6" stroke="#fff" strokeWidth={2} />
+                                  {/* Tooltip */}
+                                  <foreignObject x={cx - 60} y={cy - 45} width={120} height={35}>
+                                    <div className="bg-gray-800 text-white px-2 py-1 rounded text-xs font-medium text-center shadow-lg">
+                                      Nu: {payload.time} → {payload.totalProduction.toFixed(0)} MW
+                                    </div>
+                                  </foreignObject>
+                                </g>
+                              );
+                            }
+                            return <g />;
+                          }}
                         />
-                      ))}
-                    
-                    {/* Then stack fossil sources */}
-                    {Object.entries(productionTypes)
-                      .filter(([_, config]) => !config.renewable)
-                      .map(([type, config]) => (
-                        <Area
-                          key={type}
-                          type="monotone"
-                          dataKey={type}
-                          stackId="1"
-                          stroke={config.color}
-                          fill={config.color}
-                          strokeWidth={0}
-                        />
-                      ))}
-                  </AreaChart>
-                </ResponsiveContainer>
+                      )}
+
+                      {/* Stack renewable sources first */}
+                      {Object.entries(productionTypes)
+                        .filter(([_, config]) => config.renewable)
+                        .map(([type, config]) => (
+                          <Area
+                            key={type}
+                            type="monotone"
+                            dataKey={type}
+                            stackId="1"
+                            stroke={config.color}
+                            fill={config.color}
+                            strokeWidth={0}
+                          />
+                        ))}
+
+                      {/* Then stack fossil sources */}
+                      {Object.entries(productionTypes)
+                        .filter(([_, config]) => !config.renewable)
+                        .map(([type, config]) => (
+                          <Area
+                            key={type}
+                            type="monotone"
+                            dataKey={type}
+                            stackId="1"
+                            stroke={config.color}
+                            fill={config.color}
+                            strokeWidth={0}
+                          />
+                        ))}
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
               )}
             </div>
@@ -724,8 +729,8 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 60 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      <XAxis 
-                        dataKey="time" 
+                      <XAxis
+                        dataKey="time"
                         tick={{ fontSize: isMobile ? 8 : 10 }}
                         angle={isMobile ? -90 : -45}
                         textAnchor="end"
@@ -733,64 +738,64 @@ const DeclarationProductionChart: React.FC<DeclarationProductionChartProps> = ({
                         interval={0}
                         tickFormatter={formatXAxisTick}
                       />
-                      <YAxis 
+                      <YAxis
                         tick={{ fontSize: 12 }}
-                        label={{ 
-                          value: 'g CO₂/kWh', 
-                          angle: -90, 
+                        label={{
+                          value: 'g CO₂/kWh',
+                          angle: -90,
                           position: 'insideLeft',
                           style: { fontSize: 12 },
                           className: 'hidden md:block'
                         }}
                       />
-                    <Tooltip content={<CO2Tooltip />} />
-                    <Line 
-                      type="monotone" 
-                      dataKey="averageCO2" 
-                      stroke="#059669"
-                      strokeWidth={2}
-                      dot={(props: any) => {
-                        const { cx, cy, index, payload } = props;
-                        
-                        // Greenest point marker
-                        if (currentStats && index === currentStats.greenestIndex) {
-                          return (
-                            <g>
-                              {/* Glow effect */}
-                              <circle cx={cx} cy={cy} r={12} fill="#10b981" opacity={0.2} />
-                              <circle cx={cx} cy={cy} r={8} fill="#10b981" opacity={0.3} />
-                              {/* Main dot */}
-                              <circle cx={cx} cy={cy} r={5} fill="#059669" stroke="#fff" strokeWidth={2} />
-                            </g>
-                          );
-                        }
-                        
-                        // Current time marker (only for 24h view)
-                        if (selectedView === '24h' && currentStats && index === currentStats.currentTimeIndex) {
-                          return (
-                            <g>
-                              {/* Animated pulse effect */}
-                              <circle cx={cx} cy={cy} r={15} fill="#3b82f6" opacity={0.2}>
-                                <animate attributeName="r" values="10;20;10" dur="2s" repeatCount="indefinite" />
-                                <animate attributeName="opacity" values="0.3;0.1;0.3" dur="2s" repeatCount="indefinite" />
-                              </circle>
-                              {/* Main marker */}
-                              <circle cx={cx} cy={cy} r={6} fill="#3b82f6" stroke="#fff" strokeWidth={2} />
-                              {/* Tooltip */}
-                              <foreignObject x={cx - 60} y={cy - 45} width={120} height={35}>
-                                <div className="bg-gray-800 text-white px-2 py-1 rounded text-xs font-medium text-center shadow-lg">
-                                  Nu: {payload.time} → {payload.averageCO2.toFixed(0)} g/kWh
-                                </div>
-                              </foreignObject>
-                            </g>
-                          );
-                        }
-                        
-                        return <g />;
-                      }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                      <Tooltip content={<CO2Tooltip />} />
+                      <Line
+                        type="monotone"
+                        dataKey="averageCO2"
+                        stroke="#059669"
+                        strokeWidth={2}
+                        dot={(props: any) => {
+                          const { cx, cy, index, payload } = props;
+
+                          // Greenest point marker
+                          if (currentStats && index === currentStats.greenestIndex) {
+                            return (
+                              <g>
+                                {/* Glow effect */}
+                                <circle cx={cx} cy={cy} r={12} fill="#10b981" opacity={0.2} />
+                                <circle cx={cx} cy={cy} r={8} fill="#10b981" opacity={0.3} />
+                                {/* Main dot */}
+                                <circle cx={cx} cy={cy} r={5} fill="#059669" stroke="#fff" strokeWidth={2} />
+                              </g>
+                            );
+                          }
+
+                          // Current time marker (only for 24h view)
+                          if (selectedView === '24h' && currentStats && index === currentStats.currentTimeIndex) {
+                            return (
+                              <g>
+                                {/* Animated pulse effect */}
+                                <circle cx={cx} cy={cy} r={15} fill="#3b82f6" opacity={0.2}>
+                                  <animate attributeName="r" values="10;20;10" dur="2s" repeatCount="indefinite" />
+                                  <animate attributeName="opacity" values="0.3;0.1;0.3" dur="2s" repeatCount="indefinite" />
+                                </circle>
+                                {/* Main marker */}
+                                <circle cx={cx} cy={cy} r={6} fill="#3b82f6" stroke="#fff" strokeWidth={2} />
+                                {/* Tooltip */}
+                                <foreignObject x={cx - 60} y={cy - 45} width={120} height={35}>
+                                  <div className="bg-gray-800 text-white px-2 py-1 rounded text-xs font-medium text-center shadow-lg">
+                                    Nu: {payload.time} → {payload.averageCO2.toFixed(0)} g/kWh
+                                  </div>
+                                </foreignObject>
+                              </g>
+                            );
+                          }
+
+                          return <g />;
+                        }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </div>
               )}
             </div>

@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { PortableText } from '@portabletext/react';
 import type { CO2EmissionsChart } from '@/types/sanity';
+import { getPortableTextComponents } from '@/lib/portableTextConfig';
 
 interface CO2EmissionRecord {
   HourUTC: string;
@@ -39,7 +40,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     const level = emissionLevels[data.EmissionLevel as keyof typeof emissionLevels] || emissionLevels['moderate'];
-    
+
     return (
       <div className="bg-white p-4 rounded-lg shadow-lg border min-w-[240px]">
         <p className="font-semibold text-gray-900 mb-2">{label}</p>
@@ -65,7 +66,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 // Emission gauge component
 const EmissionGauge: React.FC<{ value: number | null }> = ({ value }) => {
   if (value === null) return null;
-  
+
   const getLevel = (emission: number) => {
     if (emission < 100) return 'very-low';
     if (emission < 200) return 'low';
@@ -73,10 +74,10 @@ const EmissionGauge: React.FC<{ value: number | null }> = ({ value }) => {
     if (emission < 400) return 'high';
     return 'very-high';
   };
-  
+
   const level = getLevel(value);
   const config = emissionLevels[level as keyof typeof emissionLevels];
-  
+
   return (
     <div className="bg-gray-50 rounded-lg p-6 text-center">
       <h3 className="text-sm text-gray-600 mb-2">Nuværende CO₂-intensitet</h3>
@@ -97,6 +98,9 @@ const EmissionGauge: React.FC<{ value: number | null }> = ({ value }) => {
 };
 
 const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
+  // Get shared PortableText components with link handling
+  const portableTextComponents = getPortableTextComponents();
+
   // Set default values for missing fields
   const title = block.title || 'CO₂-udledning fra elforbrug';
   const subtitle = block.subtitle || 'Realtids CO₂-intensitet målt i gram per kWh';
@@ -123,32 +127,32 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
       try {
         const apiUrl = `/api/co2-emissions?region=${selectedRegion}&date=${formatDateForApi(selectedDate)}&aggregation=hourly`;
         console.log('Fetching CO2 data from:', apiUrl);
-        
+
         const response = await fetch(apiUrl);
         if (!response.ok) {
           const errorText = await response.text();
           console.error('API Error:', response.status, errorText);
           throw new Error(`API fejl (${response.status}): ${errorText}`);
         }
-        
+
         const result = await response.json();
         console.log('API Response:', result);
-        
+
         if (!result.records || result.records.length === 0) {
           console.warn('No data received from API');
           setData([]);
           return;
         }
-        
+
         // Transform data for the chart
         const chartData = result.records.map((record: CO2EmissionRecord) => ({
           ...record,
-          hour: new Date(record.HourUTC).toLocaleTimeString('da-DK', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
+          hour: new Date(record.HourUTC).toLocaleTimeString('da-DK', {
+            hour: '2-digit',
+            minute: '2-digit'
           }).replace(/\./g, ':')
         }));
-        
+
         console.log('Chart data:', chartData);
         setData(chartData);
       } catch (err: any) {
@@ -158,23 +162,23 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, [selectedRegion, selectedDate]);
 
   // Calculate statistics
   const stats = useMemo(() => {
     if (!data || data.length === 0) return null;
-    
+
     const validData = data.filter(d => d.CO2Emission !== null);
     if (validData.length === 0) return null;
-    
+
     const values = validData.map(d => d.CO2Emission);
     const sum = values.reduce((a, b) => a + b, 0);
     const avg = sum / values.length;
     const min = Math.min(...values);
     const max = Math.max(...values);
-    
+
     // Get current hour's emission
     const now = new Date();
     const currentHour = now.getHours();
@@ -182,7 +186,7 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
       const hour = new Date(d.HourUTC).getHours();
       return hour === currentHour;
     });
-    
+
     return { avg, min, max, current: currentData?.CO2Emission || null };
   }, [data]);
 
@@ -239,9 +243,10 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
               headerAlignment === 'center' && "max-w-4xl mx-auto"
             )}>
               <div className="prose prose-lg max-w-none">
-                <PortableText 
-                  value={leadingText} 
+                <PortableText
+                  value={leadingText}
                   components={{
+                    ...portableTextComponents,
                     block: {
                       normal: ({ children }) => <p className="mb-4 last:mb-0">{children}</p>
                     }
@@ -255,14 +260,14 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
         {/* Controls */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 p-4 bg-gray-50 rounded-lg border">
           <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               aria-label="Forrige dag"
-              onClick={() => setSelectedDate(d => { 
-                const n = new Date(d); 
-                n.setDate(d.getDate() - 1); 
-                return n; 
+              onClick={() => setSelectedDate(d => {
+                const n = new Date(d);
+                n.setDate(d.getDate() - 1);
+                return n;
               })}
             >
               <ChevronLeft size={18} />
@@ -275,47 +280,47 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
-                <Calendar 
-                  mode="single" 
-                  selected={selectedDate} 
-                  onSelect={(d) => { 
-                    if(d) setSelectedDate(d); 
-                    setIsCalendarOpen(false); 
-                  }} 
-                  disabled={(date) => date > new Date()} 
-                  initialFocus 
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(d) => {
+                    if (d) setSelectedDate(d);
+                    setIsCalendarOpen(false);
+                  }}
+                  disabled={(date) => date > new Date()}
+                  initialFocus
                 />
               </PopoverContent>
             </Popover>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               aria-label="Næste dag"
-              onClick={() => setSelectedDate(d => { 
-                const n = new Date(d); 
-                n.setDate(d.getDate() + 1); 
-                return n; 
-              })} 
+              onClick={() => setSelectedDate(d => {
+                const n = new Date(d);
+                n.setDate(d.getDate() + 1);
+                return n;
+              })}
               disabled={isFuture}
             >
               <ChevronRight size={18} />
             </Button>
           </div>
           <div className="flex items-center gap-2">
-            <Button 
-              onClick={() => setSelectedRegion('Danmark')} 
+            <Button
+              onClick={() => setSelectedRegion('Danmark')}
               variant={selectedRegion === 'Danmark' ? 'default' : 'outline'}
             >
               Hele Danmark
             </Button>
-            <Button 
-              onClick={() => setSelectedRegion('DK1')} 
+            <Button
+              onClick={() => setSelectedRegion('DK1')}
               variant={selectedRegion === 'DK1' ? 'default' : 'outline'}
             >
               DK1 (Vest)
             </Button>
-            <Button 
-              onClick={() => setSelectedRegion('DK2')} 
+            <Button
+              onClick={() => setSelectedRegion('DK2')}
               variant={selectedRegion === 'DK2' ? 'default' : 'outline'}
             >
               DK2 (Øst)
@@ -363,41 +368,41 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
                   <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorCO2" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#84cc16" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="#84cc16" stopOpacity={0.1}/>
+                        <stop offset="5%" stopColor="#84cc16" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="#84cc16" stopOpacity={0.1} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" vertical={false} />
-                    <XAxis 
-                      dataKey="hour" 
-                      tick={{ fontSize: 12, fill: '#6b7280' }} 
+                    <XAxis
+                      dataKey="hour"
+                      tick={{ fontSize: 12, fill: '#6b7280' }}
                       dy={10}
                     />
-                    <YAxis 
+                    <YAxis
                       domain={[0, yAxisMax]}
                       tick={{ fontSize: 12, fill: '#6b7280' }}
-                      label={{ 
-                        value: 'g CO₂/kWh', 
-                        angle: -90, 
+                      label={{
+                        value: 'g CO₂/kWh',
+                        angle: -90,
                         position: 'insideLeft',
                         style: { fill: '#6b7280' },
                         className: 'hidden md:block'
                       }}
                     />
-                  <Tooltip content={<CustomTooltip />} />
-                  
-                  {/* Reference lines for emission levels */}
-                  <ReferenceLine y={100} stroke="#16a34a" strokeDasharray="3 3" />
-                  <ReferenceLine y={200} stroke="#eab308" strokeDasharray="3 3" />
-                  <ReferenceLine y={300} stroke="#f97316" strokeDasharray="3 3" />
-                  
-                  <Area 
-                    type="monotone" 
-                    dataKey="CO2Emission" 
-                    stroke="#84cc16" 
-                    fill="url(#colorCO2)"
-                    strokeWidth={2}
-                  />
+                    <Tooltip content={<CustomTooltip />} />
+
+                    {/* Reference lines for emission levels */}
+                    <ReferenceLine y={100} stroke="#16a34a" strokeDasharray="3 3" />
+                    <ReferenceLine y={200} stroke="#eab308" strokeDasharray="3 3" />
+                    <ReferenceLine y={300} stroke="#f97316" strokeDasharray="3 3" />
+
+                    <Area
+                      type="monotone"
+                      dataKey="CO2Emission"
+                      stroke="#84cc16"
+                      fill="url(#colorCO2)"
+                      strokeWidth={2}
+                    />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -408,7 +413,7 @@ const CO2EmissionsChart: React.FC<CO2EmissionsChartProps> = ({ block }) => {
           {showGauge && stats && (
             <div className="space-y-4">
               <EmissionGauge value={stats.current} />
-              
+
               {/* Statistics */}
               <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                 <h3 className="text-sm font-semibold text-gray-700 mb-2">Dagens statistik</h3>

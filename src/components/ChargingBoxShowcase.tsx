@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Check } from 'lucide-react'
 import { urlFor } from '@/lib/sanity'
 import type { ChargingBoxShowcaseBlock } from '@/types/sanity'
+import { getPortableTextComponents } from '@/lib/portableTextConfig'
 
 // Export the block type for use in ContentBlocks
 export type { ChargingBoxShowcaseBlock } from '@/types/sanity'
@@ -24,6 +25,9 @@ const formatPrice = (price: number) => {
 }
 
 export function ChargingBoxShowcase({ block }: ChargingBoxShowcaseProps) {
+  // Get shared PortableText components with link handling
+  const portableTextComponents = getPortableTextComponents();
+
   const { heading, description, products, headerAlignment = 'center' } = block
 
   const alignmentClasses = {
@@ -41,7 +45,7 @@ export function ChargingBoxShowcase({ block }: ChargingBoxShowcaseProps) {
             <h2 className="text-3xl font-bold mb-4">{heading || 'Populære Ladebokse'}</h2>
             {description && (
               <div className="prose prose-lg max-w-none">
-                <PortableText value={description} />
+                <PortableText value={description} components={portableTextComponents} />
               </div>
             )}
           </div>
@@ -61,7 +65,7 @@ export function ChargingBoxShowcase({ block }: ChargingBoxShowcaseProps) {
           <h2 className="text-3xl font-bold mb-4">{heading}</h2>
           {description && (
             <div className="prose prose-lg max-w-none">
-              <PortableText value={description} />
+              <PortableText value={description} components={portableTextComponents} />
             </div>
           )}
         </div>
@@ -97,7 +101,7 @@ export function ChargingBoxShowcase({ block }: ChargingBoxShowcaseProps) {
                 {/* Description */}
                 {product.description && (
                   <div className="prose prose-sm text-gray-600 mb-4">
-                    <PortableText value={product.description} />
+                    <PortableText value={product.description} components={portableTextComponents} />
                   </div>
                 )}
 
@@ -129,13 +133,13 @@ export function ChargingBoxShowcase({ block }: ChargingBoxShowcaseProps) {
 
                 {/* CTA Button */}
                 {product.ctaLink && (
-                  <Button 
-                    asChild 
+                  <Button
+                    asChild
                     className="w-full bg-brand-green hover:bg-brand-green/90 text-white"
                   >
-                    <a 
-                      href={product.ctaLink} 
-                      target="_blank" 
+                    <a
+                      href={product.ctaLink}
+                      target="_blank"
                       rel="noopener noreferrer"
                     >
                       {product.ctaText || 'Køb nu'}

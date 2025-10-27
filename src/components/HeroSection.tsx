@@ -3,14 +3,15 @@ import PriceCalculatorWidget from '@/components/PriceCalculatorWidget';
 import { HeroWithCalculator } from '@/types/sanity';
 import { PortableText } from '@portabletext/react';
 import OptimizedImage from '@/components/OptimizedImage';
-import { 
-  getBackgroundStyle, 
-  getTextColorClass, 
-  getPaddingClass, 
+import {
+  getBackgroundStyle,
+  getTextColorClass,
+  getPaddingClass,
   getAlignmentClass,
   getOptimizedImageUrl,
   isLightText
 } from '@/lib/backgroundStyles';
+import { getPortableTextComponents } from '@/lib/portableTextConfig';
 
 interface HeroSectionProps {
   block?: HeroWithCalculator;
@@ -22,14 +23,14 @@ const renderHeadlineWithHighlight = (text: string, highlightWords?: string[]) =>
   if (!highlightWords || highlightWords.length === 0) {
     return text;
   }
-  
+
   // Create a regex pattern that matches any of the highlight words (case-insensitive)
   const pattern = highlightWords.map(word => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
   const regex = new RegExp(`(${pattern})`, 'gi');
-  
+
   // Split the text by the pattern
   const parts = text.split(regex);
-  
+
   return (
     <>
       {parts.map((part, index) => {
@@ -37,7 +38,7 @@ const renderHeadlineWithHighlight = (text: string, highlightWords?: string[]) =>
         const isHighlighted = highlightWords.some(
           word => part.toLowerCase() === word.toLowerCase()
         );
-        
+
         if (isHighlighted) {
           return <span key={index} className="text-brand-green">{part}</span>;
         }
@@ -48,6 +49,9 @@ const renderHeadlineWithHighlight = (text: string, highlightWords?: string[]) =>
 };
 
 const HeroSection: React.FC<HeroSectionProps> = ({ block }) => {
+  // Get shared PortableText components with link handling
+  const portableTextComponents = getPortableTextComponents();
+
   // Get values from block or use defaults
   const headline = block?.headline || "Elpriser - Find og sammenlign elpriser";
   const subheadline = block?.subheadline || "Sammenlign elpriser og se, om du kan finde en bedre elpris ud fra dit estimerede forbrug.";
@@ -70,11 +74,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({ block }) => {
 
   // Generate style classes and properties
   const backgroundStyleProps = getBackgroundStyle({ backgroundStyle, image });
-  const textColorClass = getTextColorClass({ 
-    textColor, 
-    backgroundStyle, 
-    image, 
-    overlayOpacity 
+  const textColorClass = getTextColorClass({
+    textColor,
+    backgroundStyle,
+    image,
+    overlayOpacity
   });
   const paddingClass = getPaddingClass(padding);
   const alignmentClass = getAlignmentClass(alignment);
@@ -92,11 +96,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({ block }) => {
     // The outer wrapper provides padding on desktop screens only
     <div className="md:p-4">
       {/* Main container with dynamic background style */}
-      <section 
-        className="relative md:rounded-2xl overflow-hidden" 
+      <section
+        className="relative md:rounded-2xl overflow-hidden"
         style={backgroundStyleProps}
       >
-        
+
         {/* Layer 1: Background Image (if provided) */}
         {optimizedImageUrl && (
           <div className="absolute inset-0">
@@ -108,25 +112,24 @@ const HeroSection: React.FC<HeroSectionProps> = ({ block }) => {
               width={1920}
               height={1080}
             />
-            
+
             {/* Dark overlay for text readability - only if there's an image */}
-            <div 
+            <div
               className="absolute inset-0 bg-black"
               style={{ opacity: overlayOpacity / 100 }}
             />
           </div>
         )}
-        
+
         {/* Layer 2: Content */}
-        <div 
+        <div
           className={`relative z-10 container mx-auto px-4 ${paddingClass} ${textColorClass}`}
         >
           <div className={`flex flex-col lg:flex-row items-center gap-8 ${alignmentClass}`}>
             {/* Left column with hero content */}
             <div className="lg:w-1/2">
-              <h1 className={`text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-6 ${
-                isTextLight ? 'drop-shadow-lg' : ''
-              }`}>
+              <h1 className={`text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-6 ${isTextLight ? 'drop-shadow-lg' : ''
+                }`}>
                 {renderHeadlineWithHighlight(headline, block?.highlightWords)}
               </h1>
               {subheadline && (
@@ -135,45 +138,42 @@ const HeroSection: React.FC<HeroSectionProps> = ({ block }) => {
                     <p>{renderHeadlineWithHighlight(subheadline, block?.highlightWords)}</p>
                   ) : (
                     <div className={`prose max-w-none ${isTextLight ? 'prose-invert' : ''}`}>
-                      <PortableText value={subheadline} />
+                      <PortableText value={subheadline} components={portableTextComponents} />
                     </div>
                   )}
                 </div>
               )}
-              
+
               {/* Rich content section */}
               {block?.content && (
-                <div className={`text-lg mb-8 prose max-w-none ${
-                  isTextLight ? 'prose-invert opacity-90' : 'opacity-70'
-                }`}>
-                  <PortableText value={block.content} />
+                <div className={`text-lg mb-8 prose max-w-none ${isTextLight ? 'prose-invert opacity-90' : 'opacity-70'
+                  }`}>
+                  <PortableText value={block.content} components={portableTextComponents} />
                 </div>
               )}
-              
+
               {/* Statistics display */}
               <div className="flex flex-col min-[480px]:flex-row min-[480px]:flex-wrap lg:flex-nowrap gap-4 min-[480px]:gap-6 lg:gap-8 mb-10">
                 {stats.map((stat, index) => (
-                  <div key={index} className={`${
-                    alignment === 'center' 
-                      ? 'text-left min-[480px]:text-center' 
-                      : alignment === 'right' 
-                        ? 'text-right' 
+                  <div key={index} className={`${alignment === 'center'
+                      ? 'text-left min-[480px]:text-center'
+                      : alignment === 'right'
+                        ? 'text-right'
                         : 'text-left'
-                  } flex-shrink-0 min-[480px]:flex-1 min-w-0`}>
+                    } flex-shrink-0 min-[480px]:flex-1 min-w-0`}>
                     <p className="text-2xl min-[480px]:text-3xl lg:text-4xl font-display font-bold text-brand-green">{stat.value}</p>
-                    <p className={`text-sm min-[480px]:text-sm lg:text-base ${
-                      isTextLight ? 'opacity-90' : 'opacity-70'
-                    }`}>{stat.label}</p>
+                    <p className={`text-sm min-[480px]:text-sm lg:text-base ${isTextLight ? 'opacity-90' : 'opacity-70'
+                      }`}>{stat.label}</p>
                   </div>
                 ))}
               </div>
             </div>
-          
-            
+
+
             {/* Right column with calculator */}
             <div className="lg:w-1/2">
-              <PriceCalculatorWidget 
-                block={calculatorBlock} 
+              <PriceCalculatorWidget
+                block={calculatorBlock}
                 variant="hero"
                 showLivePrice={showLivePrice}
                 showProviderComparison={showProviderComparison}

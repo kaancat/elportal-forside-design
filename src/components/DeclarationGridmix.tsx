@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { PortableText } from '@portabletext/react';
 import type { DeclarationGridmix } from '@/types/sanity';
 import { useIsClient } from '@/hooks/useIsClient';
+import { getPortableTextComponents } from '@/lib/portableTextConfig';
 
 interface GridmixRecord {
   HourUTC: string;
@@ -78,18 +79,18 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label, g
   if (active && payload && payload.length > 0 && hoveredSegment) {
     // Find the specific segment that matches the hovered one
     const segmentData = payload.find(entry => entry.dataKey === hoveredSegment);
-    
+
     if (!segmentData || segmentData.value === 0) return null;
-    
+
     const energyType = segmentData.dataKey;
     const groupInfo = groupedData[energyType];
-    
+
     return (
       <div className="bg-white p-4 rounded-lg shadow-lg border" style={{ minWidth: '250px', maxWidth: '350px' }}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div 
-              className="w-4 h-4 rounded" 
+            <div
+              className="w-4 h-4 rounded"
               style={{ backgroundColor: segmentData.fill || segmentData.color }}
             />
             <p className="font-semibold text-base">{energyType}</p>
@@ -101,14 +102,14 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label, g
             {segmentData.value.toFixed(1)}%
           </p>
         </div>
-        
+
         {groupInfo && groupInfo.details.length > 0 && (
           <div className="border-t pt-3 space-y-1">
             <p className="text-xs text-gray-600 mb-2 font-medium">Fordeling:</p>
             {groupInfo.details.map((detail: any, idx: number) => {
               // Only show if there's a valid origin
               if (!detail.origin || detail.origin.trim() === '') return null;
-              
+
               return (
                 <div key={idx} className="flex justify-between items-center text-sm">
                   <span className="text-gray-700">
@@ -128,7 +129,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label, g
             })}
           </div>
         )}
-        
+
         {groupInfo?.isRenewable !== undefined && groupInfo.details.length <= 1 && (
           <div className="mt-3 pt-3 border-t">
             <span className="text-xs flex items-center gap-1">
@@ -152,15 +153,15 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label, g
 // Summary gauge component
 const GridmixSummary: React.FC<{ data: GridmixRecord | null }> = ({ data }) => {
   if (!data) return null;
-  
+
   const renewableColor = '#16a34a';
   const fossilColor = '#dc2626';
   const importColor = '#3b82f6';
-  
+
   return (
     <div className="bg-gray-50 rounded-lg p-6 space-y-4">
       <h3 className="text-sm font-semibold text-gray-700 mb-4 text-center">Energimix oversigt</h3>
-      
+
       {/* Renewable percentage */}
       <div className="text-center">
         <div className="relative inline-flex items-center justify-center">
@@ -175,7 +176,7 @@ const GridmixSummary: React.FC<{ data: GridmixRecord | null }> = ({ data }) => {
           Vedvarende
         </Badge>
       </div>
-      
+
       {/* Statistics */}
       <div className="space-y-2 text-sm">
         <div className="flex justify-between items-center">
@@ -209,6 +210,9 @@ const GridmixSummary: React.FC<{ data: GridmixRecord | null }> = ({ data }) => {
 };
 
 const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
+  // Get shared PortableText components with link handling
+  const portableTextComponents = getPortableTextComponents();
+
   // Set default values for missing fields
   const title = block.title || 'Energimix fordeling';
   const subtitle = block.subtitle || 'Realtids fordeling af Danmarks energiproduktion efter kilde';
@@ -235,30 +239,30 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
   useEffect(() => {
     // Next.js hydration fix - only run on client
     if (!isClient) return;
-    
+
     const fetchData = async () => {
       setLoading(true);
       setError(null);
       try {
         const apiUrl = `/api/declaration-gridmix?region=${selectedRegion}&date=${formatDateForApi(selectedDate)}&view=${selectedView}`;
         console.log('Fetching gridmix data from:', apiUrl);
-        
+
         const response = await fetch(apiUrl);
         if (!response.ok) {
           const errorText = await response.text();
           console.error('API Error:', response.status, errorText);
           throw new Error(`API fejl (${response.status}): ${errorText}`);
         }
-        
+
         const result = await response.json();
         console.log('API Response:', result);
-        
+
         if (!result.records || result.records.length === 0) {
           console.warn('No data received from API');
           setData([]);
           return;
         }
-        
+
         setData(result.records);
       } catch (err: any) {
         console.error('Fetch error:', err);
@@ -267,14 +271,14 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, [isClient, selectedRegion, selectedDate, selectedView]);
 
   // Calculate current hour data for pie chart
   const currentHourData = useMemo(() => {
     if (!data || data.length === 0) return null;
-    
+
     // For 24h view, get the latest hour
     // For longer periods, get average
     const latest = data[data.length - 1];
@@ -284,10 +288,10 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
   // Get actual data date range
   const dataDateRange = useMemo(() => {
     if (!data || data.length === 0) return null;
-    
+
     const firstDate = new Date(data[0].HourDK);
     const lastDate = new Date(data[data.length - 1].HourDK);
-    
+
     return {
       start: firstDate.toLocaleDateString('da-DK'),
       end: lastDate.toLocaleDateString('da-DK'),
@@ -298,81 +302,81 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
   // Transform data with smart grouping
   const { barChartData, groupedData } = useMemo(() => {
     if (!currentHourData) return { barChartData: {}, groupedData: {} };
-    
+
     // Define main energy categories and their mappings
-    const energyCategories: Record<string, { 
-      name: string; 
-      color: string; 
+    const energyCategories: Record<string, {
+      name: string;
+      color: string;
       patterns: string[];
       isRenewable: boolean;
     }> = {
-      'Wind': { 
-        name: 'Vind', 
-        color: '#75c7f0', 
-        patterns: ['Wind', 'Onshore', 'Offshore'], 
-        isRenewable: true 
+      'Wind': {
+        name: 'Vind',
+        color: '#75c7f0',
+        patterns: ['Wind', 'Onshore', 'Offshore'],
+        isRenewable: true
       },
-      'Solar': { 
-        name: 'Sol', 
-        color: '#ffda77', 
-        patterns: ['Solar', 'SolarPV'], 
-        isRenewable: true 
+      'Solar': {
+        name: 'Sol',
+        color: '#ffda77',
+        patterns: ['Solar', 'SolarPV'],
+        isRenewable: true
       },
-      'Hydro': { 
-        name: 'Vandkraft', 
-        color: '#61a0ff', 
-        patterns: ['Hydro'], 
-        isRenewable: true 
+      'Hydro': {
+        name: 'Vandkraft',
+        color: '#61a0ff',
+        patterns: ['Hydro'],
+        isRenewable: true
       },
-      'Nuclear': { 
-        name: 'Atomkraft', 
-        color: '#ff8c61', 
-        patterns: ['Nuclear'], 
-        isRenewable: false 
+      'Nuclear': {
+        name: 'Atomkraft',
+        color: '#ff8c61',
+        patterns: ['Nuclear'],
+        isRenewable: false
       },
-      'BioEnergy': { 
-        name: 'Bioenergi', 
-        color: '#a9d18e', 
-        patterns: ['BioGas', 'Biomass', 'Straw', 'Wood'], 
-        isRenewable: true 
+      'BioEnergy': {
+        name: 'Bioenergi',
+        color: '#a9d18e',
+        patterns: ['BioGas', 'Biomass', 'Straw', 'Wood'],
+        isRenewable: true
       },
-      'Waste': { 
-        name: 'Affald', 
-        color: '#b2b2b2', 
-        patterns: ['Waste', 'WasteIncineration'], 
-        isRenewable: false 
+      'Waste': {
+        name: 'Affald',
+        color: '#b2b2b2',
+        patterns: ['Waste', 'WasteIncineration'],
+        isRenewable: false
       },
-      'FossilGas': { 
-        name: 'Naturgas', 
-        color: '#dc2626', 
-        patterns: ['FossilGas', 'Fossil gas'], 
-        isRenewable: false 
+      'FossilGas': {
+        name: 'Naturgas',
+        color: '#dc2626',
+        patterns: ['FossilGas', 'Fossil gas'],
+        isRenewable: false
       },
-      'Coal': { 
-        name: 'Kul', 
-        color: '#991b1b', 
-        patterns: ['Coal'], 
-        isRenewable: false 
+      'Coal': {
+        name: 'Kul',
+        color: '#991b1b',
+        patterns: ['Coal'],
+        isRenewable: false
       },
-      'Oil': { 
-        name: 'Olie', 
-        color: '#b91c1c', 
-        patterns: ['Oil', 'Fossil Oil'], 
-        isRenewable: false 
+      'Oil': {
+        name: 'Olie',
+        color: '#b91c1c',
+        patterns: ['Oil', 'Fossil Oil'],
+        isRenewable: false
       }
     };
-    
+
     // Country name mapping
     const countryMapping: Record<string, string> = {
       'SE': 'Sverige',
       'NO2': 'Norge',
-      'GB': 'Storbritannien', 
+      'GB': 'Storbritannien',
       'NL': 'Holland',
       'DE': 'Tyskland',
       'DK1': 'Vest-DK',
       'DK2': 'Øst-DK'
     };
-    
+
     // Group data by main categories
     const groupedData: Record<string, {
       total: number;
@@ -384,7 +388,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
         isImport: boolean;
       }>;
     }> = {};
-    
+
     // Initialize categories
     Object.entries(energyCategories).forEach(([key, config]) => {
       groupedData[config.name] = {
@@ -394,7 +398,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
         details: []
       };
     });
-    
+
     // Add "Andet" category for unmatched types
     groupedData['Andet'] = {
       total: 0,
@@ -402,7 +406,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
       isRenewable: false,
       details: []
     };
-    
+
     // Process all energy sources
     Object.entries(currentHourData.mixByType)
       .filter(([_, value]) => value.percentage > 0)
@@ -410,7 +414,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
         const baseType = value.baseType || key;
         const origin = value.origin;
         const isImport = value.isImport || false;
-        
+
         // Find matching category
         let categoryFound = false;
         for (const [catKey, catConfig] of Object.entries(energyCategories)) {
@@ -426,7 +430,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
             break;
           }
         }
-        
+
         // If no category matched, add to "Andet"
         if (!categoryFound) {
           groupedData['Andet'].total += value.percentage;
@@ -437,20 +441,20 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
           });
         }
       });
-    
+
     // Sort details within each group
     Object.values(groupedData).forEach(group => {
       group.details.sort((a, b) => b.percentage - a.percentage);
     });
-    
+
     // Create bar chart data from grouped data, including only top 8 + "Andet"
     const sortedCategories = Object.entries(groupedData)
       .filter(([name, data]) => data.total > 0)
       .sort(([, a], [, b]) => b.total - a.total);
-    
+
     const topCategories = sortedCategories.slice(0, 8);
     const remainingCategories = sortedCategories.slice(8);
-    
+
     // If there are remaining categories, add them to "Andet"
     if (remainingCategories.length > 0) {
       const andetTotal = remainingCategories.reduce((sum, [, data]) => sum + data.total, 0);
@@ -466,7 +470,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
         }]);
       }
     }
-    
+
     // Create simplified bar chart data
     const barChartData: Record<string, number> = {};
     topCategories.forEach(([name, data]) => {
@@ -474,7 +478,7 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
         barChartData[name] = data.total;
       }
     });
-    
+
     return { barChartData, groupedData };
   }, [currentHourData]);
 
@@ -516,9 +520,10 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
               headerAlignment === 'center' && "max-w-4xl mx-auto"
             )}>
               <div className="prose prose-lg max-w-none">
-                <PortableText 
-                  value={leadingText} 
+                <PortableText
+                  value={leadingText}
                   components={{
+                    ...portableTextComponents,
                     block: {
                       normal: ({ children }) => <p className="mb-4 last:mb-0">{children}</p>
                     }
@@ -532,14 +537,14 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
         {/* Controls */}
         <div className="flex flex-col lg:flex-row justify-between items-center mb-8 gap-4 p-4 bg-gray-50 rounded-lg border">
           <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               aria-label="Forrige dag"
-              onClick={() => setSelectedDate(d => { 
-                const n = new Date(d); 
-                n.setDate(d.getDate() - 1); 
-                return n; 
+              onClick={() => setSelectedDate(d => {
+                const n = new Date(d);
+                n.setDate(d.getDate() - 1);
+                return n;
               })}
             >
               <ChevronLeft size={18} />
@@ -552,67 +557,67 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
-                <Calendar 
-                  mode="single" 
-                  selected={selectedDate} 
-                  onSelect={(d) => { 
-                    if(d) setSelectedDate(d); 
-                    setIsCalendarOpen(false); 
-                  }} 
-                  disabled={(date) => date > new Date()} 
-                  initialFocus 
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(d) => {
+                    if (d) setSelectedDate(d);
+                    setIsCalendarOpen(false);
+                  }}
+                  disabled={(date) => date > new Date()}
+                  initialFocus
                 />
               </PopoverContent>
             </Popover>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               aria-label="Næste dag"
-              onClick={() => setSelectedDate(d => { 
-                const n = new Date(d); 
-                n.setDate(d.getDate() + 1); 
-                return n; 
-              })} 
+              onClick={() => setSelectedDate(d => {
+                const n = new Date(d);
+                n.setDate(d.getDate() + 1);
+                return n;
+              })}
               disabled={isFuture}
             >
               <ChevronRight size={18} />
             </Button>
           </div>
-          
+
           <div className="flex items-center gap-2">
-            <Button 
-              onClick={() => setSelectedView('7d')} 
+            <Button
+              onClick={() => setSelectedView('7d')}
               variant={selectedView === '7d' ? 'default' : 'outline'}
               size="sm"
             >
               7 dage
             </Button>
-            <Button 
-              onClick={() => setSelectedView('30d')} 
+            <Button
+              onClick={() => setSelectedView('30d')}
               variant={selectedView === '30d' ? 'default' : 'outline'}
               size="sm"
             >
               30 dage
             </Button>
           </div>
-          
+
           <div className="flex items-center gap-2">
-            <Button 
-              onClick={() => setSelectedRegion('Danmark')} 
+            <Button
+              onClick={() => setSelectedRegion('Danmark')}
               variant={selectedRegion === 'Danmark' ? 'default' : 'outline'}
               size="sm"
             >
               Danmark
             </Button>
-            <Button 
-              onClick={() => setSelectedRegion('DK1')} 
+            <Button
+              onClick={() => setSelectedRegion('DK1')}
               variant={selectedRegion === 'DK1' ? 'default' : 'outline'}
               size="sm"
             >
               DK1
             </Button>
-            <Button 
-              onClick={() => setSelectedRegion('DK2')} 
+            <Button
+              onClick={() => setSelectedRegion('DK2')}
               variant={selectedRegion === 'DK2' ? 'default' : 'outline'}
               size="sm"
             >
@@ -717,24 +722,24 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
                       data={[barChartData]}
                       margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
                     >
-                      <XAxis 
-                        type="number" 
-                        domain={[0, 100]} 
+                      <XAxis
+                        type="number"
+                        domain={[0, 100]}
                         tickFormatter={(tick) => `${tick}%`}
                       />
                       <YAxis type="category" hide={true} />
-                      <Tooltip 
-                        content={(props: any) => <CustomTooltip {...props} groupedData={groupedData} hoveredSegment={hoveredSegment} />} 
+                      <Tooltip
+                        content={(props: any) => <CustomTooltip {...props} groupedData={groupedData} hoveredSegment={hoveredSegment} />}
                         cursor={{ fill: 'rgba(0,0,0,0.05)' }}
                         wrapperStyle={{ outline: 'none' }}
                         isAnimationActive={false}
                       />
                       {/* Create bars for each segment */}
                       {Object.keys(barChartData).sort((a, b) => barChartData[b] - barChartData[a]).map((key) => (
-                        <Bar 
-                          key={key} 
-                          dataKey={key} 
-                          stackId="a" 
+                        <Bar
+                          key={key}
+                          dataKey={key}
+                          stackId="a"
                           fill={getColorForSegment(key, groupedData)}
                           onMouseEnter={() => setHoveredSegment(key)}
                           onMouseLeave={() => setHoveredSegment(null)}
@@ -762,19 +767,19 @@ const DeclarationGridmix: React.FC<DeclarationGridmixProps> = ({ block }) => {
               <div className="mb-4">
                 <h3 className="text-sm font-semibold text-gray-700">Energifordeling</h3>
               </div>
-              
+
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {Object.entries(barChartData)
                   .sort(([, a], [, b]) => b - a)
                   .map(([key, value]) => {
                     const groupInfo = groupedData[key];
                     return (
-                      <div 
-                        key={key} 
+                      <div
+                        key={key}
                         className="flex items-center gap-3 p-3 rounded-lg bg-white"
                       >
-                        <div 
-                          className="w-5 h-5 rounded flex-shrink-0" 
+                        <div
+                          className="w-5 h-5 rounded flex-shrink-0"
                           style={{ backgroundColor: groupInfo?.color || '#d9d9d9' }}
                         />
                         <div className="flex-1 min-w-0">

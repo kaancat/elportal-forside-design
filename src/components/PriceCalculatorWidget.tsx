@@ -337,6 +337,7 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
         if (!style) return { backgroundColor: '#f9fafb' }; // lightGray default
         
         switch (style) {
+            // New values (professional gradient system)
             case 'default': return { backgroundColor: '#ffffff' };
             case 'lightGray': return { backgroundColor: '#f9fafb' };
             case 'gradientGreenMist': return { background: 'linear-gradient(to bottom right, #ffffff 0%, #ffffff 50%, rgba(132, 219, 65, 0.05) 100%)' };
@@ -346,6 +347,18 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
             case 'gradientClassic': return { background: 'linear-gradient(to bottom right, #001a12, rgba(132, 219, 65, 0.8))' };
             case 'solidGreen': return { backgroundColor: '#84db41' };
             case 'solidDark': return { backgroundColor: '#001a12' };
+            
+            // Legacy values (backward compatibility) - map to new values
+            case 'white': return { backgroundColor: '#ffffff' };
+            case 'gray': return { backgroundColor: '#f9fafb' };
+            case 'blue': return { backgroundColor: '#dbeafe' };
+            case 'green': return { backgroundColor: '#dcfce7' };
+            case 'yellow': return { backgroundColor: '#fef9c3' };
+            case 'orange': return { backgroundColor: '#fed7aa' };
+            case 'red': return { backgroundColor: '#fee2e2' };
+            case 'purple': return { backgroundColor: '#f3e8ff' };
+            case 'pink': return { backgroundColor: '#fce7f3' };
+            
             default: return { backgroundColor: '#f9fafb' };
         }
     };

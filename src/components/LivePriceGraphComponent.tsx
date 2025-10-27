@@ -267,7 +267,7 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
           block.headerAlignment === 'right' && "text-right",
           !block.headerAlignment && "text-left" // default to left for this component
         )}>
-          <h3 className="text-2xl lg:text-3xl font-display font-bold text-gray-900 mb-2">{block.title}</h3>
+          <h3 className="text-3xl lg:text-4xl font-display font-bold text-gray-900 mb-2">{block.title}</h3>
           {block.subtitle && <p className="text-gray-600">{block.subtitle}</p>}
           {isPrevDayFallback && (
             <p className="text-xs text-gray-500 mt-1">Viser priser for i går</p>
@@ -280,21 +280,21 @@ const LivePriceGraphComponent: React.FC<LivePriceGraphProps> = ({ block }) => {
           {/* LEFT SIDE: Stats + Date Controls */}
           <div className="w-full flex-1 min-w-0">
             {/* STATISTICS */}
-            <div className="grid grid-cols-3 gap-x-2 sm:gap-x-4 md:gap-x-2 gap-y-6 mb-6">
+            <div className="flex items-center divide-x divide-gray-200 mb-6 max-w-lg">
               {stats && (
                 <>
-                  <div>
-                    <p className="text-[11px] sm:text-xs text-gray-500">Højeste pris</p>
+                  <div className="flex-1 pr-3 sm:pr-3.5">
+                    <p className="text-[11px] sm:text-xs text-gray-500 mb-1">Højeste pris</p>
                     <p className="text-base sm:text-lg font-bold text-gray-800">{(stats?.highest?.price ?? 0).toFixed(2)} kr.</p>
                     <p className="text-[11px] sm:text-xs text-gray-500">Kl. {String(stats?.highest?.hour ?? 0).padStart(2, '0')}:00</p>
                   </div>
-                  <div>
-                    <p className="text-[11px] sm:text-xs text-gray-500">Laveste pris</p>
+                  <div className="flex-1 px-3 sm:px-3.5">
+                    <p className="text-[11px] sm:text-xs text-gray-500 mb-1">Laveste pris</p>
                     <p className="text-base sm:text-lg font-bold text-gray-800">{(stats?.lowest?.price ?? 0).toFixed(2)} kr.</p>
                     <p className="text-[11px] sm:text-xs text-gray-500">Kl. {String(stats?.lowest?.hour ?? 0).padStart(2, '0')}:00</p>
                   </div>
-                  <div>
-                    <p className="text-[11px] sm:text-xs text-gray-500">Gennemsnit</p>
+                  <div className="flex-1 pl-3 sm:pl-3.5">
+                    <p className="text-[11px] sm:text-xs text-gray-500 mb-1">Gennemsnit</p>
                     <p className="text-base sm:text-lg font-bold text-gray-800">{(stats?.average?.price ?? 0).toFixed(2)} kr.</p>
                     <p className="text-[11px] sm:text-xs text-gray-500">{selectedDate.toLocaleDateString('da-DK', { day: 'numeric', month: 'long' })}</p>
                   </div>

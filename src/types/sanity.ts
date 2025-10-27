@@ -414,6 +414,7 @@ export interface ApplianceCalculator {
   _key: string
   title?: string
   subtitle?: string
+  headerAlignment?: 'left' | 'center' | 'right'
   showCategories?: string[]
   showSavingsCallToAction?: boolean
   defaultElectricityPrice?: number

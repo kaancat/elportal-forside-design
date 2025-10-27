@@ -388,6 +388,7 @@ interface ApplianceCalculatorSectionProps {
     _type: 'applianceCalculator'
     title?: string
     subtitle?: string
+    headerAlignment?: 'left' | 'center' | 'right'
     showCategories?: string[]
     showSavingsCallToAction?: boolean
     defaultElectricityPrice?: number
@@ -404,6 +405,7 @@ export function ApplianceCalculatorSection({ block }: ApplianceCalculatorSection
     <ApplianceCalculator
       appliances={filteredAppliances}
       defaultElectricityPrice={block.defaultElectricityPrice}
+      headerAlignment={block.headerAlignment}
     />
   )
 }

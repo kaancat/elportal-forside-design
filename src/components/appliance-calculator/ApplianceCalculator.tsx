@@ -11,11 +11,13 @@ import { saveCalculatorState, loadCalculatorState } from './utils/storage'
 import { createApplianceSummary } from './utils/calculations'
 import { Appliance } from '@/types/appliance'
 import { useRouter } from 'next/navigation'
+import { cn } from '@/lib/utils'
 
 interface ApplianceCalculatorProps {
   appliances: Appliance[]
   isLoading?: boolean
   defaultElectricityPrice?: number
+  headerAlignment?: 'left' | 'center' | 'right'
 }
 
 const DEFAULT_ELECTRICITY_PRICE = 3.21 // DKK per kWh including VAT and fees
@@ -24,6 +26,7 @@ export function ApplianceCalculator({
   appliances,
   isLoading = false,
   defaultElectricityPrice = DEFAULT_ELECTRICITY_PRICE,
+  headerAlignment = 'center',
 }: ApplianceCalculatorProps) {
   const router = useRouter()
 
@@ -94,16 +97,28 @@ export function ApplianceCalculator({
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
+            className={cn(
+              "mb-12",
+              headerAlignment === 'left' && "text-left",
+              headerAlignment === 'center' && "text-center",
+              headerAlignment === 'right' && "text-right"
+            )}
           >
-            <div className="inline-flex items-center gap-2 bg-brand-green/10 text-brand-green px-4 py-2 rounded-full text-sm font-medium mb-4">
+            <div className={cn(
+              "inline-flex items-center gap-2 bg-brand-green/10 text-brand-green px-4 py-2 rounded-full text-sm font-medium mb-4",
+              headerAlignment === 'center' && "mx-auto",
+              headerAlignment === 'right' && "ml-auto"
+            )}>
               <Sparkles className="h-4 w-4" />
               Interaktiv beregner
             </div>
             <h3 className="text-2xl lg:text-3xl font-display font-bold text-gray-900 mb-4">
               Beregn dit strømforbrug
             </h3>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className={cn(
+              "text-xl text-gray-600",
+              headerAlignment === 'center' && "max-w-2xl mx-auto"
+            )}>
               Tilføj dine apparater og se præcis hvor meget strøm du bruger -
               og hvor meget det koster dig hver måned.
             </p>

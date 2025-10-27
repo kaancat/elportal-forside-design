@@ -89,6 +89,22 @@ const InfoCardsSection: React.FC<InfoCardsSectionProps> = ({ block }) => {
         {/* Enhanced Cards Grid */}
         <div className={cn("grid gap-6 lg:gap-8", getGridCols(columns))}>
           {cards.map((card, index) => {
+            // Determine icon color based on background color
+            const getIconColor = (bgColor?: string): string => {
+              if (!bgColor) return '#6b7280'; // gray-600
+
+              if (bgColor.includes('blue')) return '#2563eb'; // blue-600
+              if (bgColor.includes('green')) return '#16a34a'; // green-600
+              if (bgColor.includes('yellow')) return '#ca8a04'; // yellow-600
+              if (bgColor.includes('orange')) return '#ea580c'; // orange-600
+              if (bgColor.includes('red')) return '#dc2626'; // red-600
+              if (bgColor.includes('purple')) return '#9333ea'; // purple-600
+              if (bgColor.includes('pink')) return '#db2777'; // pink-600
+
+              return '#6b7280'; // gray-600 fallback
+            };
+
+            const iconColor = getIconColor(card.bgColor);
 
             return (
               <Card
@@ -118,7 +134,8 @@ const InfoCardsSection: React.FC<InfoCardsSectionProps> = ({ block }) => {
                         <Icon
                           icon={card.icon}
                           size={28}
-                          className={cn("transition-all duration-300", card.iconColor || "text-gray-600")}
+                          color={iconColor}
+                          className="transition-all duration-300"
                         />
                       ) : (
                         <>
@@ -132,7 +149,10 @@ const InfoCardsSection: React.FC<InfoCardsSectionProps> = ({ block }) => {
                               '- Run icon migration script to fix'
                             )
                           )}
-                          <Info className={cn("w-7 h-7 transition-all duration-300", card.iconColor || "text-gray-600")} />
+                          <Info
+                            className="w-7 h-7 transition-all duration-300"
+                            style={{ color: iconColor }}
+                          />
                         </>
                       )}
                     </div>

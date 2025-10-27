@@ -170,7 +170,7 @@ const RegionalComparison: React.FC<RegionalComparisonProps> = ({ block }) => {
           {showMap && (
             <div className="flex">
               <div className="relative bg-white rounded-xl shadow-lg p-8 border border-gray-200 w-full">
-                <h3 className="text-center text-lg font-semibold text-gray-900 mb-6">Danmarks elprisområder</h3>
+                <h3 className="text-center text-2xl lg:text-3xl font-display font-bold text-gray-900 mb-6">Danmarks elprisområder</h3>
 
                 {/* React Denmark Map */}
                 <div className="relative" style={{ pointerEvents: 'none' }}>

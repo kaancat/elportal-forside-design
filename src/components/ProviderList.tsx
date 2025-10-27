@@ -470,7 +470,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block, variant = '
                     </p>
                   ) : null}
                 </div>
-                
+
                 {/* Price calculation info button */}
                 <TooltipProvider delayDuration={200}>
                   <Tooltip>
@@ -496,7 +496,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block, variant = '
                   </Tooltip>
                 </TooltipProvider>
               </div>
-              
+
               {(priceLoading || locationLoading) && (
                 <span className="text-[10px] text-gray-500">(Henter priser...)</span>
               )}
@@ -594,7 +594,7 @@ const ProviderListComponent: React.FC<ProviderListProps> = ({ block, variant = '
               <p className="text-gray-500">Ingen leverandører tilgængelige</p>
             </div>
           ) : (
-            (isSidebar ? sortedProviders.slice(0,3) : sortedProviders).map((provider, index) => {
+            (isSidebar ? sortedProviders.slice(0, 3) : sortedProviders).map((provider, index) => {
               const product = convertToElectricityProduct(provider);
               // Simplified mode: derive region-adjusted markup and subscription
               let spotPriceMarkup = provider.spotPriceMarkup;

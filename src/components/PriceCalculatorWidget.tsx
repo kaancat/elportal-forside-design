@@ -19,6 +19,7 @@ interface PriceCalculatorWidgetProps {
     block: {
         _type: 'priceCalculator';
         title?: string;
+        backgroundColor?: 'white' | 'gray' | 'blue' | 'green' | 'yellow' | 'orange' | 'red' | 'purple' | 'pink';
     };
     variant?: 'standalone' | 'hero'; // Add variant prop for different use cases
     showLivePrice?: boolean;
@@ -332,8 +333,25 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
     }
 
     // For standalone usage - return with section wrapper and optional title
+    const getBackgroundColor = (color?: string) => {
+        if (!color) return 'bg-gray-100';
+
+        switch (color) {
+            case 'white': return 'bg-white';
+            case 'gray': return 'bg-gray-100';
+            case 'blue': return 'bg-blue-50';
+            case 'green': return 'bg-green-50';
+            case 'yellow': return 'bg-yellow-50';
+            case 'orange': return 'bg-orange-50';
+            case 'red': return 'bg-red-50';
+            case 'purple': return 'bg-purple-50';
+            case 'pink': return 'bg-pink-50';
+            default: return 'bg-gray-100';
+        }
+    };
+
     return (
-        <section className="bg-gray-100 py-16 lg:py-24">
+        <section className={cn("py-16 lg:py-24", getBackgroundColor(block.backgroundColor))}>
             <div className="container mx-auto px-4">
                 {block.title && (
                     <h2 className="text-3xl font-display font-bold text-center mb-12">{block.title}</h2>

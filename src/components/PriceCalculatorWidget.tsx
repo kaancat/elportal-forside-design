@@ -19,7 +19,7 @@ interface PriceCalculatorWidgetProps {
     block: {
         _type: 'priceCalculator';
         title?: string;
-        backgroundColor?: 'white' | 'gray' | 'blue' | 'green' | 'yellow' | 'orange' | 'red' | 'purple' | 'pink';
+        backgroundColor?: 'default' | 'lightGray' | 'gradientGreenMist' | 'gradientOceanBreeze' | 'gradientSunriseGlow' | 'gradientNordicSky' | 'gradientClassic' | 'solidGreen' | 'solidDark';
     };
     variant?: 'standalone' | 'hero'; // Add variant prop for different use cases
     showLivePrice?: boolean;
@@ -333,25 +333,25 @@ const PriceCalculatorWidget: React.FC<PriceCalculatorWidgetProps> = ({ block, va
     }
 
     // For standalone usage - return with section wrapper and optional title
-    const getBackgroundColor = (color?: string) => {
-        if (!color) return 'bg-gray-100';
-
-        switch (color) {
-            case 'white': return 'bg-white';
-            case 'gray': return 'bg-gray-100';
-            case 'blue': return 'bg-blue-50';
-            case 'green': return 'bg-green-50';
-            case 'yellow': return 'bg-yellow-50';
-            case 'orange': return 'bg-orange-50';
-            case 'red': return 'bg-red-50';
-            case 'purple': return 'bg-purple-50';
-            case 'pink': return 'bg-pink-50';
-            default: return 'bg-gray-100';
+    const getBackgroundStyle = (style?: string) => {
+        if (!style) return { backgroundColor: '#f9fafb' }; // lightGray default
+        
+        switch (style) {
+            case 'default': return { backgroundColor: '#ffffff' };
+            case 'lightGray': return { backgroundColor: '#f9fafb' };
+            case 'gradientGreenMist': return { background: 'linear-gradient(to bottom right, #ffffff 0%, #ffffff 50%, rgba(132, 219, 65, 0.05) 100%)' };
+            case 'gradientOceanBreeze': return { background: 'linear-gradient(to bottom right, #dbeafe 0%, #ffffff 50%, rgba(132, 219, 65, 0.1) 100%)' };
+            case 'gradientSunriseGlow': return { background: 'linear-gradient(to bottom right, rgba(254, 215, 170, 0.3) 0%, #ffffff 50%, rgba(254, 240, 138, 0.4) 100%)' };
+            case 'gradientNordicSky': return { background: 'linear-gradient(to bottom right, #f1f5f9 0%, rgba(219, 234, 254, 0.3) 50%, #ffffff 100%)' };
+            case 'gradientClassic': return { background: 'linear-gradient(to bottom right, #001a12, rgba(132, 219, 65, 0.8))' };
+            case 'solidGreen': return { backgroundColor: '#84db41' };
+            case 'solidDark': return { backgroundColor: '#001a12' };
+            default: return { backgroundColor: '#f9fafb' };
         }
     };
 
     return (
-        <section className={cn("py-16 lg:py-24", getBackgroundColor(block.backgroundColor))}>
+        <section className="py-16 lg:py-24" style={getBackgroundStyle(block.backgroundColor)}>
             <div className="container mx-auto px-4">
                 {block.title && (
                     <h2 className="text-3xl font-display font-bold text-center mb-12">{block.title}</h2>

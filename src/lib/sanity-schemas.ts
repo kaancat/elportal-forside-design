@@ -282,7 +282,7 @@ export interface PageSection extends ContentBlockBase {
 export interface PriceCalculator extends ContentBlockBase {
   _type: 'priceCalculator';
   title?: string;
-  backgroundColor?: 'white' | 'gray' | 'blue' | 'green' | 'yellow' | 'orange' | 'red' | 'purple' | 'pink';
+  backgroundColor?: 'default' | 'lightGray' | 'gradientGreenMist' | 'gradientOceanBreeze' | 'gradientSunriseGlow' | 'gradientNordicSky' | 'gradientClassic' | 'solidGreen' | 'solidDark';
 }
 
 export interface PriceExampleTable extends ContentBlockBase {

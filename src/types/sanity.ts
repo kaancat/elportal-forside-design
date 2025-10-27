@@ -194,7 +194,7 @@ export interface PriceCalculator {
   _type: 'priceCalculator'
   _key: string
   title?: string
-  backgroundColor?: 'white' | 'gray' | 'blue' | 'green' | 'yellow' | 'orange' | 'red' | 'purple' | 'pink'
+  backgroundColor?: 'default' | 'lightGray' | 'gradientGreenMist' | 'gradientOceanBreeze' | 'gradientSunriseGlow' | 'gradientNordicSky' | 'gradientClassic' | 'solidGreen' | 'solidDark'
 }
 
 export interface HeroWithCalculator {

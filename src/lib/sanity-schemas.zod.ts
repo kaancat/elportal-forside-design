@@ -335,7 +335,7 @@ export const PriceCalculatorSchema = z.object({
   _type: z.literal('priceCalculator'),
   _key: z.string(),
   title: z.string().optional(),
-  backgroundColor: z.enum(['white', 'gray', 'blue', 'green', 'yellow', 'orange', 'red', 'purple', 'pink']).optional(),
+  backgroundColor: z.enum(['default', 'lightGray', 'gradientGreenMist', 'gradientOceanBreeze', 'gradientSunriseGlow', 'gradientNordicSky', 'gradientClassic', 'solidGreen', 'solidDark']).optional(),
 });
 
 export const PriceExampleTableSchema = z.object({

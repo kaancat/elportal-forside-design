@@ -109,17 +109,29 @@ const MonthlyProductionChart: React.FC<MonthlyProductionChartProps> = ({ block }
       <div className="container mx-auto px-4">
         <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
           {/* Header section with alignment */}
-          <div className="mb-12 text-center">
+          <div className={cn(
+            "mb-12",
+            block.headerAlignment === 'left' && "text-left",
+            block.headerAlignment === 'center' && "text-center",
+            block.headerAlignment === 'right' && "text-right",
+            !block.headerAlignment && "text-left" // default to left
+          )}>
             {block.title && (
               <h3 className="text-2xl lg:text-3xl font-display font-bold text-gray-900 mb-4">
                 {block.title}
               </h3>
             )}
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-2">
+            <p className={cn(
+              "text-lg text-gray-600 mb-2",
+              (block.headerAlignment === 'center' || !block.headerAlignment) && "max-w-3xl mx-auto"
+            )}>
               Se hvordan Danmarks elproduktion fordeler sig mellem sol, vind og traditionelle værker
             </p>
             {block.leadingText && (
-              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              <p className={cn(
+                "text-lg text-gray-600",
+                (block.headerAlignment === 'center' || !block.headerAlignment) && "max-w-3xl mx-auto"
+              )}>
                 {block.leadingText}
               </p>
             )}
@@ -161,7 +173,13 @@ const MonthlyProductionChart: React.FC<MonthlyProductionChartProps> = ({ block }
           </div>
 
           {block.description && (
-            <p className="text-sm text-gray-500 mt-8 text-center">
+            <p className={cn(
+              "text-sm text-gray-500 mt-8",
+              block.headerAlignment === 'left' && "text-left",
+              block.headerAlignment === 'center' && "text-center",
+              block.headerAlignment === 'right' && "text-right",
+              !block.headerAlignment && "text-left" // default to left
+            )}>
               {block.description}
             </p>
           )}

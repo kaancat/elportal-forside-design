@@ -111,8 +111,15 @@ export const Icon: React.FC<IconProps> = ({
           objectFit: 'contain'
         }}
         onError={(e) => {
-          // Hide broken images
-          e.currentTarget.style.display = 'none';
+          // Show fallback icon instead of hiding
+          const parent = e.currentTarget.parentElement;
+          if (parent) {
+            e.currentTarget.style.display = 'none';
+            const fallback = document.createElement('div');
+            fallback.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+            fallback.className = className;
+            parent.appendChild(fallback);
+          }
         }}
       />
     );
@@ -151,14 +158,22 @@ export const Icon: React.FC<IconProps> = ({
           objectFit: 'contain'
         }}
         onError={(e) => {
-          e.currentTarget.style.display = 'none';
+          // Show fallback icon instead of hiding
+          const parent = e.currentTarget.parentElement;
+          if (parent) {
+            e.currentTarget.style.display = 'none';
+            const fallback = document.createElement('div');
+            fallback.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color || 'currentColor'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+            fallback.className = className;
+            parent.appendChild(fallback);
+          }
         }}
       />
     );
   }
 
   // Final fallback
-  return fallbackIcon || <HelpCircle size={size} className={className} />;
+  return fallbackIcon || <HelpCircle size={size} className={className} style={{ color: color || 'currentColor' }} />;
 };
 
 // Helper functions

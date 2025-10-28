@@ -81,7 +81,8 @@ export const ValuePropositionComponent: React.FC<ValuePropositionComponentProps>
                     <Icon
                       icon={item.icon}
                       size={24}
-                      className="mr-3 flex-shrink-0 mt-0.5 value-proposition-icon"
+                      color="#84db41"
+                      className="mr-3 flex-shrink-0 mt-0.5 value-proposition-icon text-brand-green"
                     />
                   ) : (
                     <Check className="h-6 w-6 text-brand-primary mr-3 flex-shrink-0 mt-0.5" />

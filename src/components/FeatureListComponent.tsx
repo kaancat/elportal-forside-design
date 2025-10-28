@@ -28,20 +28,19 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
             {block.title}
           </h3>
         )}
-        
+
         {/* Grid layout with modern card design */}
         <div className="max-w-6xl mx-auto">
-          <div className={`grid grid-cols-1 gap-6 ${
-            block.features.length === 2 ? 'md:grid-cols-2' :
-            block.features.length === 3 ? 'md:grid-cols-3' :
-            block.features.length === 4 ? 'md:grid-cols-2 lg:grid-cols-4' :
-            block.features.length === 5 ? 'md:grid-cols-2 lg:grid-cols-3' :
-            'md:grid-cols-3'
-          }`}>
+          <div className={`grid grid-cols-1 gap-6 ${block.features.length === 2 ? 'md:grid-cols-2' :
+              block.features.length === 3 ? 'md:grid-cols-3' :
+                block.features.length === 4 ? 'md:grid-cols-2 lg:grid-cols-4' :
+                  block.features.length === 5 ? 'md:grid-cols-2 lg:grid-cols-3' :
+                    'md:grid-cols-3'
+            }`}>
             {block.features.map((feature, index) => {
               return (
-                <div 
-                  key={feature._key} 
+                <div
+                  key={feature._key}
                   className="group relative bg-white rounded-xl p-6 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                 >
                   {/* Numbered badge */}
@@ -59,7 +58,7 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
                         color="#84db41"
                       />
                     ) : (
-                      <span className="text-brand-green font-bold text-2xl">{index + 1}</span>
+                      <div className="w-8 h-8 rounded-lg bg-brand-green/20" />
                     )}
                   </div>
 

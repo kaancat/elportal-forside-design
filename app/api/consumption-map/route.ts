@@ -55,12 +55,12 @@ export async function GET(request: NextRequest) {
     // Validate parameters with zod schema
     const paramsObj = Object.fromEntries(searchParams.entries())
     const validation = safeValidateParams(consumptionMapSchema, paramsObj)
-    
+
     if (!validation.success) {
       return NextResponse.json(
-        { 
-          error: 'Invalid parameters', 
-          details: validation.error.errors 
+        {
+          error: 'Invalid parameters',
+          details: validation.error.errors
         },
         { status: 400 }
       )
@@ -68,21 +68,22 @@ export async function GET(request: NextRequest) {
 
     // Use validated parameters
     let { consumerType, aggregation, view, municipality } = validation.data
-    
+
     // Handle 'latest' from Sanity as 'hourly'
     if (aggregation === 'latest') {
       aggregation = 'hourly'
     }
 
     // Calculate date range based on view
-    // Note: PrivIndustryConsumptionHour data has about 21-30 days delay
-    const DATA_DELAY_DAYS = 30 // Increased to ensure we get data due to significant API delay
+    // Note: EnergiDataService consumption data typically has 7-21 days delay
+    // ConsumptionDE35Hour is more current than PrivIndustryConsumptionHour
+    const DATA_DELAY_DAYS = 7 // Start with smaller delay for ConsumptionDE35Hour
     const endDate = new Date()
     endDate.setDate(endDate.getDate() - DATA_DELAY_DAYS) // Account for data delay
-    
+
     const startDate = new Date(endDate)
-    
-    switch(view) {
+
+    switch (view) {
       case '7d':
         startDate.setDate(startDate.getDate() - 7)
         break
@@ -104,24 +105,24 @@ export async function GET(request: NextRequest) {
 
     // Check KV cache first (distributed across instances)
     const cacheKey = `consumption-map:${consumerType}:${aggregation}:${view}:${municipality || 'all'}:${apiStart}:${apiEnd}`
-    
+
     const kvCached = await readKvJson(cacheKey)
     if (kvCached) {
       console.log(`[ConsumptionMap] Returning KV cached data for ${cacheKey}`)
-      return NextResponse.json(kvCached, { 
+      return NextResponse.json(kvCached, {
         headers: {
           ...cacheHeaders({ sMaxage: 3600, swr: 7200 }),
           'X-Cache': 'HIT-KV'
         }
       })
     }
-    
+
     // Check in-memory cache as fallback
     const memCacheKey = `${consumerType}_${aggregation}_${view}_${municipality || 'all'}_${apiStart}_${apiEnd}`
     const cached = consumptionMapCache.get(memCacheKey)
     if (cached) {
       console.log(`[ConsumptionMap] Returning in-memory cached data for ${memCacheKey}`)
-      return NextResponse.json(cached, { 
+      return NextResponse.json(cached, {
         headers: {
           ...cacheHeaders({ sMaxage: 3600, swr: 7200 }),
           'X-Cache': 'HIT-MEMORY'
@@ -135,12 +136,14 @@ export async function GET(request: NextRequest) {
       filter = `&filter={"MunicipalityNo":["${municipality}"]}`
     }
 
-    // Include limit to ensure we get data and specify columns
+    // PrivIndustryConsumptionHour includes municipality breakdowns
     const apiUrl = `https://api.energidataservice.dk/dataset/PrivIndustryConsumptionHour?start=${apiStart}&end=${apiEnd}${filter}&sort=HourUTC ASC&limit=10000`
 
     // Use queued fetch to prevent duplicate requests
     const fetchResult = await queuedFetch(memCacheKey, async () => {
-      console.log(`[ConsumptionMap] Fetching data from EnergiDataService for ${cacheKey}`)
+      console.log(`[ConsumptionMap] Fetching data from EnergiDataService`)
+      console.log(`[ConsumptionMap] Date range: ${apiStart} to ${apiEnd}`)
+      console.log(`[ConsumptionMap] API URL: ${apiUrl}`)
       
       // Use retry helper with exponential backoff
       return await retryWithBackoff(async () => {
@@ -151,13 +154,13 @@ export async function GET(request: NextRequest) {
           if (externalResponse.status === 404 || externalResponse.status === 400) {
             return { records: [] }
           }
-          
+
           // Throw to trigger retry on rate limit or server errors
           if (externalResponse.status === 429 || externalResponse.status === 503) {
             console.warn(`[ConsumptionMap] EnergiDataService returned ${externalResponse.status}`)
             throw new Error(`API returned ${externalResponse.status}`)
           }
-          
+
           throw new Error(`Failed to fetch consumption data: ${externalResponse.status}`)
         }
 
@@ -168,18 +171,18 @@ export async function GET(request: NextRequest) {
     let records = fetchResult.records || []
 
     console.log(`[ConsumptionMap] Raw records: ${records.length}`)
-    
+
     // If no records, return empty data with proper structure (but still cache it)
     if (records.length === 0) {
       console.log('[ConsumptionMap] No records found for date range:', { start: apiStart, end: apiEnd })
       const emptyResponse = createEmptyResponse(consumerType, aggregation, view, apiStart, apiEnd, municipality || null)
-      
+
       // Cache empty response with shorter TTL
       consumptionMapCache.set(memCacheKey, emptyResponse)
       const fallbackKey = `consumption-map:${consumerType}`
       await setKvJsonWithFallback(cacheKey, fallbackKey, emptyResponse, 900, 1800) // 15 min specific, 30 min fallback
-      
-      return NextResponse.json(emptyResponse, { 
+
+      return NextResponse.json(emptyResponse, {
         headers: {
           ...cacheHeaders({ sMaxage: 900 }),
           'X-Cache': 'MISS'
@@ -191,7 +194,7 @@ export async function GET(request: NextRequest) {
     const municipalityData = aggregateMunicipalityData(records, aggregation)
     const sortedMunicipalities = sortMunicipalities(municipalityData, consumerType)
     const statistics = calculateStatistics(sortedMunicipalities)
-    
+
     const responseData = {
       data: sortedMunicipalities,
       statistics,
@@ -213,7 +216,7 @@ export async function GET(request: NextRequest) {
     await setKvJsonWithFallback(cacheKey, fallbackKey, responseData, 3600, 7200) // 1 hour specific, 2 hour fallback
 
     return NextResponse.json(responseData, {
-      headers: { 
+      headers: {
         ...cacheHeaders({ sMaxage: 3600, swr: 7200 }),
         'X-Cache': 'MISS'
       }
@@ -221,12 +224,12 @@ export async function GET(request: NextRequest) {
 
   } catch (error: any) {
     console.error('[ConsumptionMap] Unexpected error:', error)
-    
+
     // Try to return cached data on error
     const consumerType = request.nextUrl.searchParams.get('consumerType') || 'all'
     const fallbackKey = `consumption-map:${consumerType}` // This now exists thanks to setKvJsonWithFallback
     const fallback = await readKvJson(fallbackKey)
-    
+
     if (fallback) {
       return NextResponse.json(fallback, {
         headers: {
@@ -235,19 +238,19 @@ export async function GET(request: NextRequest) {
         }
       })
     }
-    
+
     // Return safe empty response instead of 500 to prevent UI failures
     console.log('[ConsumptionMap] No fallback available, returning safe empty response')
     const aggregation = request.nextUrl.searchParams.get('aggregation') || 'hourly'
     const view = request.nextUrl.searchParams.get('view') || '24h'
     const municipality = request.nextUrl.searchParams.get('municipality')
-    
+
     // Calculate approximate date range for metadata
     const endDate = new Date()
     endDate.setDate(endDate.getDate() - 14) // Account for typical data delay
     const startDate = new Date(endDate)
     startDate.setHours(startDate.getHours() - 24) // Default 24h view
-    
+
     const emptyResponse = createEmptyResponse(
       consumerType,
       aggregation === 'latest' ? 'hourly' : aggregation,
@@ -256,7 +259,7 @@ export async function GET(request: NextRequest) {
       endDate.toISOString().substring(0, 16),
       municipality
     )
-    
+
     return NextResponse.json(emptyResponse, {
       headers: {
         ...cacheHeaders({ sMaxage: 60, swr: 300 }), // Short cache, allow retries
@@ -312,7 +315,7 @@ function aggregateMunicipalityData(records: any[], aggregation: string) {
   records.forEach((record: any) => {
     const munCode = record.MunicipalityNo
     const hour = record.HourUTC
-    
+
     if (!municipalityData[munCode]) {
       municipalityData[munCode] = {
         municipalityCode: munCode,
@@ -328,7 +331,7 @@ function aggregateMunicipalityData(records: any[], aggregation: string) {
 
     // The actual field names from the API are ConsumptionMWh and ConsumerType_DE35
     const consumptionMWh = parseFloat(record.ConsumptionMWh || record.ConsumptionkWh || 0) || 0
-    
+
     // The consumer type field is ConsumerType_DE35 with values like "KOD-516" for private, "KOD-431" for industry
     const consumerType = record.ConsumerType_DE35 || record.HousingCategory || ''
     const isIndustry = consumerType.includes('431') || consumerType === 'Erhverv'
@@ -355,7 +358,7 @@ function aggregateMunicipalityData(records: any[], aggregation: string) {
   // Convert to array and calculate averages
   return Object.values(municipalityData).map((mun: any) => {
     const dataPoints = mun.dataPoints
-    
+
     return {
       ...mun,
       avgPrivateConsumption: dataPoints > 0 ? mun.totalPrivateConsumption / dataPoints : 0,
@@ -371,7 +374,7 @@ function aggregateMunicipalityData(records: any[], aggregation: string) {
  * Sort municipalities based on consumer type
  */
 function sortMunicipalities(municipalities: any[], consumerType: string) {
-  switch(consumerType) {
+  switch (consumerType) {
     case 'private':
       return municipalities.sort((a, b) => b.totalPrivateConsumption - a.totalPrivateConsumption)
     case 'industry':

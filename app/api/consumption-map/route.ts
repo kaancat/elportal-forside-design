@@ -75,8 +75,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate date range based on view
-    // Note: PrivIndustryConsumptionHour data has about 10-14 days delay
-    const DATA_DELAY_DAYS = 14 // Increased to ensure we get data
+    // Note: PrivIndustryConsumptionHour data has about 21-30 days delay
+    const DATA_DELAY_DAYS = 30 // Increased to ensure we get data due to significant API delay
     const endDate = new Date()
     endDate.setDate(endDate.getDate() - DATA_DELAY_DAYS) // Account for data delay
     

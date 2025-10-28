@@ -580,7 +580,7 @@ export function ForbrugTracker({
       }}
     >
     <div className="w-full py-12">
-      <div className="container mx-auto px-4 max-w-7xl">
+      <div className="container mx-auto px-4">
           {/* Header */}
           <div className={`mb-8 ${getAlignmentClass()}`}>
             <h2 className="text-3xl font-bold mb-3">{title}</h2>

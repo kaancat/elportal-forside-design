@@ -644,9 +644,13 @@ const ConsumptionMapComponent: React.FC<ConsumptionMapProps> = ({ block }) => {
               </div>
             ) : data.length === 0 ? (
               <div className="flex items-center justify-center h-[500px]">
-                <div className="text-gray-500 text-center">
-                  <Activity className="w-10 h-10 mx-auto mb-2 text-gray-400" />
-                  <div>Ingen forbrugsdata tilgængelig</div>
+                <div className="text-gray-500 text-center max-w-md mx-auto px-4">
+                  <Activity className="w-10 h-10 mx-auto mb-4 text-gray-400" />
+                  <div className="text-lg font-medium mb-2">Ingen forbrugsdata tilgængelig</div>
+                  <p className="text-sm text-gray-500">
+                    Data fra EnergiDataService har en forsinkelse på 7-30 dage. 
+                    Prøv at vælge en tidligere tidsperiode eller tjek igen senere.
+                  </p>
                 </div>
               </div>
             ) : (

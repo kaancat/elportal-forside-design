@@ -24,7 +24,7 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
     <section className="py-16 lg:py-24 bg-white">
       <div className="container mx-auto px-4">
         {block.title && (
-          <h3 className="text-3xl lg:text-4xl font-display font-bold text-center text-brand-dark mb-4">
+          <h3 className="text-3xl lg:text-4xl font-display font-bold text-center text-brand-dark mb-12">
             {block.title}
           </h3>
         )}
@@ -32,10 +32,10 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
         {/* Grid layout with modern card design */}
         <div className="max-w-6xl mx-auto">
           <div className={`grid grid-cols-1 gap-6 ${block.features.length === 2 ? 'md:grid-cols-2' :
-              block.features.length === 3 ? 'md:grid-cols-3' :
-                block.features.length === 4 ? 'md:grid-cols-2 lg:grid-cols-4' :
-                  block.features.length === 5 ? 'md:grid-cols-2 lg:grid-cols-3' :
-                    'md:grid-cols-3'
+            block.features.length === 3 ? 'md:grid-cols-3' :
+              block.features.length === 4 ? 'md:grid-cols-2 lg:grid-cols-4' :
+                block.features.length === 5 ? 'md:grid-cols-2 lg:grid-cols-3' :
+                  'md:grid-cols-3'
             }`}>
             {block.features.map((feature, index) => {
               return (
@@ -57,9 +57,7 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
                         className="text-brand-green"
                         color="#84db41"
                       />
-                    ) : (
-                      <div className="w-8 h-8 rounded-lg bg-brand-green/20" />
-                    )}
+                    ) : null}
                   </div>
 
                   {/* Content */}

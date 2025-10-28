@@ -39,12 +39,12 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
             }`}>
             {block.features.map((feature, index) => {
               return (
-                <div
-                  key={feature._key}
+                <div 
+                  key={feature._key} 
                   className="group relative bg-white rounded-xl p-6 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                 >
                   {/* Numbered badge */}
-                  <div className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-brand-green text-white flex items-center justify-center text-lg font-bold shadow-md group-hover:scale-110 transition-transform">
+                  <div className="absolute -top-3 -left-3 w-10 h-10 rounded-full bg-brand-green text-white flex items-center justify-center text-lg font-bold shadow-md group-hover:scale-110 transition-transform">
                     {index + 1}
                   </div>
 

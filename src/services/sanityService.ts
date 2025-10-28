@@ -512,6 +512,26 @@ export class SanityService {
             ctaText
           }
         },
+        _type == "pricingComparison" => {
+          _key,
+          _type,
+          title,
+          subtitle,
+          headerAlignment,
+          leadingText,
+          fixedTitle,
+          fixedDescription,
+          variableTitle,
+          variableDescription,
+          comparisonItems[]{
+            _key,
+            feature,
+            fixed,
+            variable,
+            tooltip
+          },
+          recommendation
+        },
         _type == "heroWithCalculator" => {
           _key,
           _type,

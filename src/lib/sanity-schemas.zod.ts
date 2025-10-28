@@ -350,11 +350,11 @@ export const PricingComparisonSchema = z.object({
   title: z.string().optional(),
   subtitle: z.string().optional(),
   headerAlignment: z.enum(['left', 'center', 'right']).optional(),
-  leadingText: PortableTextSchema.optional(),
+  leadingText: z.any().optional(),
   fixedTitle: z.string().optional(),
-  fixedDescription: PortableTextSchema.optional(),
+  fixedDescription: z.any().optional(),
   variableTitle: z.string().optional(),
-  variableDescription: PortableTextSchema.optional(),
+  variableDescription: z.any().optional(),
   comparisonItems: z.array(z.object({
     _key: z.string().optional(),
     feature: z.string(),
@@ -362,7 +362,7 @@ export const PricingComparisonSchema = z.object({
     variable: z.string(),
     tooltip: z.string().optional(),
   })).optional(),
-  recommendation: PortableTextSchema.optional(),
+  recommendation: z.any().optional(),
 });
 
 export const ProviderSchema = z.object({

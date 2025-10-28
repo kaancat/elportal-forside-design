@@ -21,10 +21,10 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
   }, [block.features]);
 
   // Determine if this looks like a step-by-step guide based on title content
-  const isStepByStep = block.title?.toLowerCase().includes('sådan') || 
-                       block.title?.toLowerCase().includes('skift') ||
-                       block.features.some(f => /^\d+\./.test(f.title)) ||
-                       block.features.length >= 4; // 4+ features often indicates steps
+  const isStepByStep = block.title?.toLowerCase().includes('sådan') ||
+    block.title?.toLowerCase().includes('skift') ||
+    block.features.some(f => /^\d+\./.test(f.title)) ||
+    block.features.length >= 4; // 4+ features often indicates steps
 
   // Debug logging
   if (process.env.NODE_ENV === 'development') {
@@ -42,14 +42,9 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
       <section className="py-16 lg:py-24 bg-gradient-to-b from-white to-gray-50">
         <div className="container mx-auto px-4">
           {block.title && (
-            <h3 className="text-3xl lg:text-4xl font-display font-bold text-center text-brand-dark mb-4">
+            <h3 className="text-3xl lg:text-4xl font-display font-bold text-center text-brand-dark mb-16">
               {block.title}
             </h3>
-          )}
-          {block.subtitle && (
-            <p className="text-center text-gray-600 text-lg mb-16 max-w-2xl mx-auto">
-              {block.subtitle}
-            </p>
           )}
 
           <div className="max-w-5xl mx-auto">

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, PiggyBank, Leaf, ShieldCheck, Zap, Info } from 'lucide-react';
 import { IconManager } from '@/types/sanity';
 
 interface IconProps {
@@ -45,6 +45,34 @@ interface IconProps {
  * 
  * @see /docs/ICON-USAGE-GUIDE.md for full documentation
  */
+// Map common icon names to Lucide React components
+const getLucideIcon = (iconName?: string) => {
+  if (!iconName) return null;
+  
+  const iconMap: Record<string, any> = {
+    'piggy-bank': PiggyBank,
+    'piggybank': PiggyBank,
+    'money': PiggyBank,
+    'savings': PiggyBank,
+    'leaf': Leaf,
+    'eco': Leaf,
+    'green': Leaf,
+    'shield-check': ShieldCheck,
+    'shield': ShieldCheck,
+    'security': ShieldCheck,
+    'protection': ShieldCheck,
+    'zap': Zap,
+    'lightning': Zap,
+    'bolt': Zap,
+    'energy': Zap,
+    'info': Info,
+    'information': Info,
+  };
+  
+  const normalizedName = iconName.toLowerCase().trim();
+  return iconMap[normalizedName];
+};
+
 export const Icon: React.FC<IconProps> = ({ 
   icon,
   size = 24, 
@@ -57,6 +85,12 @@ export const Icon: React.FC<IconProps> = ({
   if (!icon) {
     return fallbackIcon || <HelpCircle size={size} className={className} />;
   }
+  
+  // Try to get Lucide icon from metadata
+  const LucideIcon = getLucideIcon(icon.metadata?.iconName || icon.icon);
+  if (LucideIcon) {
+    return <LucideIcon size={size} className={className} style={{ color: color || 'currentColor' }} />;
+  }
 
   // Development warning for malformed icons
   if (process.env.NODE_ENV === 'development') {
@@ -65,14 +99,14 @@ export const Icon: React.FC<IconProps> = ({
       const meta = icon.metadata as any;
       if (!meta.size && (meta.width || meta.height)) {
         console.warn(
-          '[Icon Component] Malformed icon structure detected:', 
+          '[Icon Component] Malformed icon structure detected:',
           icon.metadata.iconName || 'unknown',
           '- Has direct width/height instead of size object. This will break in Sanity Studio!'
         );
       }
       if (!icon.metadata.iconName) {
         console.warn(
-          '[Icon Component] Missing required iconName in metadata for icon:', 
+          '[Icon Component] Missing required iconName in metadata for icon:',
           icon.icon || 'unknown'
         );
       }
@@ -85,9 +119,9 @@ export const Icon: React.FC<IconProps> = ({
     return (
       <div
         className={className}
-        style={{ 
-          width: `${size}px`, 
-          height: `${size}px`, 
+        style={{
+          width: `${size}px`,
+          height: `${size}px`,
           display: 'inline-flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -107,7 +141,7 @@ export const Icon: React.FC<IconProps> = ({
         width={size || 24}
         height={size || 24}
         className={className}
-        style={{ 
+        style={{
           objectFit: 'contain'
         }}
         onError={(e) => {
@@ -130,9 +164,9 @@ export const Icon: React.FC<IconProps> = ({
     return (
       <div
         className={className}
-        style={{ 
-          width: `${size}px`, 
-          height: `${size}px`, 
+        style={{
+          width: `${size}px`,
+          height: `${size}px`,
           display: 'inline-flex',
           alignItems: 'center',
           justifyContent: 'center'
@@ -146,7 +180,7 @@ export const Icon: React.FC<IconProps> = ({
   if (icon.icon) {
     const defaultColor = color || '#84db41';
     const generatedUrl = `https://api.iconify.design/${icon.icon}.svg?color=${encodeURIComponent(defaultColor)}`;
-    
+
     return (
       <Image
         src={generatedUrl}
@@ -154,7 +188,7 @@ export const Icon: React.FC<IconProps> = ({
         width={size || 24}
         height={size || 24}
         className={className}
-        style={{ 
+        style={{
           objectFit: 'contain'
         }}
         onError={(e) => {
@@ -185,7 +219,7 @@ export const hasValidIcon = (iconData: any): iconData is IconManager => {
 export const preloadIcons = (icons: Array<IconManager | undefined>) => {
   // Only preload icons on the client side
   if (typeof window === 'undefined') return;
-  
+
   icons.forEach(icon => {
     if (icon?.metadata?.url) {
       const img = new (window as any).Image();
@@ -201,7 +235,7 @@ export const preloadIcons = (icons: Array<IconManager | undefined>) => {
 export const preloadIcon = (url: string) => {
   // Only preload icons on the client side
   if (typeof window === 'undefined') return;
-  
+
   const img = new (window as any).Image();
   img.src = url;
 };

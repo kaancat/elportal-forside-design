@@ -48,7 +48,7 @@ interface IconProps {
 // Map common icon names to Lucide React components
 const getLucideIcon = (iconName?: string) => {
   if (!iconName) return null;
-  
+
   const iconMap: Record<string, any> = {
     'piggy-bank': PiggyBank,
     'piggybank': PiggyBank,
@@ -68,14 +68,14 @@ const getLucideIcon = (iconName?: string) => {
     'info': Info,
     'information': Info,
   };
-  
+
   const normalizedName = iconName.toLowerCase().trim();
   return iconMap[normalizedName];
 };
 
-export const Icon: React.FC<IconProps> = ({ 
+export const Icon: React.FC<IconProps> = ({
   icon,
-  size = 24, 
+  size = 24,
   className = "",
   fallbackIcon,
   color
@@ -85,7 +85,7 @@ export const Icon: React.FC<IconProps> = ({
   if (!icon) {
     return fallbackIcon || <HelpCircle size={size} className={className} />;
   }
-  
+
   // Try to get Lucide icon from metadata
   const LucideIcon = getLucideIcon(icon.metadata?.iconName || icon.icon);
   if (LucideIcon) {

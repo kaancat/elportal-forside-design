@@ -75,9 +75,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate date range based on view
-    // Note: EnergiDataService consumption data typically has 7-21 days delay
-    // ConsumptionDE35Hour is more current than PrivIndustryConsumptionHour
-    const DATA_DELAY_DAYS = 7 // Start with smaller delay for ConsumptionDE35Hour
+    // Note: EnergiDataService ConsumptionIndustry data typically has 7-14 days delay
+    // This replaced the deprecated PrivIndustryConsumptionHour dataset
+    const DATA_DELAY_DAYS = 10 // ConsumptionIndustry dataset delay - increased based on testing
     const endDate = new Date()
     endDate.setDate(endDate.getDate() - DATA_DELAY_DAYS) // Account for data delay
 
@@ -136,15 +136,15 @@ export async function GET(request: NextRequest) {
       filter = `&filter={"MunicipalityNo":["${municipality}"]}`
     }
 
-    // PrivIndustryConsumptionHour includes municipality breakdowns
-    const apiUrl = `https://api.energidataservice.dk/dataset/PrivIndustryConsumptionHour?start=${apiStart}&end=${apiEnd}${filter}&sort=HourUTC ASC&limit=10000`
+    // ConsumptionIndustry includes municipality breakdowns with separate records per sector (Branche)
+    const apiUrl = `https://api.energidataservice.dk/dataset/ConsumptionIndustry?start=${apiStart}&end=${apiEnd}${filter}&sort=HourUTC ASC&limit=10000`
 
     // Use queued fetch to prevent duplicate requests
     const fetchResult = await queuedFetch(memCacheKey, async () => {
       console.log(`[ConsumptionMap] Fetching data from EnergiDataService`)
       console.log(`[ConsumptionMap] Date range: ${apiStart} to ${apiEnd}`)
       console.log(`[ConsumptionMap] API URL: ${apiUrl}`)
-      
+
       // Use retry helper with exponential backoff
       return await retryWithBackoff(async () => {
         const externalResponse = await fetch(apiUrl)
@@ -329,13 +329,18 @@ function aggregateMunicipalityData(records: any[], aggregation: string) {
       }
     }
 
-    // The actual field names from the API are ConsumptionMWh and ConsumerType_DE35
-    const consumptionMWh = parseFloat(record.ConsumptionMWh || record.ConsumptionkWh || 0) || 0
+    // ConsumptionIndustry dataset uses ConsumptionkWh and Branche fields
+    const consumptionkWh = parseFloat(record.ConsumptionkWh || 0) || 0
 
-    // The consumer type field is ConsumerType_DE35 with values like "KOD-516" for private, "KOD-431" for industry
-    const consumerType = record.ConsumerType_DE35 || record.HousingCategory || ''
-    const isIndustry = consumerType.includes('431') || consumerType === 'Erhverv'
-    const privateConsumption = isIndustry ? 0 : consumptionMWh
+    // Convert kWh to MWh for consistency with existing calculations
+    const consumptionMWh = consumptionkWh / 1000
+
+    // The Branche field indicates sector: "Erhverv" (industry), "Offentligt" (public), "Privat" (private)
+    const branche = record.Branche || ''
+    const isIndustry = branche === 'Erhverv'
+    const isPrivate = branche === 'Privat' || branche === 'Offentligt' // Group public with private for consumer classification
+
+    const privateConsumption = isPrivate ? consumptionMWh : 0
     const industryConsumption = isIndustry ? consumptionMWh : 0
     const totalConsumption = consumptionMWh
 

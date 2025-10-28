@@ -23,7 +23,18 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
   // Determine if this looks like a step-by-step guide based on title content
   const isStepByStep = block.title?.toLowerCase().includes('sådan') || 
                        block.title?.toLowerCase().includes('skift') ||
-                       block.features.some(f => /^\d+\./.test(f.title));
+                       block.features.some(f => /^\d+\./.test(f.title)) ||
+                       block.features.length >= 4; // 4+ features often indicates steps
+
+  // Debug logging
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[FeatureList] Component render:', {
+      title: block.title,
+      featureCount: block.features.length,
+      firstFeatureTitle: block.features[0]?.title,
+      isStepByStep,
+    });
+  }
 
   if (isStepByStep) {
     // Modern step-by-step design with flowing layout
@@ -44,7 +55,7 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
           <div className="max-w-5xl mx-auto">
             {block.features.map((feature, index) => {
               const isLast = index === block.features.length - 1;
-              
+
               return (
                 <div key={feature._key} className="relative">
                   {/* Card */}
@@ -114,9 +125,9 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
           </h3>
         )}
         <div className={`grid grid-cols-1 gap-8 md:gap-12 justify-items-center ${block.features.length === 2 ? 'md:grid-cols-2' :
-            block.features.length === 3 ? 'md:grid-cols-3' :
-              block.features.length === 4 ? 'md:grid-cols-2 lg:grid-cols-4' :
-                'md:grid-cols-3'
+          block.features.length === 3 ? 'md:grid-cols-3' :
+            block.features.length === 4 ? 'md:grid-cols-2 lg:grid-cols-4' :
+              'md:grid-cols-3'
           }`}>
           {block.features.map((feature, index) => {
             return (

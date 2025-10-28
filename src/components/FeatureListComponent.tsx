@@ -49,16 +49,16 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
                   </div>
 
                   {/* Icon */}
-                  <div className="flex items-center justify-center w-16 h-16 mb-4 rounded-xl bg-brand-green/10 group-hover:bg-brand-green/20 transition-colors">
-                    {typeof feature.icon !== 'string' && hasValidIcon(feature.icon as any) ? (
+                  {typeof feature.icon !== 'string' && hasValidIcon(feature.icon as any) && (
+                    <div className="mb-4">
                       <Icon
                         icon={feature.icon as any}
                         size={32}
                         className="text-brand-green"
                         color="#84db41"
                       />
-                    ) : null}
-                  </div>
+                    </div>
+                  )}
 
                   {/* Content */}
                   <h4 className="text-lg font-display font-bold text-brand-dark mb-2 group-hover:text-brand-green transition-colors">

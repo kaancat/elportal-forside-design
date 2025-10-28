@@ -349,6 +349,20 @@ export const PricingComparisonSchema = z.object({
   _key: z.string(),
   title: z.string().optional(),
   subtitle: z.string().optional(),
+  headerAlignment: z.enum(['left', 'center', 'right']).optional(),
+  leadingText: PortableTextSchema.optional(),
+  fixedTitle: z.string().optional(),
+  fixedDescription: PortableTextSchema.optional(),
+  variableTitle: z.string().optional(),
+  variableDescription: PortableTextSchema.optional(),
+  comparisonItems: z.array(z.object({
+    _key: z.string().optional(),
+    feature: z.string(),
+    fixed: z.string(),
+    variable: z.string(),
+    tooltip: z.string().optional(),
+  })).optional(),
+  recommendation: PortableTextSchema.optional(),
 });
 
 export const ProviderSchema = z.object({

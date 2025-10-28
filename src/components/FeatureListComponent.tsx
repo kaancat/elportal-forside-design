@@ -20,137 +20,65 @@ export const FeatureListComponent: React.FC<FeatureListComponentProps> = ({ bloc
     preloadIcons(icons as any);
   }, [block.features]);
 
-  // Determine if this looks like a step-by-step guide based on title content
-  const isStepByStep = block.title?.toLowerCase().includes('sådan') ||
-    block.title?.toLowerCase().includes('skift') ||
-    block.features.some(f => /^\d+\./.test(f.title)) ||
-    block.features.length >= 4; // 4+ features often indicates steps
-
-  // Debug logging
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[FeatureList] Component render:', {
-      title: block.title,
-      featureCount: block.features.length,
-      firstFeatureTitle: block.features[0]?.title,
-      isStepByStep,
-    });
-  }
-
-  if (isStepByStep) {
-    // Modern step-by-step design with flowing layout
-    return (
-      <section className="py-16 lg:py-24 bg-gradient-to-b from-white to-gray-50">
-        <div className="container mx-auto px-4">
-          {block.title && (
-            <h3 className="text-3xl lg:text-4xl font-display font-bold text-center text-brand-dark mb-16">
-              {block.title}
-            </h3>
-          )}
-
-          <div className="max-w-5xl mx-auto">
-            {block.features.map((feature, index) => {
-              const isLast = index === block.features.length - 1;
-
-              return (
-                <div key={feature._key} className="relative">
-                  {/* Card */}
-                  <div className="flex flex-col md:flex-row items-start md:items-center gap-6 bg-white rounded-2xl p-6 md:p-8 shadow-sm hover:shadow-md transition-all duration-300 mb-6">
-                    {/* Step number badge */}
-                    <div className="flex-shrink-0 relative">
-                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-green to-brand-green/80 flex items-center justify-center shadow-lg">
-                        {typeof feature.icon !== 'string' && hasValidIcon(feature.icon as any) ? (
-                          <Icon
-                            icon={feature.icon as any}
-                            size={32}
-                            className="text-white"
-                            color="#ffffff"
-                          />
-                        ) : (
-                          <span className="text-white font-bold text-2xl">{index + 1}</span>
-                        )}
-                      </div>
-                      {/* Step number overlay */}
-                      <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center text-sm font-bold shadow-md">
-                        {index + 1}
-                      </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1">
-                      <h4 className="text-xl md:text-2xl font-display font-bold text-brand-dark mb-2">
-                        {feature.title}
-                      </h4>
-                      <p className="text-gray-600 leading-relaxed">
-                        {feature.description}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Connector arrow (not on last item) */}
-                  {!isLast && (
-                    <div className="flex justify-center my-4">
-                      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-brand-green/10">
-                        <ArrowRight className="text-brand-green" size={24} />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Optional CTA at bottom */}
-          <div className="text-center mt-12">
-            <p className="text-gray-600 text-lg">
-              Klar til at skifte? Start med vores gratis beregner
-            </p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Original design for non-step features
   return (
     <section className="py-16 lg:py-24 bg-white">
       <div className="container mx-auto px-4">
         {block.title && (
-          <h3 className="text-2xl lg:text-3xl font-display font-bold text-center text-brand-dark mb-16">
+          <h3 className="text-3xl lg:text-4xl font-display font-bold text-center text-brand-dark mb-4">
             {block.title}
           </h3>
         )}
-        <div className={`grid grid-cols-1 gap-8 md:gap-12 justify-items-center ${block.features.length === 2 ? 'md:grid-cols-2' :
-          block.features.length === 3 ? 'md:grid-cols-3' :
+        
+        {/* Grid layout with modern card design */}
+        <div className="max-w-6xl mx-auto">
+          <div className={`grid grid-cols-1 gap-6 ${
+            block.features.length === 2 ? 'md:grid-cols-2' :
+            block.features.length === 3 ? 'md:grid-cols-3' :
             block.features.length === 4 ? 'md:grid-cols-2 lg:grid-cols-4' :
-              'md:grid-cols-3'
+            block.features.length === 5 ? 'md:grid-cols-2 lg:grid-cols-3' :
+            'md:grid-cols-3'
           }`}>
-          {block.features.map((feature, index) => {
-            return (
-              <div key={feature._key} className="flex flex-col items-center text-center max-w-sm">
-                <div className="flex items-center justify-center h-20 w-20 mb-6 rounded-full bg-brand-primary-light/10">
-                  {typeof feature.icon !== 'string' && hasValidIcon(feature.icon as any) ? (
-                    <Icon
-                      icon={feature.icon as any}
-                      size={48}
-                      className="feature-list-icon"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 bg-brand-primary rounded-lg flex items-center justify-center">
-                      <span className="text-white font-bold text-xl">?</span>
-                    </div>
-                  )}
+            {block.features.map((feature, index) => {
+              return (
+                <div 
+                  key={feature._key} 
+                  className="group relative bg-white rounded-xl p-6 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                >
+                  {/* Numbered badge */}
+                  <div className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-brand-green text-white flex items-center justify-center text-lg font-bold shadow-md group-hover:scale-110 transition-transform">
+                    {index + 1}
+                  </div>
+
+                  {/* Icon */}
+                  <div className="flex items-center justify-center w-16 h-16 mb-4 rounded-xl bg-brand-green/10 group-hover:bg-brand-green/20 transition-colors">
+                    {typeof feature.icon !== 'string' && hasValidIcon(feature.icon as any) ? (
+                      <Icon
+                        icon={feature.icon as any}
+                        size={32}
+                        className="text-brand-green"
+                        color="#84db41"
+                      />
+                    ) : (
+                      <span className="text-brand-green font-bold text-2xl">{index + 1}</span>
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <h4 className="text-lg font-display font-bold text-brand-dark mb-2 group-hover:text-brand-green transition-colors">
+                    {feature.title}
+                  </h4>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    {feature.description}
+                  </p>
+
+                  {/* Bottom accent bar */}
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-green/0 via-brand-green to-brand-green/0 opacity-0 group-hover:opacity-100 transition-opacity rounded-b-xl" />
                 </div>
-                <h4 className="text-xl font-display font-bold text-brand-dark mb-3">
-                  {feature.title}
-                </h4>
-                <p className="text-gray-600 leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
   );
-}; 
+};

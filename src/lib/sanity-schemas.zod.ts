@@ -74,6 +74,12 @@ export const CallToActionSectionSchema = z.object({
   description: z.string().optional(),
   buttonText: z.string(),
   buttonUrl: z.string(),
+  // Legacy optional aliases for backward compatibility
+  heading: z.string().optional(),
+  primaryButtonLink: z.string().optional(),
+  primaryButtonText: z.string().optional(),
+  secondaryButtonLink: z.string().optional(),
+  secondaryButtonText: z.string().optional(),
 });
 
 export const ChargingBoxProductSchema = z.object({
@@ -105,6 +111,10 @@ export const Co2EmissionsChartSchema = z.object({
   _key: z.string(),
   title: z.string().optional(),
   subtitle: z.string().optional(),
+  // Legacy optional fields used in older docs
+  description: z.string().optional(),
+  region: z.string().optional(),
+  showForecast: z.boolean().optional(),
 });
 
 export const ColorThemeSchema = z.object({
@@ -140,6 +150,9 @@ export const DailyPriceTimelineSchema = z.object({
   _key: z.string(),
   title: z.string().optional(),
   subtitle: z.string().optional(),
+  // Legacy optional fields
+  region: z.string().optional(),
+  priceArea: z.string().optional(),
 });
 
 export const DeclarationGridmixSchema = z.object({
@@ -221,6 +234,8 @@ export const HeroSchema = z.object({
   _key: z.string(),
   headline: z.string(),
   subheadline: z.string().optional(),
+  // Legacy optional rich text content
+  content: z.array(z.any()).optional(),
   image: SanityImageSchema.optional(),
 });
 
@@ -255,6 +270,9 @@ export const InfoCardsSectionSchema = z.object({
   subtitle: z.string().optional(),
   headerAlignment: z.enum(['left', 'center', 'right']).optional(),
   leadingText: z.array(z.any()).optional(),
+  // Legacy style fields used by older docs
+  backgroundColor: z.string().optional(),
+  textColor: z.string().optional(),
   cards: z.array(z.object({
     title: z.string(),
     description: z.array(z.any()).optional(),
@@ -278,6 +296,21 @@ export const LivePriceGraphSchema = z.object({
   subtitle: z.string().optional(),
   apiRegion: z.enum(['DK1', 'DK2']),
   headerAlignment: z.enum(['left', 'center', 'right']).optional(),
+  // Legacy optional fields for backward compatibility
+  autoRefresh: z.boolean().optional(),
+  chartHeight: z.number().optional(),
+  colorScheme: z.string().optional(),
+  updateInterval: z.number().optional(),
+  showTooltip: z.boolean().optional(),
+  showLegend: z.boolean().optional(),
+  chartType: z.string().optional(),
+  timeRange: z.string().optional(),
+  description: z.string().optional(),
+  refreshInterval: z.number().optional(),
+  showAverage: z.boolean().optional(),
+  showCurrentPrice: z.boolean().optional(),
+  showToggle: z.boolean().optional(),
+  priceArea: z.string().optional(),
 });
 
 export const MegaMenuSchema = z.object({
@@ -307,6 +340,9 @@ export const MonthlyProductionChartSchema = z.object({
   title: z.string(),
   leadingText: z.string().optional(),
   description: z.string().optional(),
+  // Legacy fields that may exist in older docs
+  comparisonType: z.string().optional(),
+  showComparison: z.boolean().optional(),
 });
 
 export const PageSchema = z.object({
@@ -320,6 +356,7 @@ export const PageSectionSchema = z.object({
   _type: z.literal('pageSection'),
   _key: z.string(),
   title: z.string().optional(),
+  header: z.string().optional(),
   headerAlignment: z.enum(['left', 'center', 'right']).optional(),
   content: z.array(z.any()).optional(), // Array of blocks, images, and embedded components
   image: SanityImageSchema.optional(),
@@ -328,6 +365,12 @@ export const PageSectionSchema = z.object({
     text: z.string(),
     url: z.string(),
   }).optional(),
+  link: z.string().optional(),
+  // Legacy style fields
+  backgroundColor: z.string().optional(),
+  paddingTop: z.string().optional(),
+  paddingBottom: z.string().optional(),
+  textColor: z.string().optional(),
   settings: z.any().optional(), // SectionSettings schema defined later in file
 });
 
@@ -335,7 +378,8 @@ export const PriceCalculatorSchema = z.object({
   _type: z.literal('priceCalculator'),
   _key: z.string(),
   title: z.string().optional(),
-  backgroundColor: z.enum(['default', 'lightGray', 'gradientGreenMist', 'gradientOceanBreeze', 'gradientSunriseGlow', 'gradientNordicSky', 'gradientClassic', 'solidGreen', 'solidDark']).optional(),
+  backgroundColor: z.string().optional(),
+  variant: z.string().optional(),
 });
 
 export const PriceExampleTableSchema = z.object({
@@ -363,6 +407,9 @@ export const PricingComparisonSchema = z.object({
     tooltip: z.string().optional(),
   })).optional(),
   recommendation: z.any().optional(),
+  // Legacy flags used in some documents
+  showCalculator: z.boolean().optional(),
+  showRecommendation: z.boolean().optional(),
 });
 
 export const ProviderSchema = z.object({
@@ -384,6 +431,10 @@ export const ProviderListSchema = z.object({
   subtitle: z.string().optional(),
   headerAlignment: z.enum(['left', 'center', 'right']).optional(),
   providers: z.array(z.any()).optional(),
+  // Legacy optional fields for backward compatibility
+  maxProviders: z.number().optional(),
+  showDetailedPricing: z.boolean().optional(),
+  showGreenEnergy: z.boolean().optional(),
 });
 
 export const RealPriceComparisonTableSchema = z.object({
@@ -406,6 +457,9 @@ export const RegionalComparisonSchema = z.object({
   _key: z.string(),
   title: z.string().optional(),
   subtitle: z.string().optional(),
+  // Legacy flags used by older docs
+  showHistoricalTrend: z.boolean().optional(),
+  showPriceDifference: z.boolean().optional(),
 });
 
 export const RenewableEnergyForecastSchema = z.object({

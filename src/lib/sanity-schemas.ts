@@ -70,6 +70,12 @@ export interface CallToActionSection extends ContentBlockBase {
   title: string;
   buttonText: string;
   buttonUrl: string;
+  // Legacy optional aliases
+  heading?: string;
+  primaryButtonLink?: string;
+  primaryButtonText?: string;
+  secondaryButtonLink?: string;
+  secondaryButtonText?: string;
 }
 
 export interface ChargingBoxProduct extends ContentBlockBase {
@@ -86,6 +92,10 @@ export interface Co2EmissionsChart extends ContentBlockBase {
   _type: 'co2EmissionsChart';
   title?: string;
   subtitle?: string;
+  // Legacy fields present in some documents
+  description?: string;
+  region?: string;
+  showForecast?: boolean;
 }
 
 export interface ColorTheme extends ContentBlockBase {
@@ -106,6 +116,8 @@ export interface DailyPriceTimeline extends ContentBlockBase {
   _type: 'dailyPriceTimeline';
   title?: string;
   subtitle?: string;
+  region?: string;
+  priceArea?: string;
 }
 
 export interface DeclarationGridmix extends ContentBlockBase {
@@ -173,6 +185,8 @@ export interface Hero extends ContentBlockBase {
   _type: 'hero';
   headline: string;
   subheadline?: string;
+  // Legacy optional rich text content
+  content?: Array<any>;
   image?: SanityImage;
 }
 
@@ -205,6 +219,9 @@ export interface InfoCardsSection extends ContentBlockBase {
   subtitle?: string;
   headerAlignment?: 'left' | 'center' | 'right';
   leadingText?: any[];
+  // Legacy style fields for backward compatibility
+  backgroundColor?: string;
+  textColor?: string;
   cards?: {
     title: string;
     description?: any[];
@@ -226,6 +243,21 @@ export interface LivePriceGraph extends ContentBlockBase {
   subtitle?: string;
   apiRegion: 'DK1' | 'DK2';
   headerAlignment?: 'left' | 'center' | 'right';
+  // Legacy optional fields for backward compatibility
+  autoRefresh?: boolean;
+  chartHeight?: number;
+  colorScheme?: string;
+  updateInterval?: number;
+  showTooltip?: boolean;
+  showLegend?: boolean;
+  chartType?: string;
+  timeRange?: string;
+  description?: string;
+  refreshInterval?: number;
+  showAverage?: boolean;
+  showCurrentPrice?: boolean;
+  showToggle?: boolean;
+  priceArea?: string;
 }
 
 export interface MegaMenu extends ContentBlockBase {
@@ -251,6 +283,9 @@ export interface MonthlyProductionChart extends ContentBlockBase {
   title: string;
   leadingText?: string;
   description?: string;
+  // Legacy optional fields present in older docs
+  comparisonType?: string;
+  showComparison?: boolean;
 }
 
 export interface Page extends ContentBlockBase {
@@ -268,6 +303,7 @@ export interface Page extends ContentBlockBase {
 export interface PageSection extends ContentBlockBase {
   _type: 'pageSection';
   title?: string;
+  header?: string; // legacy alias used in older docs
   headerAlignment?: 'left' | 'center' | 'right';
   content?: Array<any>; // Array of blocks, images, and embedded components
   image?: SanityImage;
@@ -276,13 +312,20 @@ export interface PageSection extends ContentBlockBase {
     text: string;
     url: string;
   };
+  link?: string; // legacy alias for cta.url
+  // Legacy style fields
+  backgroundColor?: string;
+  paddingTop?: string;
+  paddingBottom?: string;
+  textColor?: string;
   settings?: any; // SectionSettings interface
 }
 
 export interface PriceCalculator extends ContentBlockBase {
   _type: 'priceCalculator';
   title?: string;
-  backgroundColor?: 'default' | 'lightGray' | 'gradientGreenMist' | 'gradientOceanBreeze' | 'gradientSunriseGlow' | 'gradientNordicSky' | 'gradientClassic' | 'solidGreen' | 'solidDark';
+  backgroundColor?: string;
+  variant?: string;
 }
 
 export interface PriceExampleTable extends ContentBlockBase {
@@ -294,6 +337,9 @@ export interface PricingComparison extends ContentBlockBase {
   _type: 'pricingComparison';
   title?: string;
   subtitle?: string;
+  // Legacy optional flags for backward compatibility
+  showCalculator?: boolean;
+  showRecommendation?: boolean;
 }
 
 export interface Provider extends ContentBlockBase {
@@ -310,6 +356,12 @@ export interface Provider extends ContentBlockBase {
 export interface ProviderList extends ContentBlockBase {
   _type: 'providerList';
   title?: string;
+  subtitle?: string;
+  headerAlignment?: 'left' | 'center' | 'right';
+  // Legacy optional fields used in older documents
+  maxProviders?: number;
+  showDetailedPricing?: boolean;
+  showGreenEnergy?: boolean;
 }
 
 export interface RealPriceComparisonTable extends ContentBlockBase {
@@ -330,6 +382,9 @@ export interface RegionalComparison extends ContentBlockBase {
   _type: 'regionalComparison';
   title?: string;
   subtitle?: string;
+  // Legacy optional flags for backward compatibility
+  showHistoricalTrend?: boolean;
+  showPriceDifference?: boolean;
 }
 
 export interface RenewableEnergyForecast extends ContentBlockBase {

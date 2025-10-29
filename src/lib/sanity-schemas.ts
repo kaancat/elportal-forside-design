@@ -336,6 +336,13 @@ export interface RenewableEnergyForecast extends ContentBlockBase {
   _type: 'renewableEnergyForecast';
   title: string;
   leadingText?: string;
+  headerAlignment?: 'left' | 'center' | 'right';
+  // Legacy/deprecated fields that may exist in old data
+  region?: string;
+  showPercentages?: boolean;
+  showTrend?: boolean;
+  showDetails?: boolean;
+  forecastDays?: number;
 }
 
 export interface RichTextSection extends ContentBlockBase {

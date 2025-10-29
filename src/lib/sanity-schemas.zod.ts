@@ -413,6 +413,13 @@ export const RenewableEnergyForecastSchema = z.object({
   _key: z.string(),
   title: z.string(),
   leadingText: z.string().optional(),
+  headerAlignment: z.enum(['left', 'center', 'right']).optional(),
+  // Legacy/deprecated fields that may exist in old data
+  region: z.string().optional(),
+  showPercentages: z.boolean().optional(),
+  showTrend: z.boolean().optional(),
+  showDetails: z.boolean().optional(),
+  forecastDays: z.number().optional(),
 });
 
 export const RichTextSectionSchema = z.object({
